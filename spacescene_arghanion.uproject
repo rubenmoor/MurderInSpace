@@ -34,5 +34,11 @@
 			"Name": "HDRIBackdrop",
 			"Enabled": true
 		}
+	],
+	"TargetPlatforms": [
+		"IOS",
+		"Linux",
+		"LinuxArm64",
+		"Windows"
 	]
 }

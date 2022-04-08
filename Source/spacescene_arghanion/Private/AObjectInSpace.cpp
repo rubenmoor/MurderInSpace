@@ -2,6 +2,8 @@
 
 #include "FunctionLib.h"
 #include "GameModeAsteroids.h"
+#include "MyGameInstance.h"
+#include "MyGameState.h"
 #include "VectorTypes.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -41,9 +43,10 @@ void AAObjectInSpace::BeginPlay()
 
 void AAObjectInSpace::OnConstruction(const FTransform& Transform)
 {
-	const auto MU = Cast<AGameModeAsteroids>(UGameplayStatics::GetGameMode(GetWorld()))->MU;
-	const auto VecR = Transform.GetLocation();
-	const auto VecV = 0.8 * sqrt(MU / VecR.Length()) * (FVector(.2, 0, 0) + FVector(0.1, 0.2, 0.9).Cross(VecR.GetSafeNormal()));
-	Orbit->UpdateOrbit(VecR, VecV);
+	const auto MU = UKeplerOrbitComponent::DefaultMU;
+	const auto VecR = Transform.GetLocation().Length() >= 1e-8 ? Transform.GetLocation() : FVector(1000, 0, 0);
+	const auto VecV = 1.0 * sqrt(MU / VecR.Length()) * (FVector(.2, 0, 0) + FVector(0.1, 0.2, 0.9).Cross(VecR.GetUnsafeNormal()));
+	//const auto VecV =sqrt(MU / VecR.Length()) * (FVector(.2, 0, 0) + FVector(0.1, 0.2, 0.9).Cross(VecR.GetUnsafeNormal()));
+	Orbit->UpdateOrbit(VecR, VecV, MU);
 	Super::OnConstruction(Transform);
 }

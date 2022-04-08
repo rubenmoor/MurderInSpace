@@ -4,7 +4,7 @@
 #include "KeplerOrbitComponent.h"
 
 #include "FunctionLib.h"
-#include "GameModeAsteroids.h"
+#include "MyGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 
 void UKeplerOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -13,7 +13,7 @@ void UKeplerOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	float DeltaR = 0;
 	FVector VecRKepler;
 	float R;
-	const auto MU = Cast<AGameModeAsteroids>(UGameplayStatics::GetGameMode(GetWorld()))->MU;
+	const auto MU = GetOwner()->GetGameInstance<UMyGameInstance>()->MU;
 	switch(Orbit)
 	{
 	case orbit::CIRCLE:
@@ -39,10 +39,17 @@ void UKeplerOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV)
+void UKeplerOrbitComponent::BeginPlay()
 {
-	const auto MU = Cast<AGameModeAsteroids>(UGameplayStatics::GetGameMode(GetWorld()))->MU;
-	
+	const auto GameInstance = GetOwner()->GetGameInstance<UMyGameInstance>();
+	if(!GameInstance) RequestEngineExit(TEXT("GameInstance cast to UMyGameInstance: failed"));
+	GameInstance->OnChangedMu.AddUFunction(this, TEXT("UpdateOrbit")); //Add(this, &UKeplerOrbitComponent::UpdateOrbit);
+	//GameInstance->OnChangedMu.
+	Super::BeginPlay();
+}
+
+void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU)
+{
 	SetWorldLocation(VecF1);
 	Velocity = VecV;
 	VelocityScalar = VecV.Length();
@@ -68,10 +75,10 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV)
 	    const auto VecT4 = VecRKepler * SplineToCircle;
 		AddPoints(
 	      { FSplinePoint(0,  VecR ,  VecT1,  VecT1)
-	    	, FSplinePoint(1,  VecP2 + VecF1, -VecT4, -VecT4)
-	    	, FSplinePoint(2, -VecRKepler + VecF1 , -VecT1, -VecT1)
-	    	, FSplinePoint(3, -VecP2 + VecF1,  VecT4,  VecT4)
-	    	});
+		    , FSplinePoint(1,  VecP2 + VecF1, -VecT4, -VecT4)
+		    , FSplinePoint(2, -VecRKepler + VecF1 , -VecT1, -VecT1)
+		    , FSplinePoint(3, -VecP2 + VecF1,  VecT4,  VecT4)
+		    });
 		Orbit = orbit::CIRCLE;
 		Period = UFunctionLib::PeriodEllipse(VecRKepler.Length(), MU);
 	}
@@ -84,12 +91,12 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV)
 	    AddPoint(FSplinePoint(0, VecENorm * P / 2 + VecF1));
 	    auto parabola = [VecHorizontal, VecENorm, P, this](int n, int sign)
 	    {
-	    	return (sign * n * VecHorizontal + VecENorm / 2.0 * ( 1 - pow(n, 2))) * P + VecF1;
+		    return (sign * n * VecHorizontal + VecENorm / 2.0 * ( 1 - pow(n, 2))) * P + VecF1;
 	    };
 	    for(int i = 1; i < 10; i++)
 	    {
-	    	AddPoint(FSplinePoint(2.0 * i - 1, parabola(i, 1)));
-	    	AddPoint(FSplinePoint(2.0 * i    , parabola(i, -1)));
+		    AddPoint(FSplinePoint(2.0 * i - 1, parabola(i, 1)));
+		    AddPoint(FSplinePoint(2.0 * i    , parabola(i, -1)));
 	    }
 		Orbit = orbit::PARABOLA;
 		Period = 0;
@@ -99,7 +106,7 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV)
 	else if(E > 1)
 	{
 		//const float A = P / (VecE.SquaredLength() - 1);
-		const float B = P / sqrt(VecE.SquaredLength() - 1);
+		//const float B = P / sqrt(VecE.SquaredLength() - 1);
 		Orbit = orbit::HYPERBOLA;
 		// TODO
 	}
@@ -118,16 +125,22 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV)
 	    const auto T4 = VecENorm * SplineToCircle * A;
 		AddPoints(
 	      { FSplinePoint(0, Vertex1  ,  T1,  T1)
-	    	, FSplinePoint(1, Covertex1, -T4, -T4)
-	    	, FSplinePoint(2, Vertex2  , -T1, -T1)
-	    	, FSplinePoint(3, Covertex2,  T4,  T4)
-	    	});
+		    , FSplinePoint(1, Covertex1, -T4, -T4)
+		    , FSplinePoint(2, Vertex2  , -T1, -T1)
+		    , FSplinePoint(3, Covertex2,  T4,  T4)
+		    });
 		Orbit = orbit::ELLIPSE;
 		Period = UFunctionLib::PeriodEllipse(A, MU);
 	}
 	
 	UpdateSpline();
 	SplineDistance = GetDistanceAlongSplineAtSplineInputKey(FindInputKeyClosestToWorldLocation(VecR));
+}
+
+void UKeplerOrbitComponent::UpdateOrbit(float MU)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Updated MU: %f"), MU);
+	this->UpdateOrbit(Body->GetComponentLocation(), Velocity, MU);
 }
 
 void UKeplerOrbitComponent::Initialize(FVector _VecF1, USceneComponent* _Body)

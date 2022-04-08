@@ -14,12 +14,4 @@ class SPACESCENE_ARGHANION_API AGameModeAsteroids : public AGameModeBase
 {
 	GENERATED_BODY()
 
-public:
-	/**
-	 * @brief standard gravitational parameter mu = G M
-	 *        solar system: 1.3e20
-	 *        earth: 4.0e14
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MU = 1e7;
 };

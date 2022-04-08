@@ -3,9 +3,7 @@
 
 #include "PawnInSpace.h"
 
-#include "FunctionLib.h"
-#include "GameModeAsteroids.h"
-#include "Kismet/GameplayStatics.h"
+#include "MyGameInstance.h"
 
 // Sets default values
 APawnInSpace::APawnInSpace()
@@ -53,10 +51,10 @@ void APawnInSpace::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 void APawnInSpace::OnConstruction(const FTransform& Transform)
 {
-	const auto MU = Cast<AGameModeAsteroids>(UGameplayStatics::GetGameMode(GetWorld()))->MU;
+	const auto MU = UKeplerOrbitComponent::DefaultMU;
 	const auto VecR = Transform.GetLocation();
-	const auto VecV = 0.8 * sqrt(MU / VecR.Length()) * (FVector(.2, 0, 0) + FVector(0.1, 0.2, 0.9).Cross(VecR.GetSafeNormal()));
-	Orbit->UpdateOrbit(VecR, VecV);
+	const auto VecV = 1.0 * sqrt(MU / VecR.Length()) * (FVector(.2, 0, 0) + FVector(0.1, 0.2, 0.9).Cross(VecR.GetSafeNormal()));
+	Orbit->UpdateOrbit(VecR, VecV, MU);
 	Super::OnConstruction(Transform);
 }
 

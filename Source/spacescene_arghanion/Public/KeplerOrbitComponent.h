@@ -30,9 +30,12 @@ class SPACESCENE_ARGHANION_API UKeplerOrbitComponent : public USplineComponent
 	}
 	
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
-
+	virtual void BeginPlay() override;
 public:
-	void UpdateOrbit(FVector VecR, FVector VecV);
+	void UpdateOrbit(FVector VecR, FVector VecV, float MU);
+
+	UFUNCTION()
+	void UpdateOrbit(float MU);
 
     /**
      * @brief initialize a new Kepler orbit
@@ -41,6 +44,7 @@ public:
      */
 	void Initialize(FVector _VecF1, USceneComponent* _Body);
 
+	static constexpr float DefaultMU = 1e7;
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	orbit Orbit;

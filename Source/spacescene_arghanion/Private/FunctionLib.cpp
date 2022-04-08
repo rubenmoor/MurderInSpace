@@ -3,6 +3,8 @@
 
 #include "FunctionLib.h"
 
+#include "Kismet/GameplayStatics.h"
+
 /**
  * @brief eccentricity of elliptic Kepler orbit
  * @param R location vector
@@ -82,5 +84,16 @@ float UFunctionLib::Perimeter(float A, float B)
 {
 	const auto H = pow(A - B, 2) / pow(A + B, 2);
 	return PI * (A + B) * (1 + 3 * H / (10 + sqrt(4 - 3 * H)));
+}
+
+AGameModeAsteroids* UFunctionLib::GetGameModeAsteroids(const UObject* WorldContextObject)
+{
+    const auto GameMode = StaticCast<AGameModeAsteroids*>(WorldContextObject->GetWorld()->GetAuthGameMode());
+    if(!GameMode)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Game mode must implement `AGameModeAsteroids`"));
+        GEngine->AddOnScreenDebugMessage(0, 3, FColor::Red, TEXT("Critical error: no game mode"));
+    }
+    return GameMode;
 }
 

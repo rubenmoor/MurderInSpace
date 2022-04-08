@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameModeAsteroids.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "FunctionLib.generated.h"
 
@@ -35,4 +36,6 @@ public:
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static float Perimeter(float A, float B);
+
+	static AGameModeAsteroids* GetGameModeAsteroids(const UObject* WorldContextObject);
 };
