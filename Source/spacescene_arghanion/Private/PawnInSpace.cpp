@@ -28,6 +28,11 @@ APawnInSpace::APawnInSpace()
 	Orbit->SetupAttachment(Root);
 }
 
+void APawnInSpace::UpdateMU(float MU) const
+{
+	Orbit->UpdateOrbit(MU);
+}
+
 // Called when the game starts or when spawned
 void APawnInSpace::BeginPlay()
 {

@@ -43,7 +43,6 @@ void UKeplerOrbitComponent::BeginPlay()
 {
 	const auto GameInstance = GetOwner()->GetGameInstance<UMyGameInstance>();
 	if(!GameInstance) RequestEngineExit(TEXT("GameInstance cast to UMyGameInstance: failed"));
-	GameInstance->OnChangedMu.AddUFunction(this, TEXT("UpdateOrbit")); //Add(this, &UKeplerOrbitComponent::UpdateOrbit);
 	//GameInstance->OnChangedMu.
 	Super::BeginPlay();
 }
@@ -139,8 +138,9 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU)
 
 void UKeplerOrbitComponent::UpdateOrbit(float MU)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Updated MU: %f"), MU);
-	this->UpdateOrbit(Body->GetComponentLocation(), Velocity, MU);
+	const auto VecR = Body->GetComponentLocation();
+	const auto VecV = UFunctionLib::Velocity(VecR.Length(), A, MU) * Velocity.GetUnsafeNormal();
+	this->UpdateOrbit(VecR, VecV, MU);
 }
 
 void UKeplerOrbitComponent::Initialize(FVector _VecF1, USceneComponent* _Body)

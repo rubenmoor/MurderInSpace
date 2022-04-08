@@ -18,6 +18,9 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	void UpdateMU(float MU) const;
+
 protected:
 
 	// member variables

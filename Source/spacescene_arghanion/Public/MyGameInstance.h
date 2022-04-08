@@ -7,8 +7,6 @@
 #include "Engine/GameInstance.h"
 #include "MyGameInstance.generated.h"
 
-DECLARE_EVENT_OneParam(UMyGameInstance, FOnChangedMu, float)
-
 /**
  * 
  */
@@ -26,9 +24,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite)
 	float MU = UKeplerOrbitComponent::DefaultMU;
 
-	//FEventChangedMu OnChangedMu() { return EventChangedMu; }
-	FOnChangedMu OnChangedMu;
-	
 protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 };

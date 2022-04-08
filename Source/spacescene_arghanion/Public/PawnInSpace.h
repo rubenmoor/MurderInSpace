@@ -16,6 +16,9 @@ public:
 	// Sets default values for this pawn's properties
 	APawnInSpace();
 
+	UFUNCTION(BlueprintCallable)
+	void UpdateMU(float MU) const;
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -32,7 +35,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* MainMesh;
 	
-public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 

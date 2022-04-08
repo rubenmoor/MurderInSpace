@@ -36,6 +36,11 @@ void AAObjectInSpace::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AAObjectInSpace::UpdateMU(float MU) const
+{
+	Orbit->UpdateOrbit(MU);
+}
+
 void AAObjectInSpace::BeginPlay()
 {
 	Super::BeginPlay();
