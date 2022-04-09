@@ -36,10 +36,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneComponent* MeshRoot;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent* MainMesh;
-	
 	virtual void BeginPlay() override;
-	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 };
 

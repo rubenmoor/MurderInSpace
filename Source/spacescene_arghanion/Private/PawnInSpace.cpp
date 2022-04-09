@@ -19,9 +19,6 @@ APawnInSpace::APawnInSpace()
 	MeshRoot = CreateDefaultSubobject<USceneComponent>(TEXT("MeshRoot"));
 	MeshRoot->SetupAttachment(Root);
 	
-	MainMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MainMesh"));
-	MainMesh->SetupAttachment(MeshRoot);
-
 	//Orbit = new UKeplerOrbitComponent(FVector::Zero(), MeshRoot);
 	Orbit = CreateDefaultSubobject<UKeplerOrbitComponent>(TEXT("KeplerOrbit"));
 	Orbit->Initialize(FVector::Zero(), MeshRoot);
@@ -54,12 +51,8 @@ void APawnInSpace::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 }
 
-void APawnInSpace::OnConstruction(const FTransform& Transform)
+void APawnInSpace::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	const auto MU = UKeplerOrbitComponent::DefaultMU;
-	const auto VecR = Transform.GetLocation();
-	const auto VecV = 1.0 * sqrt(MU / VecR.Length()) * (FVector(.2, 0, 0) + FVector(0.1, 0.2, 0.9).Cross(VecR.GetSafeNormal()));
-	Orbit->UpdateOrbit(VecR, VecV, MU);
-	Super::OnConstruction(Transform);
+	Orbit->UpdateOrbit(UKeplerOrbitComponent::DefaultMU);
+	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
-

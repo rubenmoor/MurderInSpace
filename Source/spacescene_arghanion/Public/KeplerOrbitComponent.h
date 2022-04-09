@@ -27,10 +27,12 @@ class SPACESCENE_ARGHANION_API UKeplerOrbitComponent : public USplineComponent
 	{
     	PrimaryComponentTick.bCanEverTick = true;
     	this->SetClosedLoop(true, false);
+		this->ClearSplinePoints();
 	}
 	
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 	virtual void BeginPlay() override;
+	
 public:
 	void UpdateOrbit(FVector VecR, FVector VecV, float MU);
 
@@ -46,10 +48,10 @@ public:
 
 	static constexpr float DefaultMU = 1e7;
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
 	orbit Orbit;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	FVector VecF1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
@@ -58,18 +60,21 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float SplineDistance;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	float VelocityScalar;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	FVector Velocity;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+	float VelocityNormalized;
+
 	// period in s
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
 	float Period;
 
 	// semi-major axis of elliptic orbit
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
 	float A = 0;
 
 	/**
@@ -79,4 +84,6 @@ protected:
 	 * trying out in UE results in 1.65 being optimal
 	 */
 	static constexpr float SplineToCircle = 1.65;
+
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 };

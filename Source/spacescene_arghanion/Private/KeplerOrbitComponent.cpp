@@ -23,6 +23,7 @@ void UKeplerOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		VecRKepler = Body->GetComponentLocation() - VecF1;
 	 	R = VecRKepler.Length();
 	 	VelocityScalar = UFunctionLib::Velocity(R, A, MU);
+		VelocityNormalized = VelocityScalar / sqrt(MU / R);
 	 	DeltaR = VelocityScalar * DeltaTime;
 		break;
 	case orbit::PARABOLA:
@@ -57,6 +58,8 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU)
 
 	// transform location vector r to Kepler coordinates, where F1 is the origin
 	const auto VecRKepler = VecR - VecF1;
+	const auto R = VecRKepler.Length();
+	VelocityNormalized = VelocityScalar / sqrt(MU / R);
 	
 	constexpr auto Tolerance = 1E-8;
 	const auto VecH = VecRKepler.Cross(VecV);
@@ -79,7 +82,8 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU)
 		    , FSplinePoint(3, -VecP2 + VecF1,  VecT4,  VecT4)
 		    });
 		Orbit = orbit::CIRCLE;
-		Period = UFunctionLib::PeriodEllipse(VecRKepler.Length(), MU);
+		A = R;
+		Period = UFunctionLib::PeriodEllipse(R, MU);
 	}
 
 	// E = 1, Parabola
@@ -136,10 +140,24 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU)
 	SplineDistance = GetDistanceAlongSplineAtSplineInputKey(FindInputKeyClosestToWorldLocation(VecR));
 }
 
+/**
+ * @brief update orbit maintaining the characteristics as best as possible
+ * @param MU graviational parameter
+ */
 void UKeplerOrbitComponent::UpdateOrbit(float MU)
 {
 	const auto VecR = Body->GetComponentLocation();
-	const auto VecV = UFunctionLib::Velocity(VecR.Length(), A, MU) * Velocity.GetUnsafeNormal();
+	FVector VecV;
+	if(Velocity.IsZero())
+	{
+		const auto VecRKepler = VecR - VecF1;
+		const auto VelocityNormal = FVector(0,0,1).Cross(VecRKepler).GetUnsafeNormal();
+		VecV = sqrt(MU / VecRKepler.Length()) * VelocityNormal;
+	}
+	else
+	{
+		VecV = Velocity;
+	}
 	this->UpdateOrbit(VecR, VecV, MU);
 }
 
@@ -147,4 +165,52 @@ void UKeplerOrbitComponent::Initialize(FVector _VecF1, USceneComponent* _Body)
 {
 	VecF1 = _VecF1;
 	Body = _Body;
+	Velocity = FVector::Zero();
+}
+
+void UKeplerOrbitComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	const auto Name = PropertyChangedEvent.Property->GetFName();
+	static const FName FNameVelocityScalar = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, VelocityScalar);
+	static const FName FNameVelocityNormalized = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, VelocityNormalized);
+	const auto VecR = Body->GetComponentLocation();
+	const auto MU = DefaultMU;
+	const auto VecRKepler = VecR - VecF1;
+	FVector VelocityNormal;
+	FVector NewVelocity;
+	
+	if(Velocity.Length() < 1e-8)
+	{
+		if(VecRKepler.IsZero())
+		{
+			UE_LOG(LogTemp, Error, TEXT("VecRKepler zero, unexpected"));
+		}
+		VelocityNormal = FVector(0,0,1).Cross(VecRKepler.GetUnsafeNormal());
+		NewVelocity = sqrt(MU / VecRKepler.Length()) * VelocityNormal;
+	}
+	else
+	{
+		VelocityNormal = Velocity.GetUnsafeNormal();
+	}
+	
+	if(Name == FNameVelocityScalar)
+	{
+		NewVelocity = VelocityScalar * VelocityNormal;
+		UpdateOrbit(VecR, NewVelocity, MU);
+	}
+	else if(Name == FNameVelocityNormalized)
+	{
+		NewVelocity = sqrt(MU / VecRKepler.Length()) * VelocityNormalized * VelocityNormal;
+		UpdateOrbit(VecR, NewVelocity, MU);
+	}
+	else if(Name == TEXT("X") || Name == TEXT("Y") || Name == TEXT("Z"))
+	{
+		NewVelocity = Velocity;
+		UpdateOrbit(VecR, NewVelocity, MU);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("In UKeplerOrbitComponent::PostEditChangeProperty: %s, not doing anything"), *Name.ToString());
+	}
+	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
