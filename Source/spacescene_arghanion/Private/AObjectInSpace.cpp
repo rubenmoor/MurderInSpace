@@ -25,11 +25,6 @@ AAObjectInSpace::AAObjectInSpace()
 	Orbit->SetupAttachment(Root);
 }
 
-void AAObjectInSpace::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
 void AAObjectInSpace::UpdateMU(float MU) const
 {
 	Orbit->UpdateOrbit(MU);
@@ -37,6 +32,7 @@ void AAObjectInSpace::UpdateMU(float MU) const
 
 void AAObjectInSpace::BeginPlay()
 {
+	Orbit->UpdateOrbit(GetGameInstance<UMyGameInstance>()->MU);
 	Super::BeginPlay();
 }
 

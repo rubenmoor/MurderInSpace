@@ -31,7 +31,6 @@ class SPACESCENE_ARGHANION_API UKeplerOrbitComponent : public USplineComponent
 	}
 	
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
-	virtual void BeginPlay() override;
 	
 public:
 	void UpdateOrbit(FVector VecR, FVector VecV, float MU);
@@ -55,7 +54,7 @@ protected:
 	FVector VecF1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	USceneComponent* Body;
+	TObjectPtr<USceneComponent> Body;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float SplineDistance;

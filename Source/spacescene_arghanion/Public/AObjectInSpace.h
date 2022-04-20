@@ -16,8 +16,6 @@ public:
 	// Sets default values for this actor's properties
 	AAObjectInSpace();
 
-	virtual void Tick(float DeltaTime) override;
-
 	UFUNCTION(BlueprintCallable)
 	void UpdateMU(float MU) const;
 
@@ -28,13 +26,13 @@ protected:
 	// components
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USceneComponent* Root;
+	TObjectPtr<USceneComponent> Root;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UKeplerOrbitComponent* Orbit;
+	TObjectPtr<UKeplerOrbitComponent> Orbit;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USceneComponent* MeshRoot;
+	TObjectPtr<USceneComponent> MeshRoot;
 
 	virtual void BeginPlay() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

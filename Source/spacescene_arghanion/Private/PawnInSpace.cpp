@@ -42,7 +42,12 @@ void APawnInSpace::LookAt(FVector VecP)
 	const auto VecMe = MeshRoot->GetComponentLocation();
 	const auto Quat = FQuat::FindBetween(VecP - VecMe, FVector(1, 0, 0));
 	MeshRoot->SetWorldRotation(Quat);
-	//MeshRoot->SetWorldRotation(FRotator(UKismetMathLibrary::Atan((V2P.Y - V2Me.Y) / (V2P.X - V2Me.X)),0,0));
+}
+
+void APawnInSpace::BeginPlay()
+{
+	Orbit->UpdateOrbit(GetGameInstance<UMyGameInstance>()->MU);
+	Super::BeginPlay();
 }
 
 void APawnInSpace::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

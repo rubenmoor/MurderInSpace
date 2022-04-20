@@ -18,11 +18,11 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly);
-	USceneComponent* Root;
+	TObjectPtr<USceneComponent> Root;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Required")
-	UStaticMeshComponent* EventHorizon;
+	TObjectPtr<UStaticMeshComponent> EventHorizon;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Required")
-	UStaticMeshComponent* GravitationalLens;
+	TObjectPtr<UStaticMeshComponent> GravitationalLens;
 };

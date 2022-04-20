@@ -44,13 +44,6 @@ void UKeplerOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UKeplerOrbitComponent::BeginPlay()
-{
-	const auto GameInstance = GetOwner()->GetGameInstance<UMyGameInstance>();
-	if(!GameInstance) RequestEngineExit(TEXT("GameInstance cast to UMyGameInstance: failed"));
-	Super::BeginPlay();
-}
-
 void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU)
 {
 	SetWorldLocation(VecF1);

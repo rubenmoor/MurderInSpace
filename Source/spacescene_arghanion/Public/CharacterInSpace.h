@@ -20,8 +20,8 @@ class SPACESCENE_ARGHANION_API ACharacterInSpace : public APawnInSpace
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USpringArmComponent* SpringArm;
+	TObjectPtr<USpringArmComponent> SpringArm;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UCameraComponent* Camera;
+	TObjectPtr<UCameraComponent> Camera;
 };

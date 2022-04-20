@@ -27,13 +27,14 @@ public:
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USceneComponent* Root;
+	TObjectPtr<USceneComponent> Root;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UKeplerOrbitComponent* Orbit;
+	TObjectPtr<UKeplerOrbitComponent> Orbit;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USceneComponent* MeshRoot;
+	TObjectPtr<USceneComponent> MeshRoot;
 
+	virtual void BeginPlay() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 };
