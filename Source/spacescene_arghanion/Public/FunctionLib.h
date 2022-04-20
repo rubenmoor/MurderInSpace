@@ -37,5 +37,7 @@ public:
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static float Perimeter(float A, float B);
 
-	static AGameModeAsteroids* GetGameModeAsteroids(const UObject* WorldContextObject);
+	static TObjectPtr<AGameModeAsteroids> GetGameModeAsteroids(const UObject* WorldContextObject);
+
+	void LogVector(FLogCategoryName CategoryName, ELogVerbosity::Type Verbosity, FVector Vector);
 };

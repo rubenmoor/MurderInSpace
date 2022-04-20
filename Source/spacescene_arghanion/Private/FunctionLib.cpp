@@ -86,7 +86,7 @@ float UFunctionLib::Perimeter(float A, float B)
 	return PI * (A + B) * (1 + 3 * H / (10 + sqrt(4 - 3 * H)));
 }
 
-AGameModeAsteroids* UFunctionLib::GetGameModeAsteroids(const UObject* WorldContextObject)
+TObjectPtr<AGameModeAsteroids> UFunctionLib::GetGameModeAsteroids(const UObject* WorldContextObject)
 {
     const auto GameMode = StaticCast<AGameModeAsteroids*>(WorldContextObject->GetWorld()->GetAuthGameMode());
     if(!GameMode)
@@ -95,5 +95,10 @@ AGameModeAsteroids* UFunctionLib::GetGameModeAsteroids(const UObject* WorldConte
         GEngine->AddOnScreenDebugMessage(0, 3, FColor::Red, TEXT("Critical error: no game mode"));
     }
     return GameMode;
+}
+
+void UFunctionLib::LogVector(FLogCategoryName CategoryName, ELogVerbosity::Type Verbosity, FVector Vector)
+{
+    //UE_LOG(CategoryName, Verbosity, TEXT("%s: (%f, %f, %f)"));
 }
 

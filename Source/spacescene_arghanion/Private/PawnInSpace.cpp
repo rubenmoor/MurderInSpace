@@ -40,7 +40,11 @@ void APawnInSpace::UpdateLookTarget(FVector Target)
 void APawnInSpace::LookAt(FVector VecP)
 {
 	const auto VecMe = MeshRoot->GetComponentLocation();
-	const auto Quat = FQuat::FindBetween(VecP - VecMe, FVector(1, 0, 0));
+	const auto VecDirection = VecP - VecMe;
+	const auto Quat = FQuat::FindBetween(FVector(0, 1, 0), VecDirection);
+	//UE_LOG(LogTemp, Display, TEXT("(%f, %f, %f)"), VecDirection.X, VecDirection.Y, VecDirection.Z);
+	UE_LOG(LogTemp, Display, TEXT("%s"), *VecDirection.ToCompactString());
+	DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
 	MeshRoot->SetWorldRotation(Quat);
 }
 

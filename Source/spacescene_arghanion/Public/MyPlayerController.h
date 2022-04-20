@@ -17,5 +17,16 @@ class SPACESCENE_ARGHANION_API AMyPlayerController : public APlayerController
 	virtual void SetupInputComponent() override;
 
 protected:
-	void MouseMove(FVector Delta);
+	void MouseMove(FVector VecDelta);
+	void MouseWheel(float Delta);
+	
+	void MouseMoveX(float Delta);
+	void MouseMoveY(float Delta);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 CameraPosition;
+
+	static constexpr uint8 MaxCameraPosition = 8;
+private:
+	void HandleMouseMove(float Delta) const;
 };
