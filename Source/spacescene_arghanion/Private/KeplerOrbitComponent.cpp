@@ -37,6 +37,10 @@ void UKeplerOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	Velocity = GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * VelocityScalar;
 	const auto NewLocation = GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
 	Body->SetWorldLocation(NewLocation);
+	if(isnan(SplineDistance))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Tick: SplineDistance: nan, DeltaR: %f, Spline length: %f"), DeltaR, GetSplineLength());
+	}
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
@@ -44,7 +48,6 @@ void UKeplerOrbitComponent::BeginPlay()
 {
 	const auto GameInstance = GetOwner()->GetGameInstance<UMyGameInstance>();
 	if(!GameInstance) RequestEngineExit(TEXT("GameInstance cast to UMyGameInstance: failed"));
-	//GameInstance->OnChangedMu.
 	Super::BeginPlay();
 }
 
@@ -168,11 +171,14 @@ void UKeplerOrbitComponent::Initialize(FVector _VecF1, USceneComponent* _Body)
 	Velocity = FVector::Zero();
 }
 
-void UKeplerOrbitComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UKeplerOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedChainEvent)
 {
-	const auto Name = PropertyChangedEvent.Property->GetFName();
+	const auto Name = PropertyChangedChainEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 	static const FName FNameVelocityScalar = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, VelocityScalar);
 	static const FName FNameVelocityNormalized = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, VelocityNormalized);
+	static const FName FNameVelocity = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, Velocity);
+	static const FName FNameSplineDistance = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, SplineDistance);
+	
 	const auto VecR = Body->GetComponentLocation();
 	const auto MU = DefaultMU;
 	const auto VecRKepler = VecR - VecF1;
@@ -186,7 +192,7 @@ void UKeplerOrbitComponent::PostEditChangeProperty(FPropertyChangedEvent& Proper
 			UE_LOG(LogTemp, Error, TEXT("VecRKepler zero, unexpected"));
 		}
 		VelocityNormal = FVector(0,0,1).Cross(VecRKepler.GetUnsafeNormal());
-		NewVelocity = sqrt(MU / VecRKepler.Length()) * VelocityNormal;
+		//NewVelocity = sqrt(MU / VecRKepler.Length()) * VelocityNormal;
 	}
 	else
 	{
@@ -203,14 +209,28 @@ void UKeplerOrbitComponent::PostEditChangeProperty(FPropertyChangedEvent& Proper
 		NewVelocity = sqrt(MU / VecRKepler.Length()) * VelocityNormalized * VelocityNormal;
 		UpdateOrbit(VecR, NewVelocity, MU);
 	}
-	else if(Name == TEXT("X") || Name == TEXT("Y") || Name == TEXT("Z"))
+	else if(Name == FNameVelocity)
 	{
 		NewVelocity = Velocity;
 		UpdateOrbit(VecR, NewVelocity, MU);
+	}
+	else if(Name == FNameSplineDistance)
+	{
+		const auto R = VecRKepler.Length();
+		SplineDistance = fmod(SplineDistance, GetSplineLength());
+		if(SplineDistance < 0)
+		{
+			SplineDistance += GetSplineLength();
+		}
+		Velocity = GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * VelocityScalar;
+		VelocityNormalized = VelocityScalar / sqrt(MU / R);
+		VelocityScalar = Velocity.Length();
+		const auto NewLocation = GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
+		Body->SetWorldLocation(NewLocation);
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("In UKeplerOrbitComponent::PostEditChangeProperty: %s, not doing anything"), *Name.ToString());
 	}
-	Super::PostEditChangeProperty(PropertyChangedEvent);
+	Super::PostEditChangeChainProperty(PropertyChangedChainEvent);
 }

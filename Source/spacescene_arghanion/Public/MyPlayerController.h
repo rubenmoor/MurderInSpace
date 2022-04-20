@@ -13,5 +13,9 @@ UCLASS()
 class SPACESCENE_ARGHANION_API AMyPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+	virtual void BeginPlay() override;
+
+protected:
+	void MouseMove(FVector Delta);
 };

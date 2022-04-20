@@ -18,11 +18,14 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateMU(float MU) const;
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateLookTarget(FVector Target);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void LookAt(FVector VecP);
 	
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneComponent* Root;
 
@@ -31,12 +34,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneComponent* MeshRoot;
-
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 };

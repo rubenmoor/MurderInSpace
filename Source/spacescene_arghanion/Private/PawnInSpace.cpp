@@ -4,6 +4,8 @@
 #include "PawnInSpace.h"
 
 #include "MyGameInstance.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 APawnInSpace::APawnInSpace()
@@ -30,25 +32,17 @@ void APawnInSpace::UpdateMU(float MU) const
 	Orbit->UpdateOrbit(MU);
 }
 
-// Called when the game starts or when spawned
-void APawnInSpace::BeginPlay()
+void APawnInSpace::UpdateLookTarget(FVector Target)
 {
-	Super::BeginPlay();
-	
+	// TODO
 }
 
-// Called every frame
-void APawnInSpace::Tick(float DeltaTime)
+void APawnInSpace::LookAt(FVector VecP)
 {
-	Super::Tick(DeltaTime);
-
-}
-
-// Called to bind functionality to input
-void APawnInSpace::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
+	const auto VecMe = MeshRoot->GetComponentLocation();
+	const auto Quat = FQuat::FindBetween(VecP - VecMe, FVector(1, 0, 0));
+	MeshRoot->SetWorldRotation(Quat);
+	//MeshRoot->SetWorldRotation(FRotator(UKismetMathLibrary::Atan((V2P.Y - V2Me.Y) / (V2P.X - V2Me.X)),0,0));
 }
 
 void APawnInSpace::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

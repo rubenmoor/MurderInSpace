@@ -85,5 +85,5 @@ protected:
 	 */
 	static constexpr float SplineToCircle = 1.65;
 
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedChainEvent) override;
 };
