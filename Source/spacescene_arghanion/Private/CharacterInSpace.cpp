@@ -17,3 +17,9 @@ ACharacterInSpace::ACharacterInSpace()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
 }
+
+void ACharacterInSpace::UpdateSpringArm(uint8 CameraPosition)
+{
+	SpringArm->TargetArmLength = pow(CameraPosition, 2) * 250;
+	SpringArm->SetWorldRotation(FRotator(CameraPosition < 2 ? CameraPosition * -30 : -50 - CameraPosition * 5, 0, 0));
+}

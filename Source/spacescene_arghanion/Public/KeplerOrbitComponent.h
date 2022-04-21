@@ -26,8 +26,7 @@ class SPACESCENE_ARGHANION_API UKeplerOrbitComponent : public USplineComponent
 	UKeplerOrbitComponent()
 	{
     	PrimaryComponentTick.bCanEverTick = true;
-    	this->SetClosedLoop(true, false);
-		this->ClearSplinePoints();
+		ClearSplinePoints();
 	}
 	
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;

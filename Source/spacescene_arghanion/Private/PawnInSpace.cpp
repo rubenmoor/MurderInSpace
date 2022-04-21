@@ -42,10 +42,12 @@ void APawnInSpace::LookAt(FVector VecP)
 	const auto VecMe = MeshRoot->GetComponentLocation();
 	const auto VecDirection = VecP - VecMe;
 	const auto Quat = FQuat::FindBetween(FVector(0, 1, 0), VecDirection);
-	//UE_LOG(LogTemp, Display, TEXT("(%f, %f, %f)"), VecDirection.X, VecDirection.Y, VecDirection.Z);
-	UE_LOG(LogTemp, Display, TEXT("%s"), *VecDirection.ToCompactString());
+	const auto AngleDelta = Quat.GetAngle() - MeshRoot->GetComponentQuat().GetAngle();
 	DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
-	MeshRoot->SetWorldRotation(Quat);
+	if(abs(AngleDelta) > 15. / 180 * PI)
+	{
+		MeshRoot->SetWorldRotation(Quat);
+	}
 }
 
 void APawnInSpace::BeginPlay()

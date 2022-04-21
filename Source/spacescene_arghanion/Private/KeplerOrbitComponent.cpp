@@ -77,6 +77,7 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU)
 		    , FSplinePoint(2, -VecRKepler + VecF1 , -VecT1, -VecT1)
 		    , FSplinePoint(3, -VecP2 + VecF1,  VecT4,  VecT4)
 		    });
+    	SetClosedLoop(true, false);
 		Orbit = orbit::CIRCLE;
 		A = R;
 		Period = UFunctionLib::PeriodEllipse(R, MU);
@@ -97,6 +98,7 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU)
 		    AddPoint(FSplinePoint(2.0 * i - 1, parabola(i, 1)));
 		    AddPoint(FSplinePoint(2.0 * i    , parabola(i, -1)));
 	    }
+    	SetClosedLoop(false, false);
 		Orbit = orbit::PARABOLA;
 		Period = 0;
 	}
@@ -108,6 +110,7 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU)
 		//const float B = P / sqrt(VecE.SquaredLength() - 1);
 		Orbit = orbit::HYPERBOLA;
 		// TODO
+    	SetClosedLoop(false, false);
 	}
 	
 	// 0 < E < 1, Ellipse
@@ -128,6 +131,7 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU)
 		    , FSplinePoint(2, Vertex2  , -T1, -T1)
 		    , FSplinePoint(3, Covertex2,  T4,  T4)
 		    });
+    	SetClosedLoop(true, false);
 		Orbit = orbit::ELLIPSE;
 		Period = UFunctionLib::PeriodEllipse(A, MU);
 	}
@@ -154,7 +158,7 @@ void UKeplerOrbitComponent::UpdateOrbit(float MU)
 	{
 		VecV = Velocity;
 	}
-	this->UpdateOrbit(VecR, VecV, MU);
+	UpdateOrbit(VecR, VecV, MU);
 }
 
 void UKeplerOrbitComponent::Initialize(FVector _VecF1, USceneComponent* _Body)

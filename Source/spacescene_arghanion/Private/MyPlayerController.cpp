@@ -22,6 +22,11 @@ void AMyPlayerController::SetupInputComponent()
 	//InputComponent->BindAxis("MouseMoveY", this, &AMyPlayerController::MouseMoveY);
 }
 
+AMyPlayerController::AMyPlayerController()
+{
+	CameraPosition = 2;
+}
+
 void AMyPlayerController::MouseMove(FVector VecDelta)
 {
 	FVector Position, Direction;
@@ -31,16 +36,15 @@ void AMyPlayerController::MouseMove(FVector VecDelta)
 		const auto X = Position.X - Direction.X * Position.Z / Direction.Z;
 		const auto Y = Position.Y - Direction.Y * Position.Z / Direction.Z;
 		GetPawn<ACharacterInSpace>()->LookAt(FVector(X, Y, 0));
-		//UE_LOG(LogTemp, Warning, TEXT("(%f, %f, %f) - (%f, %f)"), Delta.X, Delta.Y, Delta.Z, X, Y);
 	}
 }
 
 void AMyPlayerController::MouseWheel(float Delta)
 {
-	if(Delta > 0)
+	if(abs(Delta) > 0)
 	{
-		CameraPosition = std::clamp<uint8>(CameraPosition + Delta, 0, MaxCameraPosition);
-		UE_LOG(LogTemp, Warning, TEXT("MouseWheel: %f"), Delta);
+		CameraPosition = std::clamp<int8>(CameraPosition - Delta, 0, MaxCameraPosition);
+		GetPawn<ACharacterInSpace>()->UpdateSpringArm(CameraPosition);
 	}		
 }
 
@@ -58,12 +62,16 @@ void AMyPlayerController::HandleMouseMove(float Delta) const
 {
 	FVector Position, Direction;
 	DeprojectMousePositionToWorld(Position, Direction);
-	UE_LOG(LogTemp, Warning, TEXT("HandeMouseMove, (%f, %f, %f) - (%f, %f, %f)"), Position.X, Position.Y, Position.Z, Direction.X, Direction.Y, Direction.Z);
 	if(abs(Direction.Z) > 1e-8)
 	{
 		const auto X = Position.X + Direction.X * Position.Z / Direction.Z;
 		const auto Y = Position.Y + Direction.Y * Position.Z / Direction.Z;
 		GetPawn<ACharacterInSpace>()->LookAt(FVector(X, Y, 0));
-		UE_LOG(LogTemp, Warning, TEXT("%f - (%f, %f)"), Delta, X, Y);
 	}
+}
+
+void AMyPlayerController::BeginPlay()
+{
+	GetPawn<ACharacterInSpace>()->UpdateSpringArm(CameraPosition);
+	Super::BeginPlay();
 }

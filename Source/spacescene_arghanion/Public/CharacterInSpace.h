@@ -18,6 +18,9 @@ class SPACESCENE_ARGHANION_API ACharacterInSpace : public APawnInSpace
 
 	ACharacterInSpace();
 
+public:
+	void UpdateSpringArm(uint8 CameraPosition);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USpringArmComponent> SpringArm;

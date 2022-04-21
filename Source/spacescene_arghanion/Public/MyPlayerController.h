@@ -15,6 +15,7 @@ class SPACESCENE_ARGHANION_API AMyPlayerController : public APlayerController
 	GENERATED_BODY()
 
 	virtual void SetupInputComponent() override;
+	AMyPlayerController();
 
 protected:
 	void MouseMove(FVector VecDelta);
@@ -29,4 +30,5 @@ protected:
 	static constexpr uint8 MaxCameraPosition = 8;
 private:
 	void HandleMouseMove(float Delta) const;
+	virtual void BeginPlay() override;
 };
