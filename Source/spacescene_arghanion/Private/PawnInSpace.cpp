@@ -27,9 +27,9 @@ APawnInSpace::APawnInSpace()
 	Orbit->SetupAttachment(Root);
 }
 
-void APawnInSpace::UpdateMU(float MU) const
+void APawnInSpace::UpdateMU(float MU, float RMAX) const
 {
-	Orbit->UpdateOrbit(MU);
+	Orbit->UpdateOrbit(MU, RMAX);
 }
 
 void APawnInSpace::UpdateLookTarget(FVector Target)
@@ -52,12 +52,13 @@ void APawnInSpace::LookAt(FVector VecP)
 
 void APawnInSpace::BeginPlay()
 {
-	Orbit->UpdateOrbit(GetGameInstance<UMyGameInstance>()->MU);
+	const auto GameInstance = GetGameInstance<UMyGameInstance>();
+	Orbit->UpdateOrbit(GameInstance->MU, GameInstance->GameAreaRadius);
 	Super::BeginPlay();
 }
 
 void APawnInSpace::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Orbit->UpdateOrbit(UKeplerOrbitComponent::DefaultMU);
+	Orbit->UpdateOrbit(UKeplerOrbitComponent::DefaultMU, UMyGameInstance::DefaultGameAreaRadius);
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }

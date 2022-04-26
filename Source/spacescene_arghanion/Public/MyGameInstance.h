@@ -24,6 +24,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite)
 	float MU = UKeplerOrbitComponent::DefaultMU;
 
+	static constexpr float DefaultGameAreaRadius = 500000;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GameAreaRadius = DefaultGameAreaRadius;
+
 protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 };

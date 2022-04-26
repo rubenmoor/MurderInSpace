@@ -29,15 +29,16 @@ FVector UFunctionLib::FocusPoint2(float A, FVector E)
 }
 
 /**
- * @brief semi-major axis of elliptic kepler orbit
+ * @brief semi-major axis of elliptic orbit or hyperbolic trajectory
+ *        for the elliptic orbit, a > 0; hyperbolic trajectory => a < 0
  * @param R vector of current location 
  * @param V vector of current velocity
  * @param MU gravitational parameter
  * @return a
  */
-float UFunctionLib::SemiMajorAxis(FVector R, FVector V, float MU)
+float UFunctionLib::SemiMajorAxis(FVector VecR, FVector VecV, float MU)
 {
-	return MU * R.Length() / ( 2 * MU - R.Length() * V.SquaredLength());
+	return 1. / (2. / VecR.Length() - VecV.SquaredLength() / MU);
 }
 
 /**
@@ -69,9 +70,14 @@ float UFunctionLib::PeriodEllipse(float a, float MU)
  * @param MU gravitational parameter
  * @return v
  */
-float UFunctionLib::Velocity(float R, float A, float MU)
+float UFunctionLib::VelocityEllipse(float R, float A, float MU)
 {
     return sqrt(MU * (2.0 / R - 1.0 / A));
+}
+
+float UFunctionLib::VelocityParabola(float R, float MU)
+{
+    return sqrt(MU * 2.0 / R);
 }
 
 /**

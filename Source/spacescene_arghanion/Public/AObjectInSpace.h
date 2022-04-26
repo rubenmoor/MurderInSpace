@@ -17,7 +17,7 @@ public:
 	AAObjectInSpace();
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateMU(float MU) const;
+	void UpdateMU(float MU, float RMAX) const;
 
 protected:
 

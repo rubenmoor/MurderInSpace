@@ -17,7 +17,7 @@ public:
 	APawnInSpace();
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateMU(float MU) const;
+	void UpdateMU(float MU, float RMAX) const;
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateLookTarget(FVector Target);

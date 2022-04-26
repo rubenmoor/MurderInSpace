@@ -20,6 +20,7 @@ class SPACESCENE_ARGHANION_API ACharacterInSpace : public APawnInSpace
 
 public:
 	void UpdateSpringArm(uint8 CameraPosition);
+	void SetVisibility(bool bVisibility);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

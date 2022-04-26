@@ -11,6 +11,8 @@ enum class orbit : uint8
 {
 	CIRCLE UMETA(DisplayName="Circle"),
 	ELLIPSE UMETA(DisplayName="Ellipse"),
+	LINEBOUND UMETA(DisplayName="LineBound"),
+	LINEUNBOUND UMETA(DisplayName="LineUnbound"),
 	PARABOLA UMETA(DisplayName="Parabola"),
 	HYPERBOLA UMETA(DisplayName="Hyperbola")
 };
@@ -32,10 +34,10 @@ class SPACESCENE_ARGHANION_API UKeplerOrbitComponent : public USplineComponent
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 	
 public:
-	void UpdateOrbit(FVector VecR, FVector VecV, float MU);
+	void UpdateOrbit(FVector VecR, FVector VecV, float MU, float RMAX);
 
 	UFUNCTION()
-	void UpdateOrbit(float MU);
+	void UpdateOrbit(float MU, float RMAX);
 
     /**
      * @brief initialize a new Kepler orbit
@@ -48,6 +50,9 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
 	orbit Orbit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Keper" )
+	float Eccentricity;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	FVector VecF1;

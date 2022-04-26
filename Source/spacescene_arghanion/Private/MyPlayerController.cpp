@@ -45,6 +45,14 @@ void AMyPlayerController::MouseWheel(float Delta)
 	{
 		CameraPosition = std::clamp<int8>(CameraPosition - Delta, 0, MaxCameraPosition);
 		GetPawn<ACharacterInSpace>()->UpdateSpringArm(CameraPosition);
+		if(CameraPosition == 0)
+		{
+			GetPawn<ACharacterInSpace>()->SetVisibility(false);
+		}
+		else
+		{
+			GetPawn<ACharacterInSpace>()->SetVisibility(true);
+		}
 	}		
 }
 

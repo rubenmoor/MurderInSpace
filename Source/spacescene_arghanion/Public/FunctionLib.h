@@ -23,7 +23,7 @@ public:
 	static FVector FocusPoint2(float A, FVector E);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float SemiMajorAxis(FVector R, FVector V, float MU);
+	static float SemiMajorAxis(FVector VecR, FVector VecV, float MU);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static float SemiMinorAxis(float A, float ESquared);
@@ -32,8 +32,11 @@ public:
 	static float PeriodEllipse(float A, float MU);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float Velocity(float R, float A, float MU);
+	static float VelocityEllipse(float R, float A, float MU);
 
+	UFUNCTION(BlueprintPure, Category="Orbit")
+	static float VelocityParabola(float R, float MU);
+	
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static float Perimeter(float A, float B);
 

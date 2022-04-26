@@ -25,19 +25,20 @@ AAObjectInSpace::AAObjectInSpace()
 	Orbit->SetupAttachment(Root);
 }
 
-void AAObjectInSpace::UpdateMU(float MU) const
+void AAObjectInSpace::UpdateMU(float MU, float RMAX) const
 {
-	Orbit->UpdateOrbit(MU);
+	Orbit->UpdateOrbit(MU, RMAX);
 }
 
 void AAObjectInSpace::BeginPlay()
 {
-	Orbit->UpdateOrbit(GetGameInstance<UMyGameInstance>()->MU);
+	const auto GameInstance = GetGameInstance<UMyGameInstance>();
+	Orbit->UpdateOrbit(GameInstance->MU, GameInstance->GameAreaRadius);
 	Super::BeginPlay();
 }
 
 void AAObjectInSpace::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Orbit->UpdateOrbit(UKeplerOrbitComponent::DefaultMU);
+	Orbit->UpdateOrbit(UKeplerOrbitComponent::DefaultMU, UMyGameInstance::DefaultGameAreaRadius);
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
