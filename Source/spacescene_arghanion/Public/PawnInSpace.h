@@ -25,6 +25,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void LookAt(FVector VecP);
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UHierarchicalInstancedStaticMeshComponent> VisualTrajectory;
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> Root;

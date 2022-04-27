@@ -21,9 +21,12 @@ APawnInSpace::APawnInSpace()
 	MeshRoot = CreateDefaultSubobject<USceneComponent>(TEXT("MeshRoot"));
 	MeshRoot->SetupAttachment(Root);
 	
+	VisualTrajectory = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Visual Trajectory"));
+	VisualTrajectory->SetupAttachment(Root);
+	
 	//Orbit = new UKeplerOrbitComponent(FVector::Zero(), MeshRoot);
 	Orbit = CreateDefaultSubobject<UKeplerOrbitComponent>(TEXT("KeplerOrbit"));
-	Orbit->Initialize(FVector::Zero(), MeshRoot);
+	Orbit->Initialize(FVector::Zero(), MeshRoot, VisualTrajectory);
 	Orbit->SetupAttachment(Root);
 }
 

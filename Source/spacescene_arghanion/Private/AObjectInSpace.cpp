@@ -4,9 +4,6 @@
 #include "VectorTypes.h"
 #include "Kismet/GameplayStatics.h"
 
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
-
 AAObjectInSpace::AAObjectInSpace()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -18,10 +15,13 @@ AAObjectInSpace::AAObjectInSpace()
 
 	MeshRoot = CreateDefaultSubobject<USceneComponent>(TEXT("MeshRoot"));
 	MeshRoot->SetupAttachment(Root);
+
+	VisualTrajectory = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Visual Trajectory"));
+	VisualTrajectory->SetupAttachment(Root);
 	
 	//Orbit = new UKeplerOrbitComponent(FVector::Zero(), MeshRoot);
 	Orbit = CreateDefaultSubobject<UKeplerOrbitComponent>(TEXT("KeplerOrbit"));
-	Orbit->Initialize(FVector::Zero(), MeshRoot);
+	Orbit->Initialize(FVector::Zero(), MeshRoot, VisualTrajectory);
 	Orbit->SetupAttachment(Root);
 }
 

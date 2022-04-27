@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Components/SplineComponent.h"
 #include "KeplerOrbitComponent.generated.h"
 
@@ -44,7 +45,7 @@ public:
      * @param VecF1 the focal point 1 in world space, the big gravitational body is here
      * @param Body  any mesh is attached to this scene root, which will move around
      */
-	void Initialize(FVector _VecF1, USceneComponent* _Body);
+	void Initialize(FVector _VecF1, TObjectPtr<USceneComponent> _Body, TObjectPtr<UHierarchicalInstancedStaticMeshComponent> _VisualTrajectory);
 
 	static constexpr float DefaultMU = 1e7;
 protected:
@@ -59,6 +60,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> Body;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UHierarchicalInstancedStaticMeshComponent> VisualTrajectory;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float SplineDistance;
