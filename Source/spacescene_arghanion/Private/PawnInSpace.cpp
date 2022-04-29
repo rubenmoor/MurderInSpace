@@ -1,16 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "PawnInSpace.h"
 
 #include "MyGameInstance.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
-// Sets default values
 APawnInSpace::APawnInSpace()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	// components
@@ -20,14 +15,14 @@ APawnInSpace::APawnInSpace()
 
 	MeshRoot = CreateDefaultSubobject<USceneComponent>(TEXT("MeshRoot"));
 	MeshRoot->SetupAttachment(Root);
-	
-	VisualTrajectory = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Visual Trajectory"));
-	VisualTrajectory->SetupAttachment(Root);
+
+	TrajectoryMesh = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("Trajectory Mesh"));
+	TrajectoryMesh->SetupAttachment(Root);
 	
 	//Orbit = new UKeplerOrbitComponent(FVector::Zero(), MeshRoot);
 	Orbit = CreateDefaultSubobject<UKeplerOrbitComponent>(TEXT("KeplerOrbit"));
-	Orbit->Initialize(FVector::Zero(), MeshRoot, VisualTrajectory);
 	Orbit->SetupAttachment(Root);
+	Orbit->Initialize(FVector::Zero(), MeshRoot, TrajectoryMesh);
 }
 
 void APawnInSpace::UpdateMU(float MU, float RMAX) const

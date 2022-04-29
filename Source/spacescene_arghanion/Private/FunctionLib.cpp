@@ -72,7 +72,7 @@ float UFunctionLib::PeriodEllipse(float a, float MU)
  */
 float UFunctionLib::VelocityEllipse(float R, float A, float MU)
 {
-    return std::max(sqrt(MU * (2.0 / R - 1.0 / A)), .1);
+    return std::max(sqrt(MU * (2.0 / R - 1.0 / A)), 1.);
 }
 
 float UFunctionLib::VelocityParabola(float R, float MU)

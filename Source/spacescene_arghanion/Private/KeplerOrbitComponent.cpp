@@ -5,83 +5,103 @@
 
 #include "FunctionLib.h"
 #include "MyGameInstance.h"
-#include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
+
+void UKeplerOrbitComponent::Initialize(FVector _VecF1, TObjectPtr<USceneComponent> _Body, TObjectPtr<UHierarchicalInstancedStaticMeshComponent> _TrajectoryMesh)
+{
+	VecF1 = _VecF1;
+	Body = _Body;
+	TrajectoryMesh = _TrajectoryMesh;
+	SetAbsolute(true, true, true);
+	TrajectoryMesh->SetAbsolute(true, true, true);
+	bHasOrbit = false;
+	bInitialized = true;
+}
 
 void UKeplerOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                           FActorComponentTickFunction* ThisTickFunction)
 {
-	float DeltaR = 0;
-	const auto VecRKepler = Body->GetComponentLocation() - VecF1;
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	const auto VecR = Body->GetComponentLocation();
+	const auto VecRKepler = VecR - VecF1;
 	const auto R = VecRKepler.Length();
 	const auto MU = GetOwner()->GetGameInstance<UMyGameInstance>()->MU;
 	switch(Orbit)
 	{
 	case orbit::CIRCLE:
-		DeltaR = VelocityScalar * DeltaTime;
 		break;
 	case orbit::ELLIPSE:
-	 	VelocityScalar = UFunctionLib::VelocityEllipse(R, A, MU);
-	 	DeltaR = VelocityScalar * DeltaTime;
+	 	Velocity = UFunctionLib::VelocityEllipse(R, A, MU);
 		break;
 	case orbit::LINEBOUND:
-		VelocityScalar = UFunctionLib::VelocityEllipse(R, A, MU);
-		DeltaR = VelocityScalar * DeltaTime;
+		Velocity = UFunctionLib::VelocityEllipse(R, A, MU);
 		break;
 	case orbit::LINEUNBOUND:
-		VelocityScalar = VelocityScalar - copysign(MU / pow(R, 2) * DeltaTime, Velocity.Dot(VecRKepler));
-		DeltaR = VelocityScalar * DeltaTime;
+		Velocity = Velocity - copysign(MU / pow(R, 2) * DeltaTime, VecVelocity.Dot(VecRKepler));
 		break;
 	case orbit::PARABOLA:
-	 	VelocityScalar = UFunctionLib::VelocityParabola(R, MU);
-		DeltaR = VelocityScalar * DeltaTime;
+	 	Velocity = UFunctionLib::VelocityParabola(R, MU);
 		break;
 	case orbit::HYPERBOLA:
-	 	VelocityScalar = UFunctionLib::VelocityEllipse(R, A, MU);
-		DeltaR = VelocityScalar * DeltaTime;
+	 	Velocity = UFunctionLib::VelocityEllipse(R, A, MU);
 		break;
 	}
-	VelocityNormalized = VelocityScalar / sqrt(MU / R);
-	const auto NewSplineDistance = SplineDistance + DeltaR;
-	if(IsClosedLoop())
+	VelocityNormalized = Velocity / sqrt(MU / R);
+	const auto DeltaR = Velocity * DeltaTime;
+
+	if(Orbit == orbit::LINEBOUND)
 	{
-		SplineDistance = fmod(NewSplineDistance, GetSplineLength());
-	}
-	else if(NewSplineDistance > GetSplineLength())
-	{
-		SplineDistance = GetSplineLength();
+		SplineDistanceLineBound = fmod(SplineDistanceLineBound + DeltaR, GetSplineLength());
+		Body->SetWorldLocation(GetLocationAtDistanceAlongSpline(SplineDistanceLineBound, ESplineCoordinateSpace::World));
+		VecVelocity = GetTangentAtDistanceAlongSpline(SplineDistanceLineBound, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
 	}
 	else
 	{
-		SplineDistance = NewSplineDistance;
+		const auto Key = FindInputKeyClosestToWorldLocation(VecR);
+		VecVelocity = GetTangentAtSplineInputKey(Key, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
+		const auto NewLocation = VecR + VecVelocity * DeltaTime;
+		Body->SetWorldLocation(FindLocationClosestToWorldLocation(NewLocation, ESplineCoordinateSpace::World));
 	}
-	Velocity = GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * VelocityScalar;
-	const auto NewLocation = GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
-	Body->SetWorldLocation(NewLocation);
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
+	const auto RealDeltaR = (Body->GetComponentLocation() - VecR).Length();
+	const auto RelativeError = DeltaR / RealDeltaR - 1.;
+	if(abs(RelativeError) > 0.02)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s: Expected: %f; really: %f; relative error: %.1f%"), *GetOwner()->GetFName().ToString(), DeltaR, RealDeltaR, RelativeError * 100.);
+	}
 }
 
 void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU, float RMAX)
 {
+	if(!bInitialized)
+	{
+		RequestEngineExit(TEXT("KeplerOrbitComponent: need to run Initialize."));
+	}
+
 	SetWorldLocation(VecF1);
-	Velocity = VecV;
-	VelocityScalar = VecV.Length();
+	TrajectoryMesh->SetWorldLocation(VecF1);
+	VecVelocity = VecV;
+	Velocity = VecV.Length();
 	
 	ClearSplinePoints(false);
 
 	// transform location vector r to Kepler coordinates, where F1 is the origin
 	const auto VecRKepler = VecR - VecF1;
 	const auto R = VecRKepler.Length();
-	VelocityNormalized = VelocityScalar / sqrt(MU / R);
+	VelocityNormalized = Velocity / sqrt(MU / R);
 
 	// the bigger this value, the earlier an eccentricity close to 1 will be interpreted as parabola orbit
 	constexpr auto Tolerance = 1E-2;
 	const auto VecH = VecRKepler.Cross(VecV);
-	const float P = VecH.SquaredLength() / MU;
+	P = VecH.SquaredLength() / MU;
+	Energy = pow(Velocity, 2) / 2. - MU / R;
 	const auto VecE = UFunctionLib::Eccentricity(VecRKepler, VecV, MU);
 	Eccentricity = VecE.Length();
 	const auto VecENorm = VecE.GetSafeNormal();
 	const auto VecHNorm = VecH.GetSafeNormal();
+
+	// the energy of the weakest bound state: a circular orbit at R_MAX
+	const auto E_BOUND_MIN = -MU / (2 * RMAX);
 
 	// H = 0 (implies E = 1, too): falling in a straight line
 	if(VecHNorm.IsZero())
@@ -110,11 +130,9 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU, fl
 				SetClosedLoop(false, false);
 				UpdateSpline();
 			}
-			SplineDistance = GetDistanceAlongSplineAtSplineInputKey(FindInputKeyClosestToWorldLocation(VecR));
 			SetClosedLoop(true, false);
-			UpdateSpline();
-			
 			Orbit = orbit::LINEBOUND;
+			SplineDistanceLineBound = GetDistanceAlongSplineAtSplineInputKey(FindInputKeyClosestToWorldLocation(VecR));
 			A = UFunctionLib::SemiMajorAxis(VecRKepler, VecV, MU);
 			Period = 0; // TODO
 		}
@@ -127,9 +145,6 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU, fl
 					, FSplinePoint(1, VecV.GetUnsafeNormal() * (RMAX - VecR.Length()), ESplinePointType::Linear)
 				});
 			SetClosedLoop(false, false);
-			UpdateSpline();
-			SplineDistance = GetDistanceAlongSplineAtSplineInputKey(FindInputKeyClosestToWorldLocation(VecR));
-			
 			Orbit = orbit::LINEUNBOUND;
 			A = 0;
 			Period = 0;
@@ -149,15 +164,24 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU, fl
 		    , FSplinePoint(3, -VecP2 + VecF1,  VecT4,  VecT4)
 		    });
     	SetClosedLoop(true, false);
-		UpdateSpline();
-		SplineDistance = GetDistanceAlongSplineAtSplineInputKey(FindInputKeyClosestToWorldLocation(VecR));
 		Orbit = orbit::CIRCLE;
 		A = R;
 		Period = UFunctionLib::PeriodEllipse(R, MU);
 	}
 
 	// 0 < E < 1, Ellipse
-	else if(Eccentricity <= 1. - Tolerance)
+	// the Tolerance causes a peculiarity:
+	// E close to 1 can imply a parabola, but only for Energy approaching 0 (and P > 0);
+	// E close to 1 within the given `Tolerance`, allows for Energy * P / MU in the range
+	// [ Tolerance^2 / 2 - Tolerance, Tolerance^2 + Tolerance], which is a huge range for Energy, given P,
+	// and any bound orbit that should be just a narrow ellipse, jumps to being a wrong parabola;
+	// those "narrow ellipses" imply small P values; P / (1 + Eccentricity) equals the periapsis; thus:
+	// small values for the periapsis that are impossible Kepler orbits because of collision with the main body.
+	// For a black hole, a P cutoff isn't ideal (small Periapses are allowed), thus instead I define a cutoff energy:
+	// The total energy at R_MAX when orbiting in a circle is the bound state with energy closest to zero.
+	// As long the energy is smaller than that, we can safely assume a bound state and thus an ellipse instead of
+	// the parabola
+	else if(Eccentricity <= 1. - Tolerance || (Eccentricity <= 1 && Energy < E_BOUND_MIN))
 	{
 		A = P / (1 - VecE.SquaredLength());
 	    const auto B = A * sqrt(1 - VecE.SquaredLength());
@@ -175,14 +199,12 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU, fl
 		    , FSplinePoint(3, Covertex2 + VecF1,  T4,  T4)
 		    });
     	SetClosedLoop(true, false);
-		UpdateSpline();
-		SplineDistance = GetDistanceAlongSplineAtSplineInputKey(FindInputKeyClosestToWorldLocation(VecR));
 		Orbit = orbit::ELLIPSE;
 		Period = UFunctionLib::PeriodEllipse(A, MU);
 	}
 	
 	// E = 1, Parabola
-	else if(Eccentricity <= 1 + Tolerance)
+	else if(Eccentricity <= 1. + Tolerance)
 	{
 		std::list<FVector> Points;
 	    const auto VecHorizontal = VecHNorm.Cross(VecENorm);
@@ -204,8 +226,6 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU, fl
 			AddSplineWorldPoint(Point);
 		}
     	SetClosedLoop(false, false);
-		UpdateSpline();
-		SplineDistance = GetDistanceAlongSplineAtSplineInputKey(FindInputKeyClosestToWorldLocation(VecR));
 		Orbit = orbit::PARABOLA;
 		Period = 0;
 		A = 0;
@@ -240,18 +260,22 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU, fl
 			AddSplineWorldPoint(Point);
 		}
     	SetClosedLoop(false, false);
-		UpdateSpline();
-		SplineDistance = GetDistanceAlongSplineAtSplineInputKey(FindInputKeyClosestToWorldLocation(VecR));
 		Orbit = orbit::HYPERBOLA;
 		Period = 0;
 	}
+	UpdateSpline();
 
-	VisualTrajectory->ClearInstances();
-	constexpr auto Delta = 12.;
-	for(int i = 0; i < GetSplineLength() / Delta; i++)
+	const auto SplineDistance = GetDistanceAlongSplineAtSplineInputKey(FindInputKeyClosestToWorldLocation(VecR));
+	const auto MAX_DISTANCE = std::min<float>(10000., GetSplineLength());
+	const auto DISTANCE_DELTA = 50.f;
+	const auto N_MAX = MAX_DISTANCE / DISTANCE_DELTA;
+	TrajectoryMesh->ClearInstances();
+	for(int i = 1; i < N_MAX; i++)
 	{
-		VisualTrajectory->AddInstance(GetTransformAtDistanceAlongSpline(i * Delta, ESplineCoordinateSpace::World), true);
+		const auto Transform = GetTransformAtDistanceAlongSpline(SplineDistance + i * DISTANCE_DELTA, ESplineCoordinateSpace::World);
+		TrajectoryMesh->AddInstance(Transform);
 	}
+	bHasOrbit = true;
 }
 
 /**
@@ -262,24 +286,16 @@ void UKeplerOrbitComponent::UpdateOrbit(FVector VecR, FVector VecV, float MU, fl
 void UKeplerOrbitComponent::UpdateOrbit(const float MU, const float RMAX)
 {
 	const auto VecR = Body->GetComponentLocation();
-	UpdateOrbit(VecR, Velocity, MU, RMAX);
-}
-
-void UKeplerOrbitComponent::Initialize(FVector _VecF1, TObjectPtr<USceneComponent> _Body, TObjectPtr<UHierarchicalInstancedStaticMeshComponent> _VisualTrajectory)
-{
-	VecF1 = _VecF1;
-	Body = _Body;
-	Velocity = FVector::Zero();
-	VisualTrajectory = _VisualTrajectory;
+	UpdateOrbit(VecR, VecVelocity, MU, RMAX);
 }
 
 void UKeplerOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedChainEvent)
 {
+	Super::PostEditChangeChainProperty(PropertyChangedChainEvent);
 	const auto Name = PropertyChangedChainEvent.PropertyChain.GetHead()->GetValue()->GetFName();
-	static const FName FNameVelocityScalar = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, VelocityScalar);
+	static const FName FNameVelocityScalar = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, Velocity);
 	static const FName FNameVelocityNormalized = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, VelocityNormalized);
-	static const FName FNameVelocity = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, Velocity);
-	static const FName FNameSplineDistance = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, SplineDistance);
+	static const FName FNameVelocity = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, VecVelocity);
 	static const FName FNameEccentricity = GET_MEMBER_NAME_CHECKED(UKeplerOrbitComponent, Eccentricity);
 	
 	const auto VecR = Body->GetComponentLocation();
@@ -288,11 +304,11 @@ void UKeplerOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEve
 	const auto VecRKepler = VecR - VecF1;
 	FVector NewVelocity;
 	
-	const auto VelocityNormal = Velocity.GetUnsafeNormal();
+	const auto VelocityNormal = VecVelocity.GetSafeNormal(1e-8, FVector(0., 1., 0.));
 	
 	if(Name == FNameVelocityScalar)
 	{
-		NewVelocity = VelocityScalar * VelocityNormal;
+		NewVelocity = Velocity * VelocityNormal;
 		UpdateOrbit(VecR, NewVelocity, MU, RMAX);
 	}
 	else if(Name == FNameVelocityNormalized)
@@ -302,22 +318,8 @@ void UKeplerOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEve
 	}
 	else if(Name == FNameVelocity)
 	{
-		NewVelocity = Velocity;
+		NewVelocity = VecVelocity;
 		UpdateOrbit(VecR, NewVelocity, MU, RMAX);
-	}
-	else if(Name == FNameSplineDistance)
-	{
-		const auto R = VecRKepler.Length();
-		SplineDistance = fmod(SplineDistance, GetSplineLength());
-		if(SplineDistance < 0)
-		{
-			SplineDistance += GetSplineLength();
-		}
-		Velocity = GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * VelocityScalar;
-		VelocityNormalized = VelocityScalar / sqrt(MU / R);
-		VelocityScalar = Velocity.Length();
-		const auto NewLocation = GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
-		Body->SetWorldLocation(NewLocation);
 	}
 	else if(Name == FNameEccentricity)
 	{
@@ -332,5 +334,17 @@ void UKeplerOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEve
 	{
 		UE_LOG(LogTemp, Warning, TEXT("In UKeplerOrbitComponent::PostEditChangeProperty: %s, not doing anything"), *Name.ToString());
 	}
-	Super::PostEditChangeChainProperty(PropertyChangedChainEvent);
+}
+
+void UKeplerOrbitComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	if(!bHasOrbit)
+	{
+		// set up default circular orbit
+		const auto VecR = Body->GetComponentLocation();
+		const auto GI = GetOwner()->GetGameInstance<UMyGameInstance>();
+		const auto VecV = FVector(0, 0, 1).Cross(VecR).GetSafeNormal() * sqrt(GI->MU / VecR.Length());
+		UpdateOrbit(VecR, VecV, GI->MU, GI->GameAreaRadius);
+	}
 }

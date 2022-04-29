@@ -30,7 +30,17 @@ class SPACESCENE_ARGHANION_API UKeplerOrbitComponent : public USplineComponent
 	{
     	PrimaryComponentTick.bCanEverTick = true;
 		ClearSplinePoints();
+		bInitialized = false;
 	}
+
+	// I don't know how to pass arguments to the constructor, as Unreal somehow requires the default constructor for
+	// CreateDefaultSubObject; the work-around is a seperate method `Initialize`; not calling it causes failure
+	bool bInitialized;
+
+	// Objects in the editor have their orbit pre-configured; however, objects spawned later need sensible defaults,
+	// but the circular orbit depends on the location of the body, which isn't known before BeginPlay;
+	// in order not to override orbits that are already set up, the defaults will be applied only when this is `false`: 
+	bool bHasOrbit;
 	
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 	
@@ -42,36 +52,37 @@ public:
 
     /**
      * @brief initialize a new Kepler orbit
-     * @param VecF1 the focal point 1 in world space, the big gravitational body is here
-     * @param Body  any mesh is attached to this scene root, which will move around
+     * @param _VecF1 the focal point 1 in world space, the big gravitational body is here
+     * @param _Body  any mesh is attached to this scene root, which will move around
      */
-	void Initialize(FVector _VecF1, TObjectPtr<USceneComponent> _Body, TObjectPtr<UHierarchicalInstancedStaticMeshComponent> _VisualTrajectory);
+	void Initialize(FVector _VecF1, TObjectPtr<USceneComponent> _Body, TObjectPtr<UHierarchicalInstancedStaticMeshComponent> _TrajectoryMesh);
 
 	static constexpr float DefaultMU = 1e7;
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
 	orbit Orbit;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Keper" )
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler" )
 	float Eccentricity;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler", DisplayName="P = (H * H)/MU")
+	float P;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler" )
+	float Energy;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	FVector VecF1;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> Body;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UHierarchicalInstancedStaticMeshComponent> VisualTrajectory;
+	TObjectPtr<UHierarchicalInstancedStaticMeshComponent> TrajectoryMesh;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float SplineDistance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+	float Velocity;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	float VelocityScalar;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	FVector Velocity;
+	FVector VecVelocity;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	float VelocityNormalized;
@@ -84,6 +95,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
 	float A = 0;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
+	float SplineDistanceLineBound;
+	
 	/**
 	 * @brief constant factor to construct tangents for spline points
 	 * //const float CBezierToCircle = 4.0 / 3 * (sqrt(2) - 1);
@@ -93,4 +107,5 @@ protected:
 	static constexpr float SplineToCircle = 1.65;
 
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedChainEvent) override;
+	virtual void BeginPlay() override;
 };

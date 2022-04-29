@@ -25,9 +25,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void LookAt(FVector VecP);
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UHierarchicalInstancedStaticMeshComponent> VisualTrajectory;
-	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> Root;
@@ -38,6 +35,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> MeshRoot;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UHierarchicalInstancedStaticMeshComponent> TrajectoryMesh;
+	
 	virtual void BeginPlay() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 };
