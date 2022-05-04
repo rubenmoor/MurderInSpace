@@ -28,7 +28,7 @@ public:
 
 	// Acceleration in m / s^2
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	float AccelerationSI = 9.81;
+	float AccelerationSI = .5;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float bIsAccelerating = false;

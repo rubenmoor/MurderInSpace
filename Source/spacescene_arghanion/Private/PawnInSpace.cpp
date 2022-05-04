@@ -55,7 +55,7 @@ void APawnInSpace::LookAt(FVector VecP)
 {
 	const auto VecMe = GetActorLocation();
 	const auto VecDirection = VecP - VecMe;
-	const auto Quat = FQuat::FindBetween(FVector(0, 1, 0), VecDirection);
+	const auto Quat = FQuat::FindBetween(FVector(1, 0, 0), VecDirection);
 	const auto AngleDelta = Quat.GetAngle() - GetActorQuat().GetAngle();
 	DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
 	if(abs(AngleDelta) > 15. / 180 * PI)

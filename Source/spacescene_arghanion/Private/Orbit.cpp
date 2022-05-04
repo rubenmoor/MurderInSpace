@@ -378,7 +378,7 @@ void AOrbit::UpdateOrbit(FVector VecV, float Alpha, float RMAX)
 		SplineMesh->SetupAttachment(Root);
 		SplineMesh->RegisterComponent();
 		AddInstanceComponent(SplineMesh);
-		SplineMesh->SetMobility(EComponentMobility::Static);
+		SplineMesh->SetMobility(EComponentMobility::Stationary);
 		SplineMesh->CastShadow = false;
 		SplineMesh->SetStaticMesh(SM_Trajectory);
 		const auto VecStartPos = Spline->GetLocationAtSplinePoint(Indices[i], ESplineCoordinateSpace::World);
