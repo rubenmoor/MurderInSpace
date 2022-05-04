@@ -1,10 +1,9 @@
-#include "PawnInSpace.h"
+#include "ActorInSpace.h"
 
 #include "MyGameInstance.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
-APawnInSpace::APawnInSpace()
+AActorInSpace::AActorInSpace()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -15,7 +14,7 @@ APawnInSpace::APawnInSpace()
 
 	// if(Orbit)
 	// {
-	// 	UE_LOG(LogTemp, Warning, TEXT("APawnInSpace::APawnInSpace: Orbit not null"))
+	// 	UE_LOG(LogTemp, Warning, TEXT("AActorInSpace::AActorInSpace: Orbit not null"))
 	// }
 	// else
 	// {
@@ -31,42 +30,24 @@ APawnInSpace::APawnInSpace()
 	// 		}
 	// 		else
 	// 		{
-	// 			UE_LOG(LogTemp, Warning, TEXT("APawnInSpace::APawnInSpace: OrbitClass null"))
+	// 			UE_LOG(LogTemp, Warning, TEXT("AActorInSpace::AActorInSpace: OrbitClass null"))
 	// 		}
 	// 	}
 	// 	else
 	// 	{
-	// 		UE_LOG(LogTemp, Warning, TEXT("APawnInSpace::APawnInSpace: World null"))
+	// 		UE_LOG(LogTemp, Warning, TEXT("AActorInSpace::AActorInSpace: World null"))
 	// 	}
 	// }
 }
 
-void APawnInSpace::UpdateMU(float MU, float RMAX) const
+void AActorInSpace::UpdateMU(float MU, float RMAX) const
 {
 	Orbit->UpdateOrbit(MU, RMAX);
 }
 
-void APawnInSpace::UpdateLookTarget(FVector Target)
+void AActorInSpace::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	// TODO
-}
-
-void APawnInSpace::LookAt(FVector VecP)
-{
-	const auto VecMe = GetActorLocation();
-	const auto VecDirection = VecP - VecMe;
-	const auto Quat = FQuat::FindBetween(FVector(0, 1, 0), VecDirection);
-	const auto AngleDelta = Quat.GetAngle() - GetActorQuat().GetAngle();
-	DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
-	if(abs(AngleDelta) > 15. / 180 * PI)
-	{
-		SetActorRotation(Quat);
-	}
-}
-
-void APawnInSpace::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	static const FName FNameOrbit = GET_MEMBER_NAME_CHECKED(APawnInSpace, Orbit);
+	static const FName FNameOrbit = GET_MEMBER_NAME_CHECKED(AActorInSpace, Orbit);
 	const auto Name = PropertyChangedEvent.GetPropertyName();
 	
 	if(Name == FNameOrbit)
@@ -82,15 +63,14 @@ void APawnInSpace::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 	{
 		Orbit->UpdateOrbit(UMyGameInstance::EditorDefaultAlpha, UMyGameInstance::EditorDefaultWorldRadiusUU);
 	}
-	
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-void APawnInSpace::SpawnOrbit()
+void AActorInSpace::SpawnOrbit()
 {
  	if(Orbit)
  	{
- 		UE_LOG(LogTemp, Warning, TEXT("APawnInSpace::SpawnOrbit: Orbit already set; skipping"))
+ 		UE_LOG(LogTemp, Warning, TEXT("AActorInSpace::SpawnOrbit: Orbit already set; skipping"))
  	}
     else
     {

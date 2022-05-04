@@ -4,39 +4,33 @@
 
 #include "CoreMinimal.h"
 #include "Orbit.h"
-#include "GameFramework/Pawn.h"
-#include "PawnInSpace.generated.h"
+#include "GameFramework/Actor.h"
+#include "ActorInSpace.generated.h"
 
 UCLASS()
-class SPACESCENE_ARGHANION_API APawnInSpace : public APawn
+class SPACESCENE_ARGHANION_API AActorInSpace : public AActor
 {
 	GENERATED_BODY()
 
-public:
-	// Sets default values for this pawn's properties
-	APawnInSpace();
+public:	
+	// Sets default values for this actor's properties
+	AActorInSpace();
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateMU(float MU, float RMAX) const;
 
-	UFUNCTION(BlueprintCallable)
-	void UpdateLookTarget(FVector Target);
-
-	UFUNCTION(BlueprintCallable)
-	virtual void LookAt(FVector VecP);
-	
 protected:
 	// event handlers
 	
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	
+
 	// components
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> Root;
 
 	// member variables
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<AOrbit> Orbit;
 
@@ -48,3 +42,4 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void SpawnOrbit();
 };
+

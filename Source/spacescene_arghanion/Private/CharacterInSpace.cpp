@@ -3,10 +3,12 @@
 
 #include "CharacterInSpace.h"
 
+#include "MyGameInstance.h"
+
 ACharacterInSpace::ACharacterInSpace()
 {
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(MeshRoot);
+	SpringArm->SetupAttachment(Root);
 	SpringArm->TargetArmLength = 1000;
 	SpringArm->bEnableCameraLag = true;
 	SpringArm->CameraLagSpeed = 3;
@@ -26,5 +28,5 @@ void ACharacterInSpace::UpdateSpringArm(uint8 CameraPosition)
 
 void ACharacterInSpace::SetVisibility(bool bVisibility)
 {
-	MeshRoot->SetVisibility(bVisibility, true);
+	Root->SetVisibility(bVisibility, true);
 }

@@ -9,12 +9,12 @@
  * @brief eccentricity of elliptic Kepler orbit
  * @param R location vector
  * @param V velocity vector
- * @param MU gravitational parameter
+ * @param Alpha gravitational parameter
  * @return E
  */
-FVector UFunctionLib::Eccentricity(FVector R, FVector V, float MU)
+FVector UFunctionLib::Eccentricity(FVector R, FVector V, float Alpha)
 {
-	return (V.SquaredLength() / MU - 1.0 / R.Length()) * R - R.Dot(V) / MU * V;
+	return (V.SquaredLength() / Alpha - 1.0 / R.Length()) * R - R.Dot(V) / Alpha * V;
 }
 
 /**
@@ -33,12 +33,12 @@ FVector UFunctionLib::FocusPoint2(float A, FVector E)
  *        for the elliptic orbit, a > 0; hyperbolic trajectory => a < 0
  * @param R vector of current location 
  * @param V vector of current velocity
- * @param MU gravitational parameter
+ * @param Alpha gravitational parameter
  * @return a
  */
-float UFunctionLib::SemiMajorAxis(FVector VecR, FVector VecV, float MU)
+float UFunctionLib::SemiMajorAxis(FVector VecR, FVector VecV, float Alpha)
 {
-	return 1. / (2. / VecR.Length() - VecV.SquaredLength() / MU);
+	return 1. / (2. / VecR.Length() - VecV.SquaredLength() / Alpha);
 }
 
 /**
@@ -55,29 +55,29 @@ float UFunctionLib::SemiMinorAxis(float A, float ESquared)
 /**
  * @brief Period of elliptic kepler orbit in seconds
  * @param a semi-major axis
- * @param MU gravitational parameter
+ * @param Alpha gravitational parameter
  * @return T/s
  */
-float UFunctionLib::PeriodEllipse(float a, float MU)
+float UFunctionLib::PeriodEllipse(float a, float Alpha)
 {
-	return 2 * PI * sqrt(pow(a, 3) / MU);
+	return 2 * PI * sqrt(pow(a, 3) / Alpha);
 }
 
 /**
  * @brief Orbital velocity given the semi-major axis and current distance to F1
  * @param R distance to focal point 1
  * @param A semi-major axis
- * @param MU gravitational parameter
+ * @param Alpha gravitational parameter
  * @return v
  */
-float UFunctionLib::VelocityEllipse(float R, float A, float MU)
+float UFunctionLib::VelocityEllipse(float R, float A, float Alpha)
 {
-    return std::max(sqrt(MU * (2.0 / R - 1.0 / A)), 1.);
+    return std::max(sqrt(Alpha * (2.0 / R - 1.0 / A)), 1.);
 }
 
-float UFunctionLib::VelocityParabola(float R, float MU)
+float UFunctionLib::VelocityParabola(float R, float Alpha)
 {
-    return sqrt(MU * 2.0 / R);
+    return sqrt(Alpha * 2.0 / R);
 }
 
 /**
@@ -90,6 +90,11 @@ float UFunctionLib::Perimeter(float A, float B)
 {
 	const auto H = pow(A - B, 2) / pow(A + B, 2);
 	return PI * (A + B) * (1 + 3 * H / (10 + sqrt(4 - 3 * H)));
+}
+
+float UFunctionLib::AxialTidalForce(float R, float L, float M, float Alpha)
+{
+	return Alpha * L * M / (4 * pow(R, 3));
 }
 
 TObjectPtr<AGameModeAsteroids> UFunctionLib::GetGameModeAsteroids(const UObject* WorldContextObject)

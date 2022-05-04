@@ -17,28 +17,31 @@ class SPACESCENE_ARGHANION_API UFunctionLib : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static FVector Eccentricity(FVector R, FVector V, float MU);
+	static FVector Eccentricity(FVector R, FVector V, float Alpha);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static FVector FocusPoint2(float A, FVector E);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float SemiMajorAxis(FVector VecR, FVector VecV, float MU);
+	static float SemiMajorAxis(FVector VecR, FVector VecV, float Alpha);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static float SemiMinorAxis(float A, float ESquared);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float PeriodEllipse(float A, float MU);
+	static float PeriodEllipse(float A, float Alpha);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float VelocityEllipse(float R, float A, float MU);
+	static float VelocityEllipse(float R, float A, float Alpha);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float VelocityParabola(float R, float MU);
+	static float VelocityParabola(float R, float Alpha);
 	
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static float Perimeter(float A, float B);
+
+	UFUNCTION(BlueprintPure, Category="Orbit")
+	static float AxialTidalForce(float R, float L, float M, float Alpha);
 
 	static TObjectPtr<AGameModeAsteroids> GetGameModeAsteroids(const UObject* WorldContextObject);
 

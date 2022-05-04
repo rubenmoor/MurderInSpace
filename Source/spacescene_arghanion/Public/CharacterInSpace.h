@@ -23,6 +23,13 @@ public:
 	void SetVisibility(bool bVisibility);
 
 protected:
+
+	// event handers
+
+	//virtual void BeginPlay() override;
+
+	// components
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USpringArmComponent> SpringArm;
 
