@@ -18,17 +18,20 @@ class SPACESCENE_ARGHANION_API AMyPlayerController : public APlayerController
 	AMyPlayerController();
 
 protected:
-	void MouseMove(FVector VecDelta);
-	void MouseWheel(float Delta);
-	
-	void MouseMoveX(float Delta);
-	void MouseMoveY(float Delta);
+	// change the zoom level continuously
+	void Zoom(float Delta);
 
+	// given your current orientation, use the main rocket engine to accelerate
+	void AccelerateBegin();
+	void AccelerateEnd();
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 CameraPosition;
 
 	static constexpr uint8 MaxCameraPosition = 8;
-private:
-	void HandleMouseMove(float Delta) const;
+
+	// event handlers
+	
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 };

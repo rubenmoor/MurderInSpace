@@ -64,6 +64,19 @@ void APawnInSpace::LookAt(FVector VecP)
 	}
 }
 
+void APawnInSpace::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if(bIsAccelerating)
+	{
+		const auto GI = GetGameInstance<UMyGameInstance>();
+		const auto VecV = Orbit->GetVecVelocity();
+		const auto NewVecV = VecV + GetActorForwardVector() * AccelerationSI / GI->ScaleFactor * DeltaSeconds;
+		Orbit->UpdateOrbit(NewVecV, GI->Alpha, GI->WorldRadius);
+	}
+}
+
 void APawnInSpace::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	static const FName FNameOrbit = GET_MEMBER_NAME_CHECKED(APawnInSpace, Orbit);

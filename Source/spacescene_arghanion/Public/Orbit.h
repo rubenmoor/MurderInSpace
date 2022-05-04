@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SplineComponent.h"
+#include "Components/SplineMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "Orbit.generated.h"
 
@@ -29,13 +30,16 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
 	void UpdateOrbit(FVector VecV, float Alpha, float RMAX);
 
-	UFUNCTION()
 	void UpdateOrbit(float ALPHA, float RMAX);
 
 	UFUNCTION(BlueprintCallable)
 	void SetupActorInSpace(AActor* _ActorInSpace, FVector _VecF1, FVector VecV);
+
+	UFUNCTION(BlueprintCallable)
+	FVector GetVecVelocity() { return VecVelocity; };
 
 protected:
 	
@@ -58,7 +62,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<AActor> ActorInSpace;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<UStaticMesh> SM_Trajectory;
 	
@@ -97,11 +101,31 @@ protected:
 	// for orbit == LINEBOUND, the spline distance is used because the spline key closest to location cannot be reliably
 	// determined, i.e. the object jumps between the two directions
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-	float SplineDistanceLineBound;
+	float SplineDistance;
 	
 	// a spline key: the position on the spline; in favor of spline distance which results in inaccuracies
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
 	float SplineKey;
+
+	// distance travelled at orbit creation
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	float DistanceZero;
+
+	// HISM marker index; counts higher than the number of instances
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	int32 HISMCurrentIndex;
+
+	// HISM distance between markers
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float HISMDistance = 40;
+
+	// HISM Number of markers
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int HISMNumberOfMarkers;
+
+	// HISM maximum length
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float HISMMaxLength = 2500;
 	
 	/**
 	 * @brief constant factor to construct tangents for spline points

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MyGameInstance.h"
 #include "Orbit.h"
 #include "GameFramework/Pawn.h"
 #include "PawnInSpace.generated.h"
@@ -24,10 +25,18 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void LookAt(FVector VecP);
+
+	// Acceleration in m / s^2
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	float AccelerationSI = 9.81;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	float bIsAccelerating = false;
 	
 protected:
 	// event handlers
-	
+
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
 	// components

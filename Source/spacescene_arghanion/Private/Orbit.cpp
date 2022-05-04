@@ -1,5 +1,7 @@
 #include "Orbit.h"
 
+#include <numeric>
+
 #include "FunctionLib.h"
 #include "MyGameInstance.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
@@ -72,7 +74,6 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
 		{
 			UE_LOG(LogTemp, Warning, TEXT("In UKeplerOrbitComponent::PostEditChangeProperty: %s, not doing anything"), *Name.ToString());
 		}
-		UE_LOG(LogTemp, Display, TEXT("UKeplerComponent::PostEditChangeChainProperty: Alpha: %f"), ALPHA);
 	}
 }
 
@@ -107,11 +108,11 @@ void AOrbit::Tick(float DeltaTime)
 	VelocityNormalized = Velocity / sqrt(Alpha / R);
 	const auto DeltaR = Velocity * DeltaTime;
 
+	SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
 	if(Orbit == OrbitType::LINEBOUND)
 	{
-		SplineDistanceLineBound = fmod(SplineDistanceLineBound + DeltaR, Spline->GetSplineLength());
-		ActorInSpace->SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistanceLineBound, ESplineCoordinateSpace::World));
-		VecVelocity = Spline->GetTangentAtDistanceAlongSpline(SplineDistanceLineBound, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
+		ActorInSpace->SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World));
+		VecVelocity = Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
 	}
 	else
 	{
@@ -122,6 +123,15 @@ void AOrbit::Tick(float DeltaTime)
 		// new spline key
 		SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewLocation);
 		ActorInSpace->SetActorLocation(Spline->GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World));
+
+		// update trajectory HISM markers
+		if((SplineDistance - DistanceZero) / HISMDistance > HISMCurrentIndex)
+		{
+			const auto Distance = fmod(DistanceZero + (HISMNumberOfMarkers + HISMCurrentIndex) * HISMDistance, Spline->GetSplineLength());
+			const auto Transform = Spline->GetTransformAtDistanceAlongSpline(Distance, ESplineCoordinateSpace::World);
+			HISMTrajectory->UpdateInstanceTransform(HISMCurrentIndex % HISMNumberOfMarkers, Transform, true);
+			HISMCurrentIndex = (HISMCurrentIndex + 1) % static_cast<int>(std::round(Spline->GetSplineLength() / HISMDistance));
+		}
 	}
 	
 	const auto RealDeltaR = (ActorInSpace->GetActorLocation() - VecR).Length();
@@ -190,7 +200,8 @@ void AOrbit::UpdateOrbit(FVector VecV, float Alpha, float RMAX)
 				Spline->SetClosedLoop(false, false);
 				Spline->UpdateSpline();
 			}
-			SplineDistanceLineBound = Spline->GetDistanceAlongSplineAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(VecR));
+			DistanceZero = Spline->GetDistanceAlongSplineAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(VecR));
+			SplineDistance = DistanceZero;
 			Spline->SetClosedLoop(true, false);
 			
 			Orbit = OrbitType::LINEBOUND;
@@ -326,28 +337,54 @@ void AOrbit::UpdateOrbit(FVector VecV, float Alpha, float RMAX)
 	}
 	Spline->UpdateSpline();
 
-	SplineKey = Spline->FindInputKeyClosestToWorldLocation(VecR);
-	const auto SplineDistance = Spline->GetDistanceAlongSplineAtSplineInputKey(SplineKey);
-	const auto MAX_DISTANCE = std::min<float>(10000., Spline->GetSplineLength());
-	const auto DISTANCE_DELTA = 20.f;
-	const auto N_MAX = MAX_DISTANCE / DISTANCE_DELTA;
-	
-	HISMTrajectory->ClearInstances();
-	for(int i = 1; i < N_MAX; i++)
+	if(Orbit != OrbitType::LINEBOUND)
 	{
-		const auto Transform = Spline->GetTransformAtDistanceAlongSpline(SplineDistance + i * DISTANCE_DELTA, ESplineCoordinateSpace::World);
+		SplineKey = Spline->FindInputKeyClosestToWorldLocation(VecR);
+		DistanceZero = Spline->GetDistanceAlongSplineAtSplineInputKey(SplineKey);
+		SplineDistance = DistanceZero;
+	}
+	// else
+	// `SplineKey` is not needed,
+	// `SplineDistance` and `DistanceZero` are set already
+		
+	const auto HISMLength = std::min<float>(HISMMaxLength, Spline->GetSplineLength());
+	HISMNumberOfMarkers = std::max<int>(1, HISMLength / HISMDistance);
+
+	HISMTrajectory->ClearInstances();
+	for(int i = 1; i < HISMNumberOfMarkers; i++)
+	{
+		const auto Transform = Spline->GetTransformAtDistanceAlongSpline(DistanceZero + i * HISMDistance, ESplineCoordinateSpace::World);
 		HISMTrajectory->AddInstance(Transform);
 	}
+	HISMCurrentIndex = 0;
 
-	for(int i = 0; i < Spline->GetNumberOfSplinePoints() - 1; i++)
+	TArray<USplineMeshComponent*> OldSplinesMeshes;
+	GetComponents(OldSplinesMeshes);
+	for(auto Old : OldSplinesMeshes)
 	{
-		TObjectPtr<USplineMeshComponent> SplineMesh = NewObject<USplineMeshComponent>(GetOuter(), TEXT("Spline Mesh"));
-		SplineMesh->AttachToComponent(Root, FAttachmentTransformRules::KeepWorldTransform);
+		Old->DestroyComponent();
+	}
+
+	std::vector<int> Indices(Spline->GetNumberOfSplinePoints());
+	std::iota(Indices.begin(), Indices.end(), 0);
+
+	if(Spline->IsClosedLoop() && Orbit != OrbitType::LINEBOUND)
+	{
+		Indices.push_back(0);
+	}
+	for(int i = 0; i < Indices.size() - 1; i++)
+	{
+		const auto SplineMesh = NewObject<USplineMeshComponent>(this, *FString(TEXT("SplineMesh")).Append(FString::FromInt(i)));
+		SplineMesh->SetupAttachment(Root);
+		SplineMesh->RegisterComponent();
+		AddInstanceComponent(SplineMesh);
+		SplineMesh->SetMobility(EComponentMobility::Static);
+		SplineMesh->CastShadow = false;
 		SplineMesh->SetStaticMesh(SM_Trajectory);
-		const auto VecStartPos = Spline->GetLocationAtSplinePoint(i, ESplineCoordinateSpace::World);
-		const auto VecStartDirection = Spline->GetDirectionAtSplinePoint(i, ESplineCoordinateSpace::World);
-		const auto VecEndPos = Spline->GetLocationAtSplinePoint(i + 1, ESplineCoordinateSpace::World);
-		const auto VecEndDirection = Spline->GetDirectionAtSplinePoint(i, ESplineCoordinateSpace::World);
+		const auto VecStartPos = Spline->GetLocationAtSplinePoint(Indices[i], ESplineCoordinateSpace::World);
+		const auto VecStartDirection = Spline->GetTangentAtSplinePoint(Indices[i], ESplineCoordinateSpace::World);
+		const auto VecEndPos = Spline->GetLocationAtSplinePoint(Indices[i + 1], ESplineCoordinateSpace::World);
+		const auto VecEndDirection = Spline->GetTangentAtSplinePoint(Indices[i + 1], ESplineCoordinateSpace::World);
 		SplineMesh->SetStartAndEnd(VecStartPos, VecStartDirection, VecEndPos, VecEndDirection);
 	}
 }
