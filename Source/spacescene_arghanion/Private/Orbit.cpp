@@ -3,13 +3,13 @@
 #include <numeric>
 
 #include "FunctionLib.h"
-#include "MyGameInstance.h"
+#include "OrbitDataComponent.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Components/SplineMeshComponent.h"
 
 AOrbit::AOrbit()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
@@ -22,172 +22,49 @@ AOrbit::AOrbit()
 	HISMTrajectory->SetupAttachment(Root);
 }
 
-void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedChainEvent)
+void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 {
-	Super::PostEditChangeChainProperty(PropertyChangedChainEvent);
-
-	if(!ActorInSpace)
+	if(!OrbitData)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AOrbit::PostEditChangeChainProperty: ActorInSpace null, ignoring"));
+		RequestEngineExit(TEXT("AOrbit::UpdateParameters: OrbitData null"));
 	}
-	else
-	{
-		const auto Name = PropertyChangedChainEvent.PropertyChain.GetHead()->GetValue()->GetFName();
-		static const FName FNameVelocityScalar = GET_MEMBER_NAME_CHECKED(AOrbit, Velocity);
-		static const FName FNameVelocityNormalized = GET_MEMBER_NAME_CHECKED(AOrbit, VelocityNormalized);
-		static const FName FNameVelocity = GET_MEMBER_NAME_CHECKED(AOrbit, VecVelocity);
-		static const FName FNameEccentricity = GET_MEMBER_NAME_CHECKED(AOrbit, Eccentricity);
-		
-		const auto VecR = ActorInSpace->GetActorLocation();
-		constexpr auto ALPHA = UMyGameInstance::EditorDefaultAlpha;
-		const auto RMAX = UMyGameInstance::EditorDefaultWorldRadiusUU;
-		const auto VecRKepler = VecR - VecF1;
-		FVector NewVelocity;
-		
-		const auto VelocityNormal = VecVelocity.GetSafeNormal(1e-8, FVector(0., 1., 0.));
-
-		if(Name == FNameVelocityScalar)
-		{
-			NewVelocity = Velocity * VelocityNormal;
-			UpdateOrbit(NewVelocity, ALPHA, RMAX);
-		}
-		else if(Name == FNameVelocityNormalized)
-		{
-			NewVelocity = sqrt(ALPHA / VecRKepler.Length()) * VelocityNormalized * VelocityNormal;
-			UpdateOrbit(NewVelocity, ALPHA, RMAX);
-		}
-		else if(Name == FNameVelocity)
-		{
-			NewVelocity = VecVelocity;
-			UpdateOrbit(NewVelocity, ALPHA, RMAX);
-		}
-		else if(Name == FNameEccentricity)
-		{
-			if(Eccentricity < 0)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Eccentricity can't be negative"));
-				Eccentricity = 0;
-			}
-			UE_LOG(LogTemp, Warning, TEXT("In UKeplerOrbitComponent::PostEditChangeProperty: Eccentricity: not implemented"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("In UKeplerOrbitComponent::PostEditChangeProperty: %s, not doing anything"), *Name.ToString());
-		}
-	}
-}
-
-void AOrbit::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	const auto VecR = ActorInSpace->GetActorLocation();
-	const auto VecRKepler = VecR - VecF1;
-	const auto R = VecRKepler.Length();
-	const auto Alpha = GetGameInstance<UMyGameInstance>()->Alpha;
-	switch(Orbit)
-	{
-	case OrbitType::CIRCLE:
-		break;
-	case OrbitType::ELLIPSE:
-	 	Velocity = UFunctionLib::VelocityEllipse(R, A, Alpha);
-		break;
-	case OrbitType::LINEBOUND:
-		Velocity = UFunctionLib::VelocityEllipse(R, A, Alpha);
-		break;
-	case OrbitType::LINEUNBOUND:
-		Velocity = Velocity - copysign(Alpha / pow(R, 2) * DeltaTime, VecVelocity.Dot(VecRKepler));
-		break;
-	case OrbitType::PARABOLA:
-	 	Velocity = UFunctionLib::VelocityParabola(R, Alpha);
-		break;
-	case OrbitType::HYPERBOLA:
-	 	Velocity = UFunctionLib::VelocityEllipse(R, A, Alpha);
-		break;
-	}
-	VelocityNormalized = Velocity / sqrt(Alpha / R);
-	const auto DeltaR = Velocity * DeltaTime;
-
-	SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
-	if(Orbit == OrbitType::LINEBOUND)
-	{
-		ActorInSpace->SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World));
-		VecVelocity = Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
-	}
-	else
-	{
-		// direction at current position, i.e. at current spline key
-		VecVelocity = Spline->GetTangentAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
-		const auto NewLocation = VecR + VecVelocity * DeltaTime;
-		
-		// new spline key
-		SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewLocation);
-		ActorInSpace->SetActorLocation(Spline->GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World));
-
-		// update trajectory HISM markers
-		if((SplineDistance - DistanceZero) / HISMDistance > HISMCurrentIndex)
-		{
-			const auto Distance = fmod(DistanceZero + (HISMNumberOfMarkers + HISMCurrentIndex) * HISMDistance, Spline->GetSplineLength());
-			const auto Transform = Spline->GetTransformAtDistanceAlongSpline(Distance, ESplineCoordinateSpace::World);
-			HISMTrajectory->UpdateInstanceTransform(HISMCurrentIndex % HISMNumberOfMarkers, Transform, true);
-			HISMCurrentIndex = (HISMCurrentIndex + 1) % static_cast<int>(std::round(Spline->GetSplineLength() / HISMDistance));
-		}
-	}
-	
-	const auto RealDeltaR = (ActorInSpace->GetActorLocation() - VecR).Length();
-	const auto RelativeError = DeltaR / RealDeltaR - 1.;
-	if(abs(RelativeError) > 0.02)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s: Expected: %f; really: %f; relative error: %.1f%"), *GetFName().ToString(), DeltaR, RealDeltaR, RelativeError * 100.);
-	}
-}
-
-void AOrbit::UpdateOrbit(FVector VecV, float Alpha, float RMAX)
-{
-	if(!ActorInSpace)
-	{
-		RequestEngineExit(TEXT("AOrbit::UpdateOrbit: ActorInSpace null"));
-	}
-	
-	VecVelocity = VecV;
-	Velocity = VecV.Length();
 	
 	Spline->ClearSplinePoints(false);
 
 	// transform location vector r to Kepler coordinates, where F1 is the origin
-	const auto VecR = ActorInSpace->GetActorLocation();
-	const auto VecRKepler = VecR - VecF1;
-	const auto R = VecRKepler.Length();
-	VelocityNormalized = Velocity / sqrt(Alpha / R);
+	const auto VecRKepler = OrbitData->GetVecR() - VecF1;
+	const auto RKepler = VecRKepler.Length();
+	const auto VecVelocity = OrbitData->GetVecVelocity();
+	//const auto VelocityVCircle = Velocity / sqrt(Alpha / R);
 
 	// the bigger this value, the earlier an eccentricity close to 1 will be interpreted as parabola orbit
 	constexpr auto Tolerance = 1E-2;
-	const auto VecH = VecRKepler.Cross(VecV);
-	P = VecH.SquaredLength() / Alpha;
-	Energy = pow(Velocity, 2) / 2. - Alpha / R;
-	const auto VecE = UFunctionLib::Eccentricity(VecRKepler, VecV, Alpha);
-	Eccentricity = VecE.Length();
+	const auto VecH = VecRKepler.Cross(VecVelocity);
+	Params.P = VecH.SquaredLength() / Alpha;
+	Params.Energy = pow(OrbitData->GetVelocity(), 2) / 2. - Alpha / RKepler;
+	const auto VecE = UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Alpha);
+	Params.Eccentricity = VecE.Length();
 	const auto VecENorm = VecE.GetSafeNormal();
 	const auto VecHNorm = VecH.GetSafeNormal();
 
 	// the energy of the weakest bound state: a circular orbit at R_MAX
-	const auto E_BOUND_MIN = -Alpha / (2 * RMAX);
+	const auto E_BOUND_MIN = -Alpha / (2 * WorldRadius);
 
 	// H = 0 (implies E = 1, too): falling in a straight line
 	if(VecHNorm.IsZero())
 	{
-		const auto EMIN = -Alpha / RMAX;
-		const auto E = VecV.SquaredLength() / 2. - Alpha / VecRKepler.Length();
+		const auto EMIN = -Alpha / WorldRadius;
+		const auto E = VecVelocity.SquaredLength() / 2. - Alpha / RKepler;
 
 		// bound
 		if(E < EMIN)
 		{
 			const auto Apsis = -Alpha / E;
-			const auto VecVNorm = VecV.GetSafeNormal();
+			const auto VecVNorm = VecVelocity.GetSafeNormal();
 			if(VecVNorm.IsZero())
 			{
 				Spline->AddPoints(
-					{ FSplinePoint(0, VecR, ESplinePointType::Linear)
+					{ FSplinePoint(0, OrbitData->GetVecR(), ESplinePointType::Linear)
 					, FSplinePoint(1, -VecRKepler + VecF1, ESplinePointType::Linear)
 					});
 			}
@@ -200,26 +77,26 @@ void AOrbit::UpdateOrbit(FVector VecV, float Alpha, float RMAX)
 				Spline->SetClosedLoop(false, false);
 				Spline->UpdateSpline();
 			}
-			DistanceZero = Spline->GetDistanceAlongSplineAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(VecR));
+			DistanceZero = Spline->GetDistanceAlongSplineAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(OrbitData->GetVecR()));
 			SplineDistance = DistanceZero;
 			Spline->SetClosedLoop(true, false);
 			
-			Orbit = OrbitType::LINEBOUND;
-			A = UFunctionLib::SemiMajorAxis(VecRKepler, VecV, Alpha);
-			Period = UFunctionLib::PeriodEllipse(A, Alpha);
+			Params.OrbitType = EOrbitType::LINEBOUND;
+			Params.A = UFunctionLib::SemiMajorAxis(VecRKepler, VecVelocity, Alpha);
+			Params.Period = UFunctionLib::PeriodEllipse(Params.A, Alpha);
 		}
 
 		// unbound
 		else
 		{
 			Spline->AddPoints(
-				{ FSplinePoint(0, VecR, ESplinePointType::Linear)
-					, FSplinePoint(1, VecV.GetUnsafeNormal() * (RMAX - VecR.Length()), ESplinePointType::Linear)
+				{ FSplinePoint(0, OrbitData->GetVecR(), ESplinePointType::Linear)
+					, FSplinePoint(1, VecVelocity.GetUnsafeNormal() * (WorldRadius - OrbitData->GetVecR().Length()), ESplinePointType::Linear)
 				});
 			Spline->SetClosedLoop(false, false);
-			Orbit = OrbitType::LINEUNBOUND;
-			A = 0;
-			Period = 0;
+			Params.OrbitType = EOrbitType::LINEUNBOUND;
+			Params.A = 0;
+			Params.Period = 0;
 		}
 	}
 	
@@ -230,15 +107,15 @@ void AOrbit::UpdateOrbit(FVector VecV, float Alpha, float RMAX)
 	    const auto VecT1 = VecHNorm.Cross(VecRKepler) * SplineToCircle;
 	    const auto VecT4 = VecRKepler * SplineToCircle;
 		Spline->AddPoints(
-	      { FSplinePoint(0,  VecR ,  VecT1,  VecT1)
+	      { FSplinePoint(0,  OrbitData->GetVecR(),  VecT1,  VecT1)
 		    , FSplinePoint(1, VecP2 + VecF1, -VecT4, -VecT4)
 		    , FSplinePoint(2, -VecRKepler + VecF1 , -VecT1, -VecT1)
 		    , FSplinePoint(3, -VecP2 + VecF1,  VecT4,  VecT4)
 		    });
     	Spline->SetClosedLoop(true, false);
-		Orbit = OrbitType::CIRCLE;
-		A = R;
-		Period = UFunctionLib::PeriodEllipse(R, Alpha);
+		Params.OrbitType = EOrbitType::CIRCLE;
+		Params.A = RKepler;
+		Params.Period = UFunctionLib::PeriodEllipse(RKepler, Alpha);
 	}
 
 	// 0 < E < 1, Ellipse
@@ -253,17 +130,17 @@ void AOrbit::UpdateOrbit(FVector VecV, float Alpha, float RMAX)
 	// The total energy at R_MAX when orbiting in a circle is the bound state with energy closest to zero.
 	// As long the energy is smaller than that, we can safely assume a bound state and thus an ellipse instead of
 	// the parabola
-	else if(Eccentricity <= 1. - Tolerance || (Eccentricity <= 1 && Energy < E_BOUND_MIN))
+	else if(Params.Eccentricity <= 1. - Tolerance || (Params.Eccentricity <= 1 && Params.Energy < E_BOUND_MIN))
 	{
-		A = P / (1 - VecE.SquaredLength());
-	    const auto B = A * sqrt(1 - VecE.SquaredLength());
-	    const auto Vertex1 = A * (1 - VecE.Length()) * VecENorm;
-	    const auto Vertex2 = A * (1 + VecE.Length()) * -VecENorm;
+		Params.A = Params.P / (1 - VecE.SquaredLength());
+	    const auto B = Params.A * sqrt(1 - VecE.SquaredLength());
+	    const auto Vertex1 = Params.A * (1 - VecE.Length()) * VecENorm;
+	    const auto Vertex2 = Params.A * (1 + VecE.Length()) * -VecENorm;
 	    const auto Orthogonal = VecH.Cross(VecE).GetSafeNormal();
-	    const auto Covertex1 =  B * Orthogonal - A * VecE;
-	    const auto Covertex2 = -B * Orthogonal - A * VecE;
+	    const auto Covertex1 =  B * Orthogonal - Params.A * VecE;
+	    const auto Covertex2 = -B * Orthogonal - Params.A * VecE;
 	    const auto T1 = Orthogonal * SplineToCircle * B;
-	    const auto T4 = VecENorm * SplineToCircle * A;
+	    const auto T4 = VecENorm * SplineToCircle * Params.A;
 		Spline->AddPoints(
 	      { FSplinePoint(0, Vertex1   + VecF1,  T1,  T1)
 		    , FSplinePoint(1, Covertex1 + VecF1, -T4, -T4)
@@ -271,24 +148,24 @@ void AOrbit::UpdateOrbit(FVector VecV, float Alpha, float RMAX)
 		    , FSplinePoint(3, Covertex2 + VecF1,  T4,  T4)
 		    });
     	Spline->SetClosedLoop(true, false);
-		Orbit = OrbitType::ELLIPSE;
-		Period = UFunctionLib::PeriodEllipse(A, Alpha);
+		Params.OrbitType = EOrbitType::ELLIPSE;
+		Params.Period = UFunctionLib::PeriodEllipse(Params.A, Alpha);
 	}
 	
 	// E = 1, Parabola
-	else if(Eccentricity <= 1. + Tolerance)
+	else if(Params.Eccentricity <= 1. + Tolerance)
 	{
 		std::list<FVector> Points;
 	    const auto VecHorizontal = VecHNorm.Cross(VecENorm);
 		constexpr auto MAX_POINTS = 20;
-		const auto MAX_N = sqrt(2 * (RMAX + VecF1.Length()) / P);
+		const auto MAX_N = sqrt(2 * (WorldRadius + VecF1.Length()) / Params.P);
 		const auto Delta = 2 * MAX_N / MAX_POINTS;
 		
-		Points.emplace_front(VecENorm * P / (1. + Eccentricity) + VecF1);
+		Points.emplace_front(VecENorm * Params.P / (1. + Params.Eccentricity) + VecF1);
 		for(int i = 1; i < MAX_POINTS / 2; i++)
 		{
-			const auto VecX = i * Delta * VecHorizontal * P;
-			const auto VecY = VecENorm / 2. * (1 - pow(i * Delta, 2)) * P;
+			const auto VecX = i * Delta * VecHorizontal * Params.P;
+			const auto VecY = VecENorm / 2. * (1 - pow(i * Delta, 2)) * Params.P;
 			Points.emplace_back(VecY + VecX + VecF1);
 			Points.emplace_front(VecY - VecX + VecF1);
 		}
@@ -298,31 +175,31 @@ void AOrbit::UpdateOrbit(FVector VecV, float Alpha, float RMAX)
 			Spline->AddSplineWorldPoint(Point);
 		}
     	Spline->SetClosedLoop(false, false);
-		Orbit = OrbitType::PARABOLA;
-		Period = 0;
-		A = 0;
+		Params.OrbitType = EOrbitType::PARABOLA;
+		Params.Period = 0;
+		Params.A = 0;
 	}
 
 	// E > 1, Hyperbola
 	else
 	{
 		std::list<FVector> Points;
-		A = P / (1 - VecE.SquaredLength()); // A < 0
-		const auto C = P * Eccentricity / (VecE.SquaredLength() - 1);
+		Params.A = Params.P / (1 - VecE.SquaredLength()); // A < 0
+		const auto C = Params.P * Params.Eccentricity / (VecE.SquaredLength() - 1);
 	    const auto VecHorizontal = VecHNorm.Cross(VecENorm);
 		constexpr auto MAX_POINTS = 20;
-		const auto MAX = sqrt((pow(RMAX, 2) + (VecE.SquaredLength() - 1.) * pow(A, 2)) / pow(Eccentricity, 2));
+		const auto MAX = sqrt((pow(WorldRadius, 2) + (VecE.SquaredLength() - 1.) * pow(Params.A, 2)) / pow(Params.Eccentricity, 2));
 		const auto Delta = 2. * MAX / (pow(MAX_POINTS / 2 - 1, 3) / 3.);
 
-		Points.emplace_front(VecENorm * P / (1. + Eccentricity) + VecF1);
+		Points.emplace_front(VecENorm * Params.P / (1. + Params.Eccentricity) + VecF1);
 		//Points.emplace_front(VecE * A + VecF1);
 		for(int i = 1; i < MAX_POINTS / 2; i++)
 		{
-			const auto X = pow(i, 2) * Delta - A;
+			const auto X = pow(i, 2) * Delta - Params.A;
 			const auto VecX = (C - X) * VecENorm;
 			//(P - sqrt(VecE.SquaredLength() - 1) * RMAX) * VecENorm + VecF1;	
 			//const auto VecY = VecHorizontal * sqrt((VecE.SquaredLength() - 1.) * pow(X, 2) - 1.);
-			const auto VecY = VecHorizontal * sqrt((VecE.SquaredLength() - 1.) * (pow(X, 2) - pow(A, 2)));
+			const auto VecY = VecHorizontal * sqrt((VecE.SquaredLength() - 1.) * (pow(X, 2) - pow(Params.A, 2)));
 			Points.emplace_back(VecX + VecY + VecF1);
 			Points.emplace_front(VecX - VecY + VecF1);
 		}
@@ -332,14 +209,14 @@ void AOrbit::UpdateOrbit(FVector VecV, float Alpha, float RMAX)
 			Spline->AddSplineWorldPoint(Point);
 		}
     	Spline->SetClosedLoop(false, false);
-		Orbit = OrbitType::HYPERBOLA;
-		Period = 0;
+		Params.OrbitType = EOrbitType::HYPERBOLA;
+		Params.Period = 0;
 	}
 	Spline->UpdateSpline();
 
-	if(Orbit != OrbitType::LINEBOUND)
+	if(Params.OrbitType != EOrbitType::LINEBOUND)
 	{
-		SplineKey = Spline->FindInputKeyClosestToWorldLocation(VecR);
+		SplineKey = Spline->FindInputKeyClosestToWorldLocation(OrbitData->GetVecR());
 		DistanceZero = Spline->GetDistanceAlongSplineAtSplineInputKey(SplineKey);
 		SplineDistance = DistanceZero;
 	}
@@ -368,16 +245,19 @@ void AOrbit::UpdateOrbit(FVector VecV, float Alpha, float RMAX)
 	std::vector<int> Indices(Spline->GetNumberOfSplinePoints());
 	std::iota(Indices.begin(), Indices.end(), 0);
 
-	if(Spline->IsClosedLoop() && Orbit != OrbitType::LINEBOUND)
+	if(Spline->IsClosedLoop() && Params.OrbitType != EOrbitType::LINEBOUND)
 	{
 		Indices.push_back(0);
 	}
 	for(int i = 0; i < Indices.size() - 1; i++)
 	{
 		const auto SplineMesh = NewObject<USplineMeshComponent>(this, *FString(TEXT("SplineMesh")).Append(FString::FromInt(i)));
-		SplineMesh->SetupAttachment(Root);
+		// if I don't register here, the spline mesh doesn't render
 		SplineMesh->RegisterComponent();
+		SplineMesh->AttachToComponent(Root, FAttachmentTransformRules::KeepWorldTransform);
+		// if I don't add instance here, the spline meshes don't show in the component list in the editor
 		AddInstanceComponent(SplineMesh);
+		
 		SplineMesh->SetMobility(EComponentMobility::Stationary);
 		SplineMesh->CastShadow = false;
 		SplineMesh->SetStaticMesh(SM_Trajectory);
@@ -387,22 +267,101 @@ void AOrbit::UpdateOrbit(FVector VecV, float Alpha, float RMAX)
 		const auto VecEndDirection = Spline->GetTangentAtSplinePoint(Indices[i + 1], ESplineCoordinateSpace::World);
 		SplineMesh->SetStartAndEnd(VecStartPos, VecStartDirection, VecEndPos, VecEndDirection);
 	}
+	bInitialized = true;
 }
 
-/**
- * @brief update orbit maintaining the characteristics as best as possible
- * @param ALPHA gravitational parameter
- * @param RMAX maximum distance where stuff is simulated
- */
-void AOrbit::UpdateOrbit(float ALPHA, float RMAX)
+float AOrbit::VelocityEllipse(float R, float Alpha)
 {
-	UpdateOrbit(VecVelocity, ALPHA, RMAX);
+    return std::max(sqrt(Alpha * (2.0 / R - 1.0 / Params.A)), 1.);
 }
 
-void AOrbit::SetupActorInSpace(AActor* _ActorInSpace, FVector _VecF1, FVector VecV)
+float AOrbit::VelocityParabola(float R, float Alpha)
 {
-	ActorInSpace = _ActorInSpace;
-	VecF1 = _VecF1;
-	VecVelocity = VecV;
+    return sqrt(Alpha * 2.0 / R);
 }
 
+float AOrbit::NextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign)
+{
+	if(!bInitialized)
+	{
+		RequestEngineExit(TEXT("AOrbit::NextVelocity: not initialized"));
+	}
+	
+	switch(Params.OrbitType)
+	{
+	case EOrbitType::CIRCLE:
+		return OldVelocity;
+	case EOrbitType::ELLIPSE:
+	 	return VelocityEllipse(R, Alpha);
+	case EOrbitType::LINEBOUND:
+		return VelocityEllipse(R, Alpha);
+	case EOrbitType::LINEUNBOUND:
+		return OldVelocity - copysign(Alpha / pow(R, 2) * DeltaTime, Sign);
+	case EOrbitType::PARABOLA:
+	 	return VelocityParabola(R, Alpha);
+	case EOrbitType::HYPERBOLA:
+	 	return VelocityEllipse(R, Alpha);
+	default:
+		UE_LOG(LogTemp, Error, TEXT("AOrbit::NextVelocity: Impossible"))
+		return 0;
+	}
+}
+
+FNewVelocityAndLocation AOrbit::AdvanceOnSpline(float DeltaR, float Velocity, FVector VecR, float DeltaTime)
+{
+	SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
+	if(Params.OrbitType == EOrbitType::LINEBOUND)
+	{
+		const auto NewLocation = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
+		const auto NewVelocity = Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
+		return { NewVelocity, NewLocation};
+	}
+	else
+	{
+		// direction at current position, i.e. at current spline key
+		const auto NewVelocity = Spline->GetTangentAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
+		const auto NewLocationAtTangent = VecR + NewVelocity * DeltaTime;
+		
+		// new spline key
+		SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewLocationAtTangent);
+		const auto NewLocation = Spline->GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World);
+
+		// update trajectory HISM markers
+		if((SplineDistance - DistanceZero) / HISMDistance > HISMCurrentIndex)
+		{
+			const auto SplineLength = std::max<float>(HISMDistance, Spline->GetSplineLength());
+			const auto Distance = fmod(DistanceZero + (HISMNumberOfMarkers + HISMCurrentIndex) * HISMDistance, SplineLength);
+			const auto Transform = Spline->GetTransformAtDistanceAlongSpline(Distance, ESplineCoordinateSpace::World);
+			HISMTrajectory->UpdateInstanceTransform(HISMCurrentIndex % HISMNumberOfMarkers, Transform, true);
+			HISMCurrentIndex = (HISMCurrentIndex + 1) % static_cast<int>(std::round(SplineLength / HISMDistance));
+		}
+		return { NewVelocity, NewLocation };
+	}
+}
+
+FString AOrbit::GetParamsString()
+{
+	FString StrOrbitType;
+	switch(Params.OrbitType)
+	{
+	case EOrbitType::CIRCLE:
+		StrOrbitType = TEXT("Circle");
+		break;
+	case EOrbitType::ELLIPSE:
+		StrOrbitType = TEXT("Ellipse");
+		break;
+	case EOrbitType::PARABOLA:
+		StrOrbitType = TEXT("Parabola");
+		break;
+	case EOrbitType::HYPERBOLA:
+		StrOrbitType = TEXT("Hyperbola");
+		break;
+	case EOrbitType::LINEBOUND:
+		StrOrbitType = TEXT("LineBound");
+		break;
+	case EOrbitType::LINEUNBOUND:
+		StrOrbitType = TEXT("LineUnbound");
+		break;
+	}
+	return StrOrbitType + FString::Printf(TEXT(", E = %.2f, P = %.1f, Energy = %.1f, Period = %.1f, A = %.1f"), Params.Eccentricity, Params.P, Params.Energy, Params.Period, Params.A);
+}

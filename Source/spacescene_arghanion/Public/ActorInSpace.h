@@ -16,30 +16,15 @@ public:
 	// Sets default values for this actor's properties
 	AActorInSpace();
 
-	UFUNCTION(BlueprintCallable)
-	void UpdateMU(float MU, float RMAX) const;
-
 protected:
 	// event handlers
 	
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-
 	// components
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> Root;
-
-	// member variables
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<AOrbit> Orbit;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UClass> OrbitClass;
 	
-	// private methods
-
-	UFUNCTION(BlueprintCallable)
-	void SpawnOrbit();
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UOrbitDataComponent> OrbitData;
 };
 

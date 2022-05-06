@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Components/SplineComponent.h"
-#include "Components/SplineMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "Orbit.generated.h"
 
+class UOrbitDataComponent;
+
 UENUM(BlueprintType)
-enum class OrbitType : uint8
+enum class EOrbitType : uint8
 {
 	CIRCLE UMETA(DisplayName="Circle"),
 	ELLIPSE UMETA(DisplayName="Ellipse"),
@@ -17,6 +18,40 @@ enum class OrbitType : uint8
 	LINEUNBOUND UMETA(DisplayName="LineUnbound"),
 	PARABOLA UMETA(DisplayName="Parabola"),
 	HYPERBOLA UMETA(DisplayName="Hyperbola")
+};
+
+USTRUCT(BlueprintType)
+struct FOrbitParameters
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	EOrbitType OrbitType;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly )
+	float Eccentricity;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, DisplayName="P = (H * H)/MU")
+	float P;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly )
+	float Energy;
+	
+	// period in s
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float Period;
+
+	// semi-major axis of elliptic orbit
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float A = 0;
+};
+
+USTRUCT(BlueprintType)
+struct FNewVelocityAndLocation
+{
+	GENERATED_BODY()
+	FVector NewVecVelocity;
+	FVector NewLocation;
 };
 
 UCLASS()
@@ -27,25 +62,33 @@ class SPACESCENE_ARGHANION_API AOrbit : public AActor
 public:	
 	AOrbit();
 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UFUNCTION(BlueprintCallable)
+	void SetOrbitData(UOrbitDataComponent* _OrbitData) { OrbitData = _OrbitData; };
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateOrbit(FVector VecV, float Alpha, float RMAX);
-
-	void UpdateOrbit(float ALPHA, float RMAX);
+	void Update(float Alpha, float WorldRadius, FVector VecF1);
 
 	UFUNCTION(BlueprintCallable)
-	void SetupActorInSpace(AActor* _ActorInSpace, FVector _VecF1, FVector VecV);
+	float VelocityEllipse(float R, float Alpha);
 
 	UFUNCTION(BlueprintCallable)
-	FVector GetVecVelocity() { return VecVelocity; };
+	float VelocityParabola(float R, float Alpha);
+	
+	UFUNCTION(BlueprintCallable)
+	float NextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign);
 
+	UFUNCTION(BlueprintCallable)
+	FNewVelocityAndLocation AdvanceOnSpline(float DeltaR, float Velocity, FVector VecR, float DeltaTime);
+
+	UFUNCTION(BlueprintCallable)
+	FOrbitParameters GetParams() const { return Params; };
+
+	UFUNCTION(BlueprintCallable)
+	FString GetParamsString();
+	
 protected:
 	
 	// event handlers
-	
-	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedChainEvent) override;
 	
 	// components
 	
@@ -61,42 +104,13 @@ protected:
 	// members
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	TObjectPtr<AActor> ActorInSpace;
+	TObjectPtr<UOrbitDataComponent> OrbitData;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<UStaticMesh> SM_Trajectory;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-	OrbitType Orbit;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler" )
-	float Eccentricity;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler", DisplayName="P = (H * H)/MU")
-	float P;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler" )
-	float Energy;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	FVector VecF1;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	float Velocity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	FVector VecVelocity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	float VelocityNormalized;
-
-	// period in s
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-	float Period;
-
-	// semi-major axis of elliptic orbit
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-	float A = 0;
+	FOrbitParameters Params;
 
 	// for orbit == LINEBOUND, the spline distance is used because the spline key closest to location cannot be reliably
 	// determined, i.e. the object jumps between the two directions
@@ -126,6 +140,9 @@ protected:
 	// HISM maximum length
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float HISMMaxLength = 2500;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bInitialized = false;
 	
 	/**
 	 * @brief constant factor to construct tangents for spline points

@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MyGameInstance.h"
 #include "Orbit.h"
 #include "GameFramework/Pawn.h"
 #include "PawnInSpace.generated.h"
@@ -18,42 +17,28 @@ public:
 	APawnInSpace();
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateMU(float MU, float RMAX) const;
-
-	UFUNCTION(BlueprintCallable)
 	void UpdateLookTarget(FVector Target);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void LookAt(FVector VecP);
 
 	// Acceleration in m / s^2
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AccelerationSI = .5;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float bIsAccelerating = false;
-	
-protected:
-	// event handlers
 
+	// event handlers
 	virtual void Tick(float DeltaSeconds) override;
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
+protected:
 	
 	// components
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> Root;
-
-	// member variables
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<AOrbit> Orbit;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UClass> OrbitClass;
-	
-	// private methods
-
-	UFUNCTION(BlueprintCallable)
-	void SpawnOrbit();
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UOrbitDataComponent> OrbitData;
 };

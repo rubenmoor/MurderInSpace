@@ -64,23 +64,6 @@ float UFunctionLib::PeriodEllipse(float a, float Alpha)
 }
 
 /**
- * @brief Orbital velocity given the semi-major axis and current distance to F1
- * @param R distance to focal point 1
- * @param A semi-major axis
- * @param Alpha gravitational parameter
- * @return v
- */
-float UFunctionLib::VelocityEllipse(float R, float A, float Alpha)
-{
-    return std::max(sqrt(Alpha * (2.0 / R - 1.0 / A)), 1.);
-}
-
-float UFunctionLib::VelocityParabola(float R, float Alpha)
-{
-    return sqrt(Alpha * 2.0 / R);
-}
-
-/**
  * @brief Ramanujan's approximation for the perimeter of an ellipsis, error of order h^5
  * @param A 
  * @param B 

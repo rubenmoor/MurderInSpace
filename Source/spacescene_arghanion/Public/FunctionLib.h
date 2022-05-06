@@ -32,12 +32,6 @@ public:
 	static float PeriodEllipse(float A, float Alpha);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float VelocityEllipse(float R, float A, float Alpha);
-
-	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float VelocityParabola(float R, float Alpha);
-	
-	UFUNCTION(BlueprintPure, Category="Orbit")
 	static float Perimeter(float A, float B);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")

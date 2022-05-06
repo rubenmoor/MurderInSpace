@@ -42,13 +42,9 @@ void UMyGameInstance::PostEditChangeProperty(FPropertyChangedEvent& PropertyChan
 	static const FName FNameMU = GET_MEMBER_NAME_CHECKED(UMyGameInstance, Alpha);
 	if(Name == FNameMU)
 	{
-		for(TObjectIterator<AActorInSpace> Iter; Iter; ++Iter)
+		for(TObjectIterator<AOrbit> Iter; Iter; ++Iter)
 		{
-			(*Iter)->UpdateMU(Alpha, WorldRadius);
-		}
-		for(TObjectIterator<APawnInSpace> Iter; Iter; ++Iter)
-		{
-			(*Iter)->UpdateMU(Alpha, WorldRadius);
+			(*Iter)->Update(Alpha, WorldRadius, VecF1);
 		}
 	}
 	Super::PostEditChangeProperty(PropertyChangedEvent);
