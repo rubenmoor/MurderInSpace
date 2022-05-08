@@ -131,7 +131,7 @@ protected:
 
 	// HISM distance between markers
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float HISMDistance = 40;
+	float HISMDistance = 100;
 
 	// HISM Number of markers
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

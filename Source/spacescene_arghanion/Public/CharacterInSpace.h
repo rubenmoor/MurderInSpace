@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "PawnInSpace.h"
 #include "Camera/CameraComponent.h"
+#include "NiagaraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "CharacterInSpace.generated.h"
 
@@ -36,4 +37,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UCameraComponent> Camera;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USceneComponent> StarAnchor;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UNiagaraComponent> StarsClose;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UNiagaraComponent> StarsDistant;
 };
