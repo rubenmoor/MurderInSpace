@@ -11,11 +11,9 @@ UOrbitDataComponent::UOrbitDataComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
-float UOrbitDataComponent::GetCircleVelocity(float Alpha, FVector VecF1)
+float UOrbitDataComponent::GetCircleVelocity(float Alpha, FVector VecF1) const
 {
 	return sqrt(Alpha / (GetVecR() - VecF1).Length());
 }
@@ -53,7 +51,7 @@ void UOrbitDataComponent::SpawnOrbit(UClass* OrbitClass)
     }
 }
 
-FVector UOrbitDataComponent::GetVecVelocity()
+FVector UOrbitDataComponent::GetVecVelocity() const
 {
 	if(!bInitialized)
 	{
@@ -62,7 +60,7 @@ FVector UOrbitDataComponent::GetVecVelocity()
 	return VecVelocity;
 }
 
-float UOrbitDataComponent::GetVelocity()
+float UOrbitDataComponent::GetVelocity() const
 {
 	if(!bInitialized)
 	{
@@ -88,7 +86,6 @@ void UOrbitDataComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	
 	const auto VecR = GetVecR();
 	const auto VecRKepler = VecR - VecF1;
-	const auto R = VecRKepler.Length();
 
 	Velocity = Orbit->NextVelocity(VecRKepler.Length(), Alpha, Velocity, DeltaTime, VecVelocity.Dot(VecRKepler));
 	VelocityVCircle = Velocity / GetCircleVelocity(Alpha, VecF1);
@@ -99,12 +96,12 @@ void UOrbitDataComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	VecVelocity = New.NewVecVelocity;
 
 	// TODO: account for acceleration
-	const auto RealDeltaR = (GetVecR() - VecR).Length();
-	const auto RelativeError = DeltaR / RealDeltaR - 1.;
-	if(abs(RelativeError) > 0.02)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s: Expected: %f; really: %f; relative error: %.1f%"), *GetFName().ToString(), DeltaR, RealDeltaR, RelativeError * 100.);
-	}
+	// const auto RealDeltaR = (GetVecR() - VecR).Length();
+	// const auto RelativeError = DeltaR / RealDeltaR - 1.;
+	// if(abs(RelativeError) > 0.02)
+	// {
+	// 	UE_LOG(LogTemp, Warning, TEXT("%s: Expected: %f; really: %f; relative error: %.1f%"), *GetFName().ToString(), DeltaR, RealDeltaR, RelativeError * 100.);
+	// }
 }
 
 void UOrbitDataComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)

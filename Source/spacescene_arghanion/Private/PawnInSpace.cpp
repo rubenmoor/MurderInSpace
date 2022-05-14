@@ -15,7 +15,6 @@ APawnInSpace::APawnInSpace()
 	SetRootComponent(Root);
 
 	OrbitData = CreateDefaultSubobject<UOrbitDataComponent>(TEXT("Orbit Data"));
-	OrbitData->RegisterComponent();
 }
 
 void APawnInSpace::UpdateLookTarget(FVector Target)
@@ -28,12 +27,13 @@ void APawnInSpace::LookAt(FVector VecP)
 	const auto VecMe = GetActorLocation();
 	const auto VecDirection = VecP - VecMe;
 	const auto Quat = FQuat::FindBetween(FVector(1, 0, 0), VecDirection);
-	const auto AngleDelta = Quat.GetAngle() - GetActorQuat().GetAngle();
-	DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
-	if(abs(AngleDelta) > 15. / 180 * PI)
+	const auto AngleDelta = Quat.GetTwistAngle(FVector(0, 0, 1)) - GetActorQuat().GetTwistAngle(FVector(0, 0, 1));
+	if(abs(AngleDelta) > 15. / 180. * PI)
 	{
 		SetActorRotation(Quat);
 	}
+	// debugging direction
+	DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
 }
 
 void APawnInSpace::Tick(float DeltaSeconds)

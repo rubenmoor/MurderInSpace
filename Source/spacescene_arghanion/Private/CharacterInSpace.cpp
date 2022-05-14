@@ -3,8 +3,17 @@
 
 #include "CharacterInSpace.h"
 
+#include <algorithm>
+
+#include "AstronautHUD.h"
+
 ACharacterInSpace::ACharacterInSpace()
 {
+	PrimaryActorTick.bCanEverTick = false;
+
+	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
+	SkeletalMesh->SetupAttachment(Root);
+	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(Root);
 	SpringArm->TargetArmLength = 1000;
@@ -37,5 +46,20 @@ void ACharacterInSpace::UpdateSpringArm(uint8 CameraPosition)
 
 void ACharacterInSpace::SetVisibility(bool bVisibility)
 {
-	Root->SetVisibility(bVisibility, true);
+	SkeletalMesh->SetVisibility(bVisibility, true);
+}
+
+void ACharacterInSpace::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if(const auto PlayerController = GetLocalViewingPlayerController())
+	{
+		HUD = PlayerController->GetHUD<AAstronautHUD>();
+	}
+	if(!HUD)
+	{
+		UE_LOG(LogPlayerController, Error, TEXT("ACharacterInSpace::BeginPlay: HUD null"))
+		//RequestEngineExit("ACharachterInSpace::BeginPlay: HUD null");
+	}
 }

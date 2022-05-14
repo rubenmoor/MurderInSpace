@@ -231,7 +231,7 @@ void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 	for(int i = 1; i < HISMNumberOfMarkers; i++)
 	{
 		const auto Transform = Spline->GetTransformAtDistanceAlongSpline(DistanceZero + i * HISMDistance, ESplineCoordinateSpace::World);
-		HISMTrajectory->AddInstance(Transform);
+		//HISMTrajectory->AddInstance(Transform);
 	}
 	HISMCurrentIndex = 0;
 
@@ -260,7 +260,7 @@ void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 		
 		SplineMesh->SetMobility(EComponentMobility::Stationary);
 		SplineMesh->CastShadow = false;
-		SplineMesh->SetStaticMesh(SM_Trajectory);
+		//SplineMesh->SetStaticMesh(SM_Trajectory);
 		const auto VecStartPos = Spline->GetLocationAtSplinePoint(Indices[i], ESplineCoordinateSpace::World);
 		const auto VecStartDirection = Spline->GetTangentAtSplinePoint(Indices[i], ESplineCoordinateSpace::World);
 		const auto VecEndPos = Spline->GetLocationAtSplinePoint(Indices[i + 1], ESplineCoordinateSpace::World);

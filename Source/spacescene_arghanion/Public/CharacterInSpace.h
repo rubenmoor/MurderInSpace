@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AstronautHUD.h"
 #include "PawnInSpace.h"
 #include "Camera/CameraComponent.h"
 #include "NiagaraComponent.h"
@@ -27,9 +28,12 @@ protected:
 
 	// event handers
 
-	//virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
 
 	// components
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<USkeletalMeshComponent> SkeletalMesh;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USpringArmComponent> SpringArm;
@@ -45,4 +49,7 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UNiagaraComponent> StarsDistant;
+
+	UPROPERTY()
+	TObjectPtr<AAstronautHUD> HUD;
 };

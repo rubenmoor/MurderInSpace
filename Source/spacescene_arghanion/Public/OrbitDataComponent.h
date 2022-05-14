@@ -24,10 +24,10 @@ public:
 	// member functions
 
 	UFUNCTION(BlueprintCallable)
-	float GetCircleVelocity(float Alpha, FVector VecF1);
+	float GetCircleVelocity(float Alpha, FVector VecF1) const;
 
 	UFUNCTION(BlueprintCallable)
-	FVector GetVecR() { return GetOwner()->GetActorLocation(); };
+	FVector GetVecR() const { return GetOwner()->GetActorLocation(); };
 
 	UFUNCTION(BlueprintCallable)
 	void SetVelocity(FVector _VecVelocity, float Alpha, FVector VecF1);
@@ -38,11 +38,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SpawnOrbit(UClass* OrbitClass);
 
-	UFUNCTION(BlueprintCallable)
-	FVector GetVecVelocity();
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FVector GetVecVelocity() const;
 	
-	UFUNCTION(BlueprintCallable)
-	float GetVelocity();
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	float GetVelocity() const;
 	
 protected:
 	// private members

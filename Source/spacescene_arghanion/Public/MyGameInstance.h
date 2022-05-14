@@ -18,7 +18,7 @@ class SPACESCENE_ARGHANION_API UMyGameInstance : public UGameInstance
 	/**
 	 * @brief the standard gravitational parameter ALPHA [m^3/s^2] = G * M for different bodies
 	 */
-	static constexpr float ALPHA_Game = 80;
+	static constexpr float ALPHA_Game = 800;
 	static constexpr float ALPHA_Ceres = 7e10;
 	static constexpr float ALPHA_Moon = 4.8e12;
 	static constexpr float ALPHA_Earth = 4e14;

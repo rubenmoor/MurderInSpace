@@ -58,7 +58,8 @@ void AMyPlayerController::Tick(float DeltaSeconds)
 	{
 		const auto X = Position.X - Direction.X * Position.Z / Direction.Z;
 		const auto Y = Position.Y - Direction.Y * Position.Z / Direction.Z;
-		GetPawn<ACharacterInSpace>()->LookAt(FVector(X, Y, 0));
+		const auto Z = GetPawn()->GetActorLocation().Z;
+		GetPawn<ACharacterInSpace>()->LookAt(FVector(X, Y, Z));
 	}
 	
 	Super::Tick(DeltaSeconds);

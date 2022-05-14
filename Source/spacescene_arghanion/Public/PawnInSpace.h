@@ -22,6 +22,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void LookAt(FVector VecP);
 
+	TObjectPtr<UOrbitDataComponent> GetOrbitDataComponent() const { return OrbitData; }
+
 	// Acceleration in m / s^2
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AccelerationSI = .5;
@@ -31,6 +33,7 @@ public:
 
 	// event handlers
 	virtual void Tick(float DeltaSeconds) override;
+
 
 protected:
 	
