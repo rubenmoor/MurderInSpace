@@ -32,7 +32,9 @@ class MURDERINSPACE_API UMyGameInstance : public UGameInstance
 protected:
 	// event handlers
 	
+	#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	#endif
 	
 public:
 	// default values for editor

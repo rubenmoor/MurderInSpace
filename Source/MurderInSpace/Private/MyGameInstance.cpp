@@ -5,6 +5,7 @@
 
 #include "ActorInSpace.h"
 #include "PawnInSpace.h"
+#include "UObject/UObjectIterator.h"
 
 UMyGameInstance::UMyGameInstance()
 {
@@ -36,6 +37,7 @@ void UMyGameInstance::SetUpCentralBody(float _Alpha, FVector _VecF1)
 	VecF1 = _VecF1;
 }
 
+#if WITH_EDITOR
 void UMyGameInstance::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	const auto Name = PropertyChangedEvent.Property->GetFName();
@@ -49,3 +51,4 @@ void UMyGameInstance::PostEditChangeProperty(FPropertyChangedEvent& PropertyChan
 	}
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif

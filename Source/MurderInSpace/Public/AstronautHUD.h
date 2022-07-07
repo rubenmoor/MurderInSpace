@@ -6,6 +6,7 @@
 #include "CharacterInSpace.h"
 #include "MyHUDWidget.h"
 #include "OrbitDataComponent.h"
+#include "UserWidgetHUDBorder.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/CanvasPanel.h"
 #include "Components/Image.h"
@@ -25,8 +26,9 @@ class MURDERINSPACE_API AAstronautHUD : public AHUD
 	AAstronautHUD();
 
 public:
-	TObjectPtr<UCanvasPanel> MainCanvasPanel;
-	TObjectPtr<UMyHUDWidget> MyHUDWidget;
+	//TObjectPtr<UCanvasPanel> MainCanvasPanel;
+	TObjectPtr<UUserWidgetHUDBorder> UserWidgetHUDBorder;
+	//TObjectPtr<UMyHUDWidget> MyHUDWidget;
 	TObjectPtr<UTextBlock> TextVelocitySI;
 	TObjectPtr<UTextBlock> TextVelocityVCircle;
 	TObjectPtr<UTextBlock> TextVelocityDirection;
@@ -38,24 +40,23 @@ public:
 
 	TObjectPtr<UImage> ImgDebug;
 
-	// relative to viewport width: the distance from the HUD to the viewport edge at top and bottom
+    // Default values: overridden by blueprint
+	// relative to viewport width: the horizontal distance from the circular HUD
+	// to the viewport edge at top and bottom
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float X0 = .11;
+	float X0 = 0.0;
 	
-	// relative to viewport height: the distance from the HUD to the viewport edge at top and bottom
+	// relative to viewport height: the distance from the HUD to the viewport edge
+	// at top and bottom
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float Y0 = .1;
+	float Y0 = 0.0;
 
-	// green overlay for the HUD
-	//FLinearColor HUDGreen;
-	
-	// parameter for the cubic bezier that draws the limits of the HUD
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float X1 = .2;
+	float X1 = 0.25;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float Y1 = .2;
-
+	float Y1 = 0.5;
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMGWidget")
 	TSubclassOf<class UUserWidget> AssetUMG_AstronautHUD;

@@ -41,10 +41,11 @@ void UOrbitDataComponent::SpawnOrbit(UClass* OrbitClass)
     {
  		Orbit = GetWorld()->SpawnActor<AOrbit>(OrbitClass);
 		Orbit->SetOrbitData(this);
-		const auto GI = GetOwner()->GetGameInstance<UMyGameInstance>();
+    	const auto GI = GetOwner()->GetGameInstance<UMyGameInstance>();
     	const auto Alpha = GI->Alpha;
     	const auto WorldRadius = GI->WorldRadius;
     	const auto VecF1 = GI->VecF1;
+    	
 		const auto VecRKepler = GetVecR() - VecF1;
     	SetVelocity(FVector(0, 0, 1).Cross(VecRKepler).GetSafeNormal() * GetCircleVelocity(Alpha, VecF1), Alpha, VecF1);
 		Orbit->Update(Alpha, WorldRadius, VecF1);
@@ -104,6 +105,7 @@ void UOrbitDataComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	// }
 }
 
+#if WITH_EDITOR
 void UOrbitDataComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
@@ -158,4 +160,4 @@ void UOrbitDataComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent
 		UE_LOG(LogTemp, Display, TEXT("In UKeplerOrbitComponent::PostEditChangeProperty: %s, not doing anything"), *Name.ToString());
 	}
 }
-
+#endif

@@ -39,12 +39,10 @@ void AAstronautHUD::BeginPlay()
 	
 	UMG_AstronautHUD = CreateWidget<UUserWidget>(GetOwningPlayerController(), AssetUMG_AstronautHUD);
 	UMG_AstronautHUD->AddToViewport();
+	
+	UserWidgetHUDBorder = FindOrFail<UUserWidgetHUDBorder>("BP_UserWidgetHUDBorder");
+	UserWidgetHUDBorder->SetParams(X0, Y0, X1, Y1);
 
-	MainCanvasPanel = FindOrFail<UCanvasPanel>("MainCanvasPanel");
-	
-	MyHUDWidget = FindOrFail<UMyHUDWidget>("BP_MyHUDWidget");
-	MyHUDWidget->SetParams(X0, Y0, X1, Y1);
-	
 	TextVelocitySI = FindOrFail<UTextBlock>("TextVelocitySI");
 	TextVelocityVCircle = FindOrFail<UTextBlock>("TextVelocityVCircle");
 	TextVelocityDirection = FindOrFail<UTextBlock>("TextVelocityDirection");
@@ -77,6 +75,12 @@ void AAstronautHUD::BeginPlay()
 void AAstronautHUD::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if(!UserWidgetHUDBorder || !TextVelocitySI || !TextVelocityVCircle || !TextVelocityDirection || !CanvasCenterOfMass || !OverlayCenterOfMass
+		|| !ImgPointer || !TextCenterOfMass || !ImgDebug) {
+			UE_LOG(LogTemp, Error, TEXT("AAstronautHUD::Tick: Some widgets could not be found. Not doing anything."))
+			return;
+	}
 
 	const auto ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
 	const auto GI = GetGameInstance<UMyGameInstance>();
@@ -193,7 +197,6 @@ TObjectPtr<WidgetT> AAstronautHUD::FindOrFail(const FName& Name) const
 	else
 	{
 		UE_LOG(LogSlate, Error, TEXT("AAstronautHUD::FindOrFail: Couldn't find %s"), *Name.ToString())
-		RequestEngineExit("HUD: error in widgets");
 		return nullptr;
 	}
 }
