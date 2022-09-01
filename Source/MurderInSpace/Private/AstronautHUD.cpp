@@ -7,7 +7,6 @@
 
 #include "CharacterInSpace.h"
 #include "MyGameInstance.h"
-#include "MyHUDWidget.h"
 #include "OrbitDataComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
@@ -35,6 +34,7 @@ void AAstronautHUD::BeginPlay()
 	if(!AssetUMG_AstronautHUD)
 	{
 		RequestEngineExit("AAstronautHUD::BeginPlay: AssetUMG_AstronautHUD null");
+		return;
 	}
 	
 	UMG_AstronautHUD = CreateWidget<UUserWidget>(GetOwningPlayerController(), AssetUMG_AstronautHUD);
@@ -93,8 +93,16 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 	const auto Angle = FQuat::FindBetween(FVector(1, 0, 0), OrbitData->GetVecVelocity()).GetNormalized().GetTwistAngle(FVector(0, 0, 1));
 	TextVelocityDirection->SetRenderTransformAngle(Angle * 180. / PI);
 
+	const auto Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
 	FVector2D ScreenLocation;
+	
+	// try to project to screen coordinates, ...
 	const auto bProjected = GetOwningPlayerController()->ProjectWorldLocationToScreen(GI->VecF1, ScreenLocation);
+	//const auto bProjected = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayerController(), GI->VecF1, ScreenLocation, false);
+
+	float XFromCenter;
+	float YFromCenter;
+	// ... which doesn't always work ...
 	if(!bProjected)
 	{
 		FVector CameraLocation;
@@ -102,76 +110,120 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 		GetOwningPlayerController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
 		const auto VecF1InViewportPlane = GI->VecF1 + CameraRotation.Vector() * (GetOwningPawn()->GetActorLocation() - GI->
 			VecF1).Length();
+		// ... but in that case we can help with a manual projection
 		if(!GetOwningPlayerController()->ProjectWorldLocationToScreen(VecF1InViewportPlane, ScreenLocation))
 		{
+			// If the manual projection fails, too, we're out of options
 			UE_LOG(LogActor, Error, TEXT("AAStronautHUD::Tick: couldn't project Center of mass to screen"))
 		}
+		// only we have to make sure that this manually conceived screen location doesn't accidentally
+		// end up on screen
+		XFromCenter = ScreenLocation.X / Vec2DSize.X - .5;
+		YFromCenter = ScreenLocation.Y / Vec2DSize.Y - .5;
+		YFromCenter += copysign(0.5 * YFromCenter / XFromCenter, YFromCenter);
+		XFromCenter += copysign(0.5, XFromCenter);
+	}
+	else
+	{
+		XFromCenter = ScreenLocation.X / Vec2DSize.X - .5;
+		YFromCenter = ScreenLocation.Y / Vec2DSize.Y - .5;
 	}
 	
-	const auto Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
-	const float XFromCenter = ScreenLocation.X / Vec2DSize.X - .5;
-	const float YFromCenter = ScreenLocation.Y / Vec2DSize.Y - .5;
-	
 	// off-screen
-	if(ScreenLocation.X < 0 || ScreenLocation.X > Vec2DSize.X || ScreenLocation.Y < 0 || ScreenLocation.Y > Vec2DSize.Y)
+	if(abs(XFromCenter) > 0.5 || abs(YFromCenter) > 0.5)
 	{
 		CanvasCenterOfMass->SetVisibility(ESlateVisibility::Visible);
-		const auto Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(OverlayCenterOfMass);
+		//const auto Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(OverlayCenterOfMass);
 		
-		const float C = 3. * Y1 - 1;
-		auto T = [C](float Y) -> float
-		{
-			// [-.5, .5] -> [0, 1]
-			const float YNorm = Y + .5;
-			return YNorm * (-2. * C * pow(YNorm, 2) + 3. * C * YNorm - C + 1);
-		};
-		auto XArc = [this, T] (float Y) -> float
-		{
-			const auto TParam = T(Y);
-			return X0 - 3. * X1 * TParam * (1. - TParam);
-		};
-		
+		// auto T = [this](float Y) -> float
+		// {
+		// 	// [-.5, .5] -> [0, 1]
+		// 	const float C = 3. * Y1 - 1;
+		// 	const float YNorm = Y + .5;
+		// 	return YNorm * (-2. * C * pow(YNorm, 2) + 3. * C * YNorm - C + 1);
+		// };
+		// auto XArc = [this, T] (float Y) -> float
+		// {
+		// 	const auto TParam = T(Y);
+		// 	return X0 - 3. * X1 * TParam * (1. - TParam);
+		// };
+		// 
 		float OverlayX, OverlayY;
 
-		// TODO: this ratio isn't correct
-		// instead, I need the smallest square that fits into the HUD maybe
-		if(abs(YFromCenter/XFromCenter) > Vec2DSize.Y / static_cast<float>(Vec2DSize.X))
+		// // TODO: this ratio isn't correct
+		// // instead, I need the smallest square that fits into the HUD maybe
+		// if(abs(YFromCenter/XFromCenter) > Vec2DSize.Y / (static_cast<float>(Vec2DSize.X) - 2 * XArc(-.5)))
+		// {
+		// 	OverlayX = XFromCenter * .5 / abs(YFromCenter);
+		// 	
+		// 	// below the viewport
+		// 	if(YFromCenter > 0.)
+		// 	{
+		// 		OverlayY = .5;
+		// 		//Slot->SetAlignment(FVector2D(OverlayX + .5, 1));
+		// 	}
+		// 	
+		// 	// above the viewport
+		// 	else
+		// 	{
+		// 		OverlayY = -.5;
+		// 		//Slot->SetAlignment(FVector2D(OverlayX + .5, 0.));
+		// 	}
+		// }
+		// else
+		// {
+		// 	OverlayY = YFromCenter * .5 / abs(XFromCenter);
+
+		// 	// to the right of the viewport
+		// 	if(XFromCenter > 0.)
+		// 	{
+		// 		OverlayX = .5 - XArc(OverlayY);
+		// 		//Slot->SetAlignment(FVector2D(1., OverlayY + .5));
+		// 	}
+
+		// 	// to the left of the viewport
+		// 	else
+		// 	{
+		// 		OverlayX = -(.5 - XArc(OverlayY));
+		// 		//Slot->SetAlignment(FVector2D(0., OverlayY + .5));
+		// 	}
+		// }
+
+		// debugging
+		// trying to simplify the problem: ignoring the circular HUD border
+		if(abs(YFromCenter / XFromCenter) > 1.)
 		{
-			const auto XMinMax = .5 - XArc(-.5);
-			OverlayX = std::clamp<float>(XFromCenter * .5 / abs(YFromCenter), -XMinMax, XMinMax);
-			
-			// below the viewport
-			if(YFromCenter > 0.)
+			OverlayX = XFromCenter * 0.5 / abs(YFromCenter);
+			if(YFromCenter < 0)
 			{
-				OverlayY = .5;
-				//Slot->SetAlignment(FVector2D(OverlayX + .5, 1));
+				// above the viewport
+				UE_LOG(LogController, Warning, TEXT("above, x: %f"), OverlayX)
+				OverlayY = -0.5;
 			}
-			
-			// above the viewport
 			else
 			{
-				OverlayY = -.5;
-				//Slot->SetAlignment(FVector2D(OverlayX + .5, 0.));
+				UE_LOG(LogController, Warning, TEXT("below, x: %f"), OverlayX)
+				// below the viewport
+				OverlayY = 0.5;
 			}
 		}
 		else
 		{
-			OverlayY = YFromCenter * .5 / abs(XFromCenter);
-
-			// to the right of the viewport
-			if(XFromCenter > 0.)
+			OverlayY = YFromCenter * 0.5 / abs(XFromCenter);
+			if(XFromCenter < 0)
 			{
-				OverlayX = .5 - XArc(OverlayY);
-				//Slot->SetAlignment(FVector2D(1., OverlayY + .5));
+				UE_LOG(LogController, Warning, TEXT("left,  y: %f"), OverlayY)
+				// to the left of the viewport
+				OverlayX = -0.5;
 			}
-
-			// to the left of the viewport
 			else
 			{
-				OverlayX = -(.5 - XArc(OverlayY));
-				//Slot->SetAlignment(FVector2D(0., OverlayY + .5));
+				UE_LOG(LogController, Warning, TEXT("right,  y: %f"), OverlayY)
+				// to the right of the viewport
+				OverlayX = 0.5;
 			}
 		}
+		
 		UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass)->SetPosition(FVector2D((OverlayX + .5) * Vec2DSize.X, (OverlayY + .5) * Vec2DSize.Y) / ViewportScale);
 		//TextCenterOfMass->SetText(FText::Format(LOCTEXT("foo", "Y: {0}, YNorm: {1}, T(YNorm): {2}, XArc(YNorm): {3}"), OverlayY, (OverlayY + HalfHeight) / static_cast<float>(Vec2DSize.Y), T(OverlayY), XArc(OverlayY)));
 		//TextCenterOfMass->SetText(FText::Format(LOCTEXT("foo", "{0}"), ViewportScale));
@@ -179,6 +231,7 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 	// on-screen
 	else
 	{
+		UE_LOG(LogController, Warning, TEXT("on screen, bProjected: %s"), bProjected ? TEXT("true") : TEXT("false"))
 		//OverlayCenterOfMass->SetVisibility(ESlateVisibility::Collapsed);
 		// TODO: paint green circle around center-of-mass
 		UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass)->SetPosition(ScreenLocation / ViewportScale);

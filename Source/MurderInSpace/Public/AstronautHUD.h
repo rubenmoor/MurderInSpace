@@ -44,7 +44,7 @@ public:
 	// relative to viewport width: the horizontal distance from the circular HUD
 	// to the viewport edge at top and bottom
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float X0 = 0.0;
+	float X0 = 0.115;
 	
 	// relative to viewport height: the distance from the HUD to the viewport edge
 	// at top and bottom
@@ -52,10 +52,10 @@ public:
 	float Y0 = 0.0;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float X1 = 0.25;
+	float X1 = -0.02;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float Y1 = 0.5;
+	float Y1 = 0.33;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMGWidget")
