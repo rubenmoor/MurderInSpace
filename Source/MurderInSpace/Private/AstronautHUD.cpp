@@ -102,7 +102,7 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 
 	float XFromCenter;
 	float YFromCenter;
-	// ... which doesn't always work ...
+	// ... which doesn't always work, i.e. F1 must be in front of the camera, I believe, which isn't always the case
 	if(!bProjected)
 	{
 		FVector CameraLocation;
@@ -133,21 +133,25 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 	if(abs(XFromCenter) > 0.5 || abs(YFromCenter) > 0.5)
 	{
 		CanvasCenterOfMass->SetVisibility(ESlateVisibility::Visible);
-		//const auto Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(OverlayCenterOfMass);
 		
-		// auto T = [this](float Y) -> float
-		// {
-		// 	// [-.5, .5] -> [0, 1]
-		// 	const float C = 3. * Y1 - 1;
-		// 	const float YNorm = Y + .5;
-		// 	return YNorm * (-2. * C * pow(YNorm, 2) + 3. * C * YNorm - C + 1);
-		// };
-		// auto XArc = [this, T] (float Y) -> float
-		// {
-		// 	const auto TParam = T(Y);
-		// 	return X0 - 3. * X1 * TParam * (1. - TParam);
-		// };
-		// 
+		auto T = [this](float Y) -> float
+		{
+			const float C = 3. * Y1 - 1;
+			
+			// [-.5, .5] -> [0, 1]
+			const float YNorm = Y + .5;
+			
+			return YNorm * (-2. * C * pow(YNorm, 2) + 3. * C * YNorm - C + 1);
+		};
+		auto XArc = [this, T] (float Y) -> float
+		{
+			const auto TParam = T(Y);
+			return X0 + 3. * (X1 - X0) * TParam * (1. - TParam);
+			// could be simplified to:
+			// return X0 + 3. * (X1 - X0) * (Y + 0.5) * (0.5 - Y);
+			// when Y1 is fixed to 1/3
+		};
+		 
 		float OverlayX, OverlayY;
 
 		// // TODO: this ratio isn't correct
@@ -189,38 +193,44 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 		// 	}
 		// }
 
-		// debugging
-		// trying to simplify the problem: ignoring the circular HUD border
-		if(abs(YFromCenter / XFromCenter) > 1.)
+		const auto Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(OverlayCenterOfMass);
+
+		if(abs(YFromCenter) > abs(XFromCenter) / (1. - 2 * XArc(-0.5)))
 		{
+			// vertical case
 			OverlayX = XFromCenter * 0.5 / abs(YFromCenter);
 			if(YFromCenter < 0)
 			{
 				// above the viewport
 				UE_LOG(LogController, Warning, TEXT("above, x: %f"), OverlayX)
 				OverlayY = -0.5;
+				Slot->SetAlignment(FVector2D(OverlayX / (1. - 2. * XArc(-0.5)) + .5, 0.));
 			}
 			else
 			{
 				UE_LOG(LogController, Warning, TEXT("below, x: %f"), OverlayX)
 				// below the viewport
 				OverlayY = 0.5;
+				Slot->SetAlignment(FVector2D(OverlayX / (1. - 2. * XArc(-0.5)) + .5, 1.));
 			}
 		}
 		else
 		{
-			OverlayY = YFromCenter * 0.5 / abs(XFromCenter);
+			// horizontal case
+			OverlayY = YFromCenter * (0.5 - XArc(-0.5)) / abs(XFromCenter);
 			if(XFromCenter < 0)
 			{
 				UE_LOG(LogController, Warning, TEXT("left,  y: %f"), OverlayY)
 				// to the left of the viewport
-				OverlayX = -0.5;
+				OverlayX = -0.5 + XArc(OverlayY);
+				Slot->SetAlignment(FVector2D(0., OverlayY + .5));
 			}
 			else
 			{
 				UE_LOG(LogController, Warning, TEXT("right,  y: %f"), OverlayY)
 				// to the right of the viewport
-				OverlayX = 0.5;
+				OverlayX = 0.5 - XArc(OverlayY);
+				Slot->SetAlignment(FVector2D(1., OverlayY + .5));
 			}
 		}
 		
