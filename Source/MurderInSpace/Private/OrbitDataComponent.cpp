@@ -79,6 +79,7 @@ void UOrbitDataComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	{
 		UE_LOG(LogActor, Error, TEXT("%s: Orbit null"), *GetOwner()->GetFName().ToString());
 		RequestEngineExit(TEXT("UOrbitDataComponent::TickComponent: Orbit null"));
+		return;
 	}
 	
 	const auto GI = GetOwner()->GetGameInstance<UMyGameInstance>();
