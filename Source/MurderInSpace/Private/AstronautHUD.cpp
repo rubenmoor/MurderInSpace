@@ -154,46 +154,7 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 		 
 		float OverlayX, OverlayY;
 
-		// // TODO: this ratio isn't correct
-		// // instead, I need the smallest square that fits into the HUD maybe
-		// if(abs(YFromCenter/XFromCenter) > Vec2DSize.Y / (static_cast<float>(Vec2DSize.X) - 2 * XArc(-.5)))
-		// {
-		// 	OverlayX = XFromCenter * .5 / abs(YFromCenter);
-		// 	
-		// 	// below the viewport
-		// 	if(YFromCenter > 0.)
-		// 	{
-		// 		OverlayY = .5;
-		// 		//Slot->SetAlignment(FVector2D(OverlayX + .5, 1));
-		// 	}
-		// 	
-		// 	// above the viewport
-		// 	else
-		// 	{
-		// 		OverlayY = -.5;
-		// 		//Slot->SetAlignment(FVector2D(OverlayX + .5, 0.));
-		// 	}
-		// }
-		// else
-		// {
-		// 	OverlayY = YFromCenter * .5 / abs(XFromCenter);
-
-		// 	// to the right of the viewport
-		// 	if(XFromCenter > 0.)
-		// 	{
-		// 		OverlayX = .5 - XArc(OverlayY);
-		// 		//Slot->SetAlignment(FVector2D(1., OverlayY + .5));
-		// 	}
-
-		// 	// to the left of the viewport
-		// 	else
-		// 	{
-		// 		OverlayX = -(.5 - XArc(OverlayY));
-		// 		//Slot->SetAlignment(FVector2D(0., OverlayY + .5));
-		// 	}
-		// }
-
-		const auto Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(OverlayCenterOfMass);
+		const auto Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass);
 
 		if(abs(YFromCenter) > abs(XFromCenter) / (1. - 2 * XArc(-0.5)))
 		{
@@ -202,13 +163,11 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 			if(YFromCenter < 0)
 			{
 				// above the viewport
-				UE_LOG(LogController, Warning, TEXT("above, x: %f"), OverlayX)
 				OverlayY = -0.5;
 				Slot->SetAlignment(FVector2D(OverlayX / (1. - 2. * XArc(-0.5)) + .5, 0.));
 			}
 			else
 			{
-				UE_LOG(LogController, Warning, TEXT("below, x: %f"), OverlayX)
 				// below the viewport
 				OverlayY = 0.5;
 				Slot->SetAlignment(FVector2D(OverlayX / (1. - 2. * XArc(-0.5)) + .5, 1.));
@@ -220,14 +179,12 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 			OverlayY = YFromCenter * (0.5 - XArc(-0.5)) / abs(XFromCenter);
 			if(XFromCenter < 0)
 			{
-				UE_LOG(LogController, Warning, TEXT("left,  y: %f"), OverlayY)
 				// to the left of the viewport
 				OverlayX = -0.5 + XArc(OverlayY);
 				Slot->SetAlignment(FVector2D(0., OverlayY + .5));
 			}
 			else
 			{
-				UE_LOG(LogController, Warning, TEXT("right,  y: %f"), OverlayY)
 				// to the right of the viewport
 				OverlayX = 0.5 - XArc(OverlayY);
 				Slot->SetAlignment(FVector2D(1., OverlayY + .5));
@@ -237,11 +194,11 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 		UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass)->SetPosition(FVector2D((OverlayX + .5) * Vec2DSize.X, (OverlayY + .5) * Vec2DSize.Y) / ViewportScale);
 		//TextCenterOfMass->SetText(FText::Format(LOCTEXT("foo", "Y: {0}, YNorm: {1}, T(YNorm): {2}, XArc(YNorm): {3}"), OverlayY, (OverlayY + HalfHeight) / static_cast<float>(Vec2DSize.Y), T(OverlayY), XArc(OverlayY)));
 		//TextCenterOfMass->SetText(FText::Format(LOCTEXT("foo", "{0}"), ViewportScale));
+		ImgPointer->SetRenderTransformAngle(atan2(YFromCenter, XFromCenter) * 180. / PI + 135);
 	}
 	// on-screen
 	else
 	{
-		UE_LOG(LogController, Warning, TEXT("on screen, bProjected: %s"), bProjected ? TEXT("true") : TEXT("false"))
 		//OverlayCenterOfMass->SetVisibility(ESlateVisibility::Collapsed);
 		// TODO: paint green circle around center-of-mass
 		UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass)->SetPosition(ScreenLocation / ViewportScale);

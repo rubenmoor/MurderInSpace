@@ -10,6 +10,7 @@
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HUD/UMG_PlayerHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/UMG_PlayerHUD.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/AstronautHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/AstronautHUD.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -179,7 +180,7 @@
       <workItem from="1657203788757" duration="8102000" />
       <workItem from="1662042149173" duration="51000" />
       <workItem from="1662042406189" duration="11142000" />
-      <workItem from="1662056167564" duration="6727000" />
+      <workItem from="1662056167564" duration="8385000" />
     </task>
     <servers />
   </component>
