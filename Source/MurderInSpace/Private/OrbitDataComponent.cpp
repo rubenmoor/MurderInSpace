@@ -31,7 +31,7 @@ void UOrbitDataComponent::AddVelocity(FVector _VecVelocity, float Alpha, FVector
 	SetVelocity(VecVelocity + _VecVelocity, Alpha, VecF1);
 }
 
-void UOrbitDataComponent::SpawnOrbit(UClass* OrbitClass)
+void UOrbitDataComponent::SpawnOrbit(UClass* OrbitClass, UMaterialInstance* Material)
 {
  	if(Orbit)
  	{
@@ -48,6 +48,7 @@ void UOrbitDataComponent::SpawnOrbit(UClass* OrbitClass)
     	
 		const auto VecRKepler = GetVecR() - VecF1;
     	SetVelocity(FVector(0, 0, 1).Cross(VecRKepler).GetSafeNormal() * GetCircleVelocity(Alpha, VecF1), Alpha, VecF1);
+    	SplineMeshMaterial = Material;
 		Orbit->Update(Alpha, WorldRadius, VecF1);
     }
 }

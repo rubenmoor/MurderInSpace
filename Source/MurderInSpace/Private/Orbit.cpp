@@ -272,6 +272,7 @@ void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 				SplineMesh->SetMobility(EComponentMobility::Stationary);
 				SplineMesh->CastShadow = false;
 				SplineMesh->SetStaticMesh(SM_Trajectory);
+				SplineMesh->SetMaterial(0, OrbitData->SplineMeshMaterial);
 				const auto VecStartPos = Spline->GetLocationAtDistanceAlongSpline(Indices[i] * splineMeshLength, ESplineCoordinateSpace::World);
 				const auto VecStartDirection = Spline->GetTangentAtDistanceAlongSpline(Indices[i] * splineMeshLength, ESplineCoordinateSpace::World).GetUnsafeNormal() * splineMeshLength;
 				const auto VecEndPos = Spline->GetLocationAtDistanceAlongSpline(Indices[i + 1] * splineMeshLength, ESplineCoordinateSpace::World);

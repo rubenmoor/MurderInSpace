@@ -127,31 +127,31 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 		YFromCenter = ScreenLocation.Y / Vec2DSize.Y - .5;
 	}
 	
+	auto T = [this](float Y) -> float
+	{
+		const float C = 3. * Y1 - 1;
+		
+		// [-.5, .5] -> [0, 1]
+		const float YNorm = Y + .5;
+		
+		return YNorm * (-2. * C * pow(YNorm, 2) + 3. * C * YNorm - C + 1);
+	};
+	auto XArc = [this, T] (float Y) -> float
+	{
+		const float TParam = T(Y);
+		constexpr float X0Correction = 0.002;
+		constexpr float X1Correction = -0.005;
+		return X0 - X0Correction + 3. * (X1 - X1Correction - (X0 - X0Correction)) * TParam * (1. - TParam);
+		// could be simplified to:
+		// return X0 + 3. * (X1 - X0) * (Y + 0.5) * (0.5 - Y);
+		// when Y1 is fixed to 1/3
+	};
+	 
 	// off-screen
-	if(abs(XFromCenter) > 0.5 || abs(YFromCenter) > 0.5)
+	if(abs(YFromCenter) > 0.5 || abs(XFromCenter) > 0.5 - XArc(YFromCenter))
 	{
 		CanvasCenterOfMass->SetVisibility(ESlateVisibility::Visible);
 		
-		auto T = [this](float Y) -> float
-		{
-			const float C = 3. * Y1 - 1;
-			
-			// [-.5, .5] -> [0, 1]
-			const float YNorm = Y + .5;
-			
-			return YNorm * (-2. * C * pow(YNorm, 2) + 3. * C * YNorm - C + 1);
-		};
-		auto XArc = [this, T] (float Y) -> float
-		{
-			const float TParam = T(Y);
-			constexpr float X0Correction = 0.002;
-			constexpr float X1Correction = -0.005;
-			return X0 - X0Correction + 3. * (X1 - X1Correction - (X0 - X0Correction)) * TParam * (1. - TParam);
-			// could be simplified to:
-			// return X0 + 3. * (X1 - X0) * (Y + 0.5) * (0.5 - Y);
-			// when Y1 is fixed to 1/3
-		};
-		 
 		float OverlayX, OverlayY;
 
 		const auto Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass);

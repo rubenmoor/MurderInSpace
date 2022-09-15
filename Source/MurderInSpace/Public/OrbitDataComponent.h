@@ -21,6 +21,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<AOrbit> Orbit;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UMaterialInstance> SplineMeshMaterial;
+
 	// member functions
 
 	UFUNCTION(BlueprintCallable)
@@ -36,7 +39,7 @@ public:
 	void AddVelocity(FVector _VecVelocity, float Alpha, FVector VecF1);
 	
 	UFUNCTION(BlueprintCallable)
-	void SpawnOrbit(UClass* OrbitClass);
+	void SpawnOrbit(UClass* OrbitClass, UMaterialInstance* Material);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FVector GetVecVelocity() const;
