@@ -35,10 +35,7 @@ public:
 
 	TObjectPtr<UCanvasPanel> CanvasCenterOfMass;
 	TObjectPtr<UOverlay> OverlayCenterOfMass;
-	TObjectPtr<UTextBlock> TextCenterOfMass;
 	TObjectPtr<UImage> ImgPointer;
-
-	TObjectPtr<UImage> ImgDebug;
 
     // Default values: overridden by blueprint
 	// relative to viewport width: the horizontal distance from the circular HUD

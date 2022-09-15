@@ -89,6 +89,9 @@ public:
 protected:
 	
 	// event handlers
+	#if WITH_EDITOR
+	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+	#endif
 	
 	// components
 	
@@ -102,6 +105,15 @@ protected:
 	TObjectPtr<UHierarchicalInstancedStaticMeshComponent> HISMTrajectory;
 
 	// members
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+	bool bTrajectoryShowSpline = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+	float splineMeshLength = 1000.0;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+	bool bTrajectoryShowSpheres = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<UOrbitDataComponent> OrbitData;

@@ -48,13 +48,11 @@ void AAstronautHUD::BeginPlay()
 	TextVelocityDirection = FindOrFail<UTextBlock>("TextVelocityDirection");
 
 	CanvasCenterOfMass = FindOrFail<UCanvasPanel>("CanvasCenterOfMass");
+	
 	// Overlay with two images
 	OverlayCenterOfMass = FindOrFail<UOverlay>("OverlayCenterOfMass");
 	ImgPointer = FindOrFail<UImage>("ImgPointer");
-	TextCenterOfMass = FindOrFail<UTextBlock>("TextCenterOfMass");
 
-	ImgDebug = FindOrFail<UImage>("ImgDebug");
-	
 	const auto PC = GetOwningPlayerController();
 	if(!PC)
 	{
@@ -77,7 +75,7 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	if(!UserWidgetHUDBorder || !TextVelocitySI || !TextVelocityVCircle || !TextVelocityDirection || !CanvasCenterOfMass || !OverlayCenterOfMass
-		|| !ImgPointer || !TextCenterOfMass || !ImgDebug) {
+		|| !ImgPointer) {
 			UE_LOG(LogTemp, Error, TEXT("AAstronautHUD::Tick: Some widgets could not be found. Not doing anything."))
 			return;
 	}
@@ -85,19 +83,19 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 	const auto ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
 	const auto GI = GetGameInstance<UMyGameInstance>();
 	const auto OrbitData = Pawn->GetOrbitDataComponent();
-	const auto Velocity = OrbitData->GetVelocity();
+	const float Velocity = OrbitData->GetVelocity();
 
 	TextVelocitySI->SetText(FText::AsNumber(Velocity * GI->ScaleFactor, &FormattingOptions));
 	TextVelocityVCircle->SetText(FText::AsNumber(Velocity / OrbitData->GetCircleVelocity(GI->Alpha, GI->VecF1), &FormattingOptions));
 
-	const auto Angle = FQuat::FindBetween(FVector(1, 0, 0), OrbitData->GetVecVelocity()).GetNormalized().GetTwistAngle(FVector(0, 0, 1));
+	const float Angle = FQuat::FindBetween(FVector(1, 0, 0), OrbitData->GetVecVelocity()).GetNormalized().GetTwistAngle(FVector(0, 0, 1));
 	TextVelocityDirection->SetRenderTransformAngle(Angle * 180. / PI);
 
 	const auto Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
 	FVector2D ScreenLocation;
 	
 	// try to project to screen coordinates, ...
-	const auto bProjected = GetOwningPlayerController()->ProjectWorldLocationToScreen(GI->VecF1, ScreenLocation);
+	const bool bProjected = GetOwningPlayerController()->ProjectWorldLocationToScreen(GI->VecF1, ScreenLocation);
 	//const auto bProjected = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayerController(), GI->VecF1, ScreenLocation, false);
 
 	float XFromCenter;
@@ -145,8 +143,10 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 		};
 		auto XArc = [this, T] (float Y) -> float
 		{
-			const auto TParam = T(Y);
-			return X0 + 3. * (X1 - X0) * TParam * (1. - TParam);
+			const float TParam = T(Y);
+			constexpr float X0Correction = 0.002;
+			constexpr float X1Correction = -0.005;
+			return X0 - X0Correction + 3. * (X1 - X1Correction - (X0 - X0Correction)) * TParam * (1. - TParam);
 			// could be simplified to:
 			// return X0 + 3. * (X1 - X0) * (Y + 0.5) * (0.5 - Y);
 			// when Y1 is fixed to 1/3

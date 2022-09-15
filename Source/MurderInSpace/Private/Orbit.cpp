@@ -3,6 +3,7 @@
 #include <numeric>
 
 #include "FunctionLib.h"
+#include "MyGameInstance.h"
 #include "OrbitDataComponent.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Components/SplineMeshComponent.h"
@@ -26,7 +27,9 @@ void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 {
 	if(!OrbitData)
 	{
-		RequestEngineExit(TEXT("AOrbit::UpdateParameters: OrbitData null"));
+		// RequestEngineExit(TEXT("AOrbit::UpdateParameters: OrbitData null"));
+		UE_LOG(LogActor, Error, TEXT("AOrbit::Update: OrbitData null. Not doing anything"))
+		return;
 	}
 	
 	Spline->ClearSplinePoints(false);
@@ -223,49 +226,59 @@ void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 	// else
 	// `SplineKey` is not needed,
 	// `SplineDistance` and `DistanceZero` are set already
-		
-	const auto HISMLength = std::min<float>(HISMMaxLength, Spline->GetSplineLength());
-	HISMNumberOfMarkers = std::max<int>(1, HISMLength / HISMDistance);
 
-	HISMTrajectory->ClearInstances();
-	for(int i = 1; i < HISMNumberOfMarkers; i++)
+	if(bTrajectoryShowSpheres)
 	{
-		const auto Transform = Spline->GetTransformAtDistanceAlongSpline(DistanceZero + i * HISMDistance, ESplineCoordinateSpace::World);
-		//HISMTrajectory->AddInstance(Transform);
-	}
-	HISMCurrentIndex = 0;
+		const auto HISMLength = std::min<float>(HISMMaxLength, Spline->GetSplineLength());
+		HISMNumberOfMarkers = std::max<int>(1, HISMLength / HISMDistance);
 
-	TArray<USplineMeshComponent*> OldSplinesMeshes;
-	GetComponents(OldSplinesMeshes);
-	for(auto Old : OldSplinesMeshes)
-	{
-		Old->DestroyComponent();
+		HISMTrajectory->ClearInstances();
+		for(int i = 1; i < HISMNumberOfMarkers; i++)
+		{
+			const auto Transform = Spline->GetTransformAtDistanceAlongSpline(DistanceZero + i * HISMDistance, ESplineCoordinateSpace::World);
+			HISMTrajectory->AddInstance(Transform);
+		}
+		HISMCurrentIndex = 0;
 	}
 
-	std::vector<int> Indices(Spline->GetNumberOfSplinePoints());
-	std::iota(Indices.begin(), Indices.end(), 0);
+	if(bTrajectoryShowSpline)
+	{
+		TArray<USplineMeshComponent*> OldSplinesMeshes;
+		GetComponents(OldSplinesMeshes);
+		for(auto Old : OldSplinesMeshes)
+		{
+			Old->DestroyComponent();
+		}
 
-	if(Spline->IsClosedLoop() && Params.OrbitType != EOrbitType::LINEBOUND)
-	{
-		Indices.push_back(0);
-	}
-	for(int i = 0; i < Indices.size() - 1; i++)
-	{
-		const auto SplineMesh = NewObject<USplineMeshComponent>(this, *FString(TEXT("SplineMesh")).Append(FString::FromInt(i)));
-		// if I don't register here, the spline mesh doesn't render
-		SplineMesh->RegisterComponent();
-		SplineMesh->AttachToComponent(Root, FAttachmentTransformRules::KeepWorldTransform);
-		// if I don't add instance here, the spline meshes don't show in the component list in the editor
-		AddInstanceComponent(SplineMesh);
-		
-		SplineMesh->SetMobility(EComponentMobility::Stationary);
-		SplineMesh->CastShadow = false;
-		//SplineMesh->SetStaticMesh(SM_Trajectory);
-		const auto VecStartPos = Spline->GetLocationAtSplinePoint(Indices[i], ESplineCoordinateSpace::World);
-		const auto VecStartDirection = Spline->GetTangentAtSplinePoint(Indices[i], ESplineCoordinateSpace::World);
-		const auto VecEndPos = Spline->GetLocationAtSplinePoint(Indices[i + 1], ESplineCoordinateSpace::World);
-		const auto VecEndDirection = Spline->GetTangentAtSplinePoint(Indices[i + 1], ESplineCoordinateSpace::World);
-		SplineMesh->SetStartAndEnd(VecStartPos, VecStartDirection, VecEndPos, VecEndDirection);
+		const auto nIndices = static_cast<int>(round(Spline->GetSplineLength() / splineMeshLength));
+		if(nIndices >= 2)
+		{
+			std::vector<int> Indices(nIndices);
+			std::iota(Indices.begin(), Indices.end(), 0);
+
+			if(Spline->IsClosedLoop() && Params.OrbitType != EOrbitType::LINEBOUND)
+			{
+				Indices.push_back(0);
+			}
+			for(int i = 0; i < Indices.size() - 1; i++)
+			{
+				const auto SplineMesh = NewObject<USplineMeshComponent>(this, *FString(TEXT("SplineMesh")).Append(FString::FromInt(i)));
+				// if I don't register here, the spline mesh doesn't render
+				SplineMesh->RegisterComponent();
+				SplineMesh->AttachToComponent(Root, FAttachmentTransformRules::KeepWorldTransform);
+				// if I don't add instance here, the spline meshes don't show in the component list in the editor
+				AddInstanceComponent(SplineMesh);
+				
+				SplineMesh->SetMobility(EComponentMobility::Stationary);
+				SplineMesh->CastShadow = false;
+				SplineMesh->SetStaticMesh(SM_Trajectory);
+				const auto VecStartPos = Spline->GetLocationAtDistanceAlongSpline(Indices[i] * splineMeshLength, ESplineCoordinateSpace::World);
+				const auto VecStartDirection = Spline->GetTangentAtDistanceAlongSpline(Indices[i] * splineMeshLength, ESplineCoordinateSpace::World).GetUnsafeNormal() * splineMeshLength;
+				const auto VecEndPos = Spline->GetLocationAtDistanceAlongSpline(Indices[i + 1] * splineMeshLength, ESplineCoordinateSpace::World);
+				const auto VecEndDirection = Spline->GetTangentAtDistanceAlongSpline(Indices[i + 1] * splineMeshLength, ESplineCoordinateSpace::World).GetUnsafeNormal() * splineMeshLength;
+				SplineMesh->SetStartAndEnd(VecStartPos, VecStartDirection, VecEndPos, VecEndDirection);
+			}
+		}
 	}
 	bInitialized = true;
 }
@@ -327,7 +340,7 @@ FNewVelocityAndLocation AOrbit::AdvanceOnSpline(float DeltaR, float Velocity, FV
 		const auto NewLocation = Spline->GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World);
 
 		// update trajectory HISM markers
-		if((SplineDistance - DistanceZero) / HISMDistance > HISMCurrentIndex)
+		if(bTrajectoryShowSpheres && (SplineDistance - DistanceZero) / HISMDistance > HISMCurrentIndex)
 		{
 			const auto SplineLength = std::max<float>(HISMDistance, Spline->GetSplineLength());
 			const auto Distance = fmod(DistanceZero + (HISMNumberOfMarkers + HISMCurrentIndex) * HISMDistance, SplineLength);
@@ -365,3 +378,25 @@ FString AOrbit::GetParamsString()
 	}
 	return StrOrbitType + FString::Printf(TEXT(", E = %.2f, P = %.1f, Energy = %.1f, Period = %.1f, A = %.1f"), Params.Eccentricity, Params.P, Params.Energy, Params.Period, Params.A);
 }
+
+#if WITH_EDITOR
+void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+	
+	const auto WorldRadius = UMyGameInstance::EditorDefaultWorldRadiusUU;
+	const auto Alpha = UMyGameInstance::EditorDefaultAlpha;
+	const auto VecF1 = UMyGameInstance::EditorDefaultVecF1;
+	
+	const auto Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
+
+	static const FName FNameBTrajectoryShowSpline = GET_MEMBER_NAME_CHECKED(AOrbit, bTrajectoryShowSpline);
+	static const FName FNameSplineMeshLength = GET_MEMBER_NAME_CHECKED(AOrbit, splineMeshLength);
+	static const FName FNameBTrajectoryShowSpheres = GET_MEMBER_NAME_CHECKED(AOrbit, bTrajectoryShowSpheres);
+
+	if(Name == FNameSplineMeshLength || Name == FNameBTrajectoryShowSpline || Name == FNameBTrajectoryShowSpheres)
+	{
+		Update(Alpha, WorldRadius, VecF1);
+	}
+}
+#endif
