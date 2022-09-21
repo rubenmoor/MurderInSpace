@@ -11,9 +11,9 @@ APawnInSpace::APawnInSpace()
 
 	// components
 
-	Root = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
+	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
-
+	
 	OrbitData = CreateDefaultSubobject<UOrbitDataComponent>(TEXT("Orbit Data"));
 }
 

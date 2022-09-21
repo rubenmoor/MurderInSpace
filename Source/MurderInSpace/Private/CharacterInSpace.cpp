@@ -36,7 +36,7 @@ ACharacterInSpace::ACharacterInSpace()
 
 void ACharacterInSpace::UpdateSpringArm(uint8 CameraPosition)
 {
-	const auto Length = pow(CameraPosition, 2) * 250;
+	const float Length = pow(CameraPosition, 2) * 250;
 	SpringArm->TargetArmLength = Length;
 	SpringArm->SetWorldRotation(FRotator(CameraPosition < 2 ? -10 + CameraPosition * -20 : -50 - CameraPosition * 5, 0, 0));
 	StarAnchor->SetRelativeLocation(FVector(10000 + Length, 0, 0));

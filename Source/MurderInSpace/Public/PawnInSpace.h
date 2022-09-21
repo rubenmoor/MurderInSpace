@@ -39,7 +39,7 @@ protected:
 	
 	// components
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> Root;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)

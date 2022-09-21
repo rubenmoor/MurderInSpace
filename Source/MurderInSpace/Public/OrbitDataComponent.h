@@ -7,7 +7,17 @@
 #include "Components/ActorComponent.h"
 #include "OrbitDataComponent.generated.h"
 
-
+/*
+ *  The orbit data component is limited to containing data relevant
+ *  to orbital motion. It links to the orbit actor via property.
+ *
+ *  The orbit data component ticks: It gets the new actor location by
+ *  passing the orbit data to `AdvanceOnSpline` of the orbit actor.
+ *
+ *  Having the orbit data component tick instead of the actor reduces boilerplate
+ *  in the actor. Having the orbit data component tick instead of the orbit
+ *  actor avoids the situation of having a stationary actor moving another actor.
+ */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MURDERINSPACE_API UOrbitDataComponent : public UActorComponent
 {
@@ -62,8 +72,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bInitialized = false;
 
+	// this is a pointer to the physical body that orbits and has
+	// simulated physics; it can be anywhere in the scene tree of the
+	// owning actor
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UPrimitiveComponent> Body;
+	
 	// event handlers
-
+	
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 

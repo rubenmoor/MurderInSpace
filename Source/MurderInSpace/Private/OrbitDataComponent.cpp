@@ -94,9 +94,12 @@ void UOrbitDataComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	VelocityVCircle = Velocity / GetCircleVelocity(Alpha, VecF1);
 	const auto DeltaR = Velocity * DeltaTime;
 
-	const auto New = Orbit->AdvanceOnSpline(DeltaR, Velocity, VecR, DeltaTime);
-	GetOwner()->SetActorLocation(New.NewLocation);
-	VecVelocity = New.NewVecVelocity;
+	const auto [NewVecVelocity, NewLocation] = Orbit->AdvanceOnSpline(DeltaR, Velocity, VecR, DeltaTime);
+	// TODO: replace with Body->SetWorldLocation
+	GetOwner()->SetActorLocation(NewLocation, true, nullptr, ETeleportType::None);
+	//GetOwner()->GetRootComponent()->SetWorldLocation(NewLocation, true, nullptr, ETeleportType::TeleportPhysics);
+	
+	VecVelocity = NewVecVelocity;
 
 	// TODO: account for acceleration
 	// const auto RealDeltaR = (GetVecR() - VecR).Length();

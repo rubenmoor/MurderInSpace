@@ -54,6 +54,14 @@ struct FNewVelocityAndLocation
 	FVector NewLocation;
 };
 
+/*
+ * The orbit actor has
+ *   * a spline component along with meshes for orbit visualisation
+ *   * a function to move the object along the spline according to its orbital data
+ *
+ *  Having an orbit actor, rather then a more powerful orbit component, allows to
+ *  attach the spline to a stationary orbit (the position of which doesn't matter).
+ */
 UCLASS()
 class MURDERINSPACE_API AOrbit : public AActor
 {

@@ -46,21 +46,34 @@ void AMyPlayerController::AccelerateBegin()
 
 void AMyPlayerController::BeginPlay()
 {
-	GetPawn<ACharacterInSpace>()->UpdateSpringArm(CameraPosition);
 	Super::BeginPlay();
+	const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
+	if(!MyCharacter)
+	{
+		UE_LOG(LogPlayerController, Error, TEXT("AMyPlayerController: GetPawn: No Character."))
+	}
+	else
+	{
+		MyCharacter->UpdateSpringArm(CameraPosition);
+	}
 }
 
 void AMyPlayerController::Tick(float DeltaSeconds)
 {
+	Super::Tick(DeltaSeconds);
+	const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
+	if(!MyCharacter)
+	{
+		UE_LOG(LogPlayerController, Error, TEXT("MyPlayerController: Tick: no character, no pawn"))
+		return;
+	}
 	FVector Position, Direction;
 	DeprojectMousePositionToWorld(Position, Direction);
 	if(abs(Direction.Z) > 1e-8)
 	{
 		const auto X = Position.X - Direction.X * Position.Z / Direction.Z;
 		const auto Y = Position.Y - Direction.Y * Position.Z / Direction.Z;
-		const auto Z = GetPawn()->GetActorLocation().Z;
-		GetPawn<ACharacterInSpace>()->LookAt(FVector(X, Y, Z));
+		const auto Z = MyCharacter->GetActorLocation().Z;
+		MyCharacter->LookAt(FVector(X, Y, Z));
 	}
-	
-	Super::Tick(DeltaSeconds);
 }
