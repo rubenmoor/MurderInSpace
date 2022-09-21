@@ -58,7 +58,19 @@ public:
 	void Update(float Alpha, float WorldRadius, FVector VecF1);
 
 	UFUNCTION(BlueprintCallable)
+	void AddVelocity(FVector _VecVelocity, float Alpha, float WorldRadius, FVector VecF1);
+	
+	UFUNCTION(BlueprintCallable)
 	FString GetParamsString();
+
+	UFUNCTION(BlueprintCallable)
+	float GetVelocity() { return Velocity; }
+	
+	UFUNCTION(BlueprintCallable)
+	float GetCircleVelocity(float Alpha, FVector VecF1) const;
+
+	UFUNCTION(BlueprintCallable)
+	FVector GetVecVelocity() { return VecVelocity; }
 	
 protected:
 	
@@ -131,14 +143,8 @@ protected:
 	FVector GetVecR() const { return Body->GetComponentLocation(); };
 
 	UFUNCTION(BlueprintCallable)
-	float GetCircleVelocity(float Alpha, FVector VecF1) const;
-
-	UFUNCTION(BlueprintCallable)
 	void SetVelocity(FVector _VecVelocity, float Alpha, FVector VecF1);
 
-	UFUNCTION(BlueprintCallable)
-	void AddVelocity(FVector _VecVelocity, float Alpha, FVector VecF1);
-	
 	UFUNCTION(BlueprintCallable)
 	float VelocityEllipse(float R, float Alpha);
 

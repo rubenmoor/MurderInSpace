@@ -13,8 +13,6 @@ APawnInSpace::APawnInSpace()
 
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
-	
-	OrbitData = CreateDefaultSubobject<UOrbitDataComponent>(TEXT("Orbit Data"));
 }
 
 void APawnInSpace::UpdateLookTarget(FVector Target)
@@ -24,10 +22,10 @@ void APawnInSpace::UpdateLookTarget(FVector Target)
 
 void APawnInSpace::LookAt(FVector VecP)
 {
-	const auto VecMe = GetActorLocation();
-	const auto VecDirection = VecP - VecMe;
+	const FVector VecMe = GetActorLocation();
+	const FVector VecDirection = VecP - VecMe;
 	const auto Quat = FQuat::FindBetween(FVector(1, 0, 0), VecDirection);
-	const auto AngleDelta = Quat.GetTwistAngle(FVector(0, 0, 1)) - GetActorQuat().GetTwistAngle(FVector(0, 0, 1));
+	const float AngleDelta = Quat.GetTwistAngle(FVector(0, 0, 1)) - GetActorQuat().GetTwistAngle(FVector(0, 0, 1));
 	if(abs(AngleDelta) > 15. / 180. * PI)
 	{
 		SetActorRotation(Quat);
@@ -47,8 +45,7 @@ void APawnInSpace::Tick(float DeltaSeconds)
 	
 	if(bIsAccelerating)
 	{
-		OrbitData->AddVelocity(GetActorForwardVector() * AccelerationSI / GI->ScaleFactor * DeltaSeconds, Alpha, VecF1);
-		OrbitData->Orbit->Update(Alpha, WorldRadius, VecF1);
+		Orbit->AddVelocity(GetActorForwardVector() * AccelerationSI / GI->ScaleFactor * DeltaSeconds, Alpha, WorldRadius, VecF1);
 	}
 	
 }

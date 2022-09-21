@@ -7,6 +7,7 @@
 
 #include "FunctionLib.h"
 #include "MyGameInstance.h"
+#include "../../../../../UE_5.0/Engine/Shaders/Private/Lumen/ProbeHierarchy/LumenProbeHierarchy.ush"
 #include "Components/SplineMeshComponent.h"
 
 UOrbitComponent::UOrbitComponent()
@@ -333,9 +334,10 @@ void UOrbitComponent::SetVelocity(FVector _VecVelocity, float Alpha, FVector Vec
 	bInitialized = true;
 }
 
-void UOrbitComponent::AddVelocity(FVector _VecVelocity, float Alpha, FVector VecF1)
+void UOrbitComponent::AddVelocity(FVector _VecVelocity, float Alpha, float WorldRadius, FVector VecF1)
 {
 	SetVelocity(VecVelocity + _VecVelocity, Alpha, VecF1);
+	Update(Alpha, WorldRadius, VecF1);
 }
 
 // Called every frame

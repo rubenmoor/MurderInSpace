@@ -9,20 +9,34 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Content/SpaceObject/BP_CharacterInSpace_deprecated.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Maps/spacefootball.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/spacefootball.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/BP_AObject.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/BP_APawnInSpace.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/BP_ActorInSpace.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Build/Windows/FileOpenOrder/CookerOpenOrder.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Build/Windows/FileOpenOrder/EditorOpenOrder.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Maps/_GENERATED/rubm/Tabla_Merge_A4FE6978.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/_GENERATED/rubm/Tabla_Merge_A4FE6978.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/SpaceObject/BP_CharacterInSpace.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/BP_CharacterInSpace.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/BP_PawnAstronaut.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/BP_CharacterInSpaceDeprecated.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/BP_CharacterInSpaceDeprecated.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/BP_CharacterInSpace_.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/BP_Orbit.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Cone.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Cylinder.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/M_Red.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Mat_GrayAlpha.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Orbit/Cylinder.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/Orbit/Cylinder.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Orbit/CylinderTrajectory.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/Orbit/CylinderTrajectory.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Orbit/CylinderTrajectory2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/Orbit/CylinderTrajectory2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Orbit/M_Red.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Orbit/Sphere.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/Orbit/Sphere.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/SM_Disc.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Sphere.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/State/BP_GameModeAsteroids.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/State/BP_GameModeAsteroids.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MurderInSpace.sln.DotSettings.user" beforeDir="false" afterPath="$PROJECT_DIR$/MurderInSpace.sln.DotSettings.user" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Orbit.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Orbit.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Orbit.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Orbit.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitDataComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitDataComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/ActorInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/ActorInSpace.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/AstronautHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/AstronautHUD.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/PawnInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/PawnInSpace.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/ActorInSpace.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/ActorInSpace.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/PawnInSpace.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/PawnInSpace.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,12 +45,22 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.31.31103/include/cmath" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/ActorInSpace.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/AstronautHUD.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/CharacterInSpace.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/MyPlayerController.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/PawnInSpace.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/ActorInSpace.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitDataComponent.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/PawnInSpace.h" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="CurrentFile" />
+    <option name="selectedTabId" value="Toolset" />
   </component>
   <component name="ProjectId" id="2AOnYwbumNRSUSreDeliwk4DjSK" />
   <component name="ProjectViewState">
@@ -200,7 +224,11 @@
       <workItem from="1663247961159" duration="15631000" />
       <workItem from="1663677783811" duration="18807000" />
       <workItem from="1663716885308" duration="1791000" />
-      <workItem from="1663769379128" duration="9068000" />
+      <workItem from="1663769379128" duration="11726000" />
+      <workItem from="1663798065839" duration="255000" />
+      <workItem from="1663798353361" duration="679000" />
+      <workItem from="1663799060153" duration="54000" />
+      <workItem from="1663799128923" duration="395000" />
     </task>
     <servers />
   </component>
@@ -222,16 +250,5 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/CharacterInSpace.cpp</url>
-          <line>39</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

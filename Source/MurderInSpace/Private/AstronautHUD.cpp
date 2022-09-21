@@ -7,7 +7,6 @@
 
 #include "CharacterInSpace.h"
 #include "MyGameInstance.h"
-#include "OrbitDataComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/WidgetTree.h"
@@ -80,15 +79,15 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 			return;
 	}
 
-	const auto ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
-	const auto GI = GetGameInstance<UMyGameInstance>();
-	const auto OrbitData = Pawn->GetOrbitDataComponent();
-	const float Velocity = OrbitData->GetVelocity();
+	const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
+	const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
+	const TObjectPtr<UOrbitComponent> Orbit = Pawn->GetOrbitComponent();
+	const float Velocity = Orbit->GetVelocity();
 
 	TextVelocitySI->SetText(FText::AsNumber(Velocity * GI->ScaleFactor, &FormattingOptions));
-	TextVelocityVCircle->SetText(FText::AsNumber(Velocity / OrbitData->GetCircleVelocity(GI->Alpha, GI->VecF1), &FormattingOptions));
+	TextVelocityVCircle->SetText(FText::AsNumber(Velocity / Orbit->GetCircleVelocity(GI->Alpha, GI->VecF1), &FormattingOptions));
 
-	const float Angle = FQuat::FindBetween(FVector(1, 0, 0), OrbitData->GetVecVelocity()).GetNormalized().GetTwistAngle(FVector(0, 0, 1));
+	const float Angle = FQuat::FindBetween(FVector(1, 0, 0), Orbit->GetVecVelocity()).GetNormalized().GetTwistAngle(FVector(0, 0, 1));
 	TextVelocityDirection->SetRenderTransformAngle(Angle * 180. / PI);
 
 	const auto Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());

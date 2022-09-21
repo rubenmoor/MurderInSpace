@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Orbit.h"
+#include "OrbitComponent.h"
 #include "GameFramework/Actor.h"
 #include "ActorInSpace.generated.h"
 
@@ -25,6 +26,6 @@ protected:
 	TObjectPtr<USceneComponent> Root;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UOrbitDataComponent> OrbitData;
+	TObjectPtr<UOrbitComponent> Orbit;
 };
 

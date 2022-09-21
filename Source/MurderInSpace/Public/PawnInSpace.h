@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Orbit.h"
+#include "OrbitComponent.h"
 #include "GameFramework/Pawn.h"
 #include "PawnInSpace.generated.h"
 
@@ -22,7 +22,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void LookAt(FVector VecP);
 
-	TObjectPtr<UOrbitDataComponent> GetOrbitDataComponent() const { return OrbitData; }
+	UFUNCTION(BlueprintCallable)
+	UOrbitComponent* GetOrbitComponent() { return Orbit; }
 
 	// Acceleration in m / s^2
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -34,14 +35,13 @@ public:
 	// event handlers
 	virtual void Tick(float DeltaSeconds) override;
 
-
 protected:
 	
 	// components
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> Root;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UOrbitDataComponent> OrbitData;
+	TObjectPtr<UOrbitComponent> Orbit;
 };

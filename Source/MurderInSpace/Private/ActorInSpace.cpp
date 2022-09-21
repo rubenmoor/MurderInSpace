@@ -12,5 +12,5 @@ AActorInSpace::AActorInSpace()
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
 
-	OrbitData = CreateDefaultSubobject<UOrbitDataComponent>(TEXT("Orbit Data"));
+	Orbit = CreateDefaultSubobject<UOrbitComponent>(TEXT("Orbit"));
 }
