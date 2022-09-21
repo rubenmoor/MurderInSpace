@@ -4,13 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/SplineComponent.h"
-#include "GameFramework/Actor.h"
-#include "Orbit.generated.h"
-
-class UOrbitDataComponent;
+#include "OrbitComponent.generated.h"
 
 UENUM(BlueprintType)
-enum class EOrbitTypeDeprecated : uint8
+enum class EOrbitType : uint8
 {
 	CIRCLE UMETA(DisplayName="Circle"),
 	ELLIPSE UMETA(DisplayName="Ellipse"),
@@ -21,12 +18,12 @@ enum class EOrbitTypeDeprecated : uint8
 };
 
 USTRUCT(BlueprintType)
-struct FOrbitParametersDeprecated
+struct FOrbitParameters
 {
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	EOrbitTypeDeprecated OrbitType;
+	EOrbitType OrbitType;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly )
 	float Eccentricity;
@@ -46,50 +43,19 @@ struct FOrbitParametersDeprecated
 	float A = 0;
 };
 
-USTRUCT(BlueprintType)
-struct FNewVelocityAndLocation
-{
-	GENERATED_BODY()
-	FVector NewVecVelocity;
-	FVector NewLocation;
-};
-
-/*
- * The orbit actor has
- *   * a spline component along with meshes for orbit visualisation
- *   * a function to move the object along the spline according to its orbital data
- *
- *  Having an orbit actor, rather then a more powerful orbit component, allows to
- *  attach the spline to a stationary orbit (the position of which doesn't matter).
+/**
+ * 
  */
 UCLASS()
-class MURDERINSPACE_API AOrbit : public AActor
+class MURDERINSPACE_API UOrbitComponent : public USplineComponent
 {
 	GENERATED_BODY()
+
+public:
+	UOrbitComponent();
 	
-public:	
-	AOrbit();
-
-	UFUNCTION(BlueprintCallable)
-	void SetOrbitData(UOrbitDataComponent* _OrbitData) { OrbitData = _OrbitData; };
-
 	UFUNCTION(BlueprintCallable)
 	void Update(float Alpha, float WorldRadius, FVector VecF1);
-
-	UFUNCTION(BlueprintCallable)
-	float VelocityEllipse(float R, float Alpha);
-
-	UFUNCTION(BlueprintCallable)
-	float VelocityParabola(float R, float Alpha);
-	
-	UFUNCTION(BlueprintCallable)
-	float NextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign);
-
-	UFUNCTION(BlueprintCallable)
-	FNewVelocityAndLocation AdvanceOnSpline(float DeltaR, float Velocity, FVector VecR, float DeltaTime);
-
-	UFUNCTION(BlueprintCallable)
-	FOrbitParametersDeprecated GetParams() const { return Params; };
 
 	UFUNCTION(BlueprintCallable)
 	FString GetParamsString();
@@ -101,36 +67,30 @@ protected:
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	#endif
 	
-	// components
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<USceneComponent> Root;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-	TObjectPtr<USplineComponent> Spline;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-	TObjectPtr<UHierarchicalInstancedStaticMeshComponent> HISMTrajectory;
-
 	// members
+	
+	// pointer to the physical body that orbits and has
+	// simulated physics; it can be anywhere in the scene tree of the
+	// owning actor
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UPrimitiveComponent> Body;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	bool bTrajectoryShowSpline = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UMaterialInstance> SplineMeshMaterial;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	float splineMeshLength = 1000.0;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	bool bTrajectoryShowSpheres = false;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	TObjectPtr<UOrbitDataComponent> OrbitData;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<UStaticMesh> SM_Trajectory;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-	FOrbitParametersDeprecated Params;
+	FOrbitParameters Params;
 
 	// for orbit == LINEBOUND, the spline distance is used because the spline key closest to location cannot be reliably
 	// determined, i.e. the object jumps between the two directions
@@ -145,22 +105,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float DistanceZero;
 
-	// HISM marker index; counts higher than the number of instances
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	int32 HISMCurrentIndex;
-
-	// HISM distance between markers
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float HISMDistance = 100;
-
-	// HISM Number of markers
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int HISMNumberOfMarkers;
-
-	// HISM maximum length
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float HISMMaxLength = 2500;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector VecVelocity;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Velocity;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float VelocityVCircle;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bInitialized = false;
 	
@@ -171,4 +124,31 @@ protected:
 	 * trying out in UE results in 1.65 being optimal
 	 */
 	static constexpr float SplineToCircle = 1.65;
+
+	// private methods
+	
+	UFUNCTION(BlueprintCallable)
+	FVector GetVecR() const { return Body->GetComponentLocation(); };
+
+	UFUNCTION(BlueprintCallable)
+	float GetCircleVelocity(float Alpha, FVector VecF1) const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetVelocity(FVector _VecVelocity, float Alpha, FVector VecF1);
+
+	UFUNCTION(BlueprintCallable)
+	void AddVelocity(FVector _VecVelocity, float Alpha, FVector VecF1);
+	
+	UFUNCTION(BlueprintCallable)
+	float VelocityEllipse(float R, float Alpha);
+
+	UFUNCTION(BlueprintCallable)
+	float VelocityParabola(float R, float Alpha);
+	
+	UFUNCTION(BlueprintCallable)
+	float NextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign);
+
+	UFUNCTION(BlueprintCallable)
+	FOrbitParameters GetParams() const { return Params; };
+
 };

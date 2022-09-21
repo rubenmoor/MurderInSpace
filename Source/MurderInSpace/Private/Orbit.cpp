@@ -84,7 +84,7 @@ void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 			SplineDistance = DistanceZero;
 			Spline->SetClosedLoop(true, false);
 			
-			Params.OrbitType = EOrbitType::LINEBOUND;
+			Params.OrbitType = EOrbitTypeDeprecated::LINEBOUND;
 			Params.A = UFunctionLib::SemiMajorAxis(VecRKepler, VecVelocity, Alpha);
 			Params.Period = UFunctionLib::PeriodEllipse(Params.A, Alpha);
 		}
@@ -97,7 +97,7 @@ void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 					, FSplinePoint(1, VecVelocity.GetUnsafeNormal() * (WorldRadius - OrbitData->GetVecR().Length()), ESplinePointType::Linear)
 				});
 			Spline->SetClosedLoop(false, false);
-			Params.OrbitType = EOrbitType::LINEUNBOUND;
+			Params.OrbitType = EOrbitTypeDeprecated::LINEUNBOUND;
 			Params.A = 0;
 			Params.Period = 0;
 		}
@@ -116,7 +116,7 @@ void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 		    , FSplinePoint(3, -VecP2 + VecF1,  VecT4,  VecT4)
 		    });
     	Spline->SetClosedLoop(true, false);
-		Params.OrbitType = EOrbitType::CIRCLE;
+		Params.OrbitType = EOrbitTypeDeprecated::CIRCLE;
 		Params.A = RKepler;
 		Params.Period = UFunctionLib::PeriodEllipse(RKepler, Alpha);
 	}
@@ -151,7 +151,7 @@ void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 		    , FSplinePoint(3, Covertex2 + VecF1,  T4,  T4)
 		    });
     	Spline->SetClosedLoop(true, false);
-		Params.OrbitType = EOrbitType::ELLIPSE;
+		Params.OrbitType = EOrbitTypeDeprecated::ELLIPSE;
 		Params.Period = UFunctionLib::PeriodEllipse(Params.A, Alpha);
 	}
 	
@@ -178,7 +178,7 @@ void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 			Spline->AddSplineWorldPoint(Point);
 		}
     	Spline->SetClosedLoop(false, false);
-		Params.OrbitType = EOrbitType::PARABOLA;
+		Params.OrbitType = EOrbitTypeDeprecated::PARABOLA;
 		Params.Period = 0;
 		Params.A = 0;
 	}
@@ -212,12 +212,12 @@ void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 			Spline->AddSplineWorldPoint(Point);
 		}
     	Spline->SetClosedLoop(false, false);
-		Params.OrbitType = EOrbitType::HYPERBOLA;
+		Params.OrbitType = EOrbitTypeDeprecated::HYPERBOLA;
 		Params.Period = 0;
 	}
 	Spline->UpdateSpline();
 
-	if(Params.OrbitType != EOrbitType::LINEBOUND)
+	if(Params.OrbitType != EOrbitTypeDeprecated::LINEBOUND)
 	{
 		SplineKey = Spline->FindInputKeyClosestToWorldLocation(OrbitData->GetVecR());
 		DistanceZero = Spline->GetDistanceAlongSplineAtSplineInputKey(SplineKey);
@@ -256,7 +256,7 @@ void AOrbit::Update(float Alpha, float WorldRadius, FVector VecF1)
 			std::vector<int> Indices(nIndices);
 			std::iota(Indices.begin(), Indices.end(), 0);
 
-			if(Spline->IsClosedLoop() && Params.OrbitType != EOrbitType::LINEBOUND)
+			if(Spline->IsClosedLoop() && Params.OrbitType != EOrbitTypeDeprecated::LINEBOUND)
 			{
 				Indices.push_back(0);
 			}
@@ -303,17 +303,17 @@ float AOrbit::NextVelocity(float R, float Alpha, float OldVelocity, float DeltaT
 	
 	switch(Params.OrbitType)
 	{
-	case EOrbitType::CIRCLE:
+	case EOrbitTypeDeprecated::CIRCLE:
 		return OldVelocity;
-	case EOrbitType::ELLIPSE:
+	case EOrbitTypeDeprecated::ELLIPSE:
 	 	return VelocityEllipse(R, Alpha);
-	case EOrbitType::LINEBOUND:
+	case EOrbitTypeDeprecated::LINEBOUND:
 		return VelocityEllipse(R, Alpha);
-	case EOrbitType::LINEUNBOUND:
+	case EOrbitTypeDeprecated::LINEUNBOUND:
 		return OldVelocity - copysign(Alpha / pow(R, 2) * DeltaTime, Sign);
-	case EOrbitType::PARABOLA:
+	case EOrbitTypeDeprecated::PARABOLA:
 	 	return VelocityParabola(R, Alpha);
-	case EOrbitType::HYPERBOLA:
+	case EOrbitTypeDeprecated::HYPERBOLA:
 	 	return VelocityEllipse(R, Alpha);
 	default:
 		UE_LOG(LogTemp, Error, TEXT("AOrbit::NextVelocity: Impossible"))
@@ -324,7 +324,7 @@ float AOrbit::NextVelocity(float R, float Alpha, float OldVelocity, float DeltaT
 FNewVelocityAndLocation AOrbit::AdvanceOnSpline(float DeltaR, float Velocity, FVector VecR, float DeltaTime)
 {
 	SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
-	if(Params.OrbitType == EOrbitType::LINEBOUND)
+	if(Params.OrbitType == EOrbitTypeDeprecated::LINEBOUND)
 	{
 		const auto NewLocation = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
 		const auto NewVelocity = Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
@@ -358,22 +358,22 @@ FString AOrbit::GetParamsString()
 	FString StrOrbitType;
 	switch(Params.OrbitType)
 	{
-	case EOrbitType::CIRCLE:
+	case EOrbitTypeDeprecated::CIRCLE:
 		StrOrbitType = TEXT("Circle");
 		break;
-	case EOrbitType::ELLIPSE:
+	case EOrbitTypeDeprecated::ELLIPSE:
 		StrOrbitType = TEXT("Ellipse");
 		break;
-	case EOrbitType::PARABOLA:
+	case EOrbitTypeDeprecated::PARABOLA:
 		StrOrbitType = TEXT("Parabola");
 		break;
-	case EOrbitType::HYPERBOLA:
+	case EOrbitTypeDeprecated::HYPERBOLA:
 		StrOrbitType = TEXT("Hyperbola");
 		break;
-	case EOrbitType::LINEBOUND:
+	case EOrbitTypeDeprecated::LINEBOUND:
 		StrOrbitType = TEXT("LineBound");
 		break;
-	case EOrbitType::LINEUNBOUND:
+	case EOrbitTypeDeprecated::LINEUNBOUND:
 		StrOrbitType = TEXT("LineUnbound");
 		break;
 	}

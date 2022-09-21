@@ -72,7 +72,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bInitialized = false;
 
-	// this is a pointer to the physical body that orbits and has
+	// pointer to the physical body that orbits and has
 	// simulated physics; it can be anywhere in the scene tree of the
 	// owning actor
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
