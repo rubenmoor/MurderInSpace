@@ -31,8 +31,7 @@ public:
 
 protected:
 
-	// event handers
-
+	// event handlers
 
 	// components
 

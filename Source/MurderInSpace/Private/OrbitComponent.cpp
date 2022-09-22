@@ -7,12 +7,12 @@
 
 #include "FunctionLib.h"
 #include "MyGameInstance.h"
-#include "../../../../../UE_5.0/Engine/Shaders/Private/Lumen/ProbeHierarchy/LumenProbeHierarchy.ush"
 #include "Components/SplineMeshComponent.h"
 
 UOrbitComponent::UOrbitComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
+	USceneComponent::SetMobility(EComponentMobility::Stationary);
 }
 
 void UOrbitComponent::Update(float Alpha, float WorldRadius, FVector VecF1)
@@ -20,7 +20,6 @@ void UOrbitComponent::Update(float Alpha, float WorldRadius, FVector VecF1)
 	ClearSplinePoints(false);
 
 	// transform location vector r to Kepler coordinates, where F1 is the origin
-	const FVector VecR = GetVecR();
 	const FVector VecRKepler = VecR - VecF1;
 	const float RKepler = VecRKepler.Length();
 	//const auto VelocityVCircle = Velocity / sqrt(Alpha / R);
@@ -236,13 +235,13 @@ void UOrbitComponent::Update(float Alpha, float WorldRadius, FVector VecF1)
 				const TObjectPtr<USplineMeshComponent> SplineMesh =
 					NewObject<USplineMeshComponent>(this, *FString(TEXT("SplineMesh")).Append(FString::FromInt(i)));
 				
+				SplineMesh->SetMobility(EComponentMobility::Stationary);
 				// if I don't register here, the spline mesh doesn't render
 				SplineMesh->RegisterComponent();
 				SplineMesh->AttachToComponent(this, FAttachmentTransformRules::KeepWorldTransform);
 				// if I don't add instance here, the spline meshes don't show in the component list in the editor
 				GetOwner()->AddInstanceComponent(SplineMesh);
 				
-				SplineMesh->SetMobility(EComponentMobility::Stationary);
 				SplineMesh->CastShadow = false;
 				SplineMesh->SetStaticMesh(SM_Trajectory);
 				SplineMesh->SetMaterial(0, SplineMeshMaterial);
@@ -323,40 +322,16 @@ FString UOrbitComponent::GetParamsString()
 
 float UOrbitComponent::GetCircleVelocity(float Alpha, FVector VecF1) const
 {
-	return sqrt(Alpha / (GetVecR() - VecF1).Length());
+	return sqrt(Alpha / (VecR - VecF1).Length());
 }
 
-void UOrbitComponent::SetVelocity(FVector _VecVelocity, float Alpha, FVector VecF1)
+FVector UOrbitComponent::GetNextLocation(float DeltaTime)
 {
-	VecVelocity = _VecVelocity;
-	Velocity = VecVelocity.Length();
-	VelocityVCircle = Velocity / GetCircleVelocity(Alpha, VecF1);
-	bInitialized = true;
-}
-
-void UOrbitComponent::AddVelocity(FVector _VecVelocity, float Alpha, float WorldRadius, FVector VecF1)
-{
-	SetVelocity(VecVelocity + _VecVelocity, Alpha, VecF1);
-	Update(Alpha, WorldRadius, VecF1);
-}
-
-// Called every frame
-void UOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	if(!Body)
-	{
-		UE_LOG(LogActor, Error, TEXT("%s: Body null"), *GetOwner()->GetFName().ToString());
-		RequestEngineExit(TEXT("UOrbitComponent::TickComponent: Body null"));
-		return;
-	}
-	
-	const TObjectPtr<UMyGameInstance> GI = GetOwner()->GetGameInstance<UMyGameInstance>();
+	//const TObjectPtr<UMyGameInstance> GI = GetOwner()->GetGameInstance<UMyGameInstance>();
+	const TObjectPtr<UMyGameInstance> GI = GetWorld()->GetGameInstance<UMyGameInstance>();
 	const FVector VecF1 = GI->VecF1;
 	const float Alpha = GI->Alpha;
 	
-	const FVector VecR = GetVecR();
 	const FVector VecRKepler = VecR - VecF1;
 
 	Velocity = NextVelocity(VecRKepler.Length(), Alpha, Velocity, DeltaTime, VecVelocity.Dot(VecRKepler));
@@ -368,7 +343,7 @@ void UOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	SplineDistance = fmod(SplineDistance + DeltaR, GetSplineLength());
 	if(Params.OrbitType == EOrbitType::LINEBOUND)
 	{
-		NewLocation = GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
+		VecR = GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
 		VecVelocity = GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
 	}
 	else
@@ -379,12 +354,10 @@ void UOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 		
 		// new spline key
 		SplineKey = FindInputKeyClosestToWorldLocation(NewLocationAtTangent);
-		NewLocation = GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World);
+		VecR = GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World);
 	}
-	// TODO: replace with Body->SetWorldLocation
-	GetOwner()->SetActorLocation(NewLocation, true, nullptr, ETeleportType::None);
-	//GetOwner()->GetRootComponent()->SetWorldLocation(NewLocation, true, nullptr, ETeleportType::TeleportPhysics);
 	
+	return VecR;
 	// TODO: account for acceleration
 	// const auto RealDeltaR = (GetVecR() - VecR).Length();
 	// const auto RelativeError = DeltaR / RealDeltaR - 1.;
@@ -392,6 +365,30 @@ void UOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	// {
 	// 	UE_LOG(LogTemp, Warning, TEXT("%s: Expected: %f; really: %f; relative error: %.1f%"), *GetFName().ToString(), DeltaR, RealDeltaR, RelativeError * 100.);
 	// }
+}
+
+void UOrbitComponent::SetVelocity(FVector _VecVelocity, float Alpha, FVector VecF1)
+{
+	VecVelocity = _VecVelocity;
+	Velocity = VecVelocity.Length();
+	VelocityVCircle = Velocity / GetCircleVelocity(Alpha, VecF1);
+}
+
+void UOrbitComponent::AddVelocity(FVector _VecVelocity, float Alpha, float WorldRadius, FVector VecF1)
+{
+	SetVelocity(VecVelocity + _VecVelocity, Alpha, VecF1);
+	Update(Alpha, WorldRadius, VecF1);
+}
+
+void UOrbitComponent::InitializeCircle(float Alpha, float WorldRadius, FVector VecF1, FVector NewVecR)
+{
+	VecR = NewVecR;
+	const FVector VecRKepler = VecR - VecF1;
+	const FVector VelocityNormal = FVector(0., 1., 0.);
+	VelocityVCircle = 1.;
+	Velocity = sqrt(Alpha / VecRKepler.Length()) * VelocityVCircle;
+	VecVelocity = Velocity * VelocityNormal;
+	Update(Alpha, WorldRadius, VecF1);
 }
 
 #if WITH_EDITOR
@@ -407,35 +404,42 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 
 	static const FName FNameBTrajectoryShowSpline = GET_MEMBER_NAME_CHECKED(UOrbitComponent, bTrajectoryShowSpline);
 	static const FName FNameSplineMeshLength = GET_MEMBER_NAME_CHECKED(UOrbitComponent, splineMeshLength);
+	static const FName FNameVelocity = GET_MEMBER_NAME_CHECKED(UOrbitComponent, Velocity);
+	static const FName FNameVelocityVCircle = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VelocityVCircle);
+	static const FName FNameVecVelocity = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VecVelocity);
+	static const FName FNameSMTrajectory = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SM_Trajectory);
+	static const FName FNameSplineMeshMaterial = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SplineMeshMaterial);
 
 	if(Name == FNameSplineMeshLength || Name == FNameBTrajectoryShowSpline)
 	{
 		Update(Alpha, WorldRadius, VecF1);
 	}
-	
-	static const FName FNameVelocity = GET_MEMBER_NAME_CHECKED(UOrbitComponent, Velocity);
-	static const FName FNameVelocityVCircle = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VelocityVCircle);
-	static const FName FNameVecVelocity = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VecVelocity);
-	
-	const FVector VelocityNormal = VecVelocity.GetSafeNormal(1e-8, FVector(0., 1., 0.));
-	const FVector VecRKepler = GetVecR() - VecF1;
+	else if(Name == FNameVelocity || Name == FNameVelocityVCircle || Name == FNameVecVelocity)
+	{
+		const FVector VelocityNormal = VecVelocity.GetSafeNormal(1e-8, FVector(0., 1., 0.));
+		const FVector VecRKepler = VecR - VecF1;
 
-	if(Name == FNameVelocity)
-	{
-		VecVelocity = Velocity * VelocityNormal;
-		VelocityVCircle = Velocity / sqrt(Alpha / VecRKepler.Length());
-		Update(Alpha, WorldRadius, VecF1);
+		if(Name == FNameVelocity)
+		{
+			VecVelocity = Velocity * VelocityNormal;
+			VelocityVCircle = Velocity / sqrt(Alpha / VecRKepler.Length());
+			Update(Alpha, WorldRadius, VecF1);
+		}
+		else if(Name == FNameVelocityVCircle)
+		{
+			Velocity = sqrt(Alpha / VecRKepler.Length()) * VelocityVCircle;
+			VecVelocity = Velocity * VelocityNormal;
+			Update(Alpha, WorldRadius, VecF1);
+		}
+		else if(Name == FNameVecVelocity)
+		{
+			Velocity = VecVelocity.Length();
+			VelocityVCircle = Velocity / GetCircleVelocity(Alpha, VecF1);
+			Update(Alpha, WorldRadius, VecF1);
+		}
 	}
-	else if(Name == FNameVelocityVCircle)
+	else if(Name == FNameSMTrajectory || Name == FNameSplineMeshMaterial)
 	{
-		Velocity = sqrt(Alpha / VecRKepler.Length()) * VelocityVCircle;
-		VecVelocity = Velocity * VelocityNormal;
-		Update(Alpha, WorldRadius, VecF1);
-	}
-	else if(Name == FNameVecVelocity)
-	{
-		Velocity = VecVelocity.Length();
-		VelocityVCircle = Velocity / GetCircleVelocity(Alpha, VecF1);
 		Update(Alpha, WorldRadius, VecF1);
 	}
 }

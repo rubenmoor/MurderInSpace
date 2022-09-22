@@ -32,11 +32,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float bIsAccelerating = false;
 
+protected:
+	
 	// event handlers
 	virtual void Tick(float DeltaSeconds) override;
 
-protected:
-	
+	virtual void BeginPlay() override;
 	// components
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
@@ -44,4 +45,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UOrbitComponent> Orbit;
+	
+	// the root component is stationary, it holds the Orbit component;
+	// this scene component holds everything movable
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<USceneComponent> MovableRoot;
+
 };

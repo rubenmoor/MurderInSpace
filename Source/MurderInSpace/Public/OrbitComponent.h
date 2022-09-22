@@ -71,6 +71,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetVecVelocity() { return VecVelocity; }
+
+	UFUNCTION(BlueprintCallable)
+	FVector GetNextLocation(float DeltaTime);
+	
+	UFUNCTION(BlueprintCallable)
+	void InitializeCircle(float Alpha, float WorldRadius, FVector VecF1, FVector NewVecR);
 	
 protected:
 	
@@ -79,15 +85,7 @@ protected:
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	#endif
 	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	
 	// members
-	
-	// pointer to the physical body that orbits and has
-	// simulated physics; it can be anywhere in the scene tree of the
-	// owning actor
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UPrimitiveComponent> Body;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	bool bTrajectoryShowSpline = true;
@@ -117,6 +115,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float DistanceZero;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FVector VecR;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector VecVelocity;
 	
@@ -140,9 +141,6 @@ protected:
 	// private methods
 	
 	UFUNCTION(BlueprintCallable)
-	FVector GetVecR() const { return Body->GetComponentLocation(); };
-
-	UFUNCTION(BlueprintCallable)
 	void SetVelocity(FVector _VecVelocity, float Alpha, FVector VecF1);
 
 	UFUNCTION(BlueprintCallable)
@@ -156,5 +154,4 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	FOrbitParameters GetParams() const { return Params; };
-
 };

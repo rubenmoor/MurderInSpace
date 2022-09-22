@@ -3,7 +3,6 @@
 
 #include "MyGameInstance.h"
 
-#include "ActorInSpace.h"
 #include "PawnInSpace.h"
 #include "UObject/UObjectIterator.h"
 
@@ -44,7 +43,7 @@ void UMyGameInstance::PostEditChangeProperty(FPropertyChangedEvent& PropertyChan
 	static const FName FNameMU = GET_MEMBER_NAME_CHECKED(UMyGameInstance, Alpha);
 	if(Name == FNameMU)
 	{
-		for(TObjectIterator<AOrbit> Iter; Iter; ++Iter)
+		for(TObjectIterator<UOrbitComponent> Iter; Iter; ++Iter)
 		{
 			(*Iter)->Update(Alpha, WorldRadius, VecF1);
 		}

@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Orbit.h"
 #include "OrbitComponent.h"
 #include "GameFramework/Actor.h"
 #include "ActorInSpace.generated.h"
@@ -19,6 +18,12 @@ public:
 
 protected:
 	// event handlers
+
+	virtual void OnConstruction(const FTransform& Transform) override;
+
+	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaSeconds) override;
 	
 	// components
 	
@@ -27,5 +32,8 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UOrbitComponent> Orbit;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<USceneComponent> MovableRoot;
 };
 

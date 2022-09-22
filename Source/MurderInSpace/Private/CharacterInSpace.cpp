@@ -3,17 +3,17 @@
 
 #include "CharacterInSpace.h"
 
-#include "AstronautHUD.h"
+#include "MyGameInstance.h"
 
 ACharacterInSpace::ACharacterInSpace()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
-	SkeletalMesh->SetupAttachment(Root);
+	SkeletalMesh->SetupAttachment(MovableRoot);
 	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(Root);
+	SpringArm->SetupAttachment(MovableRoot);
 	SpringArm->TargetArmLength = 1000;
 	SpringArm->bEnableCameraLag = true;
 	SpringArm->CameraLagSpeed = 3;
