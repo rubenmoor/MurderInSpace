@@ -18,6 +18,8 @@ AActorInSpace::AActorInSpace()
 	Orbit = CreateDefaultSubobject<UOrbitComponent>(TEXT("Orbit"));
 	Orbit->SetupAttachment(Root);
 	Orbit->SetMovableRoot(MovableRoot);
+
+	Gyration = CreateDefaultSubobject<UGyrationComponent>(TEXT("Gyration"));
 }
 
 void AActorInSpace::OnConstruction(const FTransform& Transform)

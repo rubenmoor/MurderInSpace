@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "OrbitComponent.h"
+#include "GyrationComponent.h"
 #include "GameFramework/Actor.h"
 #include "ActorInSpace.generated.h"
 
@@ -31,5 +32,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> MovableRoot;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UGyrationComponent> Gyration;
 };
 

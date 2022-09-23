@@ -14,13 +14,20 @@ UOrbitComponent::UOrbitComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	USceneComponent::SetMobility(EComponentMobility::Stationary);
+	
+	// debugging: trying to find source of error:
+	// Ensure condition failed: !Primitive->Bounds.ContainsNaN() [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Renderer\Private\RendererScene.cpp] [Line: 1365]
+	if(Bounds.ContainsNaN())
+	{
+		UE_LOG(LogActorComponent, Error, TEXT("%s: Constructor: contains NaN"), *GetFullName())
+	}
 }
 
 void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector VecF1)
 {
 	if(!MovableRoot)
 	{
-		UE_LOG(LogActorComponent, Error, TEXT("%s: UOrbitComponent::Update: MovableRoot null; not doing anything"), *GetName())
+		UE_LOG(LogActorComponent, Error, TEXT("%s: Update: MovableRoot null; not doing anything"), *GetFullName())
 		return;
 	}
 	ClearSplinePoints(false);
@@ -281,7 +288,7 @@ float UOrbitComponent::NextVelocity(float R, float Alpha, float OldVelocity, flo
 {
 	if(!bInitialized)
 	{
-		UE_LOG(LogActorComponent, Error, TEXT("%s: UOrbitComponent::NextVelocity: not initialized"), *GetName());
+		UE_LOG(LogActorComponent, Error, TEXT("%s: NextVelocity: not initialized"), *GetFullName());
 		return 0.;
 	}
 	
@@ -425,8 +432,14 @@ void UOrbitComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	const TObjectPtr<UMyGameInstance> GI = GetWorld()->GetGameInstance<UMyGameInstance>();
-	// InitializeCircle(GI->Alpha, GI->WorldRadius, GI->VecF1, MovableRoot->GetComponentLocation());
+	if(!SplineMeshMaterial)
+	{
+		UE_LOG(LogActorComponent, Warning, TEXT("%s: spline mesh material not set"), *GetFullName())
+	}
+	if(!SM_Trajectory)
+	{
+		UE_LOG(LogActorComponent, Warning, TEXT("%s: static mesh for trajectory not set"), *GetFullName())
+	}
 }
 
 #if WITH_EDITOR
@@ -479,13 +492,6 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 	else if(Name == FNameSMTrajectory || Name == FNameSplineMeshMaterial)
 	{
 		UpdateWithParams(Alpha, WorldRadius, VecF1);
-	}
-	
-	// debugging: trying to find source of error:
-	// Ensure condition failed: !Primitive->Bounds.ContainsNaN() [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Renderer\Private\RendererScene.cpp] [Line: 1365]
-	if(Bounds.ContainsNaN())
-	{
-		UE_LOG(LogActorComponent, Error, TEXT("%s: OrbitComponent: contains NaN"), *GetName())
 	}
 }
 #endif

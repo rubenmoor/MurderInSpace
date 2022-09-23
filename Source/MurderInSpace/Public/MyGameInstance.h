@@ -28,7 +28,7 @@ class MURDERINSPACE_API UMyGameInstance : public UGameInstance
 	static constexpr float MAX_WORLDRADIUS_UU = 1.048535e6;
 
 	bool bSetUpWorldDimensionsDone = false;
-	
+
 protected:
 	// event handlers
 	
@@ -73,4 +73,6 @@ public:
 	
 	void SetUpWorldDimensions(float _WorldRadiusMeters, float _WorldRadius);
 	void SetUpCentralBody(float _Alpha, FVector _VecF1);
+	
+	FRandomStream Random;
 };

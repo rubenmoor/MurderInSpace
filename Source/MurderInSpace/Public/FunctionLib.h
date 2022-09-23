@@ -38,6 +38,4 @@ public:
 	static float AxialTidalForce(float R, float L, float M, float Alpha);
 
 	static TObjectPtr<AGameModeAsteroids> GetGameModeAsteroids(const UObject* WorldContextObject);
-
-	void LogVector(FLogCategoryName CategoryName, ELogVerbosity::Type Verbosity, FVector Vector);
 };

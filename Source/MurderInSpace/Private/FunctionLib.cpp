@@ -14,7 +14,7 @@
  */
 FVector UFunctionLib::Eccentricity(FVector R, FVector V, float Alpha)
 {
-	return (V.SquaredLength() / Alpha - 1.0 / R.Length()) * R - R.Dot(V) / Alpha * V;
+	   return (V.SquaredLength() / Alpha - 1.0 / R.Length()) * R - R.Dot(V) / Alpha * V;
 }
 
 /**
@@ -25,7 +25,7 @@ FVector UFunctionLib::Eccentricity(FVector R, FVector V, float Alpha)
  */
 FVector UFunctionLib::FocusPoint2(float A, FVector E)
 {
-	return  -2 * A * E;
+	   return  -2 * A * E;
 }
 
 /**
@@ -38,7 +38,7 @@ FVector UFunctionLib::FocusPoint2(float A, FVector E)
  */
 float UFunctionLib::SemiMajorAxis(FVector VecR, FVector VecV, float Alpha)
 {
-	return 1. / (2. / VecR.Length() - VecV.SquaredLength() / Alpha);
+	   return 1. / (2. / VecR.Length() - VecV.SquaredLength() / Alpha);
 }
 
 /**
@@ -49,7 +49,7 @@ float UFunctionLib::SemiMajorAxis(FVector VecR, FVector VecV, float Alpha)
  */
 float UFunctionLib::SemiMinorAxis(float A, float ESquared)
 {
-	return A * sqrt(1 - ESquared);
+	   return A * sqrt(1 - ESquared);
 }
 
 /**
@@ -60,7 +60,7 @@ float UFunctionLib::SemiMinorAxis(float A, float ESquared)
  */
 float UFunctionLib::PeriodEllipse(float a, float Alpha)
 {
-	return 2 * PI * sqrt(pow(a, 3) / Alpha);
+	   return 2 * PI * sqrt(pow(a, 3) / Alpha);
 }
 
 /**
@@ -71,18 +71,19 @@ float UFunctionLib::PeriodEllipse(float a, float Alpha)
  */
 float UFunctionLib::Perimeter(float A, float B)
 {
-	const auto H = pow(A - B, 2) / pow(A + B, 2);
-	return PI * (A + B) * (1 + 3 * H / (10 + sqrt(4 - 3 * H)));
+	   const auto H = pow(A - B, 2) / pow(A + B, 2);
+	   return PI * (A + B) * (1 + 3 * H / (10 + sqrt(4 - 3 * H)));
 }
 
 float UFunctionLib::AxialTidalForce(float R, float L, float M, float Alpha)
 {
-	return Alpha * L * M / (4 * pow(R, 3));
+	   return Alpha * L * M / (4 * pow(R, 3));
 }
 
 TObjectPtr<AGameModeAsteroids> UFunctionLib::GetGameModeAsteroids(const UObject* WorldContextObject)
 {
-    const auto GameMode = StaticCast<AGameModeAsteroids*>(WorldContextObject->GetWorld()->GetAuthGameMode());
+    const TObjectPtr<AGameModeAsteroids> GameMode =
+      Cast<AGameModeAsteroids>(WorldContextObject->GetWorld()->GetAuthGameMode());
     if(!GameMode)
     {
         UE_LOG(LogTemp, Error, TEXT("Game mode must implement `AGameModeAsteroids`"));
@@ -90,9 +91,3 @@ TObjectPtr<AGameModeAsteroids> UFunctionLib::GetGameModeAsteroids(const UObject*
     }
     return GameMode;
 }
-
-void UFunctionLib::LogVector(FLogCategoryName CategoryName, ELogVerbosity::Type Verbosity, FVector Vector)
-{
-    //UE_LOG(CategoryName, Verbosity, TEXT("%s: (%f, %f, %f)"));
-}
-

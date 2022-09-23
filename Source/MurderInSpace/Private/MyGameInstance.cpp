@@ -10,6 +10,7 @@ UMyGameInstance::UMyGameInstance()
 {
 	SetUpWorldDimensions(EditorDefaultWorldRadiusMeters, EditorDefaultWorldRadiusUU);
 	SetUpCentralBody(EditorDefaultAlpha, EditorDefaultVecF1);
+	Random.GenerateNewSeed();
 }
 
 void UMyGameInstance::SetUpWorldDimensions(float _WorldRadiusMeters, float _WorldRadius)
