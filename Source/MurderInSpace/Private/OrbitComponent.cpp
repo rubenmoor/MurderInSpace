@@ -480,5 +480,12 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 	{
 		UpdateWithParams(Alpha, WorldRadius, VecF1);
 	}
+	
+	// debugging: trying to find source of error:
+	// Ensure condition failed: !Primitive->Bounds.ContainsNaN() [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Renderer\Private\RendererScene.cpp] [Line: 1365]
+	if(Bounds.ContainsNaN())
+	{
+		UE_LOG(LogActorComponent, Error, TEXT("%s: OrbitComponent: contains NaN"), *GetName())
+	}
 }
 #endif

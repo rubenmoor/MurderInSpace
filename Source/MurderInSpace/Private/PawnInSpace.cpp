@@ -33,8 +33,9 @@ void APawnInSpace::LookAt(FVector VecP)
 {
 	const FVector VecMe = MovableRoot->GetComponentLocation();
 	const FVector VecDirection = VecP - VecMe;
-	const FQuat Quat = FQuat::FindBetween(FVector(1, 0, 0), VecDirection);
-	const float AngleDelta = Quat.GetTwistAngle(FVector(0, 0, 1)) - GetActorQuat().GetTwistAngle(FVector(0, 0, 1));
+	const FQuat Quat = FQuat::FindBetween(FVector(0, 1, 0), VecDirection);
+	const float AngleDelta =
+		Quat.GetTwistAngle(FVector(0, 0, 1)) - MovableRoot->GetComponentQuat().GetTwistAngle(FVector(0, 0, 1));
 	if(abs(AngleDelta) > 15. / 180. * PI)
 	{
 		MovableRoot->SetWorldRotation(Quat);

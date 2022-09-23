@@ -71,9 +71,11 @@ void AMyPlayerController::Tick(float DeltaSeconds)
 	DeprojectMousePositionToWorld(Position, Direction);
 	if(abs(Direction.Z) > 1e-8)
 	{
+		// TODO: only works for Position.Z == 0
 		const auto X = Position.X - Direction.X * Position.Z / Direction.Z;
 		const auto Y = Position.Y - Direction.Y * Position.Z / Direction.Z;
 		const auto Z = MyCharacter->GetActorLocation().Z;
+		// TODO: physical rotation/animation instead
 		MyCharacter->LookAt(FVector(X, Y, Z));
 	}
 }

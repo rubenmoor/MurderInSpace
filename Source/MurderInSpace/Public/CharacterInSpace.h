@@ -29,6 +29,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	float GetSpringArmLength() const;
 
+	UFUNCTION(BlueprintCallable)
+	UOrbitComponent* GetOrbitComponent() { return Orbit; }
+
 protected:
 
 	// event handlers

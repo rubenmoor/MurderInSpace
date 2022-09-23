@@ -80,6 +80,9 @@ public:
 	FVector GetVecVelocity() { return VecVelocity; }
 
 	UFUNCTION(BlueprintCallable)
+	FVector GetVecR() { return VecR; }
+
+	UFUNCTION(BlueprintCallable)
 	void InitializeCircle(float Alpha, float WorldRadius, FVector VecF1, FVector NewVecR);
 	
 protected:

@@ -65,7 +65,7 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 
 private:
-	TObjectPtr<ACharacterInSpace> Pawn;
+	TObjectPtr<ACharacterInSpace> MyCharacter;
 	
 	template <typename WidgetT>
 	TObjectPtr<WidgetT> FindOrFail(const FName& Name) const;

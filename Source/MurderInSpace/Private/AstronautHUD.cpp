@@ -60,8 +60,8 @@ void AAstronautHUD::BeginPlay()
 	}
 	else
 	{
-		Pawn = PC->GetPawn<ACharacterInSpace>();
-		if(!Pawn)
+		MyCharacter = PC->GetPawn<ACharacterInSpace>();
+		if(!MyCharacter)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("AAstronautHUD::BeginPlay: no pawn, disabling tick; MyHUDWidget uses default values"))
 			SetActorTickEnabled(false);
@@ -81,7 +81,7 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 
 	const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
 	const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
-	const TObjectPtr<UOrbitComponent> Orbit = Pawn->GetOrbitComponent();
+	const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
 	const float Velocity = Orbit->GetVelocity();
 
 	TextVelocitySI->SetText(FText::AsNumber(Velocity * GI->ScaleFactor, &FormattingOptions));
@@ -105,7 +105,7 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 		FVector CameraLocation;
 		FRotator CameraRotation;
 		GetOwningPlayerController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
-		const auto VecF1InViewportPlane = GI->VecF1 + CameraRotation.Vector() * (GetOwningPawn()->GetActorLocation() - GI->
+		const auto VecF1InViewportPlane = GI->VecF1 + CameraRotation.Vector() * (MyCharacter->GetOrbitComponent()->GetVecR() - GI->
 			VecF1).Length();
 		// ... but in that case we can help with a manual projection
 		if(!GetOwningPlayerController()->ProjectWorldLocationToScreen(VecF1InViewportPlane, ScreenLocation))
