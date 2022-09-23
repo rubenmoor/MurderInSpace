@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "CharacterInSpace.h"
-#include "MyHUDWidget.h"
-#include "OrbitDataComponent.h"
 #include "UserWidgetHUDBorder.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/CanvasPanel.h"

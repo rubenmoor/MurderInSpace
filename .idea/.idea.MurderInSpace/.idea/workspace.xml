@@ -9,19 +9,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Content/SpaceObject/BP_Rock.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Maps/spacefootball.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/spacefootball.umap" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/SpaceObject/BP_CharacterInSpace.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/BP_CharacterInSpace.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/SM_Rock.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/SM_Rock.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/BP_Rock.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/BP_Rock.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/ActorInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/ActorInSpace.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/CharacterInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/CharacterInSpace.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyGameInstance.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyGameInstance.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Orbit.cpp" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitDataComponent.cpp" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/PawnInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/PawnInSpace.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/ActorInSpace.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/ActorInSpace.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/CharacterInSpace.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/CharacterInSpace.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/AstronautHUD.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/AstronautHUD.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Orbit.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitDataComponent.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/PawnInSpace.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/PawnInSpace.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -39,7 +42,6 @@
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/PawnInSpace.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/ActorInSpace.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitDataComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/PawnInSpace.h" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -215,7 +217,8 @@
       <workItem from="1663798353361" duration="679000" />
       <workItem from="1663799060153" duration="54000" />
       <workItem from="1663799128923" duration="395000" />
-      <workItem from="1663799718965" duration="14124000" />
+      <workItem from="1663799718965" duration="14152000" />
+      <workItem from="1663899178776" duration="10160000" />
     </task>
     <servers />
   </component>

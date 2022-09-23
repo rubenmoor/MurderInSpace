@@ -45,7 +45,7 @@ void UMyGameInstance::PostEditChangeProperty(FPropertyChangedEvent& PropertyChan
 	{
 		for(TObjectIterator<UOrbitComponent> Iter; Iter; ++Iter)
 		{
-			(*Iter)->Update(Alpha, WorldRadius, VecF1);
+			(*Iter)->UpdateWithParams(Alpha, WorldRadius, VecF1);
 		}
 	}
 	Super::PostEditChangeProperty(PropertyChangedEvent);

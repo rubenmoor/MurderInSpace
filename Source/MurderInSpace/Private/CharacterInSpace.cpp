@@ -3,8 +3,6 @@
 
 #include "CharacterInSpace.h"
 
-#include "MyGameInstance.h"
-
 ACharacterInSpace::ACharacterInSpace()
 {
 	PrimaryActorTick.bCanEverTick = true;

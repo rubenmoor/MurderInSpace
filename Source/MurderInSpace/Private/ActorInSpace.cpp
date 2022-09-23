@@ -12,11 +12,12 @@ AActorInSpace::AActorInSpace()
 	Root->SetMobility(EComponentMobility::Stationary);
 	SetRootComponent(Root);
 
-	Orbit = CreateDefaultSubobject<UOrbitComponent>(TEXT("Orbit"));
-	Orbit->SetupAttachment(Root);
-	
 	MovableRoot = CreateDefaultSubobject<USceneComponent>(TEXT("MovableRoot"));
 	MovableRoot->SetupAttachment(Root);
+	
+	Orbit = CreateDefaultSubobject<UOrbitComponent>(TEXT("Orbit"));
+	Orbit->SetupAttachment(Root);
+	Orbit->SetMovableRoot(MovableRoot);
 }
 
 void AActorInSpace::OnConstruction(const FTransform& Transform)
@@ -28,18 +29,4 @@ void AActorInSpace::OnConstruction(const FTransform& Transform)
 		, UMyGameInstance::EditorDefaultVecF1
 		, MovableRoot->GetComponentLocation()
 		);
-}
-
-void AActorInSpace::BeginPlay()
-{
-	Super::BeginPlay();
-	const UMyGameInstance* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
-	Orbit->InitializeCircle(GI->Alpha, GI->WorldRadius, GI->VecF1, MovableRoot->GetComponentLocation());
-}
-
-void AActorInSpace::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-	const FVector NewLocation = Orbit->GetNextLocation(DeltaSeconds);
-	MovableRoot->SetWorldLocation(NewLocation, true, nullptr, ETeleportType::TeleportPhysics);
 }

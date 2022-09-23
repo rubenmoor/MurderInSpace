@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MyGameInstance.h"
 #include "Components/SplineComponent.h"
 #include "OrbitComponent.generated.h"
 
@@ -55,10 +56,16 @@ public:
 	UOrbitComponent();
 	
 	UFUNCTION(BlueprintCallable)
-	void Update(float Alpha, float WorldRadius, FVector VecF1);
+	void SetMovableRoot(USceneComponent* InMovableRoot) { MovableRoot = InMovableRoot; }
+	
+	UFUNCTION(BlueprintCallable)
+	void UpdateWithParams(float Alpha, float WorldRadius, FVector VecF1);
 
 	UFUNCTION(BlueprintCallable)
-	void AddVelocity(FVector _VecVelocity, float Alpha, float WorldRadius, FVector VecF1);
+	void Update(UMyGameInstance* GI);
+	
+	UFUNCTION(BlueprintCallable)
+	void AddVelocity(FVector _VecVelocity, UMyGameInstance* GI);
 	
 	UFUNCTION(BlueprintCallable)
 	FString GetParamsString();
@@ -73,19 +80,24 @@ public:
 	FVector GetVecVelocity() { return VecVelocity; }
 
 	UFUNCTION(BlueprintCallable)
-	FVector GetNextLocation(float DeltaTime);
-	
-	UFUNCTION(BlueprintCallable)
 	void InitializeCircle(float Alpha, float WorldRadius, FVector VecF1, FVector NewVecR);
 	
 protected:
 	
 	// event handlers
+
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	virtual void BeginPlay() override;
+
 	#if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	#endif
 	
 	// members
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
+	TObjectPtr<USceneComponent> MovableRoot;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	bool bTrajectoryShowSpline = true;
@@ -154,4 +166,7 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	FOrbitParameters GetParams() const { return Params; };
+	
+	UFUNCTION(BlueprintCallable)
+	void MyAddPoints(TArray<FSplinePoint> InSplinePoints, bool bUpdateSpline);
 };
