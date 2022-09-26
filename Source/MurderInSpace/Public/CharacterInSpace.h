@@ -23,6 +23,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UpdateSpringArm(uint8 CameraPosition);
 
+	// hide the astronaut when the camera gets to First-Person view
 	UFUNCTION(BlueprintCallable)
 	void SetVisibility(bool bVisibility);
 

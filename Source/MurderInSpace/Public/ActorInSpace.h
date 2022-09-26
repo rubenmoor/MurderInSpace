@@ -35,5 +35,16 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UGyrationComponent> Gyration;
+
+	// input event handlers
+
+	UFUNCTION()
+	void HandleBeginMouseOver(UPrimitiveComponent* Body);
+	
+	UFUNCTION()
+	void HandleEndMouseOver(UPrimitiveComponent* Body);
+	
+	UFUNCTION()
+	void HandleClick(UPrimitiveComponent* Body, FKey Button);
 };
 

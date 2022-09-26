@@ -28,8 +28,6 @@ void UGyrationComponent::BeginPlay()
 			UE_LOG(LogActorComponent, Error, TEXT("%s: body null"), *GetFullName())
 			return;
 		}
-		UE_LOG(LogActorComponent, Warning,
-			TEXT("%s: BeginPlay: defaulting body to %s"), *GetFullName(), *Body->GetFullName())
 	}
 
 	if(VecInertia.IsZero())
@@ -49,7 +47,16 @@ void UGyrationComponent::BeginPlay()
 	TObjectPtr<UMyGameInstance> GI = GetWorld()->GetGameInstance<UMyGameInstance>();
 	if(VecL.IsZero())
 	{
-		VecL = GI->Random.VRand() * GI->Random.RandRange(.01, .1) * VecInertia.Length();
+		VecL = GI->Random.VRand() * GI->Random.FRandRange(.1, 1.) * VecInertia.Length();
+		UE_LOG
+		    ( LogActorComponent
+		    , Display
+		    , TEXT("%s: initializing angular momentum random: %f | %f | %f")
+			, *GetFullName()
+			, VecL.X
+			, VecL.Y
+			, VecL.Z
+			)
 	}
 }
 
@@ -73,7 +80,6 @@ void UGyrationComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent&
 	}
 }
 
-
 // Called every frame
 void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -86,7 +92,7 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 			, FVector(0, 0, 1./ VecInertia.Z)
 			, FVector(0, 0, 0)
 			);
-	const FVector VecOmega = (MatROld * MatInertiaReverse * MatROld.GetTransposed()).TransformFVector4(VecL);
+	VecOmega = (MatROld * MatInertiaReverse * MatROld.GetTransposed()).TransformFVector4(VecL);
 	const float Theta = VecOmega.Length();
 	const FMatrix BNorm = FMatrix
 			( FVector(0., -VecOmega.Z, VecOmega.Y)

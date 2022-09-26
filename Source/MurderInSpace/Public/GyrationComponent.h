@@ -46,6 +46,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	float E = 0.;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+	FVector VecOmega = FVector::Zero();
+	
 	// private methods
 	
 public:	

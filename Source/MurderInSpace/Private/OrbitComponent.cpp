@@ -224,15 +224,15 @@ void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector V
 	// `SplineKey` is not needed,
 	// `SplineDistance` and `DistanceZero` are set already
 	
+	TArray<USceneComponent*> OldSplinesMeshes;
+	GetChildrenComponents(false, OldSplinesMeshes);
+	for(USceneComponent* const Old : OldSplinesMeshes)
+	{
+		Old->DestroyComponent();
+	}
+
 	if(bTrajectoryShowSpline)
 	{
-		TArray<USceneComponent*> OldSplinesMeshes;
-		GetChildrenComponents(false, OldSplinesMeshes);
-		for(USceneComponent* const Old : OldSplinesMeshes)
-		{
-			Old->DestroyComponent();
-		}
-
 		const int nIndices = static_cast<int>(round(GetSplineLength() / splineMeshLength));
 		if(nIndices >= 2)
 		{
@@ -249,6 +249,8 @@ void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector V
 					NewObject<USplineMeshComponent>(this, *FString(TEXT("SplineMesh")).Append(FString::FromInt(i)));
 				
 				SplineMesh->SetMobility(EComponentMobility::Stationary);
+				SplineMesh->SetVisibility(bIsVisible);
+				
 				// if I don't register here, the spline mesh doesn't render
 				SplineMesh->RegisterComponent();
 				SplineMesh->AttachToComponent(this, FAttachmentTransformRules::KeepWorldTransform);
@@ -323,6 +325,16 @@ void UOrbitComponent::MyAddPoints(TArray<FSplinePoint> InSplinePoints, bool bUpd
 	}
 	AddPoints(InSplinePoints, bUpdateSpline);
 }
+
+// void UOrbitComponent::SetVisibility(bool InBVisible)
+// {
+// 	TArray<USceneComponent*> OldSplinesMeshes;
+// 	GetChildrenComponents(false, OldSplinesMeshes);
+// 	for(USceneComponent* const Old : OldSplinesMeshes)
+// 	{
+// 		Old->SetVisibility(InBVisible);
+// 	}
+// }
 
 FString UOrbitComponent::GetParamsString()
 {
@@ -431,7 +443,8 @@ void UOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 void UOrbitComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	SetVisibility(false);
 	if(!SplineMeshMaterial)
 	{
 		UE_LOG(LogActorComponent, Warning, TEXT("%s: spline mesh material not set"), *GetFullName())

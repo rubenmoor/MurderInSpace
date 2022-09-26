@@ -84,6 +84,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void InitializeCircle(float Alpha, float WorldRadius, FVector VecF1, FVector NewVecR);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsVisible = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsSelected = false;
 	
 protected:
 	
@@ -99,7 +105,7 @@ protected:
 	
 	// members
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
+	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<USceneComponent> MovableRoot;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")

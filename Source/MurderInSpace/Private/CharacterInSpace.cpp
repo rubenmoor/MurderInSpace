@@ -24,12 +24,16 @@ ACharacterInSpace::ACharacterInSpace()
 
 	StarAnchor = CreateDefaultSubobject<USceneComponent>(TEXT("StarAnchor"));
 	StarAnchor->SetupAttachment(SpringArm);
+	StarAnchor->SetRelativeLocation(FVector(11000, 0, 0));
 
 	StarsClose = CreateDefaultSubobject<UNiagaraComponent>(TEXT("StarsClose"));
 	StarsClose->SetupAttachment(StarAnchor);
 	
 	StarsDistant = CreateDefaultSubobject<UNiagaraComponent>(TEXT("StarsDistant"));
 	StarsDistant->SetupAttachment(StarAnchor);
+	StarsDistant->SetRelativeLocation(FVector(10000, 0, 0));
+
+	Orbit->bIsVisible = true;
 }
 
 void ACharacterInSpace::UpdateSpringArm(uint8 CameraPosition)

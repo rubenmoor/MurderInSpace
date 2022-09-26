@@ -6,7 +6,6 @@
 #include <algorithm>
 
 #include "CharacterInSpace.h"
-#include "MeshAttributes.h"
 
 void AMyPlayerController::SetupInputComponent()
 {
@@ -15,11 +14,6 @@ void AMyPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MouseWheel", this, &AMyPlayerController::Zoom);
 	InputComponent->BindAction("Accelerate", IE_Pressed, this, &AMyPlayerController::AccelerateBegin);
 	InputComponent->BindAction("Accelerate", IE_Released, this, &AMyPlayerController::AccelerateEnd);
-}
-
-AMyPlayerController::AMyPlayerController()
-{
-	CameraPosition = 2;
 }
 
 void AMyPlayerController::Zoom(float Delta)
@@ -39,6 +33,13 @@ void AMyPlayerController::AccelerateEnd()
 	GetPawn<APawnInSpace>()->bIsAccelerating = false;
 }
 
+// void AMyPlayerController::HandleSelect()
+// {
+// 	FHitResult HitResult;
+// 	GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+// 	GEngine->AddOnScreenDebugMessage(-1, 3., FColor::White, *HitResult.Component->GetFullName());
+// }
+
 void AMyPlayerController::AccelerateBegin()
 {
 	GetPawn<APawnInSpace>()->bIsAccelerating = true;
@@ -55,6 +56,15 @@ void AMyPlayerController::BeginPlay()
 	else
 	{
 		MyCharacter->UpdateSpringArm(CameraPosition);
+		UE_LOG
+		    ( LogPlayerController
+		    , Warning
+		    , TEXT("bEnableClickEvents: %s, bEnableMouseOverEvents: %s")
+		    , bEnableClickEvents ? TEXT("true") : TEXT("false")
+		    , bEnableMouseOverEvents ? TEXT("true") : TEXT("false")
+		    );
+		bEnableClickEvents = true;
+		bEnableMouseOverEvents = true;
 	}
 }
 

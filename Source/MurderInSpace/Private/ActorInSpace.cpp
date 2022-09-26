@@ -32,3 +32,29 @@ void AActorInSpace::OnConstruction(const FTransform& Transform)
 		, MovableRoot->GetComponentLocation()
 		);
 }
+
+void AActorInSpace::HandleBeginMouseOver(UPrimitiveComponent*)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 3., FColor::White, TEXT("begin mouse hover"));
+	Orbit->SetVisibility(true, true);
+	Orbit->bIsVisible = true;
+}
+
+void AActorInSpace::HandleEndMouseOver(UPrimitiveComponent*)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 3., FColor::White, TEXT("end mouse hover"));
+	if(!Orbit->bIsSelected)
+	{
+		Orbit->SetVisibility(false, true);
+		Orbit->bIsVisible = false;
+	}
+}
+
+void AActorInSpace::HandleClick(UPrimitiveComponent*, FKey Button)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 3., FColor::White, TEXT("clicked"));
+	if(Button == EKeys::LeftMouseButton)
+	{
+		Orbit->bIsSelected = !Orbit->bIsSelected;
+	}
+}
