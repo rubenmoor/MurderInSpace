@@ -9,30 +9,36 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/BP_SM_Rock.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/SMActorInSpace.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/SMActorInSpace.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Maps/_GENERATED/rubm/Cylinder_49D02EE0.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Maps/_GENERATED/rubm/Cylinder_E6D8CB29.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Maps/_GENERATED/rubm/Sphere_4E102907.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/BP_RockCylindric.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/BP_RockFlat.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/SM_RockCylindric.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/SM_RockFlat.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/HUD/BP_AstronautHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/BP_AstronautHUD.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/HUD/UMG_PlayerHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/UMG_PlayerHUD.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Maps/spacefootball.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/spacefootball.umap" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/BP_Rock.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/BP_Rock.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/BP_RockTilted.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/BP_Thingy.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/SM_Rock.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/SM_Rock.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/BP_SM_Rock.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/SpaceObject/BP_CharacterInSpace.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/BP_CharacterInSpace.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/State/BP_GameModeAsteroids.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/State/BP_GameModeAsteroids.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/State/BP_MyPlayerController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/State/BP_MyPlayerController.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/ActorInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/ActorInSpace.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/AstronautHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/AstronautHUD.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/CharacterInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/CharacterInSpace.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/GyrationComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/GyrationComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyGameInstance.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyGameInstance.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyGameState.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyGameState.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyPlayerController.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/PawnInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/PawnInSpace.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/SMActorInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/SMActorInSpace.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/ABlackhole.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/ABlackhole.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/ActorInSpace.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/ActorInSpace.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/AstronautHUD.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/AstronautHUD.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/CharacterInSpace.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/CharacterInSpace.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/GameModeAsteroids.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/GameModeAsteroids.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/GyrationComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/GyrationComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyPlayerController.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyGameInstance.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyGameInstance.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyGameState.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyGameState.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -42,6 +48,7 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.31.31103/include/cmath" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.31.31103/include/random" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/ActorInSpace.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/AstronautHUD.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/CharacterInSpace.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -234,7 +241,8 @@
       <workItem from="1664119563326" duration="9402000" />
       <workItem from="1664194384826" duration="1883000" />
       <workItem from="1664213207125" duration="4776000" />
-      <workItem from="1664221188433" duration="6959000" />
+      <workItem from="1664221188433" duration="8388000" />
+      <workItem from="1664279127693" duration="15956000" />
     </task>
     <servers />
   </component>

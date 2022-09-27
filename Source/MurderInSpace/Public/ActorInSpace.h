@@ -3,10 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "OrbitComponent.h"
-#include "GyrationComponent.h"
-#include "GameFramework/Actor.h"
 #include "ActorInSpace.generated.h"
+
+class UOrbitComponent;
+class UGyrationComponent;
 
 UCLASS()
 class MURDERINSPACE_API AActorInSpace : public AActor

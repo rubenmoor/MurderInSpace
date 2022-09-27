@@ -19,8 +19,8 @@ public:
 	UGyrationComponent();
 
 	UFUNCTION(BlueprintCallable)
-	void SetBody(UPrimitiveComponent* InBody) { Body = InBody; }
-	
+	void SetBody(UPrimitiveComponent* InBody);
+
 protected:
 	
 	// event handlers

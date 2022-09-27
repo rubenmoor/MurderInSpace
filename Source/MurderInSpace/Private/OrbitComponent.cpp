@@ -7,7 +7,6 @@
 #include <numeric>
 
 #include "FunctionLib.h"
-#include "MyGameInstance.h"
 #include "Components/SplineMeshComponent.h"
 
 UOrbitComponent::UOrbitComponent()
@@ -23,7 +22,7 @@ UOrbitComponent::UOrbitComponent()
 	}
 }
 
-void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector VecF1)
+void UOrbitComponent::UpdateWithParams(FSpaceParams SP)
 {
 	if(!MovableRoot)
 	{
@@ -33,46 +32,46 @@ void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector V
 	ClearSplinePoints(false);
 
 	// transform location vector r to Kepler coordinates, where F1 is the origin
-	const FVector VecRKepler = VecR - VecF1;
+	const FVector VecRKepler = VecR - SP.VecF1;
 	const float RKepler = VecRKepler.Length();
 	//const auto VelocityVCircle = Velocity / sqrt(Alpha / R);
 
 	// the bigger this value, the earlier an eccentricity close to 1 will be interpreted as parabola orbit
 	constexpr float Tolerance = 1E-2;
 	const FVector VecH = VecRKepler.Cross(VecVelocity);
-	Params.P = VecH.SquaredLength() / Alpha;
-	Params.Energy = pow(Velocity, 2) / 2. - Alpha / RKepler;
-	const FVector VecE = UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Alpha);
+	Params.P = VecH.SquaredLength() / SP.Alpha;
+	Params.Energy = pow(Velocity, 2) / 2. - SP.Alpha / RKepler;
+	const FVector VecE = UFunctionLib::Eccentricity(VecRKepler, VecVelocity, SP.Alpha);
 	Params.Eccentricity = VecE.Length();
 	const FVector VecENorm = VecE.GetSafeNormal();
 	const FVector VecHNorm = VecH.GetSafeNormal();
 
 	// the energy of the weakest bound state: a circular orbit at R_MAX
-	const float E_BOUND_MIN = -Alpha / (2 * WorldRadius);
+	const float E_BOUND_MIN = -SP.Alpha / (2 * SP.WorldRadius);
 
 	// H = 0 (implies E = 1, too): falling in a straight line
 	if(VecHNorm.IsZero())
 	{
-		const float EMIN = -Alpha / WorldRadius;
-		const float E = VecVelocity.SquaredLength() / 2. - Alpha / RKepler;
+		const float EMIN = -SP.Alpha / SP.WorldRadius;
+		const float E = VecVelocity.SquaredLength() / 2. - SP.Alpha / RKepler;
 
 		// bound
 		if(E < EMIN)
 		{
-			const float Apsis = -Alpha / E;
+			const float Apsis = -SP.Alpha / E;
 			const FVector VecVNorm = VecVelocity.GetSafeNormal();
 			if(VecVNorm.IsZero())
 			{
 				MyAddPoints(
 					{ FSplinePoint(0, VecR, ESplinePointType::Linear)
-					, FSplinePoint(1, -VecRKepler + VecF1, ESplinePointType::Linear)
+					, FSplinePoint(1, -VecRKepler + SP.VecF1, ESplinePointType::Linear)
 					}, false);
 			}
 			else
 			{
 				MyAddPoints(
-					{ FSplinePoint(0, -VecVNorm * Apsis + VecF1, ESplinePointType::Linear)
-						, FSplinePoint(1, VecVNorm * Apsis + VecF1, ESplinePointType::Linear)
+					{ FSplinePoint(0, -VecVNorm * Apsis + SP.VecF1, ESplinePointType::Linear)
+						, FSplinePoint(1, VecVNorm * Apsis + SP.VecF1, ESplinePointType::Linear)
 					}, false);
 				SetClosedLoop(false, false);
 				UpdateSpline();
@@ -82,8 +81,8 @@ void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector V
 			SetClosedLoop(true, false);
 			
 			Params.OrbitType = EOrbitType::LINEBOUND;
-			Params.A = UFunctionLib::SemiMajorAxis(VecRKepler, VecVelocity, Alpha);
-			Params.Period = UFunctionLib::PeriodEllipse(Params.A, Alpha);
+			Params.A = UFunctionLib::SemiMajorAxis(VecRKepler, VecVelocity, SP.Alpha);
+			Params.Period = UFunctionLib::PeriodEllipse(Params.A, SP.Alpha);
 		}
 
 		// unbound
@@ -91,7 +90,11 @@ void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector V
 		{
 			MyAddPoints(
 				{ FSplinePoint(0, VecR, ESplinePointType::Linear)
-					, FSplinePoint(1, VecVelocity.GetUnsafeNormal() * (WorldRadius - VecR.Length()), ESplinePointType::Linear)
+					, FSplinePoint
+					    ( 1
+						, VecVelocity.GetUnsafeNormal() * (SP.WorldRadius - VecR.Length())
+						, ESplinePointType::Linear
+						)
 				}, false);
 			SetClosedLoop(false, false);
 			Params.OrbitType = EOrbitType::LINEUNBOUND;
@@ -108,14 +111,14 @@ void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector V
 	    const FVector VecT4 = VecRKepler * SplineToCircle;
 		MyAddPoints(
 	      { FSplinePoint(0,  VecR,  VecT1,  VecT1)
-		    , FSplinePoint(1, VecP2 + VecF1, -VecT4, -VecT4)
-		    , FSplinePoint(2, -VecRKepler + VecF1 , -VecT1, -VecT1)
-		    , FSplinePoint(3, -VecP2 + VecF1,  VecT4,  VecT4)
+		    , FSplinePoint(1, VecP2 + SP.VecF1, -VecT4, -VecT4)
+		    , FSplinePoint(2, -VecRKepler + SP.VecF1 , -VecT1, -VecT1)
+		    , FSplinePoint(3, -VecP2 + SP.VecF1,  VecT4,  VecT4)
 		    }, false);
     	SetClosedLoop(true, false);
 		Params.OrbitType = EOrbitType::CIRCLE;
 		Params.A = RKepler;
-		Params.Period = UFunctionLib::PeriodEllipse(RKepler, Alpha);
+		Params.Period = UFunctionLib::PeriodEllipse(RKepler, SP.Alpha);
 	}
 
 	// 0 < E < 1, Ellipse
@@ -142,14 +145,14 @@ void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector V
 	    const FVector T1 = Orthogonal * SplineToCircle * B;
 	    const FVector T4 = VecENorm * SplineToCircle * Params.A;
 		MyAddPoints(
-	      { FSplinePoint(0, Vertex1   + VecF1,  T1,  T1)
-		    , FSplinePoint(1, Covertex1 + VecF1, -T4, -T4)
-		    , FSplinePoint(2, Vertex2   + VecF1, -T1, -T1)
-		    , FSplinePoint(3, Covertex2 + VecF1,  T4,  T4)
+	      { FSplinePoint(0, Vertex1   + SP.VecF1,  T1,  T1)
+		    , FSplinePoint(1, Covertex1 + SP.VecF1, -T4, -T4)
+		    , FSplinePoint(2, Vertex2   + SP.VecF1, -T1, -T1)
+		    , FSplinePoint(3, Covertex2 + SP.VecF1,  T4,  T4)
 		    }, false);
     	SetClosedLoop(true, false);
 		Params.OrbitType = EOrbitType::ELLIPSE;
-		Params.Period = UFunctionLib::PeriodEllipse(Params.A, Alpha);
+		Params.Period = UFunctionLib::PeriodEllipse(Params.A, SP.Alpha);
 	}
 	
 	// E = 1, Parabola
@@ -158,16 +161,16 @@ void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector V
 		std::list<FVector> Points;
 	    const FVector VecHorizontal = VecHNorm.Cross(VecENorm);
 		constexpr int MAX_POINTS = 20;
-		const float MAX_N = sqrt(2 * (WorldRadius + VecF1.Length()) / Params.P);
+		const float MAX_N = sqrt(2 * (SP.WorldRadius + SP.VecF1.Length()) / Params.P);
 		const float Delta = 2 * MAX_N / MAX_POINTS;
 		
-		Points.emplace_front(VecENorm * Params.P / (1. + Params.Eccentricity) + VecF1);
+		Points.emplace_front(VecENorm * Params.P / (1. + Params.Eccentricity) + SP.VecF1);
 		for(int i = 1; i < MAX_POINTS / 2; i++)
 		{
 			const FVector VecX = i * Delta * VecHorizontal * Params.P;
 			const FVector VecY = VecENorm / 2. * (1 - pow(i * Delta, 2)) * Params.P;
-			Points.emplace_back(VecY + VecX + VecF1);
-			Points.emplace_front(VecY - VecX + VecF1);
+			Points.emplace_back(VecY + VecX + SP.VecF1);
+			Points.emplace_front(VecY - VecX + SP.VecF1);
 		}
 		
 		for(const FVector Point : Points)
@@ -188,10 +191,10 @@ void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector V
 		const float C = Params.P * Params.Eccentricity / (VecE.SquaredLength() - 1);
 	    const FVector VecHorizontal = VecHNorm.Cross(VecENorm);
 		constexpr int MAX_POINTS = 20;
-		const float MAX = sqrt((pow(WorldRadius, 2) + (VecE.SquaredLength() - 1.) * pow(Params.A, 2)) / pow(Params.Eccentricity, 2));
+		const float MAX = sqrt((pow(SP.WorldRadius, 2) + (VecE.SquaredLength() - 1.) * pow(Params.A, 2)) / pow(Params.Eccentricity, 2));
 		const float Delta = 2. * MAX / (pow(MAX_POINTS / 2 - 1, 3) / 3.);
 
-		Points.emplace_front(VecENorm * Params.P / (1. + Params.Eccentricity) + VecF1);
+		Points.emplace_front(VecENorm * Params.P / (1. + Params.Eccentricity) + SP.VecF1);
 		//Points.emplace_front(VecE * A + VecF1);
 		for(int i = 1; i < MAX_POINTS / 2; i++)
 		{
@@ -200,8 +203,8 @@ void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector V
 			//(P - sqrt(VecE.SquaredLength() - 1) * RMAX) * VecENorm + VecF1;	
 			//const auto VecY = VecHorizontal * sqrt((VecE.SquaredLength() - 1.) * pow(X, 2) - 1.);
 			const FVector VecY = VecHorizontal * sqrt((VecE.SquaredLength() - 1.) * (pow(X, 2) - pow(Params.A, 2)));
-			Points.emplace_back(VecX + VecY + VecF1);
-			Points.emplace_front(VecX - VecY + VecF1);
+			Points.emplace_back(VecX + VecY + SP.VecF1);
+			Points.emplace_front(VecX - VecY + SP.VecF1);
 		}
 			
 		for(const FVector Point : Points)
@@ -251,8 +254,11 @@ void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector V
 				SplineMesh->SetMobility(EComponentMobility::Stationary);
 				SplineMesh->SetVisibility(bIsVisible);
 				
-				// if I don't register here, the spline mesh doesn't render
+				// if I dont register here, the spline mesh doesn't render
 				SplineMesh->RegisterComponent();
+				// in theory, I could use `SetupAttachment` and then `RegisterComponent`
+				// in practice, that messes up the location (i.e. it moves the splinemesh)
+				// and the spline meshes do not show up with their correct names in the editor
 				SplineMesh->AttachToComponent(this, FAttachmentTransformRules::KeepWorldTransform);
 				// if I don't add instance here, the spline meshes don't show in the component list in the editor
 				GetOwner()->AddInstanceComponent(SplineMesh);
@@ -260,20 +266,35 @@ void UOrbitComponent::UpdateWithParams(float Alpha, float WorldRadius, FVector V
 				SplineMesh->CastShadow = false;
 				SplineMesh->SetStaticMesh(SM_Trajectory);
 				SplineMesh->SetMaterial(0, SplineMeshMaterial);
-				const FVector VecStartPos = GetLocationAtDistanceAlongSpline(Indices[i] * splineMeshLength, ESplineCoordinateSpace::World);
-				const FVector VecStartDirection = GetTangentAtDistanceAlongSpline(Indices[i] * splineMeshLength, ESplineCoordinateSpace::World).GetUnsafeNormal() * splineMeshLength;
-				const FVector VecEndPos = GetLocationAtDistanceAlongSpline(Indices[i + 1] * splineMeshLength, ESplineCoordinateSpace::World);
-				const FVector VecEndDirection = GetTangentAtDistanceAlongSpline(Indices[i + 1] * splineMeshLength, ESplineCoordinateSpace::World).GetUnsafeNormal() * splineMeshLength;
-				SplineMesh->SetStartAndEnd(VecStartPos, VecStartDirection, VecEndPos, VecEndDirection);
+				const FVector VecStartPos =
+					GetLocationAtDistanceAlongSpline(Indices[i] * splineMeshLength, ESplineCoordinateSpace::World);
+				const FVector VecStartDirection =
+					GetTangentAtDistanceAlongSpline
+						( Indices[i] * splineMeshLength
+						, ESplineCoordinateSpace::World
+						).GetUnsafeNormal() * splineMeshLength;
+				const FVector VecEndPos =
+					GetLocationAtDistanceAlongSpline(Indices[i + 1] * splineMeshLength, ESplineCoordinateSpace::World);
+				const FVector VecEndDirection =
+					GetTangentAtDistanceAlongSpline
+						( Indices[i + 1] * splineMeshLength
+						, ESplineCoordinateSpace::World
+						).GetUnsafeNormal() * splineMeshLength;
+				SplineMesh->SetStartAndEnd
+					( VecStartPos
+					, VecStartDirection
+					, VecEndPos
+					, VecEndDirection
+					);
 			}
 		}
 	}
 	bInitialized = true;
 }
 
-void UOrbitComponent::Update(UMyGameInstance* GI)
+void UOrbitComponent::Update(AMyGameState* GS)
 {
-	UpdateWithParams(GI->Alpha, GI->WorldRadius, GI->VecF1);
+	UpdateWithParams(GS->GetSpaceParams());
 }
 
 float UOrbitComponent::VelocityEllipse(float R, float Alpha)
@@ -375,21 +396,22 @@ void UOrbitComponent::SetVelocity(FVector _VecVelocity, float Alpha, FVector Vec
 	VelocityVCircle = Velocity / GetCircleVelocity(Alpha, VecF1);
 }
 
-void UOrbitComponent::AddVelocity(FVector _VecVelocity, UMyGameInstance* GI)
+void UOrbitComponent::AddVelocity(FVector _VecVelocity, AMyGameState* GS)
 {
-	SetVelocity(VecVelocity + _VecVelocity, GI->Alpha, GI->VecF1);
-	Update(GI);
+	const FSpaceParams SP = GS->GetSpaceParams();
+	SetVelocity(VecVelocity + _VecVelocity, SP.Alpha, SP.VecF1);
+	Update(GS);
 }
 
-void UOrbitComponent::InitializeCircle(float Alpha, float WorldRadius, FVector VecF1, FVector NewVecR)
+void UOrbitComponent::InitializeCircle(FVector NewVecR, FSpaceParams SP)
 {
 	VecR = NewVecR;
-	const FVector VecRKepler = VecR - VecF1;
+	const FVector VecRKepler = VecR - SP.VecF1;
 	const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecR).GetSafeNormal(1e-8, FVector(0., 1., 0.));
 	VelocityVCircle = 1.;
-	Velocity = sqrt(Alpha / VecRKepler.Length()) * VelocityVCircle;
+	Velocity = sqrt(SP.Alpha / VecRKepler.Length()) * VelocityVCircle;
 	VecVelocity = Velocity * VelocityNormal;
-	UpdateWithParams(Alpha, WorldRadius, VecF1);
+	UpdateWithParams(SP);
 }
 
 void UOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -402,14 +424,13 @@ void UOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 		return;
 	}
 	
-	const TObjectPtr<UMyGameInstance> GI = GetWorld()->GetGameInstance<UMyGameInstance>();
-	const FVector VecF1 = GI->VecF1;
-	const float Alpha = GI->Alpha;
+	const TObjectPtr<AMyGameState> GS = GetWorld()->GetGameState<AMyGameState>();
+	const FSpaceParams SP = GS->GetSpaceParams();
 	
-	const FVector VecRKepler = VecR - VecF1;
+	const FVector VecRKepler = VecR - SP.VecF1;
 
-	Velocity = NextVelocity(VecRKepler.Length(), Alpha, Velocity, DeltaTime, VecVelocity.Dot(VecRKepler));
-	VelocityVCircle = Velocity / GetCircleVelocity(Alpha, VecF1);
+	Velocity = NextVelocity(VecRKepler.Length(), SP.Alpha, Velocity, DeltaTime, VecVelocity.Dot(VecRKepler));
+	VelocityVCircle = Velocity / GetCircleVelocity(SP.Alpha, SP.VecF1);
 	const float DeltaR = Velocity * DeltaTime;
 
 	// advance on spline
@@ -444,7 +465,7 @@ void UOrbitComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetVisibility(false);
+	SetVisibility(false, true);
 	if(!SplineMeshMaterial)
 	{
 		UE_LOG(LogActorComponent, Warning, TEXT("%s: spline mesh material not set"), *GetFullName())
@@ -459,10 +480,8 @@ void UOrbitComponent::BeginPlay()
 void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
-	
-	constexpr float WorldRadius = UMyGameInstance::EditorDefaultWorldRadiusUU;
-	constexpr float Alpha = UMyGameInstance::EditorDefaultAlpha;
-	const FVector VecF1 = UMyGameInstance::EditorDefaultVecF1;
+
+	const FSpaceParams DSP = AMyGameState::DefaultSpaceParams;
 	
 	const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
@@ -476,35 +495,35 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 
 	if(Name == FNameSplineMeshLength || Name == FNameBTrajectoryShowSpline)
 	{
-		UpdateWithParams(Alpha, WorldRadius, VecF1);
+		UpdateWithParams(DSP);
 	}
 	else if(Name == FNameVelocity || Name == FNameVelocityVCircle || Name == FNameVecVelocity)
 	{
 		const FVector VelocityNormal = VecVelocity.GetSafeNormal(1e-8, FVector(0., 1., 0.));
-		const FVector VecRKepler = VecR - VecF1;
+		const FVector VecRKepler = VecR - DSP.VecF1;
 
 		if(Name == FNameVelocity)
 		{
 			VecVelocity = Velocity * VelocityNormal;
-			VelocityVCircle = Velocity / sqrt(Alpha / VecRKepler.Length());
-			UpdateWithParams(Alpha, WorldRadius, VecF1);
+			VelocityVCircle = Velocity / sqrt(DSP.Alpha / VecRKepler.Length());
+			UpdateWithParams(DSP);
 		}
 		else if(Name == FNameVelocityVCircle)
 		{
-			Velocity = sqrt(Alpha / VecRKepler.Length()) * VelocityVCircle;
+			Velocity = sqrt(DSP.Alpha / VecRKepler.Length()) * VelocityVCircle;
 			VecVelocity = Velocity * VelocityNormal;
-			UpdateWithParams(Alpha, WorldRadius, VecF1);
+			UpdateWithParams(DSP);
 		}
 		else if(Name == FNameVecVelocity)
 		{
 			Velocity = VecVelocity.Length();
-			VelocityVCircle = Velocity / GetCircleVelocity(Alpha, VecF1);
-			UpdateWithParams(Alpha, WorldRadius, VecF1);
+			VelocityVCircle = Velocity / GetCircleVelocity(DSP.Alpha, DSP.VecF1);
+			UpdateWithParams(DSP);
 		}
 	}
 	else if(Name == FNameSMTrajectory || Name == FNameSplineMeshMaterial)
 	{
-		UpdateWithParams(Alpha, WorldRadius, VecF1);
+		UpdateWithParams(DSP);
 	}
 }
 #endif

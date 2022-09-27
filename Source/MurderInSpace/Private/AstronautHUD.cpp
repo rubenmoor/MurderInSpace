@@ -3,16 +3,17 @@
 
 #include "AstronautHUD.h"
 
-#include <algorithm>
-
 #include "CharacterInSpace.h"
-#include "MyGameInstance.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/TextBlock.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Components/CanvasPanel.h"
+#include "Components/Overlay.h"
 #include "Kismet/GameplayStatics.h"
+#include "UserWidgetHUDBorder.h"
+#include "Components/Image.h"
 
 #define LOCTEXT_NAMESPACE "mynamespace"
 
@@ -80,12 +81,13 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 	}
 
 	const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
-	const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
+	const TObjectPtr<AMyGameState> GS = GetWorld()->GetGameState<AMyGameState>();
+	const FSpaceParams SP = GS->GetSpaceParams();
 	const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
 	const float Velocity = Orbit->GetVelocity();
 
-	TextVelocitySI->SetText(FText::AsNumber(Velocity * GI->ScaleFactor, &FormattingOptions));
-	TextVelocityVCircle->SetText(FText::AsNumber(Velocity / Orbit->GetCircleVelocity(GI->Alpha, GI->VecF1), &FormattingOptions));
+	TextVelocitySI->SetText(FText::AsNumber(Velocity * SP.ScaleFactor, &FormattingOptions));
+	TextVelocityVCircle->SetText(FText::AsNumber(Velocity / Orbit->GetCircleVelocity(SP.Alpha, SP.VecF1), &FormattingOptions));
 
 	const float Angle = FQuat::FindBetween(FVector(1, 0, 0), Orbit->GetVecVelocity()).GetNormalized().GetTwistAngle(FVector(0, 0, 1));
 	TextVelocityDirection->SetRenderTransformAngle(Angle * 180. / PI);
@@ -94,7 +96,7 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 	FVector2D ScreenLocation;
 	
 	// try to project to screen coordinates, ...
-	const bool bProjected = GetOwningPlayerController()->ProjectWorldLocationToScreen(GI->VecF1, ScreenLocation);
+	const bool bProjected = GetOwningPlayerController()->ProjectWorldLocationToScreen(SP.VecF1, ScreenLocation);
 	//const auto bProjected = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayerController(), GI->VecF1, ScreenLocation, false);
 
 	float XFromCenter;
@@ -105,8 +107,8 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 		FVector CameraLocation;
 		FRotator CameraRotation;
 		GetOwningPlayerController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
-		const auto VecF1InViewportPlane = GI->VecF1 + CameraRotation.Vector() * (MyCharacter->GetOrbitComponent()->GetVecR() - GI->
-			VecF1).Length();
+		const FVector VecF1InViewportPlane =
+			SP.VecF1 + CameraRotation.Vector() * (MyCharacter->GetOrbitComponent()->GetVecR() - SP.VecF1).Length();
 		// ... but in that case we can help with a manual projection
 		if(!GetOwningPlayerController()->ProjectWorldLocationToScreen(VecF1InViewportPlane, ScreenLocation))
 		{
@@ -201,7 +203,7 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 		//OverlayCenterOfMass->SetVisibility(ESlateVisibility::Collapsed);
 		// TODO: paint green circle around center-of-mass
 		UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass)->SetPosition(ScreenLocation / ViewportScale);
-		const auto Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(OverlayCenterOfMass);
+		const TObjectPtr<UCanvasPanelSlot> Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(OverlayCenterOfMass);
 		Slot->SetAlignment(FVector2D(.5, .5));
 	}
 }

@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "PawnInSpace.h"
-#include "Camera/CameraComponent.h"
-#include "NiagaraComponent.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "CharacterInSpace.generated.h"
+
+class UCameraComponent;
+class USpringArmComponent;
+class UNiagaraComponent;
 
 /**
  * 

@@ -3,6 +3,10 @@
 
 #include "CharacterInSpace.h"
 
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "NiagaraComponent.h"
+
 ACharacterInSpace::ACharacterInSpace()
 {
 	PrimaryActorTick.bCanEverTick = true;

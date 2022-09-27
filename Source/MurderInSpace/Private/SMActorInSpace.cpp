@@ -2,6 +2,7 @@
 
 
 #include "SMActorInSpace.h"
+#include "GyrationComponent.h"
 
 ASMActorInSpace::ASMActorInSpace()
 {

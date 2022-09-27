@@ -4,10 +4,16 @@
 #include "GyrationComponent.h"
 
 #include "MyGameInstance.h"
+#include "MyGameState.h"
 
 UGyrationComponent::UGyrationComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+}
+
+void UGyrationComponent::SetBody(UPrimitiveComponent* InBody)
+{
+	Body = InBody;
 }
 
 
@@ -30,24 +36,19 @@ void UGyrationComponent::BeginPlay()
 		}
 	}
 
-	if(VecInertia.IsZero())
-	{
-		VecInertia = Body->GetInertiaTensor();
-		UE_LOG
-			( LogActorComponent
-			, Display
-			, TEXT("%s: initializing inertia Vector: %f | %f | %f")
-			, *GetFullName()
-			, VecInertia.X
-			, VecInertia.Y
-			, VecInertia.Z
-			)
-	}
-
-	TObjectPtr<UMyGameInstance> GI = GetWorld()->GetGameInstance<UMyGameInstance>();
+	// TODO: meshes connected with sockets
+	VecInertia = Body->GetInertiaTensor();
+	
 	if(VecL.IsZero())
 	{
-		VecL = GI->Random.VRand() * GI->Random.FRandRange(.1, 1.) * VecInertia.Length();
+		TObjectPtr<UMyGameInstance> GI = GetWorld()->GetGameInstance<UMyGameInstance>();
+		TObjectPtr<AMyGameState> GS = GetWorld()->GetGameState<AMyGameState>();
+		if(!GS)
+		{
+			UE_LOG(LogActorComponent, Error, TEXT("%s: GameState null"), *GetFullName())
+			return;
+		}
+		VecL = GI->Random.VRand() * GS->GetInitialAngularVelocity() * VecInertia.Length();
 		UE_LOG
 		    ( LogActorComponent
 		    , Display
@@ -57,26 +58,6 @@ void UGyrationComponent::BeginPlay()
 			, VecL.Y
 			, VecL.Z
 			)
-	}
-}
-
-void UGyrationComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeChainProperty(PropertyChangedEvent);
-	
-	const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
-
-	static const FName FNameL = GET_MEMBER_NAME_CHECKED(UGyrationComponent, L);
-	static const FName FNameVecL = GET_MEMBER_NAME_CHECKED(UGyrationComponent, VecL);
-	static const FName FNameE = GET_MEMBER_NAME_CHECKED(UGyrationComponent, E);
-
-	if(Name == FNameL)
-	{
-		VecL *= L / VecL.Length();
-	}
-	else if(Name == FNameE)
-	{
-		VecL *= sqrt(2 * E * VecInertia.Length()) / L;
 	}
 }
 
@@ -108,3 +89,24 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	E = VecOmega.Dot(VecL) * 0.5;
 }
 
+#if WITH_EDITOR
+void UGyrationComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+	
+	const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
+
+	static const FName FNameL = GET_MEMBER_NAME_CHECKED(UGyrationComponent, L);
+	//static const FName FNameVecL = GET_MEMBER_NAME_CHECKED(UGyrationComponent, VecL);
+	static const FName FNameE = GET_MEMBER_NAME_CHECKED(UGyrationComponent, E);
+
+	if(Name == FNameL)
+	{
+		VecL *= L / VecL.Length();
+	}
+	else if(Name == FNameE)
+	{
+		VecL *= sqrt(2 * E * VecInertia.Length()) / L;
+	}
+}
+#endif

@@ -56,15 +56,6 @@ void AMyPlayerController::BeginPlay()
 	else
 	{
 		MyCharacter->UpdateSpringArm(CameraPosition);
-		UE_LOG
-		    ( LogPlayerController
-		    , Warning
-		    , TEXT("bEnableClickEvents: %s, bEnableMouseOverEvents: %s")
-		    , bEnableClickEvents ? TEXT("true") : TEXT("false")
-		    , bEnableMouseOverEvents ? TEXT("true") : TEXT("false")
-		    );
-		bEnableClickEvents = true;
-		bEnableMouseOverEvents = true;
 	}
 }
 

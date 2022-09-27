@@ -3,15 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CharacterInSpace.h"
-#include "UserWidgetHUDBorder.h"
-#include "Blueprint/WidgetTree.h"
-#include "Components/CanvasPanel.h"
-#include "Components/Image.h"
-#include "Components/Overlay.h"
-#include "Components/TextBlock.h"
 #include "GameFramework/HUD.h"
 #include "AstronautHUD.generated.h"
+
+class ACharacterInSpace;
+class UImage;
+class UOverlay;
+class UCanvasPanel;
+class UTextBlock;
+class UUserWidgetHUDBorder;
 
 /**
  * 

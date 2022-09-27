@@ -48,20 +48,16 @@ void APawnInSpace::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
+	const TObjectPtr<AMyGameState> GS = GetWorld()->GetGameState<AMyGameState>();
+	FSpaceParams SP = GS->GetSpaceParams();
 	if(bIsAccelerating)
 	{
-		Orbit->AddVelocity(GetActorForwardVector() * AccelerationSI / GI->ScaleFactor * DeltaSeconds, GI);
+		Orbit->AddVelocity(GetActorForwardVector() * AccelerationSI / SP.ScaleFactor * DeltaSeconds, GS);
 	}
 }
 
 void APawnInSpace::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	Orbit->InitializeCircle
-		( UMyGameInstance::EditorDefaultAlpha
-		, UMyGameInstance::EditorDefaultWorldRadiusUU
-		, UMyGameInstance::EditorDefaultVecF1
-		, MovableRoot->GetComponentLocation()
-		);
+	Orbit->InitializeCircle(MovableRoot->GetComponentLocation(), AMyGameState::DefaultSpaceParams);
 }

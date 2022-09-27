@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MyGameInstance.h"
+#include "MyGameState.h"
 #include "Components/SplineComponent.h"
 #include "OrbitComponent.generated.h"
 
@@ -59,13 +60,13 @@ public:
 	void SetMovableRoot(USceneComponent* InMovableRoot) { MovableRoot = InMovableRoot; }
 	
 	UFUNCTION(BlueprintCallable)
-	void UpdateWithParams(float Alpha, float WorldRadius, FVector VecF1);
+	void UpdateWithParams(FSpaceParams SP);
 
 	UFUNCTION(BlueprintCallable)
-	void Update(UMyGameInstance* GI);
+	void Update(AMyGameState* GS);
 	
 	UFUNCTION(BlueprintCallable)
-	void AddVelocity(FVector _VecVelocity, UMyGameInstance* GI);
+	void AddVelocity(FVector _VecVelocity, AMyGameState* GS);
 	
 	UFUNCTION(BlueprintCallable)
 	FString GetParamsString();
@@ -83,7 +84,7 @@ public:
 	FVector GetVecR() { return VecR; }
 
 	UFUNCTION(BlueprintCallable)
-	void InitializeCircle(float Alpha, float WorldRadius, FVector VecF1, FVector NewVecR);
+	void InitializeCircle(FVector NewVecR, FSpaceParams SP);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsVisible = false;
