@@ -8,6 +8,7 @@
 
 #include "FunctionLib.h"
 #include "Components/SplineMeshComponent.h"
+#include "MyGameState.h"
 
 UOrbitComponent::UOrbitComponent()
 {
@@ -16,24 +17,11 @@ UOrbitComponent::UOrbitComponent()
 	
 	// debugging: trying to find source of error:
 	// Ensure condition failed: !Primitive->Bounds.ContainsNaN() [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Renderer\Private\RendererScene.cpp] [Line: 1365]
+	// TODO: doesn't have any effect
 	if(Bounds.ContainsNaN())
 	{
 		UE_LOG(LogActorComponent, Error, TEXT("%s: Constructor: contains NaN"), *GetFullName())
 	}
-	
-	SplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("SplineMeshParent"));
-	SplineMeshParent->SetupAttachment(this);
-	SplineMeshParent->SetMobility(EComponentMobility::Stationary);
-}
-
-void UOrbitComponent::SetMovableRoot(USceneComponent* InMovableRoot)
-{
-	MovableRoot = InMovableRoot;
-	// SplineMeshParent = NewObject<USceneComponent>(this, *FString(TEXT("SplineMeshParent")));
-	// SplineMeshParent->SetMobility(EComponentMobility::Stationary);
-	// SplineMeshParent->RegisterComponent();
-	// SplineMeshParent->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
-	// GetOwner()->AddInstanceComponent(SplineMeshParent);
 }
 
 void UOrbitComponent::UpdateWithParams(FSpaceParams SP)
@@ -43,6 +31,12 @@ void UOrbitComponent::UpdateWithParams(FSpaceParams SP)
 		UE_LOG(LogActorComponent, Error, TEXT("%s: Update: MovableRoot null; not doing anything"), *GetFullName())
 		return;
 	}
+	if(!SplineMeshParent)
+	{
+		UE_LOG(LogActorComponent, Error, TEXT("%s: Update: SplineMeshParent null; not doing anything"), *GetFullName())
+		return;
+	}
+	
 	ClearSplinePoints(false);
 
 	// transform location vector r to Kepler coordinates, where F1 is the origin
@@ -240,17 +234,17 @@ void UOrbitComponent::UpdateWithParams(FSpaceParams SP)
 	// else
 	// `SplineKey` is not needed,
 	// `SplineDistance` and `DistanceZero` are set already
-	
-	TArray<USceneComponent*> OldSplinesMeshes;
-	SplineMeshParent->GetChildrenComponents(false, OldSplinesMeshes);
-	for(USceneComponent* const Old : OldSplinesMeshes)
+
+	TArray<USceneComponent*> Meshes;
+	SplineMeshParent->GetChildrenComponents(false, Meshes);
+	for(auto Mesh : Meshes)
 	{
-		Old->DestroyComponent();
+		Mesh->DestroyComponent();
 	}
 
 	if(bTrajectoryShowSpline)
 	{
-		SpawnSplineMesh(SMSplineMesh, MSplineMesh, SplineMeshParent);
+		SpawnSplineMesh(SplineMeshColor, SplineMeshParent);
 	}
 	bInitialized = true;
 }
@@ -379,6 +373,7 @@ void UOrbitComponent::InitializeCircle(FVector NewVecR, FSpaceParams SP)
 
 void UOrbitComponent::Hide()
 {
+	// TODO: fade to black, then hide
 	SetVisibility(false, true);
 	bIsVisible = false;
 }
@@ -389,7 +384,7 @@ void UOrbitComponent::Show()
 	bIsVisible = true;
 }
 
-void UOrbitComponent::SpawnSplineMesh(UStaticMesh* InSMSplineMesh, UMaterialInstance* InMSplineMesh, USceneComponent* InParent)
+void UOrbitComponent::SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent)
 {
 	const int nIndices = static_cast<int>(round(GetSplineLength() / splineMeshLength));
 	if(nIndices >= 2)
@@ -417,10 +412,14 @@ void UOrbitComponent::SpawnSplineMesh(UStaticMesh* InSMSplineMesh, UMaterialInst
 			SplineMesh->AttachToComponent(InParent, FAttachmentTransformRules::KeepWorldTransform);
 			// if I don't add instance here, the spline meshes don't show in the component list in the editor
 			GetOwner()->AddInstanceComponent(SplineMesh);
-			
+
 			SplineMesh->CastShadow = false;
-			SplineMesh->SetStaticMesh(InSMSplineMesh);
-			SplineMesh->SetMaterial(0, InMSplineMesh);
+			SplineMesh->SetStaticMesh(SMSplineMesh);
+
+			const TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial =
+				SplineMesh->CreateDynamicMaterialInstance(0, MSplineMesh);
+			DynamicMaterial->SetVectorParameterValue(FName(TEXT("StripesColor")), Color);
+			
 			const FVector VecStartPos =
 				GetLocationAtDistanceAlongSpline(Indices[i] * splineMeshLength, ESplineCoordinateSpace::World);
 			const FVector VecStartDirection =
@@ -523,6 +522,7 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 	static const FName FNameVecVelocity = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VecVelocity);
 	static const FName FNameSMTrajectory = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SMSplineMesh);
 	static const FName FNameSplineMeshMaterial = GET_MEMBER_NAME_CHECKED(UOrbitComponent, MSplineMesh);
+	static const FName FNameSplineMeshColor = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SplineMeshColor);
 
 	if(Name == FNameSplineMeshLength || Name == FNameBTrajectoryShowSpline)
 	{
@@ -552,7 +552,7 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 			UpdateWithParams(DSP);
 		}
 	}
-	else if(Name == FNameSMTrajectory || Name == FNameSplineMeshMaterial)
+	else if(Name == FNameSMTrajectory || Name == FNameSplineMeshMaterial || Name == FNameSplineMeshColor)
 	{
 		UpdateWithParams(DSP);
 	}

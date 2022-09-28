@@ -2,6 +2,7 @@
 
 #include "CharacterInSpace.h"
 #include "MyGameInstance.h"
+#include "MyGameState.h"
 #include "Actions/PawnAction.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -22,6 +23,11 @@ APawnInSpace::APawnInSpace()
 	Orbit = CreateDefaultSubobject<UOrbitComponent>(TEXT("Orbit"));
 	Orbit->SetupAttachment(Root);
 	Orbit->SetMovableRoot(MovableRoot);
+	
+	SplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("SplineMesh"));
+	SplineMeshParent->SetupAttachment(Orbit);
+	SplineMeshParent->SetMobility(EComponentMobility::Stationary);
+	Orbit->SetSplineMeshParent(SplineMeshParent);
 }
 
 void APawnInSpace::UpdateLookTarget(FVector Target)

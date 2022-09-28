@@ -48,6 +48,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UOrbitComponent> Orbit;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<USceneComponent> SplineMeshParent;
+
 	// the root component is stationary, it holds the Orbit component;
 	// this scene component holds everything movable
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)

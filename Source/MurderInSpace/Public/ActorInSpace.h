@@ -31,6 +31,9 @@ protected:
 	TObjectPtr<UOrbitComponent> Orbit;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<USceneComponent> SplineMeshParent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> MovableRoot;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)

@@ -1,6 +1,7 @@
 #include "ActorInSpace.h"
 
 #include "GyrationComponent.h"
+#include "MyGameState.h"
 #include "OrbitComponent.h"
 
 AActorInSpace::AActorInSpace()
@@ -20,6 +21,11 @@ AActorInSpace::AActorInSpace()
 	Orbit->SetupAttachment(Root);
 	Orbit->SetMovableRoot(MovableRoot);
 
+	SplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("SplineMesh"));
+	SplineMeshParent->SetupAttachment(Orbit);
+	SplineMeshParent->SetMobility(EComponentMobility::Stationary);
+	Orbit->SetSplineMeshParent(SplineMeshParent);
+	
 	Gyration = CreateDefaultSubobject<UGyrationComponent>(TEXT("Gyration"));
 }
 

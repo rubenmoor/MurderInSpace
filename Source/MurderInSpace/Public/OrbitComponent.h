@@ -3,10 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MyGameInstance.h"
-#include "MyGameState.h"
 #include "Components/SplineComponent.h"
+#include "MyGameState.h"
 #include "OrbitComponent.generated.h"
+
+class AMyGameState;
 
 UENUM(BlueprintType)
 enum class EOrbitType : uint8
@@ -53,15 +54,14 @@ class MURDERINSPACE_API UOrbitComponent : public USplineComponent
 {
 	GENERATED_BODY()
 
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<USceneComponent> SplineMeshParent;
-
 public:
 	UOrbitComponent();
 	
 	UFUNCTION(BlueprintCallable)
-	void SetMovableRoot(USceneComponent* InMovableRoot);
+	void SetMovableRoot(USceneComponent* InMovableRoot) { MovableRoot = InMovableRoot; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetSplineMeshParent(USceneComponent* InSplineMeshParent) { SplineMeshParent = InSplineMeshParent; }
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateWithParams(FSpaceParams SP);
@@ -100,7 +100,7 @@ public:
 	bool GetBIsVisible() const { return bIsVisible; }
 
 	UFUNCTION(BlueprintCallable)
-	void SpawnSplineMesh(UStaticMesh* InSMSplineMesh, UMaterialInstance* InMSplineMesh , USceneComponent* InParent);
+	void SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsSelected = false;
@@ -119,6 +119,8 @@ protected:
 	
 	// members
 	
+	TObjectPtr<USceneComponent> SplineMeshParent;
+
 	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<USceneComponent> MovableRoot;
 
@@ -133,7 +135,10 @@ protected:
 	bool bTrajectoryShowSpline = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UMaterialInstance> MSplineMesh;
+	TObjectPtr<UMaterial> MSplineMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor SplineMeshColor;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	float splineMeshLength = 1000.0;

@@ -30,16 +30,19 @@ void AMyPlayerController::Zoom(float Delta)
 
 void AMyPlayerController::AccelerateEnd()
 {
-	TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
+	const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
 	MyCharacter->bIsAccelerating = false;
 	MyCharacter->GetOrbitComponent()->Hide();
+	MyCharacter->DestroyTempSplineMesh();
 }
 
 void AMyPlayerController::AccelerateBegin()
 {
-	TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
+	const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
 	MyCharacter->bIsAccelerating = true;
-	MyCharacter->GetOrbitComponent()->Show();
+	const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
+	Orbit->SpawnSplineMesh(MyCharacter->GetTempSplineMeshColor(), MyCharacter->GetTempSplineMeshParent());
+	Orbit->Show();
 }
 
 void AMyPlayerController::BeginPlay()

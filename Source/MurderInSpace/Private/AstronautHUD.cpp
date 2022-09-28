@@ -14,6 +14,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "UserWidgetHUDBorder.h"
 #include "Components/Image.h"
+#include "MyGameState.h"
 
 #define LOCTEXT_NAMESPACE "mynamespace"
 

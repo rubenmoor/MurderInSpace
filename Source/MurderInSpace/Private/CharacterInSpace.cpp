@@ -65,3 +65,13 @@ float ACharacterInSpace::GetSpringArmLength() const
 {
 	return SpringArm->TargetArmLength;
 }
+
+void ACharacterInSpace::DestroyTempSplineMesh()
+{
+	TArray<USceneComponent*> Meshes;
+	TempSplineMeshParent->GetChildrenComponents(false, Meshes);
+	for(USceneComponent* const Mesh : Meshes)
+	{
+		Mesh->DestroyComponent();
+	}
+}
