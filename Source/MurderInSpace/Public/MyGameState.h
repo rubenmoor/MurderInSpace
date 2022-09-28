@@ -85,6 +85,7 @@ protected:
 
 	// event handlers
 
+	virtual void PreInitializeComponents() override;
 	virtual void BeginPlay() override;
 
 	#if WITH_EDITOR

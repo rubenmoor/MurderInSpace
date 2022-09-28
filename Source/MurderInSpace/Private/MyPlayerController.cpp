@@ -30,19 +30,16 @@ void AMyPlayerController::Zoom(float Delta)
 
 void AMyPlayerController::AccelerateEnd()
 {
-	GetPawn<APawnInSpace>()->bIsAccelerating = false;
+	TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
+	MyCharacter->bIsAccelerating = false;
+	MyCharacter->GetOrbitComponent()->Hide();
 }
-
-// void AMyPlayerController::HandleSelect()
-// {
-// 	FHitResult HitResult;
-// 	GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
-// 	GEngine->AddOnScreenDebugMessage(-1, 3., FColor::White, *HitResult.Component->GetFullName());
-// }
 
 void AMyPlayerController::AccelerateBegin()
 {
-	GetPawn<APawnInSpace>()->bIsAccelerating = true;
+	TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
+	MyCharacter->bIsAccelerating = true;
+	MyCharacter->GetOrbitComponent()->Show();
 }
 
 void AMyPlayerController::BeginPlay()

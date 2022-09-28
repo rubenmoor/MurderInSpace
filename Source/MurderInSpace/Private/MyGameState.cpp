@@ -5,11 +5,16 @@
 
 #include "OrbitComponent.h"
 
+void AMyGameState::PreInitializeComponents()
+{
+	Super::PreInitializeComponents();
+	Poisson = std::poisson_distribution(AngularVelocityPoissonMean * 1e3);
+}
+
 void AMyGameState::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	Poisson = std::poisson_distribution<int>(AngularVelocityPoissonMean * 1e3);
 	UpdateAllOrbits();
 }
 
@@ -37,5 +42,5 @@ void AMyGameState::UpdateAllOrbits() const
 
 float AMyGameState::GetInitialAngularVelocity()
 {
-	return Poisson(RndGen) / 1e3;
+	return Poisson(RndGen) / 1.e3;
 }

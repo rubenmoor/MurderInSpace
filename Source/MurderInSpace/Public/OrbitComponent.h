@@ -53,12 +53,16 @@ class MURDERINSPACE_API UOrbitComponent : public USplineComponent
 {
 	GENERATED_BODY()
 
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<USceneComponent> SplineMeshParent;
+
 public:
 	UOrbitComponent();
 	
 	UFUNCTION(BlueprintCallable)
-	void SetMovableRoot(USceneComponent* InMovableRoot) { MovableRoot = InMovableRoot; }
-	
+	void SetMovableRoot(USceneComponent* InMovableRoot);
+
 	UFUNCTION(BlueprintCallable)
 	void UpdateWithParams(FSpaceParams SP);
 
@@ -86,8 +90,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void InitializeCircle(FVector NewVecR, FSpaceParams SP);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bIsVisible = false;
+	UFUNCTION(BlueprintCallable)
+	void Hide();
+	
+	UFUNCTION(BlueprintCallable)
+	void Show();
+
+	UFUNCTION(BlueprintCallable)
+	bool GetBIsVisible() const { return bIsVisible; }
+
+	UFUNCTION(BlueprintCallable)
+	void SpawnSplineMesh(UStaticMesh* InSMSplineMesh, UMaterialInstance* InMSplineMesh , USceneComponent* InParent);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsSelected = false;
@@ -108,18 +121,25 @@ protected:
 	
 	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<USceneComponent> MovableRoot;
-	
+
+	/* dynamically hide and show the orbit mesh
+	 * the variable is needed to initialize the spline mesh correctly in case of an orbit update
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsVisible = false;
+
+	/* expose a blueprint property to disable orbit visualization */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	bool bTrajectoryShowSpline = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UMaterialInstance> SplineMeshMaterial;
+	TObjectPtr<UMaterialInstance> MSplineMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	float splineMeshLength = 1000.0;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	TObjectPtr<UStaticMesh> SM_Trajectory;
+	TObjectPtr<UStaticMesh> SMSplineMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
 	FOrbitParameters Params;

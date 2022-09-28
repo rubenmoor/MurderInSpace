@@ -29,6 +29,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float bIsAccelerating = false;
 
+	UFUNCTION(BlueprintCallable)
+	UOrbitComponent* GetOrbitComponent() { return Orbit; }
+
 protected:
 	
 	// event handlers

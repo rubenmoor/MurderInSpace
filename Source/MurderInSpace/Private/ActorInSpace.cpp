@@ -31,16 +31,14 @@ void AActorInSpace::OnConstruction(const FTransform& Transform)
 
 void AActorInSpace::HandleBeginMouseOver(UPrimitiveComponent*)
 {
-	Orbit->SetVisibility(true, true);
-	Orbit->bIsVisible = true;
+	Orbit->Show();
 }
 
 void AActorInSpace::HandleEndMouseOver(UPrimitiveComponent*)
 {
 	if(!Orbit->bIsSelected)
 	{
-		Orbit->SetVisibility(false, true);
-		Orbit->bIsVisible = false;
+		Orbit->Hide();
 	}
 }
 

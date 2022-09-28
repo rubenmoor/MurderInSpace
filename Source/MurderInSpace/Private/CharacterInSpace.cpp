@@ -11,6 +11,9 @@ ACharacterInSpace::ACharacterInSpace()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	TempSplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("TempSplineMesh"));
+	TempSplineMeshParent->SetupAttachment(Orbit);
+
 	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
 	SkeletalMesh->SetupAttachment(MovableRoot);
 	
@@ -37,14 +40,19 @@ ACharacterInSpace::ACharacterInSpace()
 	StarsDistant->SetupAttachment(StarAnchor);
 	StarsDistant->SetRelativeLocation(FVector(10000, 0, 0));
 
-	Orbit->bIsVisible = true;
+	// for the editor
+	Orbit->Show();
 }
 
 void ACharacterInSpace::UpdateSpringArm(uint8 CameraPosition)
 {
 	const float Length = pow(CameraPosition, 2) * 250;
 	SpringArm->TargetArmLength = Length;
-	SpringArm->SetWorldRotation(FRotator(CameraPosition < 2 ? -10 + CameraPosition * -20 : -50 - CameraPosition * 5, 0, 0));
+	SpringArm->SetWorldRotation(FRotator
+		( CameraPosition < 2 ? -10 + CameraPosition * -20 : -50 - CameraPosition * 5
+		, 0
+		, 0
+		));
 	StarAnchor->SetRelativeLocation(FVector(10000 + Length, 0, 0));
 }
 

@@ -31,9 +31,6 @@ public:
 	UFUNCTION(BlueprintPure)
 	float GetSpringArmLength() const;
 
-	UFUNCTION(BlueprintCallable)
-	UOrbitComponent* GetOrbitComponent() { return Orbit; }
-
 protected:
 
 	// event handlers
@@ -57,4 +54,7 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UNiagaraComponent> StarsDistant;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<USceneComponent> TempSplineMeshParent;
 };

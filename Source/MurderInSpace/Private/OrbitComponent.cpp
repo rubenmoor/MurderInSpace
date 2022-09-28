@@ -20,6 +20,20 @@ UOrbitComponent::UOrbitComponent()
 	{
 		UE_LOG(LogActorComponent, Error, TEXT("%s: Constructor: contains NaN"), *GetFullName())
 	}
+	
+	SplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("SplineMeshParent"));
+	SplineMeshParent->SetupAttachment(this);
+	SplineMeshParent->SetMobility(EComponentMobility::Stationary);
+}
+
+void UOrbitComponent::SetMovableRoot(USceneComponent* InMovableRoot)
+{
+	MovableRoot = InMovableRoot;
+	// SplineMeshParent = NewObject<USceneComponent>(this, *FString(TEXT("SplineMeshParent")));
+	// SplineMeshParent->SetMobility(EComponentMobility::Stationary);
+	// SplineMeshParent->RegisterComponent();
+	// SplineMeshParent->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
+	// GetOwner()->AddInstanceComponent(SplineMeshParent);
 }
 
 void UOrbitComponent::UpdateWithParams(FSpaceParams SP)
@@ -228,7 +242,7 @@ void UOrbitComponent::UpdateWithParams(FSpaceParams SP)
 	// `SplineDistance` and `DistanceZero` are set already
 	
 	TArray<USceneComponent*> OldSplinesMeshes;
-	GetChildrenComponents(false, OldSplinesMeshes);
+	SplineMeshParent->GetChildrenComponents(false, OldSplinesMeshes);
 	for(USceneComponent* const Old : OldSplinesMeshes)
 	{
 		Old->DestroyComponent();
@@ -236,58 +250,7 @@ void UOrbitComponent::UpdateWithParams(FSpaceParams SP)
 
 	if(bTrajectoryShowSpline)
 	{
-		const int nIndices = static_cast<int>(round(GetSplineLength() / splineMeshLength));
-		if(nIndices >= 2)
-		{
-			std::vector<int> Indices(nIndices);
-			std::iota(Indices.begin(), Indices.end(), 0);
-
-			if(IsClosedLoop() && Params.OrbitType != EOrbitType::LINEBOUND)
-			{
-				Indices.push_back(0);
-			}
-			for(int i = 0; i < Indices.size() - 1; i++)
-			{
-				const TObjectPtr<USplineMeshComponent> SplineMesh =
-					NewObject<USplineMeshComponent>(this, *FString(TEXT("SplineMesh")).Append(FString::FromInt(i)));
-				
-				SplineMesh->SetMobility(EComponentMobility::Stationary);
-				SplineMesh->SetVisibility(bIsVisible);
-				
-				// if I dont register here, the spline mesh doesn't render
-				SplineMesh->RegisterComponent();
-				// in theory, I could use `SetupAttachment` and then `RegisterComponent`
-				// in practice, that messes up the location (i.e. it moves the splinemesh)
-				// and the spline meshes do not show up with their correct names in the editor
-				SplineMesh->AttachToComponent(this, FAttachmentTransformRules::KeepWorldTransform);
-				// if I don't add instance here, the spline meshes don't show in the component list in the editor
-				GetOwner()->AddInstanceComponent(SplineMesh);
-				
-				SplineMesh->CastShadow = false;
-				SplineMesh->SetStaticMesh(SM_Trajectory);
-				SplineMesh->SetMaterial(0, SplineMeshMaterial);
-				const FVector VecStartPos =
-					GetLocationAtDistanceAlongSpline(Indices[i] * splineMeshLength, ESplineCoordinateSpace::World);
-				const FVector VecStartDirection =
-					GetTangentAtDistanceAlongSpline
-						( Indices[i] * splineMeshLength
-						, ESplineCoordinateSpace::World
-						).GetUnsafeNormal() * splineMeshLength;
-				const FVector VecEndPos =
-					GetLocationAtDistanceAlongSpline(Indices[i + 1] * splineMeshLength, ESplineCoordinateSpace::World);
-				const FVector VecEndDirection =
-					GetTangentAtDistanceAlongSpline
-						( Indices[i + 1] * splineMeshLength
-						, ESplineCoordinateSpace::World
-						).GetUnsafeNormal() * splineMeshLength;
-				SplineMesh->SetStartAndEnd
-					( VecStartPos
-					, VecStartDirection
-					, VecEndPos
-					, VecEndDirection
-					);
-			}
-		}
+		SpawnSplineMesh(SMSplineMesh, MSplineMesh, SplineMeshParent);
 	}
 	bInitialized = true;
 }
@@ -414,6 +377,74 @@ void UOrbitComponent::InitializeCircle(FVector NewVecR, FSpaceParams SP)
 	UpdateWithParams(SP);
 }
 
+void UOrbitComponent::Hide()
+{
+	SetVisibility(false, true);
+	bIsVisible = false;
+}
+
+void UOrbitComponent::Show()
+{
+	SetVisibility(true, true);
+	bIsVisible = true;
+}
+
+void UOrbitComponent::SpawnSplineMesh(UStaticMesh* InSMSplineMesh, UMaterialInstance* InMSplineMesh, USceneComponent* InParent)
+{
+	const int nIndices = static_cast<int>(round(GetSplineLength() / splineMeshLength));
+	if(nIndices >= 2)
+	{
+		std::vector<int> Indices(nIndices);
+		std::iota(Indices.begin(), Indices.end(), 0);
+
+		if(IsClosedLoop() && Params.OrbitType != EOrbitType::LINEBOUND)
+		{
+			Indices.push_back(0);
+		}
+		for(int i = 0; i < Indices.size() - 1; i++)
+		{
+			const TObjectPtr<USplineMeshComponent> SplineMesh =
+				NewObject<USplineMeshComponent>(InParent, *FString(TEXT("SplineMesh")).Append(FString::FromInt(i)));
+			
+			SplineMesh->SetMobility(EComponentMobility::Stationary);
+			SplineMesh->SetVisibility(bIsVisible);
+			
+			// if I dont register here, the spline mesh doesn't render
+			SplineMesh->RegisterComponent();
+			// in theory, I could use `SetupAttachment` and then `RegisterComponent`
+			// in practice, that messes up the location (i.e. it moves the splinemesh)
+			// and the spline meshes do not show up with their correct names in the editor
+			SplineMesh->AttachToComponent(InParent, FAttachmentTransformRules::KeepWorldTransform);
+			// if I don't add instance here, the spline meshes don't show in the component list in the editor
+			GetOwner()->AddInstanceComponent(SplineMesh);
+			
+			SplineMesh->CastShadow = false;
+			SplineMesh->SetStaticMesh(InSMSplineMesh);
+			SplineMesh->SetMaterial(0, InMSplineMesh);
+			const FVector VecStartPos =
+				GetLocationAtDistanceAlongSpline(Indices[i] * splineMeshLength, ESplineCoordinateSpace::World);
+			const FVector VecStartDirection =
+				GetTangentAtDistanceAlongSpline
+					( Indices[i] * splineMeshLength
+					, ESplineCoordinateSpace::World
+					).GetUnsafeNormal() * splineMeshLength;
+			const FVector VecEndPos =
+				GetLocationAtDistanceAlongSpline(Indices[i + 1] * splineMeshLength, ESplineCoordinateSpace::World);
+			const FVector VecEndDirection =
+				GetTangentAtDistanceAlongSpline
+					( Indices[i + 1] * splineMeshLength
+					, ESplineCoordinateSpace::World
+					).GetUnsafeNormal() * splineMeshLength;
+			SplineMesh->SetStartAndEnd
+				( VecStartPos
+				, VecStartDirection
+				, VecEndPos
+				, VecEndDirection
+				);
+		}
+	}
+}
+
 void UOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -466,11 +497,11 @@ void UOrbitComponent::BeginPlay()
 	Super::BeginPlay();
 
 	SetVisibility(false, true);
-	if(!SplineMeshMaterial)
+	if(!MSplineMesh)
 	{
 		UE_LOG(LogActorComponent, Warning, TEXT("%s: spline mesh material not set"), *GetFullName())
 	}
-	if(!SM_Trajectory)
+	if(!SMSplineMesh)
 	{
 		UE_LOG(LogActorComponent, Warning, TEXT("%s: static mesh for trajectory not set"), *GetFullName())
 	}
@@ -490,8 +521,8 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 	static const FName FNameVelocity = GET_MEMBER_NAME_CHECKED(UOrbitComponent, Velocity);
 	static const FName FNameVelocityVCircle = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VelocityVCircle);
 	static const FName FNameVecVelocity = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VecVelocity);
-	static const FName FNameSMTrajectory = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SM_Trajectory);
-	static const FName FNameSplineMeshMaterial = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SplineMeshMaterial);
+	static const FName FNameSMTrajectory = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SMSplineMesh);
+	static const FName FNameSplineMeshMaterial = GET_MEMBER_NAME_CHECKED(UOrbitComponent, MSplineMesh);
 
 	if(Name == FNameSplineMeshLength || Name == FNameBTrajectoryShowSpline)
 	{

@@ -48,7 +48,9 @@ void UGyrationComponent::BeginPlay()
 			UE_LOG(LogActorComponent, Error, TEXT("%s: GameState null"), *GetFullName())
 			return;
 		}
-		VecL = GI->Random.VRand() * GS->GetInitialAngularVelocity() * VecInertia.Length();
+		const float LRandom = GS->GetInitialAngularVelocity();
+		UE_LOG(LogActorComponent, Warning, TEXT("Initializing with L = %f"), LRandom)
+		VecL = GI->Random.VRand() * LRandom * VecInertia.Length();
 		UE_LOG
 		    ( LogActorComponent
 		    , Display
