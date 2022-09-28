@@ -32,22 +32,28 @@ AActorInSpace::AActorInSpace()
 void AActorInSpace::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	Orbit->InitializeCircle(MovableRoot->GetComponentLocation(), AMyGameState::DefaultSpaceParams);
+	Orbit->InitializeCircle
+		( MovableRoot->GetComponentLocation()
+		, UStateLib::GetPhysicsEditorDefault()
+		, UStateLib::GetPlayerUIEditorDefault()
+		);
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void AActorInSpace::HandleBeginMouseOver(UPrimitiveComponent*)
 {
-	Orbit->Show();
+	Orbit->bIsVisibleMouseOver = true;
+	Orbit->UpdateVisibility(UStateLib::GetPlayerUIUnsafe(this));
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void AActorInSpace::HandleEndMouseOver(UPrimitiveComponent*)
 {
-	if(!Orbit->bIsSelected)
-	{
-		Orbit->Hide();
-	}
+	Orbit->bIsVisibleMouseOver = false;
+	Orbit->UpdateVisibility(UStateLib::GetPlayerUIUnsafe(this));
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void AActorInSpace::HandleClick(UPrimitiveComponent*, FKey Button)
 {
 	if(Button == EKeys::LeftMouseButton)

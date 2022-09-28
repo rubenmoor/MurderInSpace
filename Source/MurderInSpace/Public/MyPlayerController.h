@@ -34,11 +34,24 @@ protected:
 
 	// given your current orientation, use the main rocket engine to accelerate
 	UFUNCTION()
-	void AccelerateBegin();
+	void HandleBeginAccelerate();
 	
 	UFUNCTION()
-	void AccelerateEnd();
+	void HandleEndAccelerate();
 
-	// UFUNCTION()
-	// void HandleSelect();
+	UFUNCTION()
+	void HandleBeginShowMyTrajectory();
+
+	UFUNCTION()
+	void HandleEndShowMyTrajectory();
+	
+	UFUNCTION()
+	void HandleBeginShowAllTrajectories();
+	
+	UFUNCTION()
+	void HandleEndShowAllTrajectories();
+
+private:
+	
+	void SetShowAllTrajectories(bool bInShow) const;
 };

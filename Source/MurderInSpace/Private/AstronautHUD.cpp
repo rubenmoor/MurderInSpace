@@ -82,13 +82,12 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 	}
 
 	const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
-	const TObjectPtr<AMyGameState> GS = GetWorld()->GetGameState<AMyGameState>();
-	const FSpaceParams SP = GS->GetSpaceParams();
+	const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
 	const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
 	const float Velocity = Orbit->GetVelocity();
 
-	TextVelocitySI->SetText(FText::AsNumber(Velocity * SP.ScaleFactor, &FormattingOptions));
-	TextVelocityVCircle->SetText(FText::AsNumber(Velocity / Orbit->GetCircleVelocity(SP.Alpha, SP.VecF1), &FormattingOptions));
+	TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FormattingOptions));
+	TextVelocityVCircle->SetText(FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics.Alpha, Physics.VecF1), &FormattingOptions));
 
 	const float Angle = FQuat::FindBetween(FVector(1, 0, 0), Orbit->GetVecVelocity()).GetNormalized().GetTwistAngle(FVector(0, 0, 1));
 	TextVelocityDirection->SetRenderTransformAngle(Angle * 180. / PI);
@@ -97,7 +96,7 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 	FVector2D ScreenLocation;
 	
 	// try to project to screen coordinates, ...
-	const bool bProjected = GetOwningPlayerController()->ProjectWorldLocationToScreen(SP.VecF1, ScreenLocation);
+	const bool bProjected = GetOwningPlayerController()->ProjectWorldLocationToScreen(Physics.VecF1, ScreenLocation);
 	//const auto bProjected = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayerController(), GI->VecF1, ScreenLocation, false);
 
 	float XFromCenter;
@@ -109,7 +108,7 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 		FRotator CameraRotation;
 		GetOwningPlayerController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
 		const FVector VecF1InViewportPlane =
-			SP.VecF1 + CameraRotation.Vector() * (MyCharacter->GetOrbitComponent()->GetVecR() - SP.VecF1).Length();
+			Physics.VecF1 + CameraRotation.Vector() * (MyCharacter->GetOrbitComponent()->GetVecR() - Physics.VecF1).Length();
 		// ... but in that case we can help with a manual projection
 		if(!GetOwningPlayerController()->ProjectWorldLocationToScreen(VecF1InViewportPlane, ScreenLocation))
 		{

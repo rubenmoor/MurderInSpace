@@ -23,8 +23,9 @@ void AMyGameState::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prope
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
 	
 	const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
-	
-	static const FName FNameSpaceParams = GET_MEMBER_NAME_CHECKED(AMyGameState, SpaceParams);
+
+	// TODO: confirm that this is how it actually works
+	static const FName FNameSpaceParams = GET_MEMBER_NAME_CHECKED(AMyGameState, Physics);
 	
 	if(Name == FNameSpaceParams)
 	{
@@ -36,11 +37,7 @@ void AMyGameState::UpdateAllOrbits() const
 {
 	for(TObjectIterator<UOrbitComponent> Iter; Iter; ++Iter)
 	{
-		(*Iter)->UpdateWithParams(SpaceParams);
+		(*Iter)->Update(Physics, UStateLib::GetPlayerUIEditorDefault());
 	}
 }
 
-float AMyGameState::GetInitialAngularVelocity()
-{
-	return Poisson(RndGen) / 1.e3;
-}

@@ -3,7 +3,6 @@
 
 #include "GyrationComponent.h"
 
-#include "MyGameInstance.h"
 #include "MyGameState.h"
 
 UGyrationComponent::UGyrationComponent()
@@ -41,16 +40,10 @@ void UGyrationComponent::BeginPlay()
 	
 	if(VecL.IsZero())
 	{
-		TObjectPtr<UMyGameInstance> GI = GetWorld()->GetGameInstance<UMyGameInstance>();
-		TObjectPtr<AMyGameState> GS = GetWorld()->GetGameState<AMyGameState>();
-		if(!GS)
-		{
-			UE_LOG(LogActorComponent, Error, TEXT("%s: GameState null"), *GetFullName())
-			return;
-		}
-		const float LRandom = GS->GetInitialAngularVelocity();
+		const FRnd Rnd = UStateLib::GetRndUnsafe(this);
+		const float LRandom = UStateLib::GetInitialAngularVelocity(Rnd);
 		UE_LOG(LogActorComponent, Warning, TEXT("Initializing with L = %f"), LRandom)
-		VecL = GI->Random.VRand() * LRandom * VecInertia.Length();
+		VecL = Rnd.Stream.VRand() * LRandom * VecInertia.Length();
 		UE_LOG
 		    ( LogActorComponent
 		    , Display

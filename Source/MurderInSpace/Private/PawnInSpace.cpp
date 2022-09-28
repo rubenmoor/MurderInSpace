@@ -1,7 +1,5 @@
 #include "PawnInSpace.h"
 
-#include "CharacterInSpace.h"
-#include "MyGameInstance.h"
 #include "MyGameState.h"
 #include "Actions/PawnAction.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -39,9 +37,11 @@ void APawnInSpace::LookAt(FVector VecP)
 {
 	const FVector VecMe = MovableRoot->GetComponentLocation();
 	const FVector VecDirection = VecP - VecMe;
-	const FQuat Quat = FQuat::FindBetween(FVector(0, 1, 0), VecDirection);
-	const float AngleDelta =
-		Quat.GetTwistAngle(FVector(0, 0, 1)) - MovableRoot->GetComponentQuat().GetTwistAngle(FVector(0, 0, 1));
+	const FQuat Quat = FQuat::FindBetween(FVector(1, 0, 0), VecDirection);
+	const float AngleDelta = Quat.GetTwistAngle
+		( FVector(0, 0, 1)) -
+			MovableRoot->GetComponentQuat().GetTwistAngle(FVector(0, 0, 1)
+		);
 	if(abs(AngleDelta) > 15. / 180. * PI)
 	{
 		MovableRoot->SetWorldRotation(Quat);
@@ -54,16 +54,28 @@ void APawnInSpace::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	const TObjectPtr<AMyGameState> GS = GetWorld()->GetGameState<AMyGameState>();
-	FSpaceParams SP = GS->GetSpaceParams();
+	DrawDebugDirectionalArrow
+		( GetWorld()
+		, MovableRoot->GetComponentLocation()
+		, MovableRoot->GetComponentLocation() + 1000. * MovableRoot->GetForwardVector()
+		, 20
+		, FColor::Yellow
+		);
 	if(bIsAccelerating)
 	{
-		Orbit->AddVelocity(GetActorForwardVector() * AccelerationSI / SP.ScaleFactor * DeltaSeconds, GS);
+		const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
+		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this);
+		const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
+		Orbit->AddVelocity(MovableRoot->GetForwardVector() * DeltaV, Physics, PlayerUI);
 	}
 }
 
 void APawnInSpace::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	Orbit->InitializeCircle(MovableRoot->GetComponentLocation(), AMyGameState::DefaultSpaceParams);
+	Orbit->InitializeCircle
+		( MovableRoot->GetComponentLocation()
+		, UStateLib::GetPhysicsEditorDefault()
+		, UStateLib::GetPlayerUIEditorDefault()
+		);
 }

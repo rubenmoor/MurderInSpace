@@ -5,8 +5,10 @@
 #include "CoreMinimal.h"
 #include "Components/SplineComponent.h"
 #include "MyGameState.h"
+
 #include "OrbitComponent.generated.h"
 
+class AMyPlayerState;
 class AMyGameState;
 
 UENUM(BlueprintType)
@@ -64,13 +66,10 @@ public:
 	void SetSplineMeshParent(USceneComponent* InSplineMeshParent) { SplineMeshParent = InSplineMeshParent; }
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateWithParams(FSpaceParams SP);
+	void Update(FPhysics Physics, FPlayerUI PlayerUI);
 
 	UFUNCTION(BlueprintCallable)
-	void Update(AMyGameState* GS);
-	
-	UFUNCTION(BlueprintCallable)
-	void AddVelocity(FVector _VecVelocity, AMyGameState* GS);
+	void AddVelocity(FVector _VecVelocity, FPhysics Physics, FPlayerUI PlayerUI);
 	
 	UFUNCTION(BlueprintCallable)
 	FString GetParamsString();
@@ -88,22 +87,25 @@ public:
 	FVector GetVecR() { return VecR; }
 
 	UFUNCTION(BlueprintCallable)
-	void InitializeCircle(FVector NewVecR, FSpaceParams SP);
+	void InitializeCircle(FVector NewVecR, FPhysics Physics, FPlayerUI PlayerUI);
 
 	UFUNCTION(BlueprintCallable)
-	void Hide();
+	void UpdateVisibility(FPlayerUI PlayerUI);
+
+	UFUNCTION(BlueprintCallable)
+	void SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FPlayerUI PlayerUI);
 	
-	UFUNCTION(BlueprintCallable)
-	void Show();
-
-	UFUNCTION(BlueprintCallable)
-	bool GetBIsVisible() const { return bIsVisible; }
-
-	UFUNCTION(BlueprintCallable)
-	void SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent);
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite)
 	bool bIsSelected = false;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsVisibleAccelerating = false;
+	
+	/* dynamically hide and show the orbit mesh
+	 * the variable is needed to initialize the spline mesh correctly in case of an orbit update
+	 */
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsVisibleMouseOver = false;
 	
 protected:
 	
@@ -123,12 +125,6 @@ protected:
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<USceneComponent> MovableRoot;
-
-	/* dynamically hide and show the orbit mesh
-	 * the variable is needed to initialize the spline mesh correctly in case of an orbit update
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bIsVisible = false;
 
 	/* expose a blueprint property to disable orbit visualization */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
@@ -204,4 +200,7 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	void MyAddPoints(TArray<FSplinePoint> InSplinePoints, bool bUpdateSpline);
+
+	UFUNCTION(BlueprintPure)
+	bool GetVisibility(FPlayerUI PlayerUI) const;
 };

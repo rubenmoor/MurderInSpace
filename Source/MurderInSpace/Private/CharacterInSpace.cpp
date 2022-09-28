@@ -41,7 +41,7 @@ ACharacterInSpace::ACharacterInSpace()
 	StarsDistant->SetRelativeLocation(FVector(10000, 0, 0));
 
 	// for the editor
-	Orbit->Show();
+	Orbit->UpdateVisibility(UStateLib::GetPlayerUIEditorDefault());
 }
 
 void ACharacterInSpace::UpdateSpringArm(uint8 CameraPosition)
