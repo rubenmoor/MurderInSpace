@@ -54,6 +54,10 @@ void ACharacterInSpace::UpdateSpringArm(uint8 CameraPosition)
 		, 0
 		));
 	StarAnchor->SetRelativeLocation(FVector(10000 + Length, 0, 0));
+	for(TObjectIterator<UOrbitComponent> Iter; Iter; ++Iter)
+	{
+		(*Iter)->UpdateSplineMeshScale(Length / 1000.);
+	}
 }
 
 void ACharacterInSpace::SetVisibility(bool bVisibility)

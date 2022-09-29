@@ -50,7 +50,7 @@ void AMyPlayerController::HandleBeginShowMyTrajectory()
 	const auto Orbit = GetPawn<ACharacterInSpace>()->GetOrbitComponent();
 	const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this);
 	// abusing this variable
-	Orbit->bIsVisibleMouseOver = true;
+	Orbit->bIsVisibleVarious = true;
 	Orbit->UpdateVisibility(PlayerUI);
 }
 
@@ -59,7 +59,7 @@ void AMyPlayerController::HandleEndShowMyTrajectory()
 	const auto Orbit = GetPawn<ACharacterInSpace>()->GetOrbitComponent();
 	const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this);
 	// abusing this variable
-	Orbit->bIsVisibleMouseOver = false;
+	Orbit->bIsVisibleVarious = false;
 	Orbit->UpdateVisibility(PlayerUI);
 }
 

@@ -42,14 +42,14 @@ void AActorInSpace::OnConstruction(const FTransform& Transform)
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AActorInSpace::HandleBeginMouseOver(UPrimitiveComponent*)
 {
-	Orbit->bIsVisibleMouseOver = true;
+	Orbit->bIsVisibleVarious = true;
 	Orbit->UpdateVisibility(UStateLib::GetPlayerUIUnsafe(this));
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AActorInSpace::HandleEndMouseOver(UPrimitiveComponent*)
 {
-	Orbit->bIsVisibleMouseOver = false;
+	Orbit->bIsVisibleVarious = false;
 	Orbit->UpdateVisibility(UStateLib::GetPlayerUIUnsafe(this));
 }
 

@@ -65,8 +65,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetSplineMeshParent(USceneComponent* InSplineMeshParent) { SplineMeshParent = InSplineMeshParent; }
 
+	// whenever there's a change in velocity or the physical constants:
 	UFUNCTION(BlueprintCallable)
 	void Update(FPhysics Physics, FPlayerUI PlayerUI);
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateSplineMeshScale(float InScaleFactor);
+
+	// whenever a splinemesh merely changes visibility:
+	UFUNCTION(BlueprintCallable)
+	void UpdateVisibility(FPlayerUI PlayerUI);
 
 	UFUNCTION(BlueprintCallable)
 	void AddVelocity(FVector _VecVelocity, FPhysics Physics, FPlayerUI PlayerUI);
@@ -90,9 +98,6 @@ public:
 	void InitializeCircle(FVector NewVecR, FPhysics Physics, FPlayerUI PlayerUI);
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateVisibility(FPlayerUI PlayerUI);
-
-	UFUNCTION(BlueprintCallable)
 	void SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FPlayerUI PlayerUI);
 	
 	UPROPERTY(BlueprintReadWrite)
@@ -100,12 +105,13 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsVisibleAccelerating = false;
-	
-	/* dynamically hide and show the orbit mesh
-	 * the variable is needed to initialize the spline mesh correctly in case of an orbit update
-	 */
-	UPROPERTY(BlueprintReadWrite)
-	bool bIsVisibleMouseOver = false;
+
+	// this is true, when
+	//   * an actor receives the mouse over event
+	//   * the pawn of the player does ShowMyTrajectory
+	//   * the visibility is changed in the editor
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsVisibleVarious = false;
 	
 protected:
 	
@@ -121,20 +127,24 @@ protected:
 	
 	// members
 	
+	UPROPERTY(BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<USceneComponent> SplineMeshParent;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
+	UPROPERTY(BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<USceneComponent> MovableRoot;
 
 	/* expose a blueprint property to disable orbit visualization */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	bool bTrajectoryShowSpline = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<UMaterial> MSplineMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	FLinearColor SplineMeshColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+	float SplineMeshScaleFactor = 1.;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	float splineMeshLength = 1000.0;
@@ -155,22 +165,22 @@ protected:
 	float SplineKey;
 
 	// distance travelled at orbit creation
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
 	float DistanceZero;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
 	FVector VecR;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	FVector VecVelocity;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	float Velocity;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	float VelocityVCircle;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
 	bool bInitialized = false;
 	
 	/**

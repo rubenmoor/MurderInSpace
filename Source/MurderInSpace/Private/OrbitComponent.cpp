@@ -249,6 +249,23 @@ void UOrbitComponent::Update(FPhysics Physics, FPlayerUI PlayerUI)
 	bInitialized = true;
 }
 
+void UOrbitComponent::UpdateSplineMeshScale(float InScaleFactor)
+{
+	SplineMeshScaleFactor = InScaleFactor;
+	TArray<USceneComponent*> Children;
+	SplineMeshParent->GetChildrenComponents(false, Children);
+	for(auto Child : Children)
+	{
+		const auto Mesh = Cast<USplineMeshComponent>(Child);
+		auto Material = Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(0));
+		Material->SetScalarParameterValue(FName(TEXT("NumBands")), 4. / InScaleFactor);
+		
+		Mesh->SetStartScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
+		Mesh->SetEndScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
+		Mesh->UpdateMesh();
+	}
+}
+
 float UOrbitComponent::VelocityEllipse(float R, float Alpha)
 {
     return std::max(sqrt(Alpha * (2.0 / R - 1.0 / Params.A)), 1.);
@@ -301,7 +318,7 @@ void UOrbitComponent::MyAddPoints(TArray<FSplinePoint> InSplinePoints, bool bUpd
 
 bool UOrbitComponent::GetVisibility(FPlayerUI PlayerUI) const
 {
-	return bIsSelected || bIsVisibleMouseOver || bIsVisibleAccelerating || PlayerUI.bShowAllTrajectories;
+	return bIsSelected || bIsVisibleVarious || bIsVisibleAccelerating || PlayerUI.bShowAllTrajectories;
 }
 
 // void UOrbitComponent::SetVisibility(bool InBVisible)
@@ -410,7 +427,7 @@ void UOrbitComponent::SpawnSplineMesh(FLinearColor Color, USceneComponent* InPar
 			const TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial =
 				SplineMesh->CreateDynamicMaterialInstance(0, MSplineMesh);
 			DynamicMaterial->SetVectorParameterValue(FName(TEXT("StripesColor")), Color);
-			
+
 			const FVector VecStartPos =
 				GetLocationAtDistanceAlongSpline(Indices[i] * splineMeshLength, ESplineCoordinateSpace::World);
 			const FVector VecStartDirection =
@@ -430,7 +447,11 @@ void UOrbitComponent::SpawnSplineMesh(FLinearColor Color, USceneComponent* InPar
 				, VecStartDirection
 				, VecEndPos
 				, VecEndDirection
+				, false
 				);
+			SplineMesh->SetStartScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
+			SplineMesh->SetEndScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
+			SplineMesh->UpdateMesh();
 		}
 	}
 }
@@ -485,7 +506,9 @@ void UOrbitComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetVisibility(false, true);
+	// ignore the visibility set in the editor
+	bIsVisibleVarious = false;
+	UpdateVisibility(UStateLib::GetPlayerUIUnsafe(this));
 	if(!MSplineMesh)
 	{
 		UE_LOG(LogActorComponent, Warning, TEXT("%s: spline mesh material not set"), *GetFullName())
@@ -507,6 +530,7 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 	const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
 	static const FName FNameBTrajectoryShowSpline = GET_MEMBER_NAME_CHECKED(UOrbitComponent, bTrajectoryShowSpline);
+	static const FName FNameBVisibleVarious = GET_MEMBER_NAME_CHECKED(UOrbitComponent, bIsVisibleVarious);
 	static const FName FNameSplineMeshLength = GET_MEMBER_NAME_CHECKED(UOrbitComponent, splineMeshLength);
 	static const FName FNameVelocity = GET_MEMBER_NAME_CHECKED(UOrbitComponent, Velocity);
 	static const FName FNameVelocityVCircle = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VelocityVCircle);
@@ -514,12 +538,27 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 	static const FName FNameSMTrajectory = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SMSplineMesh);
 	static const FName FNameSplineMeshMaterial = GET_MEMBER_NAME_CHECKED(UOrbitComponent, MSplineMesh);
 	static const FName FNameSplineMeshColor = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SplineMeshColor);
+	static const FName FNameSplineMeshScaleFactor = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SplineMeshScaleFactor);
 
-	if(Name == FNameSplineMeshLength || Name == FNameBTrajectoryShowSpline)
+	if(Name == FNameBVisibleVarious)
+	{
+		UpdateVisibility(UStateLib::GetPlayerUIEditorDefault());
+	}
+	else if  (  Name == FNameSplineMeshLength
+		|| Name == FNameBTrajectoryShowSpline
+		|| Name == FNameSMTrajectory
+		|| Name == FNameSplineMeshMaterial
+		|| Name == FNameSplineMeshColor
+		|| Name == FNameSplineMeshScaleFactor
+		)
 	{
 		Update(Physics, PlayerUI);
 	}
-	else if(Name == FNameVelocity || Name == FNameVelocityVCircle || Name == FNameVecVelocity)
+	else if
+		(  Name == FNameVelocity
+		|| Name == FNameVelocityVCircle
+		|| Name == FNameVecVelocity
+		)
 	{
 		const FVector VelocityNormal = VecVelocity.GetSafeNormal(1e-8, FVector(0., 1., 0.));
 		const FVector VecRKepler = VecR - Physics.VecF1;
@@ -528,23 +567,18 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 		{
 			VecVelocity = Velocity * VelocityNormal;
 			VelocityVCircle = Velocity / sqrt(Physics.Alpha / VecRKepler.Length());
-			Update(Physics, PlayerUI);
 		}
 		else if(Name == FNameVelocityVCircle)
 		{
 			Velocity = sqrt(Physics.Alpha / VecRKepler.Length()) * VelocityVCircle;
 			VecVelocity = Velocity * VelocityNormal;
-			Update(Physics, PlayerUI);
 		}
 		else if(Name == FNameVecVelocity)
 		{
 			Velocity = VecVelocity.Length();
 			VelocityVCircle = Velocity / GetCircleVelocity(Physics.Alpha, Physics.VecF1);
-			Update(Physics, PlayerUI);
 		}
-	}
-	else if(Name == FNameSMTrajectory || Name == FNameSplineMeshMaterial || Name == FNameSplineMeshColor)
-	{
+			
 		Update(Physics, PlayerUI);
 	}
 }
