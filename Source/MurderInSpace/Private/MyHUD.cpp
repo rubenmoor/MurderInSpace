@@ -1,59 +1,33 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AstronautHUD.h"
+#include "MyHUD.h"
 
-#include "CharacterInSpace.h"
-#include "Blueprint/UserWidget.h"
+#include "OrbitComponent.h"
+#include "UStateLib.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
-#include "Blueprint/WidgetTree.h"
+#include "CharacterInSpace.h"
+#include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/CanvasPanel.h"
 #include "Components/Overlay.h"
-#include "Kismet/GameplayStatics.h"
-#include "UserWidgetHUDBorder.h"
-#include "Components/Image.h"
-#include "MyGameState.h"
 
-#define LOCTEXT_NAMESPACE "mynamespace"
-
-AAstronautHUD::AAstronautHUD()
-{
-	PrimaryActorTick.bCanEverTick = true;
-
-	//HUDGreen = FLinearColor(FVector4d(0.263, 1., 0, 0.7));
-	FormattingOptions.SetUseGrouping(false);
-	FormattingOptions.SetMinimumFractionalDigits(1);
-	FormattingOptions.SetMaximumFractionalDigits(1);
-}
-
-void AAstronautHUD::BeginPlay()
+void AMyHUD::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if(!AssetUMG_AstronautHUD)
-	{
-		RequestEngineExit("AAstronautHUD::BeginPlay: AssetUMG_AstronautHUD null");
-		return;
-	}
 	
-	UMG_AstronautHUD = CreateWidget<UUserWidget>(GetOwningPlayerController(), AssetUMG_AstronautHUD);
-	UMG_AstronautHUD->AddToViewport();
-	
-	UserWidgetHUDBorder = FindOrFail<UUserWidgetHUDBorder>("BP_UserWidgetHUDBorder");
-	UserWidgetHUDBorder->SetParams(X0, Y0, X1, Y1);
+	TextVelocitySI = FindOrFail<UTextBlock>(FName(TEXT("TextVelocitySI")));
+	TextVelocityVCircle = FindOrFail<UTextBlock>(FName(TEXT("TextVelocityVCircle")));
+	TextVelocityDirection = FindOrFail<UTextBlock>(FName(TEXT("TextVelocityDirection")));
 
-	TextVelocitySI = FindOrFail<UTextBlock>("TextVelocitySI");
-	TextVelocityVCircle = FindOrFail<UTextBlock>("TextVelocityVCircle");
-	TextVelocityDirection = FindOrFail<UTextBlock>("TextVelocityDirection");
-
-	CanvasCenterOfMass = FindOrFail<UCanvasPanel>("CanvasCenterOfMass");
+	CanvasCenterOfMass = FindOrFail<UCanvasPanel>(FName(TEXT("CanvasCenterOfMass")));
 	
 	// Overlay with two images
-	OverlayCenterOfMass = FindOrFail<UOverlay>("OverlayCenterOfMass");
+	OverlayCenterOfMass = FindOrFail<UOverlay>(FName(TEXT("OverlayCenterOfMass")));
 	ImgPointer = FindOrFail<UImage>("ImgPointer");
 
+	// get playing character
 	const auto PC = GetOwningPlayerController();
 	if(!PC)
 	{
@@ -71,15 +45,16 @@ void AAstronautHUD::BeginPlay()
 	}
 }
 
-void AAstronautHUD::Tick(float DeltaSeconds)
+void AMyHUD::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	if(!UserWidgetHUDBorder || !TextVelocitySI || !TextVelocityVCircle || !TextVelocityDirection || !CanvasCenterOfMass || !OverlayCenterOfMass
+	
+	if(!TextVelocitySI || !TextVelocityVCircle || !TextVelocityDirection || !CanvasCenterOfMass || !OverlayCenterOfMass
 		|| !ImgPointer) {
 			UE_LOG(LogTemp, Error, TEXT("AAstronautHUD::Tick: Some widgets could not be found. Not doing anything."))
 			return;
 	}
+	const TObjectPtr<APlayerController> PC = GetOwningPlayerController();
 
 	const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
 	const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
@@ -87,16 +62,23 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 	const float Velocity = Orbit->GetVelocity();
 
 	TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FormattingOptions));
-	TextVelocityVCircle->SetText(FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics.Alpha, Physics.VecF1), &FormattingOptions));
+	TextVelocityVCircle->SetText(
+		FText::AsNumber(
+			Velocity / Orbit->GetCircleVelocity(Physics.Alpha, Physics.VecF1
+		), &FormattingOptions));
 
-	const float Angle = FQuat::FindBetween(FVector(1, 0, 0), Orbit->GetVecVelocity()).GetNormalized().GetTwistAngle(FVector(0, 0, 1));
+	const float Angle =
+		FQuat::FindBetween
+			( FVector(1, 0, 0)
+			, Orbit->GetVecVelocity()).GetNormalized().GetTwistAngle(FVector(0, 0, 1)
+			);
 	TextVelocityDirection->SetRenderTransformAngle(Angle * 180. / PI);
 
 	const auto Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
 	FVector2D ScreenLocation;
 	
 	// try to project to screen coordinates, ...
-	const bool bProjected = GetOwningPlayerController()->ProjectWorldLocationToScreen(Physics.VecF1, ScreenLocation);
+	const bool bProjected = PC->ProjectWorldLocationToScreen(Physics.VecF1, ScreenLocation);
 	//const auto bProjected = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayerController(), GI->VecF1, ScreenLocation, false);
 
 	float XFromCenter;
@@ -106,9 +88,11 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 	{
 		FVector CameraLocation;
 		FRotator CameraRotation;
-		GetOwningPlayerController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
+		PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
 		const FVector VecF1InViewportPlane =
-			Physics.VecF1 + CameraRotation.Vector() * (MyCharacter->GetOrbitComponent()->GetVecR() - Physics.VecF1).Length();
+			  Physics.VecF1
+			+ CameraRotation.Vector()
+			* (MyCharacter->GetOrbitComponent()->GetVecR() - Physics.VecF1).Length();
 		// ... but in that case we can help with a manual projection
 		if(!GetOwningPlayerController()->ProjectWorldLocationToScreen(VecF1InViewportPlane, ScreenLocation))
 		{
@@ -192,7 +176,9 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 			}
 		}
 		
-		UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass)->SetPosition(FVector2D((OverlayX + .5) * Vec2DSize.X, (OverlayY + .5) * Vec2DSize.Y) / ViewportScale);
+		UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass)->SetPosition(
+			  FVector2D((OverlayX + .5) * Vec2DSize.X, (OverlayY + .5) * Vec2DSize.Y)
+			/ ViewportScale);
 		//TextCenterOfMass->SetText(FText::Format(LOCTEXT("foo", "Y: {0}, YNorm: {1}, T(YNorm): {2}, XArc(YNorm): {3}"), OverlayY, (OverlayY + HalfHeight) / static_cast<float>(Vec2DSize.Y), T(OverlayY), XArc(OverlayY)));
 		//TextCenterOfMass->SetText(FText::Format(LOCTEXT("foo", "{0}"), ViewportScale));
 		ImgPointer->SetRenderTransformAngle(atan2(YFromCenter, XFromCenter) * 180. / PI + 135);
@@ -200,26 +186,11 @@ void AAstronautHUD::Tick(float DeltaSeconds)
 	// on-screen
 	else
 	{
-		//OverlayCenterOfMass->SetVisibility(ESlateVisibility::Collapsed);
+		OverlayCenterOfMass->SetVisibility(ESlateVisibility::Collapsed);
+		//UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass)->SetPosition(ScreenLocation / ViewportScale);
+		//const TObjectPtr<UCanvasPanelSlot> Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(OverlayCenterOfMass);
+		//Slot->SetAlignment(FVector2D(.5, .5));
+		
 		// TODO: paint green circle around center-of-mass
-		UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass)->SetPosition(ScreenLocation / ViewportScale);
-		const TObjectPtr<UCanvasPanelSlot> Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(OverlayCenterOfMass);
-		Slot->SetAlignment(FVector2D(.5, .5));
 	}
 }
-
-template <typename WidgetT>
-TObjectPtr<WidgetT> AAstronautHUD::FindOrFail(const FName& Name) const
-{
-	if(const auto Widget = UMG_AstronautHUD->WidgetTree.Get()->FindWidget<WidgetT>(Name))
-	{
-		return Widget;
-	}
-	else
-	{
-		UE_LOG(LogSlate, Error, TEXT("AAstronautHUD::FindOrFail: Couldn't find %s"), *Name.ToString())
-		return nullptr;
-	}
-}
-
-#undef LOCTEXT_NAMESPACE

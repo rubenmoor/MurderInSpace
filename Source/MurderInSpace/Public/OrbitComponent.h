@@ -77,7 +77,7 @@ public:
 	void UpdateVisibility(FPlayerUI PlayerUI);
 
 	UFUNCTION(BlueprintCallable)
-	void AddVelocity(FVector _VecVelocity, FPhysics Physics, FPlayerUI PlayerUI);
+	void AddVelocity(FVector VecDeltaV, FPhysics Physics, FPlayerUI PlayerUI);
 	
 	UFUNCTION(BlueprintCallable)
 	FString GetParamsString();

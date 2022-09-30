@@ -2,10 +2,8 @@
 
 #pragma once
 
-#include <random>
-
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameMode.h"
 #include "GameModeAsteroids.generated.h"
 
 /**
@@ -13,7 +11,7 @@
  *  I don't yet understand multiplayer setup and thus shouldn't put anything here, yet
  */
 UCLASS()
-class MURDERINSPACE_API AGameModeAsteroids : public AGameModeBase
+class MURDERINSPACE_API AGameModeAsteroids : public AGameMode
 {
 	GENERATED_BODY()
 

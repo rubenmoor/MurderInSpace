@@ -9,17 +9,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Content/SpaceObject/Orbit/CylinderTrajectory4.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/HUD/BP_MyHUD.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Menu/BP_MenuMain.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Menu/GMB_Menu.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Menu/UMG_MenuInGame.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Menu/UMG_MenuMain.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Menu/UMG_MenuServerList.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Menu/UW_ServerRow.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDMenu.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyHUDMenu.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HUD/BP_AstronautHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/BP_AstronautHUD.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HUD/UMG_PlayerHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/UMG_PlayerHUD.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Maps/spacefootball.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/spacefootball.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/BP_SMActor.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/Asteroids/BP_SMActor.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/BP_CharacterInSpace.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/BP_CharacterInSpace.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Orbit/CylinderTrajectory3.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/Orbit/CylinderTrajectory3.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SpaceObject/Orbit/M_NaniteStripes.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SpaceObject/Orbit/M_NaniteStripes.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/ActorInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/ActorInSpace.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/CharacterInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/CharacterInSpace.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyPlayerController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/AstronautHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDBase.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyGameInstance.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyGameInstance.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDWidget.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/AstronautHUD.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyHUDBase.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/GameModeAsteroids.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/GameModeAsteroids.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyGameInstance.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyGameInstance.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyGameState.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyGameState.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -31,14 +42,17 @@
     <setting file="file://C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.31.31103/include/cmath" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.31.31103/include/random" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/ActorInSpace.cpp" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/AstronautHUD.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/CharacterInSpace.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/GyrationComponent.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDBase.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDMenu.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/MyPlayerController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/PawnInSpace.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/UStateLib.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/ActorInSpace.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/MyHUDBase.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/MyHUDMenu.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Public/PawnInSpace.h" root0="FORCE_HIGHLIGHTING" />
   </component>
@@ -63,7 +77,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;SolutionBuilderGeneralOptionsPage&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.sourceCode.Other File Types&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -229,6 +243,9 @@
       <workItem from="1664387916532" duration="224000" />
       <workItem from="1664388179253" duration="617000" />
       <workItem from="1664388872745" duration="19741000" />
+      <workItem from="1664455283526" duration="7922000" />
+      <workItem from="1664466140087" duration="10815000" />
+      <workItem from="1664503617925" duration="817000" />
     </task>
     <servers />
   </component>

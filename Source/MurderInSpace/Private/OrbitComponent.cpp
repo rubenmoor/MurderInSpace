@@ -24,6 +24,7 @@ UOrbitComponent::UOrbitComponent()
 	}
 }
 
+// TODO: move splinepoints as long as orbit type doesn't change instead of redoing the spline points every time
 void UOrbitComponent::Update(FPhysics Physics, FPlayerUI PlayerUI)
 {
 	if(!MovableRoot)
@@ -246,7 +247,6 @@ void UOrbitComponent::Update(FPhysics Physics, FPlayerUI PlayerUI)
 	{
 		SpawnSplineMesh(SplineMeshColor, SplineMeshParent, PlayerUI);
 	}
-	bInitialized = true;
 }
 
 void UOrbitComponent::UpdateSplineMeshScale(float InScaleFactor)
@@ -254,10 +254,10 @@ void UOrbitComponent::UpdateSplineMeshScale(float InScaleFactor)
 	SplineMeshScaleFactor = InScaleFactor;
 	TArray<USceneComponent*> Children;
 	SplineMeshParent->GetChildrenComponents(false, Children);
-	for(auto Child : Children)
+	for(const auto Child : Children)
 	{
 		const auto Mesh = Cast<USplineMeshComponent>(Child);
-		auto Material = Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(0));
+		const auto Material = Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(0));
 		Material->SetScalarParameterValue(FName(TEXT("NumBands")), 4. / InScaleFactor);
 		
 		Mesh->SetStartScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
@@ -370,21 +370,25 @@ void UOrbitComponent::SetVelocity(FVector _VecVelocity, float Alpha, FVector Vec
 	VelocityVCircle = Velocity / GetCircleVelocity(Alpha, VecF1);
 }
 
-void UOrbitComponent::AddVelocity(FVector _VecVelocity, FPhysics Physics, FPlayerUI PlayerUI)
+void UOrbitComponent::AddVelocity(FVector VecDeltaV, FPhysics Physics, FPlayerUI PlayerUI)
 {
-	SetVelocity(VecVelocity + _VecVelocity, Physics.Alpha, Physics.VecF1);
+	SetVelocity(VecVelocity + VecDeltaV, Physics.Alpha, Physics.VecF1);
 	Update(Physics, PlayerUI);
 }
 
 void UOrbitComponent::InitializeCircle(FVector NewVecR, FPhysics Physics, FPlayerUI PlayerUI)
 {
-	VecR = NewVecR;
-	const FVector VecRKepler = VecR - Physics.VecF1;
-	const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecR).GetSafeNormal(1e-8, FVector(0., 1., 0.));
-	VelocityVCircle = 1.;
-	Velocity = sqrt(Physics.Alpha / VecRKepler.Length()) * VelocityVCircle;
-	VecVelocity = Velocity * VelocityNormal;
-	Update(Physics, PlayerUI);
+	if(!bInitialized)
+	{
+		VecR = NewVecR;
+		const FVector VecRKepler = VecR - Physics.VecF1;
+		const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecR).GetSafeNormal(1e-8, FVector(0., 1., 0.));
+		VelocityVCircle = 1.;
+		Velocity = sqrt(Physics.Alpha / VecRKepler.Length()) * VelocityVCircle;
+		VecVelocity = Velocity * VelocityNormal;
+		Update(Physics, PlayerUI);
+		bInitialized = true;
+	}
 }
 
 void UOrbitComponent::UpdateVisibility(FPlayerUI PlayerUI)

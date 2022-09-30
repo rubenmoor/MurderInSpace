@@ -3,7 +3,7 @@
 
 #include "MyHUDWidget.h"
 
-#include "AstronautHUD.h"
+#include "MyHUDBase.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 
 int32 UMyHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,

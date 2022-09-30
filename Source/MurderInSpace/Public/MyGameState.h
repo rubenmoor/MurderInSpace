@@ -6,14 +6,14 @@
 
 #include "CoreMinimal.h"
 #include "UStateLib.h"
-#include "GameFramework/GameStateBase.h"
+#include "GameFramework/GameState.h"
 #include "MyGameState.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MURDERINSPACE_API AMyGameState : public AGameStateBase
+class MURDERINSPACE_API AMyGameState : public AGameState
 {
 	GENERATED_BODY()
 
