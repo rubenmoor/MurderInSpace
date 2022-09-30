@@ -3,25 +3,96 @@
 
 #include "MyGameInstance.h"
 
+#include "MyHUD.h"
+#include "MyHUDMenu.h"
 #include "PawnInSpace.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "UObject/UObjectIterator.h"
 
 UMyGameInstance::UMyGameInstance()
 {
-	Random.GenerateNewSeed();
+	// I want random numbers to be the same acros multiplayer clients
+	// So the game instance can't create a seed --> maybe generate rnd elsewhere entirely
+	// Random.GenerateNewSeed();
 }
 
 void UMyGameInstance::HostGame()
 {
+	// TODO: level name
+	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
 }
 
-void UMyGameInstance::ShowServers()
+void UMyGameInstance::GotoInMenuServers()
 {
+	switch(InstanceState)
+	{
+	case EInstanceState::InMenuMain:
+		InstanceState = EInstanceState::InMenuServers;
+		GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>()->ServerListShow();
+		break;
+	default:
+		ErrorWrongState(UEnum::GetValueAsString(EInstanceState::InMenuMain));
+	}
 }
 
-void UMyGameInstance::ShowMainMenu()
+void UMyGameInstance::GotoInMenuMain()
 {
+	switch(InstanceState)
+	{
+	case EInstanceState::InMenuServers:
+		GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>()->MainMenuShow();
+		break;
+	case EInstanceState::InGame:
+		// TODO: destroy session
+		// TODO: switch level to menu
+		UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball_mainmenu")));
+		break;
+	default:
+		ErrorWrongState
+			( UEnum::GetValueAsString(EInstanceState::InMenuServers)
+			+ UEnum::GetValueAsString(EInstanceState::InGame)
+			);
+		return;
+	}
+	InstanceState = EInstanceState::InMenuMain;
+}
+
+void UMyGameInstance::GotoInGame()
+{
+	switch(InstanceState)
+	{
+	case EInstanceState::InGameMenu:
+		GetPrimaryPlayerController()->GetHUD<AMyHUD>()->InGameMenuHide();
+		break;
+	case EInstanceState::InMenuMain:
+	case EInstanceState::InMenuServers:
+		UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
+		break;
+	default:
+		ErrorWrongState
+			( UEnum::GetValueAsString(EInstanceState::InMenuMain)
+			+ UEnum::GetValueAsString(EInstanceState::InMenuServers)
+			+ UEnum::GetValueAsString(EInstanceState::InGameMenu)
+			);
+		return;
+	}
+	InstanceState = EInstanceState::InGame;
+}
+
+void UMyGameInstance::GotoInGameMenu()
+{
+	switch (InstanceState)
+	{
+	case EInstanceState::InGame:
+		GetPrimaryPlayerController()->GetHUD<AMyHUD>()->InGameMenuShow();
+		break;
+	default:
+		ErrorWrongState
+			( UEnum::GetValueAsString(EInstanceState::InGame)
+			);
+		return;
+	}
+	InstanceState = EInstanceState::InGameMenu;
 }
 
 void UMyGameInstance::JoinGame()
@@ -36,4 +107,15 @@ void UMyGameInstance::QuitGame()
 		, EQuitPreference::Quit
 		, false
 		);
+}
+
+void UMyGameInstance::ErrorWrongState(const FString& InStatesExpected)
+{
+	UE_LOG
+		( LogPlayerController
+		, Error
+		, TEXT("expected state(s): %s, actual state: %s")
+		, *InStatesExpected
+		, *UEnum::GetValueAsString(InstanceState)
+		)
 }

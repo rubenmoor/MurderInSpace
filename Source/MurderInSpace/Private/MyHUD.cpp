@@ -7,42 +7,81 @@
 #include "UStateLib.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "CharacterInSpace.h"
+#include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/CanvasPanel.h"
 #include "Components/Overlay.h"
 
+void AMyHUD::InGameMenuShow()
+{
+	HideViewportParentWidgets();
+	WidgetMenuInGame->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AMyHUD::InGameMenuHide()
+{
+	HideViewportParentWidgets();
+	WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
 void AMyHUD::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	TextVelocitySI = FindOrFail<UTextBlock>(FName(TEXT("TextVelocitySI")));
-	TextVelocityVCircle = FindOrFail<UTextBlock>(FName(TEXT("TextVelocityVCircle")));
-	TextVelocityDirection = FindOrFail<UTextBlock>(FName(TEXT("TextVelocityDirection")));
 
-	CanvasCenterOfMass = FindOrFail<UCanvasPanel>(FName(TEXT("CanvasCenterOfMass")));
-	
-	// Overlay with two images
-	OverlayCenterOfMass = FindOrFail<UOverlay>(FName(TEXT("OverlayCenterOfMass")));
-	ImgPointer = FindOrFail<UImage>("ImgPointer");
-
-	// get playing character
 	const auto PC = GetOwningPlayerController();
 	if(!PC)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AAstronautHUD::BeginPlay: no player controller, disabling tick; MyHUDWidget uses default values"))
+		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no player controller, disabling tick"), *GetFullName())
 		SetActorTickEnabled(false);
+		return;
 	}
-	else
+	// get playing character
+	MyCharacter = PC->GetPawn<ACharacterInSpace>();
+	if(!MyCharacter)
 	{
-		MyCharacter = PC->GetPawn<ACharacterInSpace>();
-		if(!MyCharacter)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("AAstronautHUD::BeginPlay: no pawn, disabling tick; MyHUDWidget uses default values"))
-			SetActorTickEnabled(false);
-		}
+		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no pawn, disabling tick"), *GetFullName())
+		SetActorTickEnabled(false);
+		return;
 	}
+
+	// set up HUD
+
+	if(!WidgetHUDClass)
+	{
+		UE_LOG(LogSlate, Error, TEXT("%s: WidgetHUDClass null"), *GetFullName())
+		return;
+	}
+
+	WidgetHUD = CreateWidget<UUserWidget>(PC, WidgetHUDClass);
+	WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
+	WidgetHUD->AddToViewport();
+	
+	TextVelocitySI        = FindOrFail<UTextBlock  >(WidgetHUD, FName(TEXT("TextVelocitySI"       )));
+	TextVelocityVCircle   = FindOrFail<UTextBlock  >(WidgetHUD, FName(TEXT("TextVelocityVCircle"  )));
+	TextVelocityDirection = FindOrFail<UTextBlock  >(WidgetHUD, FName(TEXT("TextVelocityDirection")));
+	CanvasCenterOfMass    = FindOrFail<UCanvasPanel>(WidgetHUD, FName(TEXT("CanvasCenterOfMass"   )));
+	
+	// Overlay with two images
+	OverlayCenterOfMass   = FindOrFail<UOverlay    >(WidgetHUD, FName(TEXT("OverlayCenterOfMass"  )));
+	ImgPointer            = FindOrFail<UImage      >(WidgetHUD, FName(TEXT("ImgPointer"           )));
+	
+	// set up in-game menu
+	
+	if(!WidgetMenuInGameClass)
+	{
+		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetInGameClass null"), *GetFullName())
+		return;
+	}
+	WidgetMenuInGame = CreateWidget<UUserWidget>(PC, WidgetMenuInGameClass);
+	WidgetMenuInGame->SetVisibility(ESlateVisibility::Collapsed);
+	WidgetMenuInGame->AddToViewport();
+
+	const UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
+	FindOrFail<UButton>(WidgetMenuInGame, FName(TEXT("BtnLeave")))->OnClicked.AddDynamic(GI, &UMyGameInstance::GotoInGameMenu);
+	FindOrFail<UButton>(WidgetMenuInGame, FName(TEXT("Resume"  )))->OnClicked.AddDynamic(GI, &UMyGameInstance::GotoInGame    );
+	FindOrFail<UButton>(WidgetMenuInGame, FName(TEXT("BtnQuit" )))->OnClicked.AddDynamic(GI, &UMyGameInstance::QuitGame      );
 }
 
 void AMyHUD::Tick(float DeltaSeconds)

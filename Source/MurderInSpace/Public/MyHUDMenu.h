@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "MyHUDBase.h"
-#include "Components/Button.h"
 
+#include "MyHUDMenu.generated.h"
+
+class UButton;
 /**
  * 
  */
@@ -13,39 +15,34 @@ UCLASS()
 class MURDERINSPACE_API AMyHUDMenu : public AMyHUDBase
 {
 	GENERATED_BODY()
-	
+
+	friend class UMyGameInstance;
 protected:
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UButton> BtnStart;
-	
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UButton> BtnFindServer;
-	
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UButton> BtnQuit;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> UMGWidgetServerList;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="User Widget")
+	TSubclassOf<UUserWidget> WidgetMainMenuClass;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> UMGWidgetMenuInGame;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="User Widget")
+	TObjectPtr<UUserWidget> WidgetMainMenu;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="User Widget")
+	TSubclassOf<UUserWidget> WidgetServerListClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="User Widget")
+	TObjectPtr<UUserWidget> WidgetServerList;
 	
 	// event handlers
 
 	virtual void BeginPlay() override;
 
-	// UI event handlers
-	void HandleBtnFindServerClicked();
-
-	virtual void SetWidgetToDefault() override;
+	// private methods
 	
 	UFUNCTION(BlueprintCallable)
-	void SetWidgetServerList();
-
+	void ServerListShow();
+	
 	UFUNCTION(BlueprintCallable)
-	void SetWidgetMenuInGame();
+	void MainMenuShow();
 
-private:
-	UFUNCTION(BlueprintCallable)
-	void Leave();
+	UFUNCTION()
+	void BtnStartClicked();
 };

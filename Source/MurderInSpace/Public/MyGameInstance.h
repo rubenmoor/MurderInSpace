@@ -9,13 +9,14 @@
 UENUM(BlueprintType)
 enum class EInstanceState : uint8
 {
-	StartUp UMETA(DisplayName="StartUp"),
-	MenuMain UMETA(DisplayName="MenuMain"),
-	MenuServers UMETA(DisplayName="MenuServers"),
-	Loading UMETA(DisplayName="Loading"),
-	MsgError UMETA(DisplayName="MsgError"),
-	Playing UMETA(DisplayName="Playing"),
-	Indeterminate UMETA(DisplayName="Indeterminate")
+	StartUp UMETA(DisplayName="startup"),
+	InMenuMain UMETA(DisplayName="in main menu"),
+	InMenuServers UMETA(DisplayName="in menu server list"),
+	Loading UMETA(DisplayName="loading"),
+	MsgError UMETA(DisplayName="error message"),
+	InGame UMETA(DisplayName="in game"),
+	InGameMenu UMETA(DisplayName="in game menu"),
+	Indeterminate UMETA(DisplayName="status indeterminate")
 };
 
 /**
@@ -35,19 +36,19 @@ public:
 	void HostGame();
 	
 	UFUNCTION(BlueprintCallable)
-	void ShowServers();
+	void GotoInMenuServers();
 
-	UFUNCTION(BlueprintCallable)
-	void ShowMainMenu();
-	
 	UFUNCTION(BlueprintCallable)
 	void JoinGame();
 
 	UFUNCTION(BlueprintCallable)
-	void DestroySession();
+	void GotoInMenuMain();
 
 	UFUNCTION(BlueprintCallable)
-	void SetHUD();
+	void GotoInGame();
+
+	UFUNCTION(BlueprintCallable)
+	void GotoInGameMenu();
 
 	UFUNCTION(BlueprintCallable)
 	void QuitGame();
@@ -55,6 +56,8 @@ public:
 protected:
 	// event handlers
 
+	// private properties
+	
 	UPROPERTY(BlueprintReadWrite)
 	FRandomStream Random;
 
@@ -66,4 +69,8 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int TeamId;
+
+	// private methods
+	UFUNCTION(BlueprintCallable)
+	void ErrorWrongState(const FString& InStatesExpected);
 };

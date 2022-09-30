@@ -9,29 +9,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Content/HUD/BP_MyHUD.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Menu/BP_MenuMain.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Menu/GMB_Menu.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Menu/UMG_MenuInGame.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Menu/UMG_MenuMain.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Menu/UMG_MenuServerList.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Menu/UW_ServerRow.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDMenu.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyHUDMenu.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/HUD/UMG_MenuInGame.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/HUD/BP_AstronautHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/BP_AstronautHUD.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/DefaultInput.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultInput.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/HUD/BP_MyHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/BP_MyHUD.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/HUD/UMG_PlayerHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/UMG_PlayerHUD.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Maps/spacefootball.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/spacefootball.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/AstronautHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDBase.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Menu/BP_MenuMain.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Menu/GMB_Menu.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/GMB_Menu.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Menu/UMG_MenuInGame.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/UMG_MenuInGame.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MurderInSpace.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/MurderInSpace.uproject" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyGameInstance.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyGameInstance.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDWidget.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/OrbitComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/AstronautHUD.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyHUDBase.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/GameModeAsteroids.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/GameModeAsteroids.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUD.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDBase.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDBase.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDMenu.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyHUDMenu.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/UserWidgetHUDBorder.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/WidgetHUDBorder.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyGameInstance.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyGameInstance.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyGameState.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyGameState.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/OrbitComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyHUD.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyHUD.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyHUDBase.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyHUDBase.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyHUDMenu.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyHUDMenu.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/UserWidgetHUDBorder.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/WidgetHUDBorder.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -246,6 +244,8 @@
       <workItem from="1664455283526" duration="7922000" />
       <workItem from="1664466140087" duration="10815000" />
       <workItem from="1664503617925" duration="817000" />
+      <workItem from="1664541922232" duration="601000" />
+      <workItem from="1664564148912" duration="15033000" />
     </task>
     <servers />
   </component>

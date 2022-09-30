@@ -9,7 +9,7 @@
 
 #include "MyHUDBase.generated.h"
 
-class UUserWidgetHUDBorder;
+class UWidgetHUDBorder;
 
 /**
  * 
@@ -22,10 +22,13 @@ class MURDERINSPACE_API AMyHUDBase : public AHUD
 public:
 	AMyHUDBase();
 
-	virtual void SetWidgetToDefault();
-	
 protected:
-	TObjectPtr<UUserWidgetHUDBorder> UserWidgetHUDBorder;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UWidgetHUDBorder> WidgetHUDBorderClass;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UWidgetHUDBorder> WidgetHUDBorder;
+	
     // Default values: overridden by blueprint
 	// relative to viewport width: the horizontal distance from the circular HUD
 	// to the viewport edge at top and bottom
@@ -43,22 +46,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float Y1 = 0.33;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> UMGWidgetDefault;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UUserWidget> UMGWidget;
-
 	// event handlers
 	
 	virtual void BeginPlay() override;
 
 	// private methods
 
+	UFUNCTION(BlueprintCallable)
+	void HideViewportParentWidgets();
+
 	template <typename WidgetT>
-	TObjectPtr<WidgetT> FindOrFail(const FName& Name) const
+	WidgetT* FindOrFail(const TObjectPtr<UUserWidget> InParent, const FName& Name) const
 	{
-		if(const auto Widget = UMGWidget->WidgetTree.Get()->FindWidget<WidgetT>(Name))
+		if(WidgetT* Widget = InParent->WidgetTree.Get()->FindWidget<WidgetT>(Name))
 		{
 			return Widget;
 		}

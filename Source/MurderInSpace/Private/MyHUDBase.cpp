@@ -4,7 +4,8 @@
 #include "MyHUDBase.h"
 
 #include "Blueprint/UserWidget.h"
-#include "UserWidgetHUDBorder.h"
+#include "WidgetHUDBorder.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 #define LOCTEXT_NAMESPACE "mynamespace"
 
@@ -12,32 +13,34 @@ AMyHUDBase::AMyHUDBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	//HUDGreen = FLinearColor(FVector4d(0.263, 1., 0, 0.7));
 	FormattingOptions.SetUseGrouping(false);
 	FormattingOptions.SetMinimumFractionalDigits(1);
 	FormattingOptions.SetMaximumFractionalDigits(1);
-}
 
-void AMyHUDBase::SetWidgetToDefault()
-{
-	UMGWidget = CreateWidget<UUserWidget>(GetOwningPlayerController(), UMGWidgetDefault);
-	UMGWidget->AddToViewport();
-	
-	UserWidgetHUDBorder = FindOrFail<UUserWidgetHUDBorder>(FName(TEXT("BP_UserWidgetHUDBorder")));
-	UserWidgetHUDBorder->SetParams(X0, Y0, X1, Y1);
+	// TODO: find a way to set HUD default style
 }
 
 void AMyHUDBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if(!UMGWidgetDefault)
+	WidgetHUDBorder = CreateWidget<UWidgetHUDBorder>(GetOwningPlayerController(), WidgetHUDBorderClass);
+	WidgetHUDBorder->SetParams(X0, Y0, X1, Y1);
+	WidgetHUDBorder->AddToViewport();
+}
+
+void AMyHUDBase::HideViewportParentWidgets()
+{
+	TArray<UUserWidget*> ParentWidgets;
+	UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), ParentWidgets, UUserWidget::StaticClass());
+	for(const auto Widget : ParentWidgets)
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetDefault null"), *GetFullName())
-		return;
+		if(Widget->StaticClass() != UWidgetHUDBorder::StaticClass())
+		{
+			Widget->SetVisibility(ESlateVisibility::Collapsed);
+		}
 	}
 	
-	SetWidgetToDefault();
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -4,84 +4,70 @@
 #include "MyHUDMenu.h"
 
 #include "MyGameInstance.h"
+#include "Components/Button.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 void AMyHUDMenu::BeginPlay()
 {
-	if(!UMGWidgetServerList)
+	Super::BeginPlay();
+
+	const auto PC = GetOwningPlayerController();
+	if(!PC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no player controller, disabling tick"), *GetFullName())
+		SetActorTickEnabled(false);
+		return;
+	}
+
+	const UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
+	
+	// set up main menu
+
+	if(!WidgetMainMenuClass)
+	{
+		UE_LOG(LogSlate, Error, TEXT("%s: WidgetMainMenuClass null"), *GetFullName())
+		return;
+	}
+
+	WidgetMainMenu = CreateWidget<UUserWidget>(PC, WidgetMainMenuClass);
+	WidgetMainMenu->AddToViewport();
+	
+	FindOrFail<UButton>(WidgetMainMenu, FName(TEXT("BtnStart"  )));
+	//->OnClicked.AddUniqueDynamic(GI, &UMyGameInstance::HostGame         );
+	//FindOrFail<UButton>(WidgetMainMenu, FName(TEXT("BtnStart"  )))->OnClicked.AddUniqueDynamic(GI, &UMyGameInstance::HostGame         );
+	///FindOrFail<UButton>(WidgetMainMenu, FName(TEXT("FindServer")))->OnClicked.AddUniqueDynamic(GI, &UMyGameInstance::GotoInMenuServers);
+	//FindOrFail<UButton>(WidgetMainMenu, FName(TEXT("BtnQuit"   )))->OnClicked.AddUniqueDynamic(GI, &UMyGameInstance::QuitGame         );
+
+	// set up menu server list
+	
+	if(!WidgetServerListClass)
 	{
 		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetServerList null"), *GetFullName())
 		return;
 	}
-	if(!UMGWidgetMenuInGame)
-	{
-		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetMenuInGame null"), *GetFullName())
-		return;
-	}
-	Super::BeginPlay();
-}
 
-// ReSharper disable once CppMemberFunctionMayBeConst
-void AMyHUDMenu::HandleBtnFindServerClicked()
-{
-	// TODO: get server list
-	GetGameInstance<UMyGameInstance>()->ShowServers();
-	UMGWidget->RemoveFromViewport();
-	// TODO: pass list of servers maybe?
-	SetWidgetServerList();
-}
-
-void AMyHUDMenu::SetWidgetToDefault()
-{
-	Super::SetWidgetToDefault();
-
-	FindOrFail<UButton>(FName(TEXT("BtnStart")))->OnClicked.AddDynamic
-		( GetGameInstance<UMyGameInstance>()
-		, &UMyGameInstance::HostGame
-		);
+	WidgetServerList = CreateWidget<UUserWidget>(PC, WidgetServerListClass);
+	WidgetServerList->SetVisibility(ESlateVisibility::Collapsed);
+	WidgetServerList->AddToViewport();
 	
-	FindOrFail<UButton>(FName(TEXT("FindServer")))->OnClicked.AddDynamic
-		( this
-		, &AMyHUDMenu::HandleBtnFindServerClicked
-		);
-	
-	FindOrFail<UButton>(FName(TEXT("BtnQuit")))->OnClicked.AddDynamic
-		( GetGameInstance<UMyGameInstance>()
-		, &UMyGameInstance::QuitGame
-		);
-}
-
-void AMyHUDMenu::SetWidgetServerList()
-{
-	UMGWidget->RemoveFromViewport();
-	UMGWidget = CreateWidget<UUserWidget>(GetOwningPlayerController(), UMGWidgetServerList);
-	UMGWidget->AddToViewport();
-
-	FindOrFail<UButton>(FName(TEXT("BtnBack")))->OnClicked.AddDynamic(this, &AMyHUDMenu::SetWidgetToDefault);
+	FindOrFail<UButton>(WidgetServerList, FName(TEXT("BtnBack")))->OnClicked.AddDynamic(GI, &UMyGameInstance::GotoInMenuMain);
 	// TODO: refresh on clicked
 	// TODO: server list: server row on clicked
 }
 
-void AMyHUDMenu::SetWidgetMenuInGame()
+void AMyHUDMenu::ServerListShow()
 {
-	UMGWidget->RemoveFromViewport();
-	UMGWidget = CreateWidget<UUserWidget>(GetOwningPlayerController(), UMGWidgetMenuInGame);
-	UMGWidget->AddToViewport();
-	
-	FindOrFail<UButton>(FName(TEXT("BtnLeave")))->OnClicked.AddDynamic(this, &AMyHUDMenu::Leave);
-	FindOrFail<UButton>(FName(TEXT("Resume")))->OnClicked.AddDynamic
-		( GetGameInstance<UMyGameInstance>()
-		, &UMyGameInstance::SetHUD
-		);
-	FindOrFail<UButton>(FName(TEXT("BtnQuit")))->OnClicked.AddDynamic
-		(GetGameInstance<UMyGameInstance>()
-		, &UMyGameInstance::QuitGame
-		);
+	HideViewportParentWidgets();
+	WidgetServerList->SetVisibility(ESlateVisibility::Visible);
 }
 
-void AMyHUDMenu::Leave()
+void AMyHUDMenu::MainMenuShow()
 {
-	UMGWidget->RemoveFromViewport();
-	SetWidgetToDefault();
-	GetGameInstance<UMyGameInstance>()->DestroySession();
+	HideViewportParentWidgets();
+	WidgetMainMenu->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AMyHUDMenu::BtnStartClicked()
+{
+	GetGameInstance<UMyGameInstance>()->HostGame();
 }
