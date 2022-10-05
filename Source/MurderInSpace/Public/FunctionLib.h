@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameModeAsteroids.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "FunctionLib.generated.h"
 
@@ -36,6 +35,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Orbit")
 	static float AxialTidalForce(float R, float L, float M, float Alpha);
-
-	static TObjectPtr<AGameModeAsteroids> GetGameModeAsteroids(const UObject* WorldContextObject);
 };

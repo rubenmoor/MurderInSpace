@@ -5,9 +5,9 @@
 
 #include "OrbitComponent.h"
 
-void AMyGameState::PreInitializeComponents()
+void AMyGameState::PostInitializeComponents()
 {
-	Super::PreInitializeComponents();
+	Super::PostInitializeComponents();
 	Poisson = std::poisson_distribution(AngularVelocityPoissonMean * 1e3);
 }
 

@@ -33,7 +33,7 @@ protected:
 
 	// event handlers
 
-	virtual void PreInitializeComponents() override;
+	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
 	#if WITH_EDITOR

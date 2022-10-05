@@ -26,7 +26,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUserWidget> WidgetHUDClass;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="UMG Widgets")
 	TObjectPtr<UUserWidget> WidgetHUD;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -55,7 +55,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUserWidget> WidgetMenuInGameClass;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="UMG Widgets")
 	TObjectPtr<UUserWidget> WidgetMenuInGame;
 	
 	// event handlers

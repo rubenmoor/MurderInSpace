@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "NiagaraComponent.h"
+#include "UStateLib.h"
 
 ACharacterInSpace::ACharacterInSpace()
 {
@@ -39,9 +40,6 @@ ACharacterInSpace::ACharacterInSpace()
 	StarsDistant = CreateDefaultSubobject<UNiagaraComponent>(TEXT("StarsDistant"));
 	StarsDistant->SetupAttachment(StarAnchor);
 	StarsDistant->SetRelativeLocation(FVector(10000, 0, 0));
-
-	// for the editor
-	Orbit->UpdateVisibility(UStateLib::GetPlayerUIEditorDefault());
 }
 
 void ACharacterInSpace::UpdateSpringArm(uint8 CameraPosition)

@@ -7,8 +7,8 @@
 #include <numeric>
 
 #include "FunctionLib.h"
+#include "UStateLib.h"
 #include "Components/SplineMeshComponent.h"
-#include "MyPlayerState.h"
 
 UOrbitComponent::UOrbitComponent()
 {
@@ -398,7 +398,30 @@ void UOrbitComponent::UpdateVisibility(FPlayerUI PlayerUI)
 
 void UOrbitComponent::SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FPlayerUI PlayerUI)
 {
-	const int nIndices = static_cast<int>(round(GetSplineLength() / splineMeshLength));
+	const int nIndices = static_cast<int>(round(GetSplineLength() / SplineMeshLength));
+	
+	if(!SMSplineMesh)
+	{
+		UE_LOG
+		( LogActorComponent
+		, Warning
+		, TEXT("%s: UOrbitComponent::SpawnSplineMesh: SMSplineMesh null, skipping")
+		, *GetFullName()
+		)
+		return;
+	}
+	if(!MSplineMesh)
+	{
+		UE_LOG
+		( LogActorComponent
+		, Warning
+		, TEXT("%s: UOrbitComponent::SpawnSplineMesh: MSplineMesh null, skipping")
+		, *GetFullName()
+		)
+		return;
+	}
+	
+	
 	if(nIndices >= 2)
 	{
 		std::vector<int> Indices(nIndices);
@@ -433,19 +456,19 @@ void UOrbitComponent::SpawnSplineMesh(FLinearColor Color, USceneComponent* InPar
 			DynamicMaterial->SetVectorParameterValue(FName(TEXT("StripesColor")), Color);
 
 			const FVector VecStartPos =
-				GetLocationAtDistanceAlongSpline(Indices[i] * splineMeshLength, ESplineCoordinateSpace::World);
+				GetLocationAtDistanceAlongSpline(Indices[i] * SplineMeshLength, ESplineCoordinateSpace::World);
 			const FVector VecStartDirection =
 				GetTangentAtDistanceAlongSpline
-					( Indices[i] * splineMeshLength
+					( Indices[i] * SplineMeshLength
 					, ESplineCoordinateSpace::World
-					).GetUnsafeNormal() * splineMeshLength;
+					).GetUnsafeNormal() * SplineMeshLength;
 			const FVector VecEndPos =
-				GetLocationAtDistanceAlongSpline(Indices[i + 1] * splineMeshLength, ESplineCoordinateSpace::World);
+				GetLocationAtDistanceAlongSpline(Indices[i + 1] * SplineMeshLength, ESplineCoordinateSpace::World);
 			const FVector VecEndDirection =
 				GetTangentAtDistanceAlongSpline
-					( Indices[i + 1] * splineMeshLength
+					( Indices[i + 1] * SplineMeshLength
 					, ESplineCoordinateSpace::World
-					).GetUnsafeNormal() * splineMeshLength;
+					).GetUnsafeNormal() * SplineMeshLength;
 			SplineMesh->SetStartAndEnd
 				( VecStartPos
 				, VecStartDirection
@@ -535,7 +558,7 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 
 	static const FName FNameBTrajectoryShowSpline = GET_MEMBER_NAME_CHECKED(UOrbitComponent, bTrajectoryShowSpline);
 	static const FName FNameBVisibleVarious = GET_MEMBER_NAME_CHECKED(UOrbitComponent, bIsVisibleVarious);
-	static const FName FNameSplineMeshLength = GET_MEMBER_NAME_CHECKED(UOrbitComponent, splineMeshLength);
+	static const FName FNameSplineMeshLength = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SplineMeshLength);
 	static const FName FNameVelocity = GET_MEMBER_NAME_CHECKED(UOrbitComponent, Velocity);
 	static const FName FNameVelocityVCircle = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VelocityVCircle);
 	static const FName FNameVecVelocity = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VecVelocity);

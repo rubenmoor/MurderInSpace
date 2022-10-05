@@ -26,6 +26,9 @@ APawnInSpace::APawnInSpace()
 	SplineMeshParent->SetupAttachment(Orbit);
 	SplineMeshParent->SetMobility(EComponentMobility::Stationary);
 	Orbit->SetSplineMeshParent(SplineMeshParent);
+
+	// for the editor
+	Orbit->UpdateVisibility(UStateLib::GetPlayerUIEditorDefault());
 }
 
 void APawnInSpace::UpdateLookTarget(FVector Target)

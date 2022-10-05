@@ -28,9 +28,11 @@ class MURDERINSPACE_API UMyGameInstance : public UGameInstance
 	GENERATED_BODY()
 
 	friend class UStateLib;
-
 public:
 	UMyGameInstance();
+
+	UFUNCTION(BlueprintCallable)
+	EInstanceState GetInstanceState() { return InstanceState; }
 
 	UFUNCTION(BlueprintCallable)
 	void HostGame();

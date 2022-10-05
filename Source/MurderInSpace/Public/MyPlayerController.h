@@ -51,6 +51,8 @@ protected:
 	UFUNCTION()
 	void HandleEndShowAllTrajectories();
 
+	UFUNCTION(BlueprintCallable)
+	void HandleEscape();
 private:
 	
 	void SetShowAllTrajectories(bool bInShow) const;

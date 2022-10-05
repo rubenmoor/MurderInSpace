@@ -30,7 +30,7 @@ void AMyHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	const auto PC = GetOwningPlayerController();
+	const TObjectPtr<APlayerController> PC = GetOwningPlayerController();
 	if(!PC)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no player controller, disabling tick"), *GetFullName())
@@ -54,7 +54,7 @@ void AMyHUD::BeginPlay()
 		return;
 	}
 
-	WidgetHUD = CreateWidget<UUserWidget>(PC, WidgetHUDClass);
+	WidgetHUD = CreateWidget<UUserWidget>(PC.Get(), WidgetHUDClass);
 	WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
 	WidgetHUD->AddToViewport();
 	
@@ -67,6 +67,17 @@ void AMyHUD::BeginPlay()
 	OverlayCenterOfMass   = FindOrFail<UOverlay    >(WidgetHUD, FName(TEXT("OverlayCenterOfMass"  )));
 	ImgPointer            = FindOrFail<UImage      >(WidgetHUD, FName(TEXT("ImgPointer"           )));
 	
+	if(!TextVelocitySI || !TextVelocityVCircle || !TextVelocityDirection || !CanvasCenterOfMass || !OverlayCenterOfMass
+		|| !ImgPointer) {
+			UE_LOG
+				( LogTemp
+				, Error
+				, TEXT("%s: Some widgets could not be found. Disabling Tick.")
+				, *GetFullName()
+				)
+			SetActorTickEnabled(false);
+	}
+	
 	// set up in-game menu
 	
 	if(!WidgetMenuInGameClass)
@@ -74,25 +85,30 @@ void AMyHUD::BeginPlay()
 		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetInGameClass null"), *GetFullName())
 		return;
 	}
-	WidgetMenuInGame = CreateWidget<UUserWidget>(PC, WidgetMenuInGameClass);
+	WidgetMenuInGame = CreateWidget<UUserWidget>(PC.Get(), WidgetMenuInGameClass);
 	WidgetMenuInGame->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetMenuInGame->AddToViewport();
 
 	const UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
-	FindOrFail<UButton>(WidgetMenuInGame, FName(TEXT("BtnLeave")))->OnClicked.AddDynamic(GI, &UMyGameInstance::GotoInGameMenu);
-	FindOrFail<UButton>(WidgetMenuInGame, FName(TEXT("Resume"  )))->OnClicked.AddDynamic(GI, &UMyGameInstance::GotoInGame    );
-	FindOrFail<UButton>(WidgetMenuInGame, FName(TEXT("BtnQuit" )))->OnClicked.AddDynamic(GI, &UMyGameInstance::QuitGame      );
+	
+	WithWidget<UButton>(WidgetMenuInGame, FName(TEXT("BtnLeave")), [GI] (TObjectPtr<UButton> Button)
+	{
+		Button->OnClicked.AddDynamic(GI, &UMyGameInstance::GotoInMenuMain);
+	});
+	WithWidget<UButton>(WidgetMenuInGame, FName(TEXT("BtnResume")), [GI] (TObjectPtr<UButton> Button)
+	{
+		Button->OnClicked.AddDynamic(GI, &UMyGameInstance::GotoInGame);
+	});
+	WithWidget<UButton>(WidgetMenuInGame, FName(TEXT("BtnQuit")), [GI] (TObjectPtr<UButton> Button)
+	{
+		Button->OnClicked.AddDynamic(GI, &UMyGameInstance::QuitGame);
+	});
 }
 
 void AMyHUD::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	
-	if(!TextVelocitySI || !TextVelocityVCircle || !TextVelocityDirection || !CanvasCenterOfMass || !OverlayCenterOfMass
-		|| !ImgPointer) {
-			UE_LOG(LogTemp, Error, TEXT("AAstronautHUD::Tick: Some widgets could not be found. Not doing anything."))
-			return;
-	}
 	const TObjectPtr<APlayerController> PC = GetOwningPlayerController();
 
 	const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());

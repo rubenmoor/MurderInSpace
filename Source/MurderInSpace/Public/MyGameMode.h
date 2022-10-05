@@ -4,16 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
-#include "GameModeAsteroids.generated.h"
+#include "MyGameMode.generated.h"
 
 /**
  *  the `game mode` is server-side data only
  *  I don't yet understand multiplayer setup and thus shouldn't put anything here, yet
  */
 UCLASS()
-class MURDERINSPACE_API AGameModeAsteroids : public AGameMode
+class MURDERINSPACE_API AMyGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
+protected:
 	// event handlers
+	virtual void PostInitializeComponents() override;
 };

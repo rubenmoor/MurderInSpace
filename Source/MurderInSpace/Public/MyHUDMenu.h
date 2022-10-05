@@ -19,16 +19,16 @@ class MURDERINSPACE_API AMyHUDMenu : public AMyHUDBase
 	friend class UMyGameInstance;
 protected:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="User Widget")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUserWidget> WidgetMainMenuClass;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="User Widget")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUserWidget> WidgetMainMenu;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="User Widget")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUserWidget> WidgetServerListClass;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="User Widget")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUserWidget> WidgetServerList;
 	
 	// event handlers
@@ -42,7 +42,4 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	void MainMenuShow();
-
-	UFUNCTION()
-	void BtnStartClicked();
 };

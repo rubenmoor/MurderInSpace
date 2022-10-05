@@ -3,7 +3,7 @@
 
 #include "GyrationComponent.h"
 
-#include "MyGameState.h"
+#include "UStateLib.h"
 
 UGyrationComponent::UGyrationComponent()
 {
@@ -42,7 +42,6 @@ void UGyrationComponent::BeginPlay()
 	{
 		const FRnd Rnd = UStateLib::GetRndUnsafe(this);
 		const float LRandom = UStateLib::GetInitialAngularVelocity(Rnd);
-		UE_LOG(LogActorComponent, Warning, TEXT("Initializing with L = %f"), LRandom)
 		VecL = Rnd.Stream.VRand() * LRandom * VecInertia.Length();
 		UE_LOG
 		    ( LogActorComponent

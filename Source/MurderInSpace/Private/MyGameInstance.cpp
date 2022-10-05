@@ -5,7 +5,6 @@
 
 #include "MyHUD.h"
 #include "MyHUDMenu.h"
-#include "PawnInSpace.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -18,7 +17,6 @@ UMyGameInstance::UMyGameInstance()
 
 void UMyGameInstance::HostGame()
 {
-	// TODO: level name
 	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
 }
 
@@ -37,6 +35,7 @@ void UMyGameInstance::GotoInMenuServers()
 
 void UMyGameInstance::GotoInMenuMain()
 {
+	UE_LOG(LogSlate, Warning, TEXT("Debug: GotoInMenuMain"))
 	switch(InstanceState)
 	{
 	case EInstanceState::InMenuServers:

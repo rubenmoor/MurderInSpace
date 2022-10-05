@@ -19,13 +19,46 @@ FPhysics UStateLib::GetPhysics(AMyGameState* GS)
 
 FPhysics UStateLib::GetPhysicsUnsafe(const UObject* Object)
 {
-	const auto GS = Object->GetWorld()->GetGameState<AMyGameState>();
-	if(!GS)
+	const auto World = Object->GetWorld();
+	const TObjectPtr<UMyGameInstance> GI = World->GetGameInstance<UMyGameInstance>();
+	if(!GI)
 	{
-		UE_LOG(LogGameState, Error, TEXT("%s: GameState null"), *Object->GetFullName())
+		UE_LOG
+			( LogGameState
+			, Error
+			, TEXT("UStateLib::GetPhysicsUnsafe: %s: Game instance null")
+			, *Object->GetFullName()
+			)
 		return DefaultPhysics;
 	}
-	return GS->Physics;
+	switch(GI->InstanceState)
+	{
+	case EInstanceState::InMenuMain:
+	case EInstanceState::InMenuServers:
+	case EInstanceState::InGame:
+	case EInstanceState::InGameMenu:
+		const TObjectPtr<AMyGameState> GS = World->GetGameState<AMyGameState>();
+		if(!GS)
+		{
+			UE_LOG
+				( LogGameState
+				, Error
+				, TEXT("UStateLib::GetPhysicsUnsafe: %s: GameState null")
+				, *Object->GetFullName()
+				)
+			return DefaultPhysics;
+		}
+		return GS->Physics;
+	default:
+		UE_LOG
+			( LogGameState
+			, Error
+			, TEXT("UStateLib::GetPhysicsUnsafe: %s: Instance state: %s, expected InMenu* or InGame*")
+			, *Object->GetFullName()
+			, *UEnum::GetValueAsString(GI->InstanceState)
+			)
+		return DefaultPhysics;
+	}
 }
 
 FPhysics UStateLib::GetPhysicsEditorDefault()
@@ -66,27 +99,53 @@ FRnd UStateLib::GetRnd(AMyGameState* GS, UMyGameInstance* GI)
 FRnd UStateLib::GetRndUnsafe(UObject* Object)
 {
 	const auto World = Object->GetWorld();
-	const TObjectPtr<AMyGameState> GS = World->GetGameState<AMyGameState>();
 	const TObjectPtr<UMyGameInstance> GI = World->GetGameInstance<UMyGameInstance>();
-		
-	if(!GS)
-	{
-		UE_LOG(LogGameState, Error, TEXT("%s: GameState null"), *Object->GetFullName())
-		return FRnd();
-	}
 	if(!GI)
 	{
-		UE_LOG(LogGameState, Error, TEXT("%s: GameInstance null"), *Object->GetFullName())
+		UE_LOG
+			( LogGameState
+			, Error
+			, TEXT("UStateLib::GetRndUnsafe: %s: GameInstance null")
+			, *Object->GetFullName()
+			)
 		return FRnd();
 	}
-	return FRnd
-		{ GS->RndGen
-		, GS->Poisson
-		, GI->Random
-		};
+	switch(GI->InstanceState)
+	{
+	case EInstanceState::InMenuMain:
+	case EInstanceState::InMenuServers:
+	case EInstanceState::InGame:
+	case EInstanceState::InGameMenu:
+		const TObjectPtr<AMyGameState> GS = World->GetGameState<AMyGameState>();
+			
+		if(!GS)
+		{
+			UE_LOG
+				( LogGameState
+				, Error
+				, TEXT("UStateLib::GetRndUnsafe: %s: GameState null")
+				, *Object->GetFullName()
+				)
+			return FRnd();
+		}
+		return FRnd
+			{ GS->RndGen
+			, GS->Poisson
+			, GI->Random
+			};
+	default:
+		UE_LOG
+			( LogGameState
+			, Error
+			, TEXT("UStateLib::GetRndUnsafe: %s: Instance state: %s, expected InMenu* or InGame*")
+			, *Object->GetFullName()
+			, *UEnum::GetValueAsString(GI->InstanceState)
+			)
+		return FRnd();
+	}
 }
 
-void UStateLib::WithPlayerUIUnsafe(const UObject* Object, const std::function<FPlayerUI(FPlayerUI)>& Func)
+void UStateLib::ModifyPlayerUIUnsafe(const UObject* Object, const std::function<FPlayerUI(FPlayerUI)>& Func)
 {
 	const auto PS = Object->GetWorld()->GetFirstPlayerController()->GetPlayerState<AMyPlayerState>();
 	if(!PS)
@@ -95,4 +154,9 @@ void UStateLib::WithPlayerUIUnsafe(const UObject* Object, const std::function<FP
 		return;
 	}
 	PS->PlayerUI = Func(PS->PlayerUI);
+}
+
+void UStateLib::SetInstanceState(UMyGameInstance* GI, EInstanceState InNewState)
+{
+	GI->InstanceState = InNewState;
 }

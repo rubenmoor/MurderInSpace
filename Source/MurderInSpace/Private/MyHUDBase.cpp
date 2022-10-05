@@ -35,7 +35,7 @@ void AMyHUDBase::HideViewportParentWidgets()
 	UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), ParentWidgets, UUserWidget::StaticClass());
 	for(const auto Widget : ParentWidgets)
 	{
-		if(Widget->StaticClass() != UWidgetHUDBorder::StaticClass())
+		if(!Widget->IsA(WidgetHUDBorder->StaticClass()))
 		{
 			Widget->SetVisibility(ESlateVisibility::Collapsed);
 		}

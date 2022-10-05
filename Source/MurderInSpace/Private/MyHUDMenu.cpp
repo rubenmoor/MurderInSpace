@@ -3,9 +3,8 @@
 
 #include "MyHUDMenu.h"
 
+#include "MyCommonButton.h"
 #include "MyGameInstance.h"
-#include "Components/Button.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 void AMyHUDMenu::BeginPlay()
 {
@@ -19,7 +18,7 @@ void AMyHUDMenu::BeginPlay()
 		return;
 	}
 
-	const UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
+	UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
 	
 	// set up main menu
 
@@ -31,12 +30,28 @@ void AMyHUDMenu::BeginPlay()
 
 	WidgetMainMenu = CreateWidget<UUserWidget>(PC, WidgetMainMenuClass);
 	WidgetMainMenu->AddToViewport();
-	
-	FindOrFail<UButton>(WidgetMainMenu, FName(TEXT("BtnStart"  )));
-	//->OnClicked.AddUniqueDynamic(GI, &UMyGameInstance::HostGame         );
-	//FindOrFail<UButton>(WidgetMainMenu, FName(TEXT("BtnStart"  )))->OnClicked.AddUniqueDynamic(GI, &UMyGameInstance::HostGame         );
-	///FindOrFail<UButton>(WidgetMainMenu, FName(TEXT("FindServer")))->OnClicked.AddUniqueDynamic(GI, &UMyGameInstance::GotoInMenuServers);
-	//FindOrFail<UButton>(WidgetMainMenu, FName(TEXT("BtnQuit"   )))->OnClicked.AddUniqueDynamic(GI, &UMyGameInstance::QuitGame         );
+
+	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnStart")), [GI] (TObjectPtr<UMyCommonButton> Button)
+	{
+		Button->OnClicked().AddLambda([GI] ()
+		{
+			UE_LOG(LogSlate, Warning, TEXT("Debug: BtnStart.OnClicked"))
+			GI->GotoInGame();
+		});
+	});
+	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnFindOnline")), [GI] (TObjectPtr<UMyCommonButton> Button)
+	{
+		Button->OnClicked().AddLambda([GI] () { GI->GotoInMenuServers(); });
+	});
+	// TODO: set parameter LAN
+	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnFindLAN")), [GI] (TObjectPtr<UMyCommonButton> Button)
+	{
+		Button->OnClicked().AddLambda([GI] () { GI->GotoInMenuServers(); });
+	});
+	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnQuit")), [GI] (TObjectPtr<UMyCommonButton> Button)
+	{
+		Button->OnClicked().AddLambda([GI] () { GI->QuitGame(); });
+	});
 
 	// set up menu server list
 	
@@ -65,9 +80,4 @@ void AMyHUDMenu::MainMenuShow()
 {
 	HideViewportParentWidgets();
 	WidgetMainMenu->SetVisibility(ESlateVisibility::Visible);
-}
-
-void AMyHUDMenu::BtnStartClicked()
-{
-	GetGameInstance<UMyGameInstance>()->HostGame();
 }

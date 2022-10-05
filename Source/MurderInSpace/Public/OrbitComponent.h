@@ -4,12 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Components/SplineComponent.h"
-#include "MyGameState.h"
+#include "UStateLib.h"
 
 #include "OrbitComponent.generated.h"
-
-class AMyPlayerState;
-class AMyGameState;
 
 UENUM(BlueprintType)
 enum class EOrbitType : uint8
@@ -147,7 +144,7 @@ protected:
 	float SplineMeshScaleFactor = 1.;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	float splineMeshLength = 1000.0;
+	float SplineMeshLength = 1000.0;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<UStaticMesh> SMSplineMesh;

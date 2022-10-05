@@ -23,10 +23,10 @@ public:
 	AMyHUDBase();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UWidgetHUDBorder> WidgetHUDBorderClass;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UWidgetHUDBorder> WidgetHUDBorder;
 	
     // Default values: overridden by blueprint
@@ -56,9 +56,9 @@ protected:
 	void HideViewportParentWidgets();
 
 	template <typename WidgetT>
-	WidgetT* FindOrFail(const TObjectPtr<UUserWidget> InParent, const FName& Name) const
+	TObjectPtr<WidgetT> FindOrFail(const TObjectPtr<UUserWidget> InParent, const FName& Name) const
 	{
-		if(WidgetT* Widget = InParent->WidgetTree.Get()->FindWidget<WidgetT>(Name))
+		if(TObjectPtr<WidgetT> Widget = InParent->WidgetTree.Get()->FindWidget<WidgetT>(Name))
 		{
 			return Widget;
 		}
@@ -66,6 +66,23 @@ protected:
 		{
 			UE_LOG(LogSlate, Error, TEXT("%s: FindOrFail: Couldn't find %s"), *GetFullName(), *Name.ToString())
 			return nullptr;
+		}
+	}
+	
+	template <typename WidgetT>
+	void WithWidget
+		( const TObjectPtr<UUserWidget> InParent
+		, const FName& Name
+		, const std::function<void(TObjectPtr<WidgetT>)>& Func
+		) const
+	{
+		if(TObjectPtr<WidgetT> Widget = InParent->WidgetTree.Get()->FindWidget<WidgetT>(Name))
+		{
+			Func(Widget);
+		}
+		else
+		{
+			UE_LOG(LogSlate, Error, TEXT("%s: FindOrFail: Couldn't find %s"), *GetFullName(), *Name.ToString())
 		}
 	}
 	
