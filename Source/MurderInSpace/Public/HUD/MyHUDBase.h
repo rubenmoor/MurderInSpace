@@ -58,7 +58,13 @@ protected:
 	template <typename WidgetT>
 	TObjectPtr<WidgetT> FindOrFail(const TObjectPtr<UUserWidget> InParent, const FName& Name) const
 	{
-		if(TObjectPtr<WidgetT> Widget = InParent->WidgetTree.Get()->FindWidget<WidgetT>(Name))
+		if(!IsValid(InParent))
+		{
+			UE_LOG(LogSlate, Error, TEXT("%s: FindOrFail: InParent invalid"), *GetFullName())
+			return nullptr;
+		}
+		TObjectPtr<WidgetT> Widget = InParent->WidgetTree->FindWidget<WidgetT>(Name);
+		if(IsValid(Widget))
 		{
 			return Widget;
 		}
@@ -73,16 +79,20 @@ protected:
 	void WithWidget
 		( const TObjectPtr<UUserWidget> InParent
 		, const FName& Name
-		, const std::function<void(TObjectPtr<WidgetT>)>& Func
+		, const TFunctionRef<void(TObjectPtr<WidgetT>)> Func
 		) const
 	{
-		if(TObjectPtr<WidgetT> Widget = InParent->WidgetTree.Get()->FindWidget<WidgetT>(Name))
+		if(!IsValid(InParent))
+		{
+			UE_LOG(LogSlate, Error, TEXT("%s: WithWidget: InParent invalid"), *GetFullName())
+		}
+		else if(TObjectPtr<WidgetT> Widget = InParent->WidgetTree->FindWidget<WidgetT>(Name))
 		{
 			Func(Widget);
 		}
 		else
 		{
-			UE_LOG(LogSlate, Error, TEXT("%s: FindOrFail: Couldn't find %s"), *GetFullName(), *Name.ToString())
+			UE_LOG(LogSlate, Error, TEXT("%s: WithWidget: Couldn't find %s"), *GetFullName(), *Name.ToString())
 		}
 	}
 	

@@ -10,8 +10,7 @@ UENUM(BlueprintType)
 enum class EInstanceState : uint8
 {
 	StartUp UMETA(DisplayName="startup"),
-	InMenuMain UMETA(DisplayName="in main menu"),
-	InMenuServers UMETA(DisplayName="in menu server list"),
+	InMainMenu UMETA(DisplayName="in main menu"),
 	Loading UMETA(DisplayName="loading"),
 	MsgError UMETA(DisplayName="error message"),
 	InGame UMETA(DisplayName="in game"),
@@ -30,15 +29,12 @@ class MURDERINSPACE_API UMyGameInstance : public UGameInstance
 	friend class UStateLib;
 public:
 	UMyGameInstance();
-
+	
 	UFUNCTION(BlueprintCallable)
 	EInstanceState GetInstanceState() { return InstanceState; }
 
 	UFUNCTION(BlueprintCallable)
 	void HostGame();
-	
-	UFUNCTION(BlueprintCallable)
-	void GotoInMenuServers();
 
 	UFUNCTION(BlueprintCallable)
 	void JoinGame();

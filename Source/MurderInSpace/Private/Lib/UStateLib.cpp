@@ -19,32 +19,35 @@ FPhysics UStateLib::GetPhysics(AMyGameState* GS)
 
 FPhysics UStateLib::GetPhysicsUnsafe(const UObject* Object)
 {
-	const auto World = Object->GetWorld();
+	const TObjectPtr<UWorld> World = Object->GetWorld();
 	const TObjectPtr<UMyGameInstance> GI = World->GetGameInstance<UMyGameInstance>();
 	if(!GI)
 	{
+		const TObjectPtr<UGameInstance> GIGeneric = World->GetGameInstance();
 		UE_LOG
 			( LogGameState
 			, Error
-			, TEXT("UStateLib::GetPhysicsUnsafe: %s: Game instance null")
+			, TEXT("UStateLib::GetPhysicsUnsafe: %s: UMyGameInstance null; generic game instance: %s")
 			, *Object->GetFullName()
+			, GIGeneric ? *GIGeneric->GetFullName() : TEXT("null")
 			)
 		return DefaultPhysics;
 	}
 	switch(GI->InstanceState)
 	{
-	case EInstanceState::InMenuMain:
-	case EInstanceState::InMenuServers:
+	case EInstanceState::InMainMenu:
 	case EInstanceState::InGame:
 	case EInstanceState::InGameMenu:
 		const TObjectPtr<AMyGameState> GS = World->GetGameState<AMyGameState>();
 		if(!GS)
 		{
+			const TObjectPtr<AGameState> GSGeneric = World->GetGameState<AGameState>();
 			UE_LOG
 				( LogGameState
 				, Error
-				, TEXT("UStateLib::GetPhysicsUnsafe: %s: GameState null")
+				, TEXT("UStateLib::GetPhysicsUnsafe: %s: AMyGameState null; AGameState: %s")
 				, *Object->GetFullName()
+				, GSGeneric ? *GSGeneric->GetFullName() : TEXT("null")
 				)
 			return DefaultPhysics;
 		}
@@ -73,10 +76,17 @@ FPlayerUI UStateLib::GetPlayerUI(AMyPlayerState* PS)
 
 FPlayerUI UStateLib::GetPlayerUIUnsafe(UObject* Object)
 {
-	const auto PS = Object->GetWorld()->GetFirstPlayerController()->GetPlayerState<AMyPlayerState>();
+	const TObjectPtr<AMyPlayerState> PS = Object->GetWorld()->GetFirstPlayerController()->GetPlayerState<AMyPlayerState>();
 	if(!PS)
 	{
-		UE_LOG(LogPlayerController, Error, TEXT("%s: PlayerState null"), *Object->GetFullName())
+		const TObjectPtr<APlayerState> PSGeneric = Object->GetWorld()->GetFirstPlayerController()->GetPlayerState<APlayerState>();
+		UE_LOG
+			( LogPlayerController
+			, Error
+			, TEXT("UStateLib::GetPlayerUIUnsafe: %s: AMyPlayerState null; APlayerState: %s")
+			, *Object->GetFullName()
+			, PSGeneric ? *PSGeneric->GetFullName() : TEXT("null")
+			)
 		return DefaultPlayerUI;
 	}
 	return PS->PlayerUI;
@@ -98,33 +108,36 @@ FRnd UStateLib::GetRnd(AMyGameState* GS, UMyGameInstance* GI)
 
 FRnd UStateLib::GetRndUnsafe(UObject* Object)
 {
-	const auto World = Object->GetWorld();
+	const TObjectPtr<UWorld> World = Object->GetWorld();
 	const TObjectPtr<UMyGameInstance> GI = World->GetGameInstance<UMyGameInstance>();
 	if(!GI)
 	{
+		const TObjectPtr<UGameInstance> GIGeneric = World->GetGameInstance();
 		UE_LOG
 			( LogGameState
 			, Error
-			, TEXT("UStateLib::GetRndUnsafe: %s: GameInstance null")
+			, TEXT("UStateLib::GetRndUnsafe: %s: UMyGameInstance null; UGameInstance: %s")
 			, *Object->GetFullName()
+			, GIGeneric ? *GIGeneric->GetFullName() : TEXT("null")
 			)
 		return FRnd();
 	}
 	switch(GI->InstanceState)
 	{
-	case EInstanceState::InMenuMain:
-	case EInstanceState::InMenuServers:
+	case EInstanceState::InMainMenu:
 	case EInstanceState::InGame:
 	case EInstanceState::InGameMenu:
 		const TObjectPtr<AMyGameState> GS = World->GetGameState<AMyGameState>();
 			
 		if(!GS)
 		{
+			const TObjectPtr<AGameState> GSGeneric = World->GetGameState<AGameState>();
 			UE_LOG
 				( LogGameState
 				, Error
-				, TEXT("UStateLib::GetRndUnsafe: %s: GameState null")
+				, TEXT("UStateLib::GetRndUnsafe: %s: AMyGameState null; AGameState: %s")
 				, *Object->GetFullName()
+				, GSGeneric ? *GSGeneric->GetFullName() : TEXT("null")
 				)
 			return FRnd();
 		}
@@ -145,12 +158,19 @@ FRnd UStateLib::GetRndUnsafe(UObject* Object)
 	}
 }
 
-void UStateLib::ModifyPlayerUIUnsafe(const UObject* Object, const std::function<FPlayerUI(FPlayerUI)>& Func)
+void UStateLib::WithPlayerUIUnsafe(const UObject* Object, const TFunctionRef<FPlayerUI(FPlayerUI)> Func)
 {
-	const auto PS = Object->GetWorld()->GetFirstPlayerController()->GetPlayerState<AMyPlayerState>();
+	const TObjectPtr<AMyPlayerState> PS = Object->GetWorld()->GetFirstPlayerController()->GetPlayerState<AMyPlayerState>();
 	if(!PS)
 	{
-		UE_LOG(LogPlayerController, Error, TEXT("%s: PlayerState null"), *Object->GetFullName())
+		const TObjectPtr<APlayerState> PSGeneric = Object->GetWorld()->GetFirstPlayerController()->GetPlayerState<APlayerState>();
+		UE_LOG
+			( LogPlayerController
+			, Error
+			, TEXT("UStateLib::ModifyPlayerUIUnsafe: %s: AMyPlayerState null; APlayerState: %s")
+			, *Object->GetFullName()
+			, PSGeneric ? *PSGeneric->GetFullName() : TEXT("null")
+			)
 		return;
 	}
 	PS->PlayerUI = Func(PS->PlayerUI);

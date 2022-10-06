@@ -28,25 +28,24 @@ void AMyHUDMenu::BeginPlay()
 		return;
 	}
 
-	WidgetMainMenu = CreateWidget<UUserWidget>(PC, WidgetMainMenuClass);
-	WidgetMainMenu->AddToViewport();
+	WidgetMainMenu = CreateWidget(GetWorld(), WidgetMainMenuClass, FName(TEXT("Main Menu")));
+	WidgetMainMenu->AddToViewport(1);
 
 	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnStart")), [GI] (TObjectPtr<UMyCommonButton> Button)
 	{
 		Button->OnClicked().AddLambda([GI] ()
 		{
-			UE_LOG(LogSlate, Warning, TEXT("Debug: BtnStart.OnClicked"))
 			GI->GotoInGame();
 		});
 	});
-	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnFindOnline")), [GI] (TObjectPtr<UMyCommonButton> Button)
+	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnFindOnline")), [this] (TObjectPtr<UMyCommonButton> Button)
 	{
-		Button->OnClicked().AddLambda([GI] () { GI->GotoInMenuServers(); });
+		Button->OnClicked().AddLambda([this] () { ServerListShow(); });
 	});
 	// TODO: set parameter LAN
-	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnFindLAN")), [GI] (TObjectPtr<UMyCommonButton> Button)
+	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnFindLAN")), [this] (TObjectPtr<UMyCommonButton> Button)
 	{
-		Button->OnClicked().AddLambda([GI] () { GI->GotoInMenuServers(); });
+		Button->OnClicked().AddLambda([this] () { ServerListShow(); });
 	});
 	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnQuit")), [GI] (TObjectPtr<UMyCommonButton> Button)
 	{
@@ -61,13 +60,13 @@ void AMyHUDMenu::BeginPlay()
 		return;
 	}
 
-	WidgetServerList = CreateWidget<UUserWidget>(PC, WidgetServerListClass);
+	WidgetServerList = CreateWidget(GetWorld(), WidgetServerListClass, FName(TEXT("Server List")));
 	WidgetServerList->SetVisibility(ESlateVisibility::Collapsed);
-	WidgetServerList->AddToViewport();
+	WidgetServerList->AddToViewport(1);
 	
-	WithWidget<UButton>(WidgetServerList, FName(TEXT("BtnBack")), [GI] (TObjectPtr<UButton> Button)
+	WithWidget<UMyCommonButton>(WidgetServerList, FName(TEXT("BtnBack")), [this] (TObjectPtr<UMyCommonButton> Button)
 	{
-		Button->OnClicked.AddDynamic(GI, &UMyGameInstance::GotoInMenuMain);
+		Button->OnClicked().AddLambda( [this] () { MainMenuShow(); });
 	});
 	// TODO: refresh on clicked
 	// TODO: server list: server row on clicked

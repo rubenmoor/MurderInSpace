@@ -24,9 +24,10 @@ void AMyHUDBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	WidgetHUDBorder = CreateWidget<UWidgetHUDBorder>(GetOwningPlayerController(), WidgetHUDBorderClass);
+	WidgetHUDBorder = CreateWidget<UWidgetHUDBorder>(GetWorld(), WidgetHUDBorderClass, FName(TEXT("HUD Border")));
+	// TODO: proly have to set foreground color
 	WidgetHUDBorder->SetParams(X0, Y0, X1, Y1);
-	WidgetHUDBorder->AddToViewport();
+	WidgetHUDBorder->AddToViewport(-1);
 }
 
 void AMyHUDBase::HideViewportParentWidgets()

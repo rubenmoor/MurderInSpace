@@ -12,6 +12,9 @@ void AMyPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
+	const FInputModeGameOnly InputModeGameOnly;
+	SetInputMode(InputModeGameOnly);
+	
 	InputComponent->BindAxis("MouseWheel", this, &AMyPlayerController::Zoom);
 	InputComponent->BindAction("Accelerate", IE_Pressed, this, &AMyPlayerController::HandleBeginAccelerate);
 	InputComponent->BindAction("Accelerate", IE_Released, this, &AMyPlayerController::HandleEndAccelerate);
@@ -116,7 +119,7 @@ void AMyPlayerController::SetShowAllTrajectories(bool bInShow) const
 {
 	if(GetGameInstance<UMyGameInstance>()->GetInstanceState() == EInstanceState::InGame)
 	{
-		UStateLib::ModifyPlayerUIUnsafe(this, [this, bInShow] (FPlayerUI PlayerUI)
+		UStateLib::WithPlayerUIUnsafe(this, [this, bInShow] (FPlayerUI PlayerUI)
 			{
 				PlayerUI.bShowAllTrajectories = bInShow;
 				for(TObjectIterator<UOrbitComponent> Iter; Iter; ++Iter)
@@ -155,6 +158,8 @@ void AMyPlayerController::BeginPlay()
 	{
 		MyCharacter->UpdateSpringArm(CameraPosition);
 	}
+	FInputModeGameAndUI InputModeGameAndUI;
+	SetInputMode(InputModeGameAndUI);
 }
 
 void AMyPlayerController::Tick(float DeltaSeconds)

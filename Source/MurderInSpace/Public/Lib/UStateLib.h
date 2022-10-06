@@ -125,7 +125,7 @@ public:
 	UFUNCTION(BlueprintPure)
 	static FRnd GetRndUnsafe(UObject* Object);
 
-	static void ModifyPlayerUIUnsafe(const UObject* Object, const std::function<FPlayerUI(FPlayerUI)>& Func);
+	static void WithPlayerUIUnsafe(const UObject* Object, const TFunctionRef<FPlayerUI(FPlayerUI)> Func);
 
 	UFUNCTION(BlueprintCallable)
 	static void SetInstanceState(UMyGameInstance* GI, EInstanceState InNewState);

@@ -4,7 +4,6 @@
 #include "Modes/MyGameInstance.h"
 
 #include "HUD/MyHUD.h"
-#include "HUD/MyHUDMenu.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -20,27 +19,11 @@ void UMyGameInstance::HostGame()
 	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
 }
 
-void UMyGameInstance::GotoInMenuServers()
-{
-	switch(InstanceState)
-	{
-	case EInstanceState::InMenuMain:
-		InstanceState = EInstanceState::InMenuServers;
-		GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>()->ServerListShow();
-		break;
-	default:
-		ErrorWrongState(UEnum::GetValueAsString(EInstanceState::InMenuMain));
-	}
-}
-
 void UMyGameInstance::GotoInMenuMain()
 {
 	UE_LOG(LogSlate, Warning, TEXT("Debug: GotoInMenuMain"))
 	switch(InstanceState)
 	{
-	case EInstanceState::InMenuServers:
-		GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>()->MainMenuShow();
-		break;
 	case EInstanceState::InGame:
 		// TODO: destroy session
 		// TODO: switch level to menu
@@ -48,29 +31,29 @@ void UMyGameInstance::GotoInMenuMain()
 		break;
 	default:
 		ErrorWrongState
-			( UEnum::GetValueAsString(EInstanceState::InMenuServers)
-			+ UEnum::GetValueAsString(EInstanceState::InGame)
+			(  UEnum::GetValueAsString(EInstanceState::InGame)
 			);
 		return;
 	}
-	InstanceState = EInstanceState::InMenuMain;
+	InstanceState = EInstanceState::InMainMenu;
 }
 
 void UMyGameInstance::GotoInGame()
 {
+	const FInputModeGameOnly InputModeGameOnly;
 	switch(InstanceState)
 	{
 	case EInstanceState::InGameMenu:
-		GetPrimaryPlayerController()->GetHUD<AMyHUD>()->InGameMenuHide();
+		const TObjectPtr<APlayerController> PC = GetPrimaryPlayerController();
+		PC->GetHUD<AMyHUD>()->InGameMenuHide();
+		//PC->SetInputMode(InputModeGameOnly);
 		break;
-	case EInstanceState::InMenuMain:
-	case EInstanceState::InMenuServers:
+	case EInstanceState::InMainMenu:
 		UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
 		break;
 	default:
 		ErrorWrongState
-			( UEnum::GetValueAsString(EInstanceState::InMenuMain)
-			+ UEnum::GetValueAsString(EInstanceState::InMenuServers)
+			( UEnum::GetValueAsString(EInstanceState::InMainMenu)
 			+ UEnum::GetValueAsString(EInstanceState::InGameMenu)
 			);
 		return;
@@ -80,10 +63,14 @@ void UMyGameInstance::GotoInGame()
 
 void UMyGameInstance::GotoInGameMenu()
 {
+	const FInputModeUIOnly InputModeUIOnly;
 	switch (InstanceState)
 	{
 	case EInstanceState::InGame:
-		GetPrimaryPlayerController()->GetHUD<AMyHUD>()->InGameMenuShow();
+		const TObjectPtr<APlayerController> PC = GetPrimaryPlayerController();
+		PC->GetHUD<AMyHUD>()->InGameMenuShow();
+		// TODO: seems elegant, but disables my ability to go back to InGame using the same action
+		//PC->SetInputMode(InputModeUIOnly);
 		break;
 	default:
 		ErrorWrongState

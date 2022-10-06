@@ -13,6 +13,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/CanvasPanel.h"
 #include "Components/Overlay.h"
+#include "HUD/MyCommonButton.h"
 
 void AMyHUD::InGameMenuShow()
 {
@@ -54,9 +55,9 @@ void AMyHUD::BeginPlay()
 		return;
 	}
 
-	WidgetHUD = CreateWidget<UUserWidget>(PC.Get(), WidgetHUDClass);
+	WidgetHUD = CreateWidget(GetWorld(), WidgetHUDClass, FName(TEXT("HUD")));
 	WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
-	WidgetHUD->AddToViewport();
+	WidgetHUD->AddToViewport(0);
 	
 	TextVelocitySI        = FindOrFail<UTextBlock  >(WidgetHUD, FName(TEXT("TextVelocitySI"       )));
 	TextVelocityVCircle   = FindOrFail<UTextBlock  >(WidgetHUD, FName(TEXT("TextVelocityVCircle"  )));
@@ -67,15 +68,21 @@ void AMyHUD::BeginPlay()
 	OverlayCenterOfMass   = FindOrFail<UOverlay    >(WidgetHUD, FName(TEXT("OverlayCenterOfMass"  )));
 	ImgPointer            = FindOrFail<UImage      >(WidgetHUD, FName(TEXT("ImgPointer"           )));
 	
-	if(!TextVelocitySI || !TextVelocityVCircle || !TextVelocityDirection || !CanvasCenterOfMass || !OverlayCenterOfMass
-		|| !ImgPointer) {
-			UE_LOG
-				( LogTemp
-				, Error
-				, TEXT("%s: Some widgets could not be found. Disabling Tick.")
-				, *GetFullName()
-				)
-			SetActorTickEnabled(false);
+	if  (  !TextVelocitySI
+		|| !TextVelocityVCircle
+		|| !TextVelocityDirection
+		|| !CanvasCenterOfMass
+		|| !OverlayCenterOfMass
+		|| !ImgPointer
+		)
+	{
+		UE_LOG
+			( LogTemp
+			, Error
+			, TEXT("%s: Some widgets could not be found. Disabling Tick.")
+			, *GetFullName()
+			)
+		SetActorTickEnabled(false);
 	}
 	
 	// set up in-game menu
@@ -85,23 +92,23 @@ void AMyHUD::BeginPlay()
 		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetInGameClass null"), *GetFullName())
 		return;
 	}
-	WidgetMenuInGame = CreateWidget<UUserWidget>(PC.Get(), WidgetMenuInGameClass);
+	WidgetMenuInGame = CreateWidget(GetWorld(), WidgetMenuInGameClass, FName(TEXT("In-Game Menu")));
 	WidgetMenuInGame->SetVisibility(ESlateVisibility::Collapsed);
-	WidgetMenuInGame->AddToViewport();
+	WidgetMenuInGame->AddToViewport(1);
 
-	const UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
+	const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
 	
-	WithWidget<UButton>(WidgetMenuInGame, FName(TEXT("BtnLeave")), [GI] (TObjectPtr<UButton> Button)
+	WithWidget<UMyCommonButton>(WidgetMenuInGame, FName(TEXT("BtnResume")), [GI] (TObjectPtr<UMyCommonButton> Button)
 	{
-		Button->OnClicked.AddDynamic(GI, &UMyGameInstance::GotoInMenuMain);
+		Button->OnClicked().AddLambda([GI] () { GI->GotoInGame(); });
 	});
-	WithWidget<UButton>(WidgetMenuInGame, FName(TEXT("BtnResume")), [GI] (TObjectPtr<UButton> Button)
+	WithWidget<UMyCommonButton>(WidgetMenuInGame, FName(TEXT("BtnLeave")), [GI] (TObjectPtr<UMyCommonButton> Button)
 	{
-		Button->OnClicked.AddDynamic(GI, &UMyGameInstance::GotoInGame);
+		Button->OnClicked().AddLambda([GI] () { GI->GotoInMenuMain(); });
 	});
-	WithWidget<UButton>(WidgetMenuInGame, FName(TEXT("BtnQuit")), [GI] (TObjectPtr<UButton> Button)
+	WithWidget<UMyCommonButton>(WidgetMenuInGame, FName(TEXT("BtnQuit")), [GI] (TObjectPtr<UMyCommonButton> Button)
 	{
-		Button->OnClicked.AddDynamic(GI, &UMyGameInstance::QuitGame);
+		Button->OnClicked().AddLambda([GI] () { GI->QuitGame(); });
 	});
 }
 

@@ -10,7 +10,7 @@ void AMenuGameMode::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	const auto GI = GetGameInstance<UMyGameInstance>();
+	const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
 	if(!GI)
 	{
 		UE_LOG
@@ -21,5 +21,13 @@ void AMenuGameMode::PostInitializeComponents()
 			)
 		return;
 	}
-	UStateLib::SetInstanceState(GI, EInstanceState::InMenuMain);
+	UStateLib::SetInstanceState(GI, EInstanceState::InMainMenu);
+}
+
+void AMenuGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+	const FInputModeUIOnly InputModeUIOnly;
+	const FInputModeGameAndUI InputModeGameAndUI;
+	GetWorld()->GetFirstPlayerController()->SetInputMode(InputModeGameAndUI);
 }
