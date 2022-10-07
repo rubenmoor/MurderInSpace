@@ -3,138 +3,97 @@
 
 #include "Modes/MyGISubsystem.h"
 #include "OnlineSubsystemUtils.h"
-
-UMyGISubsystem::UMyGISubsystem()
-	: OnCreateSessionCompleteDelegate
-		( FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::HandleGISessionCrated) )
-	, OnDestroySessionCompleteDelegate
-		( FOnDestroySessionCompleteDelegate::CreateUObject(this, &ThisClass::HandleGISessionDestroyed) )
-	, OnStartSessionCompleteDelegate
-		( FOnStartSessionCompleteDelegate::CreateUObject(this, &ThisClass::HandleGISessionStarted) )
-{
-}
+#include "OnlineSessionSettings.h"
 
 // TODO: Maybe FOnGISession...
-FOnGISessionCreatedSignature UMyGISubsystem::CreateSession(int NumPublicConnections, bool bIsLanMatch)
+ESIResult UMyGISubsystem::CreateSession(int NumPublicConnections, bool bIsLanMatch, TFunctionRef<void(FName, bool)> Callback)
 {
-	FOnGISessionCreatedSignature OnGISessionCreated;
 	const IOnlineSessionPtr SI = Online::GetSessionInterface(GetWorld());
 	if(!SI.IsValid())
 	{
-		OnGISessionCreated.Execute(false);
+		return ESIResult::NoSessionInterface;
 	}
-	else
+	
+	LastSessionSettings = MakeShareable(new FOnlineSessionSettings());
+	LastSessionSettings->NumPrivateConnections = 0;
+	LastSessionSettings->NumPublicConnections = NumPublicConnections;
+	LastSessionSettings->bAllowInvites = true;
+	LastSessionSettings->bAllowJoinInProgress = true;
+	LastSessionSettings->bAllowJoinViaPresence = true;
+	LastSessionSettings->bAllowJoinViaPresenceFriendsOnly = true;
+	LastSessionSettings->bIsDedicated = false;
+	LastSessionSettings->bUsesPresence = true;
+	LastSessionSettings->bIsLANMatch = bIsLanMatch;
+	LastSessionSettings->bShouldAdvertise = true;
+
+	LastSessionSettings->Set(SETTING_MAPNAME, FString(TEXT("Space Football")), EOnlineDataAdvertisementType::ViaOnlineService);
+
+	const TObjectPtr<ULocalPlayer> LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+	// TODO: what is the cached unique net id logic?
+	if (!SI->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *LastSessionSettings))
 	{
-		LastSessionSettings = MakeShareable(new FOnlineSessionSettings());
-		LastSessionSettings->NumPrivateConnections = 0;
-		LastSessionSettings->NumPublicConnections = NumPublicConnections;
-		LastSessionSettings->bAllowInvites = true;
-		LastSessionSettings->bAllowJoinInProgress = true;
-		LastSessionSettings->bAllowJoinViaPresence = true;
-		LastSessionSettings->bAllowJoinViaPresenceFriendsOnly = true;
-		LastSessionSettings->bIsDedicated = false;
-		LastSessionSettings->bUsesPresence = true;
-		LastSessionSettings->bIsLANMatch = bIsLanMatch;
-		LastSessionSettings->bShouldAdvertise = true;
-
-		LastSessionSettings->Set(SETTING_MAPNAME, TEXT("Space Football"), EOnlineDataAdvertisementType::ViaOnlineService);
-
-		CreateSessionCompleteDelegateHandle = SI->AddOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteDelegate);
-
-		const TObjectPtr<ULocalPlayer> LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-		if (!SI->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *LastSessionSettings))
+		return ESIResult::Failure;
+	}
+	FOnCreateSessionComplete OnCreateSessionComplete;
+	DHCreateSession = OnCreateSessionComplete.AddLambda([this, Callback, &OnCreateSessionComplete] (FName SessionName, bool bSuccess)
+	{
+		if(bSuccess)
 		{
-			SI->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
-
-			OnGISessionCreated.Execute(false);
+			switch(StartSession(Callback))
+			{
+			case ESIResult::NoSessionInterface:
+				UE_LOG(LogNet, Error, TEXT("%s: couldn't get session interface"), *GetFullName())
+				// fall through
+			case ESIResult::Failure:
+				UE_LOG(LogNet, Error, TEXT("%s: couldn't create session"), *GetFullName())
+				Callback(SessionName, false);
+				break;
+			case ESIResult::Success:
+				;
+			}
 		}
-	}
-	return OnGISessionCreated;
-}
-
-void UMyGISubsystem::HandleGISessionCrated(FName SessionName, bool bSuccess)
-{
-	WithSessionInterface([this] (IOnlineSessionPtr SI)
-	{
-		SI->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
+		OnCreateSessionComplete.Remove(DHCreateSession);
 	});
-
-	OnGISessionCreated.Execute(true);
+	return ESIResult::Success;
 }
 
-void UMyGISubsystem::HandleGISessionDestroyed(FName SessionName, bool bSuccess)
-{
-	WithSessionInterface([this] (IOnlineSessionPtr SI)
-	{
-		SI->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegateHandle);
-	});
-	OnGISessionDestroyed.Execute(bSuccess);
-}
-
-void UMyGISubsystem::HandleGISessionStarted(FName SessionName, bool bSuccess)
-{
-	WithSessionInterface( [this] (IOnlineSessionPtr SI)
-	{
-		SI->ClearOnStartSessionCompleteDelegate_Handle(StartSessionCompleteDelegateHandle);
-	});
-	OnGISessionStarted.Execute(bSuccess);
-}
-
-void UMyGISubsystem::DestroySession()
+ESIResult UMyGISubsystem::DestroySession(TFunctionRef<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = Online::GetSessionInterface(GetWorld());
 	if (!SI.IsValid())
 	{
-		OnGISessionDestroyed.Execute(false);
-		return;
+		return ESIResult::NoSessionInterface;
 	}
-
-	DestroySessionCompleteDelegateHandle =
-		SI->AddOnDestroySessionCompleteDelegate_Handle(OnDestroySessionCompleteDelegate);
-
 	if (!SI->DestroySession(NAME_GameSession))
 	{
-		SI->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegateHandle);
-
-		OnGISessionDestroyed.Execute(false);
+		return ESIResult::Failure;
 	}
+	FOnDestroySessionComplete OnDestroySessionComplete;
+	DHDestroySession = OnDestroySessionComplete.AddLambda([this, Callback, &OnDestroySessionComplete] (FName SessionName, bool bSuccess)
+	{
+		Callback(SessionName, bSuccess);
+		OnDestroySessionComplete.Remove(DHDestroySession);
+	});
+	return ESIResult::Success;
 }
 
-void UMyGISubsystem::StartSession()
+ESIResult UMyGISubsystem::StartSession(TFunctionRef<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = Online::GetSessionInterface(GetWorld());
 	if (!SI.IsValid())
 	{
-		OnGISessionStarted.Execute(false);
-		return;
+		return ESIResult::NoSessionInterface;
 	}
-
-	StartSessionCompleteDelegateHandle =
-		SI->AddOnStartSessionCompleteDelegate_Handle(OnStartSessionCompleteDelegate);
-
 	if (!SI->StartSession(NAME_GameSession))
 	{
-		SI->ClearOnStartSessionCompleteDelegate_Handle(StartSessionCompleteDelegateHandle);
-
-		OnGISessionStarted.Execute(false);
+		return ESIResult::Failure;
 	}
-}
-
-void UMyGISubsystem::WithSessionInterface(TFunctionRef<void(IOnlineSessionPtr)> Func) const
-{
-	const IOnlineSessionPtr SI = Online::GetSessionInterface(GetWorld());
-	if(SI.IsValid())
+	FOnStartSessionComplete OnStartSessionComplete;
+	DHStartSession = OnStartSessionComplete.AddLambda([this, Callback, &OnStartSessionComplete] (FName SessionName, bool bSuccess)
 	{
-		Func(SI);
-	}
-	else
-	{
-		UE_LOG
-			( LogSubsystemCollection
-			, Warning
-			, TEXT("%s: session interface not valid")
-			, *GetFullName()
-			)
-	}
+		Callback(SessionName, bSuccess);
+		OnStartSessionComplete.Remove(DHStartSession);
+	});
+	return ESIResult::Success;
 }
 

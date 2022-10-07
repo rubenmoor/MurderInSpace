@@ -11,10 +11,9 @@ enum class EInstanceState : uint8
 {
 	StartUp UMETA(DisplayName="startup"),
 	InMainMenu UMETA(DisplayName="in main menu"),
-	Loading UMETA(DisplayName="loading"),
+	WaitingForSessionCreate UMETA(DisplayName="waiting for session create"),
 	MsgError UMETA(DisplayName="error message"),
 	InGame UMETA(DisplayName="in game"),
-	InGameMenu UMETA(DisplayName="in game menu"),
 	Indeterminate UMETA(DisplayName="status indeterminate")
 };
 
@@ -34,6 +33,12 @@ public:
 	EInstanceState GetInstanceState() { return InstanceState; }
 
 	UFUNCTION(BlueprintCallable)
+	bool GetIsMultiplayer() { return bIsMultiplayer; }
+	
+	UFUNCTION(BlueprintCallable)
+	bool GetShowInGameMenu() { return bShowInGameMenu; }
+	
+	UFUNCTION(BlueprintCallable)
 	void HostGame();
 
 	UFUNCTION(BlueprintCallable)
@@ -46,7 +51,13 @@ public:
 	void GotoInGame();
 
 	UFUNCTION(BlueprintCallable)
-	void GotoInGameMenu();
+	void InGameMenuShow();
+
+	UFUNCTION(BlueprintCallable)
+	void InGameMenuHide();
+
+	UFUNCTION(BlueprintCallable)
+	void GotoWaitingForSessionCreate();
 
 	UFUNCTION(BlueprintCallable)
 	void QuitGame();
@@ -62,6 +73,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EInstanceState InstanceState = EInstanceState::StartUp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bIsMultiplayer;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bShowInGameMenu;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsEnabledLAN;
 	
@@ -69,6 +86,7 @@ protected:
 	int TeamId;
 
 	// private methods
+
 	UFUNCTION(BlueprintCallable)
-	void ErrorWrongState(const FString& InStatesExpected);
+	void ErrorWrongState(const UObject* Object, const FString& InStatesExpected);
 };

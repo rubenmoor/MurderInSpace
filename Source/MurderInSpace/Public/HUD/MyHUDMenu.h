@@ -31,6 +31,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUserWidget> WidgetServerList;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
+	TSubclassOf<UUserWidget> WidgetLoadingScreenClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
+	TObjectPtr<UUserWidget> WidgetLoadingScreen;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
+	TSubclassOf<UUserWidget> WidgetMessageClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
+	TObjectPtr<UUserWidget> WidgetMessage;
+	
 	// event handlers
 
 	virtual void BeginPlay() override;
@@ -42,4 +54,10 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	void MainMenuShow();
+
+	UFUNCTION(BlueprintCallable)
+	void LoadingScreenShow(FText StrMessage);
+
+	void MessageShow(FText StrMessage, TFunctionRef<void()> FuncGoBack);
+	FDelegateHandle DHMessageShowGoBack;
 };

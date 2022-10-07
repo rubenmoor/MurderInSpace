@@ -36,8 +36,8 @@ FPhysics UStateLib::GetPhysicsUnsafe(const UObject* Object)
 	switch(GI->InstanceState)
 	{
 	case EInstanceState::InMainMenu:
+	case EInstanceState::WaitingForSessionCreate:
 	case EInstanceState::InGame:
-	case EInstanceState::InGameMenu:
 		const TObjectPtr<AMyGameState> GS = World->GetGameState<AMyGameState>();
 		if(!GS)
 		{
@@ -53,13 +53,12 @@ FPhysics UStateLib::GetPhysicsUnsafe(const UObject* Object)
 		}
 		return GS->Physics;
 	default:
-		UE_LOG
-			( LogGameState
-			, Error
-			, TEXT("UStateLib::GetPhysicsUnsafe: %s: Instance state: %s, expected InMenu* or InGame*")
-			, *Object->GetFullName()
-			, *UEnum::GetValueAsString(GI->InstanceState)
-			)
+		GI->ErrorWrongState
+			( Object
+			, UEnum::GetValueAsString(EInstanceState::InMainMenu)
+			+ UEnum::GetValueAsString(EInstanceState::WaitingForSessionCreate)
+			+ UEnum::GetValueAsString(EInstanceState::InGame)
+			);
 		return DefaultPhysics;
 	}
 }
@@ -126,7 +125,6 @@ FRnd UStateLib::GetRndUnsafe(UObject* Object)
 	{
 	case EInstanceState::InMainMenu:
 	case EInstanceState::InGame:
-	case EInstanceState::InGameMenu:
 		const TObjectPtr<AMyGameState> GS = World->GetGameState<AMyGameState>();
 			
 		if(!GS)

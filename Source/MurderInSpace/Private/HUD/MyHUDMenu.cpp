@@ -63,7 +63,7 @@ void AMyHUDMenu::BeginPlay()
 	
 	if(!WidgetServerListClass)
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetServerList null"), *GetFullName())
+		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetServerListClass null"), *GetFullName())
 		return;
 	}
 
@@ -77,6 +77,24 @@ void AMyHUDMenu::BeginPlay()
 	});
 	// TODO: refresh on clicked
 	// TODO: server list: server row on clicked
+
+	if(!WidgetLoadingScreenClass)
+	{
+		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetLoadingScreenClass null"), *GetFullName())
+		return;
+	}
+	WidgetLoadingScreen = CreateWidget(GetWorld(), WidgetLoadingScreenClass, FName(TEXT("Loading Screen")));
+	WidgetLoadingScreen->SetVisibility(ESlateVisibility::Collapsed);
+	WidgetLoadingScreen->AddToViewport(1);
+
+	if(!WidgetMessageClass)
+	{
+		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetMessageClass null"), *GetFullName())
+		return;
+	}
+	WidgetMessage = CreateWidget(GetWorld(), WidgetMessageClass, FName(TEXT("Message")));
+	WidgetMessage->SetVisibility(ESlateVisibility::Collapsed);
+	WidgetMessage->AddToViewport(1);
 }
 
 void AMyHUDMenu::ServerListShow()
@@ -89,4 +107,32 @@ void AMyHUDMenu::MainMenuShow()
 {
 	HideViewportParentWidgets();
 	WidgetMainMenu->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AMyHUDMenu::LoadingScreenShow(FText StrMessage)
+{
+	HideViewportParentWidgets();
+	WithWidget<UCommonTextBlock>(WidgetLoadingScreen, FName(TEXT("TextMessage")), [&StrMessage] (TObjectPtr<UCommonTextBlock> TextMessage)
+	{
+		TextMessage->SetText(StrMessage);
+	});
+	WidgetLoadingScreen->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AMyHUDMenu::MessageShow(FText StrMessage, TFunctionRef<void()> FuncGoBack)
+{
+	HideViewportParentWidgets();
+	WithWidget<UCommonTextBlock>(WidgetMessage, FName(TEXT("TextMessage")), [&StrMessage] (TObjectPtr<UCommonTextBlock> TextMessage)
+	{
+		TextMessage->SetText(StrMessage);
+	});
+	WithWidget<UMyCommonButton>(WidgetMessage, FName(TEXT("BtnBack")), [this, FuncGoBack] (TObjectPtr<UMyCommonButton> Button)
+	{
+		DHMessageShowGoBack = Button->OnClicked().AddLambda([this, FuncGoBack, Button] ()
+		{
+			FuncGoBack();
+			Button->OnClicked().Remove(DHMessageShowGoBack);
+		});
+	});
+	WidgetMessage->SetVisibility(ESlateVisibility::Visible);
 }

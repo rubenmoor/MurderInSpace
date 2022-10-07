@@ -102,13 +102,17 @@ void AMyPlayerController::HandleEscape()
 	switch(const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>(); GI->GetInstanceState())
 	{
 	case EInstanceState::InGame:
-		GI->GotoInGameMenu();
-		CurrentMouseCursor = EMouseCursor::Default;
-		break;
-	case EInstanceState::InGameMenu:
-		GI->GotoInGame();
-		CurrentMouseCursor = EMouseCursor::Crosshairs;
-		break;
+		if(GI->GetShowInGameMenu())
+		{
+			GI->InGameMenuHide();
+			CurrentMouseCursor = EMouseCursor::Crosshairs;
+		}
+		else
+		{
+			GI->InGameMenuShow();
+			CurrentMouseCursor = EMouseCursor::Default;
+			break;
+		}
 	default:
 		// nothing to do here
 		break;

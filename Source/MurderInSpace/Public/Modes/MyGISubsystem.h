@@ -7,9 +7,13 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "MyGISubsystem.generated.h"
 
-DECLARE_DELEGATE_OneParam(FOnGISessionCreatedSignature, bool /* bSuccess */);
-DECLARE_DELEGATE_OneParam(FOnGISessionDestroyedSignature, bool /* bSuccess */);
-DECLARE_DELEGATE_OneParam(FOnGISessionStartedSignature, bool /* bSuccess */);
+UENUM(BlueprintType)
+enum class ESIResult : uint8
+{
+	Success UMETA(DisplayName="success"),
+	NoSessionInterface UMETA(DisplayName="no session interface"),
+	Failure UMETA(DisplayName="failure")
+};
 
 /**
  * 
@@ -20,35 +24,13 @@ class MURDERINSPACE_API UMyGISubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
-	UMyGISubsystem();
+	ESIResult CreateSession(int NumPublicConnections, bool bIsLanMatch, TFunctionRef<void(FName, bool)> Callback);
+	ESIResult DestroySession(TFunctionRef<void(FName, bool)> Callback);
+	ESIResult StartSession(TFunctionRef<void(FName, bool)>);
 
-	FOnGISessionCreatedSignature CreateSession(int NumPublicConnections, bool bIsLanMatch);
-	
-	FOnGISessionDestroyedSignature DestroySession();
-
-	FOnGISessionStartedSignature StartSession();
-
-protected:
-	UFUNCTION()
-	void HandleGISessionCrated(FName SessionName, bool bSuccess);
-
-	UFUNCTION()
-	void HandleGISessionDestroyed(FName SessionName, bool bSuccess);
-	
-	UFUNCTION()
-	void HandleGISessionStarted(FName SessionName, bool bSuccess);
-	
 private:
 	TSharedPtr<FOnlineSessionSettings> LastSessionSettings;
-	
-	FOnCreateSessionCompleteDelegate OnCreateSessionCompleteDelegate;
-	FDelegateHandle CreateSessionCompleteDelegateHandle;
-
-	FOnDestroySessionCompleteDelegate OnDestroySessionCompleteDelegate;
-	FDelegateHandle DestroySessionCompleteDelegateHandle;
-
-	FOnStartSessionCompleteDelegate OnStartSessionCompleteDelegate;
-	FDelegateHandle StartSessionCompleteDelegateHandle;
-	
-	void WithSessionInterface(TFunctionRef<void(IOnlineSessionPtr)> Func) const;
+	FDelegateHandle DHCreateSession;
+	FDelegateHandle DHDestroySession;
+	FDelegateHandle DHStartSession;
 };

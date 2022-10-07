@@ -7,8 +7,6 @@
 #include "HUD/WidgetHUDBorder.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 
-#define LOCTEXT_NAMESPACE "mynamespace"
-
 AMyHUDBase::AMyHUDBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -43,5 +41,3 @@ void AMyHUDBase::HideViewportParentWidgets()
 	}
 	
 }
-
-#undef LOCTEXT_NAMESPACE

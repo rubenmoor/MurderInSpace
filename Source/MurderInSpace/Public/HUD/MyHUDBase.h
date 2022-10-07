@@ -86,13 +86,17 @@ protected:
 		{
 			UE_LOG(LogSlate, Error, TEXT("%s: WithWidget: InParent invalid"), *GetFullName())
 		}
-		else if(TObjectPtr<WidgetT> Widget = InParent->WidgetTree->FindWidget<WidgetT>(Name))
-		{
-			Func(Widget);
-		}
 		else
 		{
-			UE_LOG(LogSlate, Error, TEXT("%s: WithWidget: Couldn't find %s"), *GetFullName(), *Name.ToString())
+			TObjectPtr<WidgetT> Widget = InParent->WidgetTree->FindWidget<WidgetT>(Name);
+			if(IsValid(Widget))
+            {
+            	Func(Widget);
+            }
+            else
+            {
+            	UE_LOG(LogSlate, Error, TEXT("%s: WithWidget: Couldn't find %s"), *GetFullName(), *Name.ToString())
+            }
 		}
 	}
 	
