@@ -38,6 +38,13 @@ void AMyHUDMenu::BeginPlay()
 			GI->GotoInGame();
 		});
 	});
+	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnHost")), [GI] (TObjectPtr<UMyCommonButton> Button)
+	{
+		Button->OnClicked().AddLambda([GI] ()
+		{
+			GI->HostGame();
+		});
+	});
 	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnFindOnline")), [this] (TObjectPtr<UMyCommonButton> Button)
 	{
 		Button->OnClicked().AddLambda([this] () { ServerListShow(); });

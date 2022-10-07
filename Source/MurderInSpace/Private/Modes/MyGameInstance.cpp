@@ -6,6 +6,7 @@
 #include "HUD/MyHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Modes/MyGISubsystem.h"
 
 UMyGameInstance::UMyGameInstance()
 {
@@ -16,7 +17,14 @@ UMyGameInstance::UMyGameInstance()
 
 void UMyGameInstance::HostGame()
 {
+	// try create session
+	// TODO: configure session
+	const TObjectPtr<UMyGISubsystem> GISub = GetWorld()->GetGameInstance()->GetSubsystem<UMyGISubsystem>();
+	GISub->CreateSession(4, true);
+	// register handler
+	// success: open level
 	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
+	// failure: back to main menu with error message
 }
 
 void UMyGameInstance::GotoInMenuMain()
