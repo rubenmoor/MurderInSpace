@@ -3,8 +3,13 @@
 
 #include "HUD/MyHUDMenu.h"
 
+#include "OnlineSessionSettings.h"
+#include "Components/ScrollBox.h"
 #include "HUD/MyCommonButton.h"
 #include "Modes/MyGameInstance.h"
+#include "Modes/MyGISubsystem.h"
+
+#define LOCTEXT_NAMESPACE "Menu"
 
 void AMyHUDMenu::BeginPlay()
 {
@@ -42,7 +47,14 @@ void AMyHUDMenu::BeginPlay()
 	{
 		Button->OnClicked().AddLambda([GI] ()
 		{
-			GI->HostGame();
+			// TODO: get value for session config from menu in the UI
+			const FSessionConfig SessionConfig =
+				{TEXT("My awesome session")
+				, 4
+				, false
+				, true
+				};
+			GI->HostGame(SessionConfig);
 		});
 	});
 	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnFindOnline")), [this] (TObjectPtr<UMyCommonButton> Button)
@@ -70,7 +82,7 @@ void AMyHUDMenu::BeginPlay()
 	WidgetServerList = CreateWidget(GetWorld(), WidgetServerListClass, FName(TEXT("Server List")));
 	WidgetServerList->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetServerList->AddToViewport(1);
-	
+
 	WithWidget<UMyCommonButton>(WidgetServerList, FName(TEXT("BtnBack")), [this] (TObjectPtr<UMyCommonButton> Button)
 	{
 		Button->OnClicked().AddLambda( [this] () { MainMenuShow(); });
@@ -101,6 +113,60 @@ void AMyHUDMenu::ServerListShow()
 {
 	HideViewportParentWidgets();
 	WidgetServerList->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AMyHUDMenu::ServerListRefresh(TArray<FOnlineSessionSearchResult> Results)
+{
+	WithWidget<UScrollBox>(WidgetServerList, FName(TEXT("ScrollServers")), [this, Results] (TObjectPtr<UScrollBox> ScrollServers)
+	{
+		for(const FOnlineSessionSearchResult& Result : Results)
+		{
+			auto Row = CreateWidget(GetWorld(), WidgetServerRowClass);
+			
+			WithWidget<UCommonTextBlock>(Row, FName(TEXT("TextPing")), [Result] (TObjectPtr<UCommonTextBlock> TextPing)
+			{
+				TextPing->SetText(FText::Format(LOCTEXT("ping", "%d"), Result.PingInMs));
+			});
+			WithWidget<UCommonTextBlock>(Row, FName(TEXT("TextServerName")), [Result] (TObjectPtr<UCommonTextBlock> TextServerName)
+			{
+				FString CustomName;
+				Result.Session.SessionSettings.Get(SETTING_CUSTOMNAME, CustomName);
+				TextServerName->SetText(FText::FromString(CustomName));
+			});
+			WithWidget<UCommonTextBlock>(Row, FName(TEXT("TextPlayerCount")), [this, Result] (TObjectPtr<UCommonTextBlock> TextPlayerCount)
+			{
+				const int NumOpenPrivateConnections = Result.Session.NumOpenPrivateConnections;
+				const int NumPrivateConnections = Result.Session.SessionSettings.NumPrivateConnections;
+				const int NumOpenPublicConnections = Result.Session.NumOpenPublicConnections;
+				const int NumPublicConnections = Result.Session.SessionSettings.NumPublicConnections;
+				int NumMaxPlayers = 0;
+				int NumPlayers = 0;
+				if(NumPrivateConnections == 0)
+				{
+					// public session
+					NumMaxPlayers = NumPublicConnections;
+					NumPlayers = NumMaxPlayers - NumOpenPublicConnections;
+				}
+				else if(NumPublicConnections == 0)
+				{
+					// private session
+					NumMaxPlayers = NumPrivateConnections;
+					NumPlayers = NumMaxPlayers - NumOpenPrivateConnections;
+				}
+				else
+				{
+					UE_LOG
+						( LogNet
+						, Error
+						, TEXT("%s: couldn't determine whether session is private or public")
+						, *GetFullName()
+						)
+				}
+				TextPlayerCount->SetText(FText::Format(LOCTEXT("Playercount", "%d / %d"), NumPlayers, NumMaxPlayers));
+			});
+			ScrollServers->AddChild(Row);
+		}
+	});
 }
 
 void AMyHUDMenu::MainMenuShow()
@@ -136,3 +202,4 @@ void AMyHUDMenu::MessageShow(FText StrMessage, TFunctionRef<void()> FuncGoBack)
 	});
 	WidgetMessage->SetVisibility(ESlateVisibility::Visible);
 }
+# undef LOCTEXT_NAMESPACE

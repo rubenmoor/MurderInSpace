@@ -7,7 +7,6 @@
 #include "Lib/UStateLib.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Actors/CharacterInSpace.h"
-#include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/CanvasPanelSlot.h"

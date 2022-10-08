@@ -27,7 +27,9 @@ protected:
 	
 	virtual void BeginPlay() override;
 
+	#if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+	#endif
 	
 	// private members
 

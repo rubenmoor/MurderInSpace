@@ -19,12 +19,14 @@ class MURDERINSPACE_API AMyHUDMenu : public AMyHUDBase
 	friend class UMyGameInstance;
 protected:
 
+	// main menu
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUserWidget> WidgetMainMenuClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUserWidget> WidgetMainMenu;
-	
+
+	// server list
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUserWidget> WidgetServerListClass;
 
@@ -32,11 +34,16 @@ protected:
 	TObjectPtr<UUserWidget> WidgetServerList;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
+	TSubclassOf<UUserWidget> WidgetServerRowClass;
+
+	// loading screen
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUserWidget> WidgetLoadingScreenClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUserWidget> WidgetLoadingScreen;
-	
+
+	// message
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUserWidget> WidgetMessageClass;
 
@@ -51,6 +58,8 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	void ServerListShow();
+
+	void ServerListRefresh(TArray<FOnlineSessionSearchResult> Results);
 	
 	UFUNCTION(BlueprintCallable)
 	void MainMenuShow();

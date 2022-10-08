@@ -18,6 +18,7 @@ void AMyGameState::BeginPlay()
 	UpdateAllOrbits();
 }
 
+#if WITH_EDITOR
 void AMyGameState::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
@@ -32,6 +33,7 @@ void AMyGameState::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prope
 		UpdateAllOrbits();
 	}
 }
+#endif
 
 void AMyGameState::UpdateAllOrbits() const
 {

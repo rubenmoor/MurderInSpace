@@ -18,14 +18,13 @@ UMyGameInstance::UMyGameInstance()
 	// Random.GenerateNewSeed();
 }
 
-void UMyGameInstance::HostGame()
+void UMyGameInstance::HostGame(const FSessionConfig& SessionConfig)
 {
 	// TODO: configure session
 	const TObjectPtr<UMyGISubsystem> GISub = GetSubsystem<UMyGISubsystem>();
 	// ReSharper disable once CppTooWideScope
-	const ESIResult Result = GISub->CreateSession
-		(4
-		, true
+	const bool bSuccess = GISub->CreateSession
+		( SessionConfig
 		, [this] (FName SessionName, bool bSuccess)
 		{
 			switch(InstanceState)
@@ -33,6 +32,7 @@ void UMyGameInstance::HostGame()
 			case EInstanceState::WaitingForSessionCreate:
 				if(bSuccess)
 				{
+					bIsMultiplayer = true;
 					GotoInGame();
 				}
 				else
@@ -52,24 +52,17 @@ void UMyGameInstance::HostGame()
 		});
 	
 	const TObjectPtr<AMyHUDMenu> HUDMenu = GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>();
-	switch(Result)
+	if(bSuccess)
 	{
-	case ESIResult::Failure:
+		GotoWaitingForSessionCreate();
+	}
+	else
+	{
 		HUDMenu->MessageShow(LOCTEXT
 			( "CreateSessionReturnedFailure", "call to create session returned failure" )
 			, [HUDMenu] () { HUDMenu->MainMenuShow(); }
 			);
 		UE_LOG(LogNet, Error, TEXT("%s: couldn't create session"), *GetFullName())
-		break;
-	case ESIResult::NoSessionInterface:
-		HUDMenu->MessageShow(LOCTEXT
-			( "CouldntGetSessionInterface", "couldn't get session interface" )
-			, [HUDMenu] () { HUDMenu->MainMenuShow(); }
-			);
-		UE_LOG(LogNet, Error, TEXT("%s: couldn't get session interface"), *GetFullName())
-		break;
-	case ESIResult::Success:
-		GotoWaitingForSessionCreate();
 	}
 }
 
@@ -78,6 +71,10 @@ void UMyGameInstance::GotoInMenuMain()
 	UE_LOG(LogSlate, Warning, TEXT("Debug: GotoInMenuMain"))
 	switch(InstanceState)
 	{
+	case EInstanceState::WaitingForSessionCreate:
+		// try to destroy the session, in case it has been created; but fail silently otherwise
+		GetSubsystem<UMyGISubsystem>()->DestroySession([] (FName, bool) {});
+		GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>()->MainMenuShow();
 	case EInstanceState::InGame:
 		if(bIsMultiplayer)
 		{
@@ -155,6 +152,7 @@ void UMyGameInstance::GotoWaitingForSessionCreate()
 {
 	switch(InstanceState)
 	{
+	case EInstanceState::WaitingForSessionCreate:
 	case EInstanceState::InMainMenu:
 		const TObjectPtr<APlayerController> PC = GetPrimaryPlayerController();
 		PC->GetHUD<AMyHUDMenu>()->LoadingScreenShow(LOCTEXT("CreatingSession...", "creating session ..."));
@@ -169,6 +167,15 @@ void UMyGameInstance::GotoWaitingForSessionCreate()
 
 void UMyGameInstance::JoinGame()
 {
+}
+
+void UMyGameInstance::FindGames()
+{
+	const TObjectPtr<UMyGISubsystem> GISub = GetSubsystem<UMyGISubsystem>();
+	GISub->FindSessions([] (FName SessionName, bool bSuccess)
+	{
+		
+	});
 }
 
 void UMyGameInstance::QuitGame()

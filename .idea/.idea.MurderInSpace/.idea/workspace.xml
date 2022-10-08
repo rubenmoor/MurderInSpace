@@ -9,19 +9,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Content/Menu/UMG_LoadingScreen.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Menu/UMG_Message.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/HUD/BP_MyHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/BP_MyHUD.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Menu/BP_HUDMenu.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/BP_HUDMenu.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDBase.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDBase.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Menu/UW_ServerRow.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/UW_ServerRow.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MurderInSpace.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/MurderInSpace.uproject" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDMenu.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDMenu.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Lib/UStateLib.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Lib/UStateLib.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGISubsystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGISubsystem.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameState.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameState.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDBase.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDBase.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/GyrationComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/GyrationComponent.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDMenu.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDMenu.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGISubsystem.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGISubsystem.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameInstance.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameInstance.h" afterDir="false" />
@@ -58,28 +56,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;XThreadsFramesViewSplitterKey&quot;: &quot;0.43010753&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;advanced.settings&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "XThreadsFramesViewSplitterKey": "0.8782435",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "advanced.settings",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;rider.external.source.directories&quot;: [
-      &quot;C:\\Users\\rubm\\AppData\\Roaming\\JetBrains\\Rider2022.3\\resharper-host\\DecompilerCache&quot;,
-      &quot;C:\\Users\\rubm\\AppData\\Roaming\\JetBrains\\Rider2022.3\\resharper-host\\SourcesCache&quot;,
-      &quot;C:\\Users\\rubm\\AppData\\Local\\Symbols\\src&quot;
+  "keyToStringList": {
+    "rider.external.source.directories": [
+      "C:\\Users\\rubm\\AppData\\Roaming\\JetBrains\\Rider2022.3\\resharper-host\\DecompilerCache",
+      "C:\\Users\\rubm\\AppData\\Roaming\\JetBrains\\Rider2022.3\\resharper-host\\SourcesCache",
+      "C:\\Users\\rubm\\AppData\\Local\\Symbols\\src"
     ]
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="C++ Project.MurderInSpace">
     <configuration name="MurderInSpace" type="CppProject" factoryName="C++ Project">
       <configuration_1>
@@ -258,7 +256,8 @@
       <workItem from="1665005546997" duration="935000" />
       <workItem from="1665006729825" duration="194000" />
       <workItem from="1665056014781" duration="27912000" />
-      <workItem from="1665144511927" duration="13167000" />
+      <workItem from="1665144511927" duration="13352000" />
+      <workItem from="1665169602746" duration="14476000" />
     </task>
     <servers />
   </component>

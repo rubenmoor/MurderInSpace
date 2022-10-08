@@ -37,12 +37,18 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	bool GetShowInGameMenu() { return bShowInGameMenu; }
+
+	UFUNCTION(BlueprintCallable)
+	bool GetIsEnabledLAN() { return bIsEnabledLAN; }
 	
 	UFUNCTION(BlueprintCallable)
-	void HostGame();
+	void HostGame(const FSessionConfig& SessionConfig);
 
 	UFUNCTION(BlueprintCallable)
 	void JoinGame();
+
+	UFUNCTION(BlueprintCallable)
+	void FindGames();
 
 	UFUNCTION(BlueprintCallable)
 	void GotoInMenuMain();

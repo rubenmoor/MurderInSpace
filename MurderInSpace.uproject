@@ -51,6 +51,10 @@
 		{
 			"Name": "AssetSearch",
 			"Enabled": true
+		},
+		{
+			"Name": "OnlineSubsystemEOS",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

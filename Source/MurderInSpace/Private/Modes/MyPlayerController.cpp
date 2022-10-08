@@ -111,11 +111,14 @@ void AMyPlayerController::HandleEscape()
 		{
 			GI->InGameMenuShow();
 			CurrentMouseCursor = EMouseCursor::Default;
-			break;
 		}
+		break;
+	case EInstanceState::WaitingForSessionCreate:
+		GI->GotoInMenuMain();
+		break;
 	default:
 		// nothing to do here
-		break;
+		;
 	}
 }
 
