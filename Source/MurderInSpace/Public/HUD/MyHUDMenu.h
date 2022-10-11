@@ -7,7 +7,14 @@
 
 #include "MyHUDMenu.generated.h"
 
-class UButton;
+class UUW_HostGame;
+class UUW_Message;
+class UUW_LoadingScreen;
+class UUW_MenuMain;
+class UUW_MenuSolo;
+class UUW_MenuMultiPlayer;
+class UUW_ServerList;
+
 /**
  * 
  */
@@ -21,52 +28,85 @@ protected:
 
 	// main menu
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> WidgetMainMenuClass;
+	TSubclassOf<UUserWidget> WidgetMenuMainClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
-	TObjectPtr<UUserWidget> WidgetMainMenu;
+	TObjectPtr<UUW_MenuMain> WidgetMenuMain;
+
+	// play solo menu
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
+	TSubclassOf<UUserWidget> WidgetMenuSoloClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
+	TObjectPtr<UUW_MenuSolo> WidgetMenuSolo;
+	
+	// multiplayer menu
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
+	TSubclassOf<UUserWidget> WidgetMenuMultiplayerClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
+	TObjectPtr<UUW_MenuMultiPlayer> WidgetMenuMultiplayer;
 
 	// server list
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUserWidget> WidgetServerListClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
-	TObjectPtr<UUserWidget> WidgetServerList;
+	TObjectPtr<UUW_ServerList> WidgetServerList;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUserWidget> WidgetServerRowClass;
+
+	// host game session config
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
+	TSubclassOf<UUserWidget> WidgetHostGameClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
+	TObjectPtr<UUW_HostGame> WidgetHostGame;
+	
 
 	// loading screen
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUserWidget> WidgetLoadingScreenClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
-	TObjectPtr<UUserWidget> WidgetLoadingScreen;
+	TObjectPtr<UUW_LoadingScreen> WidgetLoadingScreen;
 
 	// message
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUserWidget> WidgetMessageClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
-	TObjectPtr<UUserWidget> WidgetMessage;
+	TObjectPtr<UUW_Message> WidgetMessage;
 	
 	// event handlers
 
 	virtual void BeginPlay() override;
 
-	// private methods
+public:
+	// public methods
 	
+	UFUNCTION(BlueprintCallable)
+	void MenuMainShow();
+
+	UFUNCTION(BlueprintCallable)
+	void MenuSoloShow();
+
+	UFUNCTION(BlueprintCallable)
+	void MenuMultiplayerShow();
+
 	UFUNCTION(BlueprintCallable)
 	void ServerListShow();
 
-	void ServerListRefresh(TArray<FOnlineSessionSearchResult> Results);
+	UFUNCTION(BlueprintCallable)
+	void HostGameShow();
+
+	void MessageShow(const FText& StrMessage, TFunctionRef<void()> FuncGoBack);
 	
+	// update the server list in the HUD
+	// to be called when a session search has returned new results
 	UFUNCTION(BlueprintCallable)
-	void MainMenuShow();
-
-	UFUNCTION(BlueprintCallable)
-	void LoadingScreenShow(FText StrMessage);
-
-	void MessageShow(FText StrMessage, TFunctionRef<void()> FuncGoBack);
-	FDelegateHandle DHMessageShowGoBack;
+	void ServerListUpdate();
+	
+	void LoadingScreenShow(const FText& StrMessage, TFunctionRef<void()> GobackFunc);
 };

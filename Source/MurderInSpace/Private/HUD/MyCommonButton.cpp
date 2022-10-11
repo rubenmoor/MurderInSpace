@@ -3,6 +3,22 @@
 
 #include "HUD/MyCommonButton.h"
 
+UMyCommonButton::UMyCommonButton()
+{
+	OnFocusReceived().AddLambda([this] ()
+	{
+		PlayAnimation(CaretRotation, 0, 0);
+	});
+	// OnHovered().AddLambda([this] ()
+	// {
+	// 	SetFocus();
+	// });
+	// OnUnhovered().AddLambda([this] ()
+	// {
+	// 	
+	// });
+}
+
 void UMyCommonButton::NativeOnCurrentTextStyleChanged()
 {
 	Super::NativeOnCurrentTextStyleChanged();
@@ -23,4 +39,11 @@ void UMyCommonButton::SynchronizeProperties()
 		return;
 	}
 	TextBlockLabel->SetText(Label);
+}
+
+void UMyCommonButton::NativeOnFocusLost(const FFocusEvent& InFocusEvent)
+{
+	Super::NativeOnFocusLost(InFocusEvent);
+	UE_LOG(LogSlate, Warning, TEXT("focus lost"))
+	StopAnimation(CaretRotation);
 }

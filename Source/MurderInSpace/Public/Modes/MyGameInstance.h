@@ -17,6 +17,38 @@ enum class EInstanceState : uint8
 	Indeterminate UMETA(DisplayName="status indeterminate")
 };
 
+UENUM(BlueprintType)
+enum class EGameMode : uint8
+{
+	EveryManForHimself UMETA(DisplayName="every man for himself"),
+	Teams UMETA(DisplayName="teams"),
+	Coop UMETA(DisplayName="coop"),
+};
+
+/*
+ * minimal session setup information
+ */
+USTRUCT(BlueprintType)
+struct FHostSessionConfig
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FString CustomName;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 NumMaxPlayers;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bPrivate;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bEnableLAN;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	EGameMode GameMode;
+};
+
 /**
  * 
  */
@@ -39,17 +71,14 @@ public:
 	bool GetShowInGameMenu() { return bShowInGameMenu; }
 
 	UFUNCTION(BlueprintCallable)
-	bool GetIsEnabledLAN() { return bIsEnabledLAN; }
-	
-	UFUNCTION(BlueprintCallable)
-	void HostGame(const FSessionConfig& SessionConfig);
+	void HostGame();
 
 	UFUNCTION(BlueprintCallable)
 	void JoinGame();
 
 	UFUNCTION(BlueprintCallable)
-	void FindGames();
-
+	void ServerListRefresh();
+	
 	UFUNCTION(BlueprintCallable)
 	void GotoInMenuMain();
 
@@ -67,7 +96,14 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void QuitGame();
-	
+
+	FHostSessionConfig SessionConfig =
+		{ ""
+		, 4
+		, false
+		, false
+		, EGameMode::EveryManForHimself
+		};
 protected:
 	// event handlers
 
@@ -85,9 +121,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bShowInGameMenu;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bIsEnabledLAN;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int TeamId;
 

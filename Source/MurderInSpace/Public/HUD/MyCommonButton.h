@@ -15,14 +15,19 @@ class MURDERINSPACE_API UMyCommonButton : public UCommonButtonBase
 {
 	GENERATED_BODY()
 
+	UMyCommonButton();
 protected:
 	UPROPERTY(EditAnywhere)
 	FText Label;
 	
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
-	UCommonTextBlock* TextBlockLabel = nullptr;
+	TObjectPtr<UCommonTextBlock> TextBlockLabel = nullptr;
+
+	UPROPERTY(Transient, meta=(BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> CaretRotation;
 	
 	// event handlers
 	virtual void NativeOnCurrentTextStyleChanged() override;
 	virtual void SynchronizeProperties() override;
+	virtual void NativeOnFocusLost(const FFocusEvent& InFocusEvent) override;
 };

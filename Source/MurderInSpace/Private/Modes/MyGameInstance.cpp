@@ -7,20 +7,20 @@
 #include "HUD/MyHUDMenu.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Lib/FunctionLib.h"
+#include "Menu/UW_ServerList.h"
 #include "Modes/MyGISubsystem.h"
 
 #define LOCTEXT_NAMESPACE "Menu"
 
 UMyGameInstance::UMyGameInstance()
 {
-	// I want random numbers to be the same acros multiplayer clients
+	// I want random numbers to be the same across multiplayer clients
 	// So the game instance can't create a seed --> maybe generate rnd elsewhere entirely
-	// Random.GenerateNewSeed();
 }
 
-void UMyGameInstance::HostGame(const FSessionConfig& SessionConfig)
+void UMyGameInstance::HostGame()
 {
-	// TODO: configure session
 	const TObjectPtr<UMyGISubsystem> GISub = GetSubsystem<UMyGISubsystem>();
 	// ReSharper disable once CppTooWideScope
 	const bool bSuccess = GISub->CreateSession
@@ -60,7 +60,7 @@ void UMyGameInstance::HostGame(const FSessionConfig& SessionConfig)
 	{
 		HUDMenu->MessageShow(LOCTEXT
 			( "CreateSessionReturnedFailure", "call to create session returned failure" )
-			, [HUDMenu] () { HUDMenu->MainMenuShow(); }
+			, [HUDMenu] () { HUDMenu->MenuMainShow(); }
 			);
 		UE_LOG(LogNet, Error, TEXT("%s: couldn't create session"), *GetFullName())
 	}
@@ -74,7 +74,7 @@ void UMyGameInstance::GotoInMenuMain()
 	case EInstanceState::WaitingForSessionCreate:
 		// try to destroy the session, in case it has been created; but fail silently otherwise
 		GetSubsystem<UMyGISubsystem>()->DestroySession([] (FName, bool) {});
-		GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>()->MainMenuShow();
+		GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>()->MenuMainShow();
 	case EInstanceState::InGame:
 		if(bIsMultiplayer)
 		{
@@ -133,8 +133,6 @@ void UMyGameInstance::InGameMenuShow()
 	if(!bShowInGameMenu)
 	{
 		GetPrimaryPlayerController()->GetHUD<AMyHUD>()->InGameMenuShow();
-		// TODO: seems elegant, but disables my ability to go back to InGame using the same action
-		//PC->SetInputMode(InputModeUIOnly);
 	}
 	bShowInGameMenu = true;
 }
@@ -154,12 +152,27 @@ void UMyGameInstance::GotoWaitingForSessionCreate()
 	{
 	case EInstanceState::WaitingForSessionCreate:
 	case EInstanceState::InMainMenu:
-		const TObjectPtr<APlayerController> PC = GetPrimaryPlayerController();
-		PC->GetHUD<AMyHUDMenu>()->LoadingScreenShow(LOCTEXT("CreatingSession...", "creating session ..."));
+		const TObjectPtr<AMyHUDMenu> HUDMenu = GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>();
+		if(bIsMultiplayer)
+		{
+			HUDMenu->LoadingScreenShow
+				( SessionConfig.bEnableLAN
+					? LOCTEXT("CreatingLANSession...", "creating LAN session ...")
+					: LOCTEXT("CreatingOnlineSession", "creating online session ...")
+				, [HUDMenu] () { HUDMenu->MenuMultiplayerShow(); }
+				);
+		}
+		else
+		{
+			HUDMenu->LoadingScreenShow
+				( LOCTEXT("StartingGame...", "starting game ...")
+				, [HUDMenu] () { HUDMenu->MenuSoloShow(); }
+				);
+		}
 		break;
 	default:
 		ErrorWrongState
-			( this, UEnum::GetValueAsString(EInstanceState::InMainMenu));
+			( this, UEnum::GetValueAsString(EInstanceState::WaitingForSessionCreate));
 		return;
 	}
 	InstanceState = EInstanceState::WaitingForSessionCreate;
@@ -169,12 +182,26 @@ void UMyGameInstance::JoinGame()
 {
 }
 
-void UMyGameInstance::FindGames()
+void UMyGameInstance::ServerListRefresh()
 {
-	const TObjectPtr<UMyGISubsystem> GISub = GetSubsystem<UMyGISubsystem>();
-	GISub->FindSessions([] (FName SessionName, bool bSuccess)
+	// TODO: why isn't the unique net id valid?
+	const TObjectPtr<AMyHUDMenu> HUDMenu = GetPrimaryPlayerController(false)->GetHUD<AMyHUDMenu>();
+	HUDMenu->WidgetServerList->SetStatusMessage(LOCTEXT("SearchingSessions", "Searching for sessions ..."));
+	HUDMenu->WidgetServerList->SetBtnRefreshEnabled(false);
+	GetSubsystem<UMyGISubsystem>()->FindSessions([this, HUDMenu] (bool bSuccess)
 	{
-		
+		HUDMenu->WidgetServerList->SetBtnRefreshEnabled(true);
+		if(bSuccess)
+		{
+			HUDMenu->ServerListUpdate();
+		}
+		else
+		{
+			HUDMenu->MessageShow
+				( LOCTEXT("ErrorSessionSearch", "Error when trying to search for sessions")
+				, [HUDMenu] () { HUDMenu->MenuMainShow(); }
+				);
+		}
 	});
 }
 

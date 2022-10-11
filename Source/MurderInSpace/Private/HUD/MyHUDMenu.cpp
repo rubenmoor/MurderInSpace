@@ -4,8 +4,19 @@
 #include "HUD/MyHUDMenu.h"
 
 #include "OnlineSessionSettings.h"
+#include "OnlineSubsystem.h"
+#include "Components/EditableTextBox.h"
 #include "Components/ScrollBox.h"
-#include "HUD/MyCommonButton.h"
+#include "Lib/FunctionLib.h"
+#include "Lib/UStateLib.h"
+#include "Menu/UW_HostGame.h"
+#include "Menu/UW_LoadingScreen.h"
+#include "Menu/UW_MenuMain.h"
+#include "Menu/UW_MenuMultiPlayer.h"
+#include "Menu/UW_MenuSolo.h"
+#include "Menu/UW_Message.h"
+#include "Menu/UW_ServerList.h"
+#include "Menu/UW_ServerRow.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGISubsystem.h"
 
@@ -15,7 +26,7 @@ void AMyHUDMenu::BeginPlay()
 {
 	Super::BeginPlay();
 
-	const auto PC = GetOwningPlayerController();
+	const TObjectPtr<APlayerController> PC = GetOwningPlayerController();
 	if(!PC)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no player controller, disabling tick"), *GetFullName())
@@ -23,79 +34,74 @@ void AMyHUDMenu::BeginPlay()
 		return;
 	}
 
-	UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
-	
 	// set up main menu
 
-	if(!WidgetMainMenuClass)
+	if(!WidgetMenuMainClass)
 	{
 		UE_LOG(LogSlate, Error, TEXT("%s: WidgetMainMenuClass null"), *GetFullName())
 		return;
 	}
 
-	WidgetMainMenu = CreateWidget(GetWorld(), WidgetMainMenuClass, FName(TEXT("Main Menu")));
-	WidgetMainMenu->AddToViewport(1);
+	WidgetMenuMain = CreateWidget<UUW_MenuMain>(PC.Get(), WidgetMenuMainClass, FName(TEXT("Main Menu")));
+	WidgetMenuMain->AddToViewport(1);
 
-	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnStart")), [GI] (TObjectPtr<UMyCommonButton> Button)
+	// set up solo menu
+
+	if(!WidgetMenuSoloClass)
 	{
-		Button->OnClicked().AddLambda([GI] ()
-		{
-			GI->GotoInGame();
-		});
-	});
-	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnHost")), [GI] (TObjectPtr<UMyCommonButton> Button)
+		UE_LOG(LogSlate, Error, TEXT("%s: WidgetMenuMultiplayerClass null"), *GetFullName())
+		return;
+	}
+	WidgetMenuSolo = CreateWidget<UUW_MenuSolo>(PC.Get(), WidgetMenuSoloClass, FName(TEXT("Menu Solo")));
+	WidgetMenuSolo->SetVisibility(ESlateVisibility::Collapsed);
+	WidgetMenuSolo->AddToViewport(1);
+
+	// set up multiplayer menu
+
+	if(!WidgetMenuMultiplayerClass)
 	{
-		Button->OnClicked().AddLambda([GI] ()
-		{
-			// TODO: get value for session config from menu in the UI
-			const FSessionConfig SessionConfig =
-				{TEXT("My awesome session")
-				, 4
-				, false
-				, true
-				};
-			GI->HostGame(SessionConfig);
-		});
-	});
-	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnFindOnline")), [this] (TObjectPtr<UMyCommonButton> Button)
-	{
-		Button->OnClicked().AddLambda([this] () { ServerListShow(); });
-	});
-	// TODO: set parameter LAN
-	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnFindLAN")), [this] (TObjectPtr<UMyCommonButton> Button)
-	{
-		Button->OnClicked().AddLambda([this] () { ServerListShow(); });
-	});
-	WithWidget<UMyCommonButton>(WidgetMainMenu, FName(TEXT("BtnQuit")), [GI] (TObjectPtr<UMyCommonButton> Button)
-	{
-		Button->OnClicked().AddLambda([GI] () { GI->QuitGame(); });
-	});
+		UE_LOG(LogSlate, Error, TEXT("%s: WidgetMenuMultiplayerClass null"), *GetFullName())
+		return;
+	}
+	WidgetMenuMultiplayer = CreateWidget<UUW_MenuMultiPlayer>(PC.Get(), WidgetMenuMultiplayerClass, FName(TEXT("Menu Multiplayer")));
+	WidgetMenuMultiplayer->SetVisibility(ESlateVisibility::Collapsed);
+	WidgetMenuMultiplayer->AddToViewport(1);
 
 	// set up menu server list
 	
 	if(!WidgetServerListClass)
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetServerListClass null"), *GetFullName())
+		UE_LOG(LogSlate, Error, TEXT("%s: WidgetServerListClass null"), *GetFullName())
 		return;
 	}
+	if(!WidgetServerRowClass)
+	{
+		UE_LOG(LogSlate, Error, TEXT("%s: WidgetServerRowClass null"), *GetFullName())
+	}
 
-	WidgetServerList = CreateWidget(GetWorld(), WidgetServerListClass, FName(TEXT("Server List")));
+	WidgetServerList = CreateWidget<UUW_ServerList>(PC.Get(), WidgetServerListClass, FName(TEXT("Server List")));
 	WidgetServerList->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetServerList->AddToViewport(1);
 
-	WithWidget<UMyCommonButton>(WidgetServerList, FName(TEXT("BtnBack")), [this] (TObjectPtr<UMyCommonButton> Button)
+	// host game
+	
+	if(!WidgetHostGameClass)
 	{
-		Button->OnClicked().AddLambda( [this] () { MainMenuShow(); });
-	});
-	// TODO: refresh on clicked
-	// TODO: server list: server row on clicked
+		UE_LOG(LogSlate, Error, TEXT("%s: WidgetHostGameClass null"), *GetFullName())
+		return;
+	}
+	WidgetHostGame = CreateWidget<UUW_HostGame>(PC.Get(), WidgetHostGameClass, FName(TEXT("Host Game")));
+	WidgetHostGame->SetVisibility(ESlateVisibility::Collapsed);
+	WidgetHostGame->AddToViewport(1);
 
+	// loading screen
+	
 	if(!WidgetLoadingScreenClass)
 	{
 		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetLoadingScreenClass null"), *GetFullName())
 		return;
 	}
-	WidgetLoadingScreen = CreateWidget(GetWorld(), WidgetLoadingScreenClass, FName(TEXT("Loading Screen")));
+	WidgetLoadingScreen = CreateWidget<UUW_LoadingScreen>(PC.Get(), WidgetLoadingScreenClass, FName(TEXT("Loading Screen")));
 	WidgetLoadingScreen->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetLoadingScreen->AddToViewport(1);
 
@@ -104,7 +110,7 @@ void AMyHUDMenu::BeginPlay()
 		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetMessageClass null"), *GetFullName())
 		return;
 	}
-	WidgetMessage = CreateWidget(GetWorld(), WidgetMessageClass, FName(TEXT("Message")));
+	WidgetMessage = CreateWidget<UUW_Message>(PC.Get(), WidgetMessageClass, FName(TEXT("Message")));
 	WidgetMessage->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetMessage->AddToViewport(1);
 }
@@ -113,93 +119,115 @@ void AMyHUDMenu::ServerListShow()
 {
 	HideViewportParentWidgets();
 	WidgetServerList->SetVisibility(ESlateVisibility::Visible);
+	GetGameInstance<UMyGameInstance>()->ServerListRefresh();
 }
 
-void AMyHUDMenu::ServerListRefresh(TArray<FOnlineSessionSearchResult> Results)
+void AMyHUDMenu::HostGameShow()
 {
+	HideViewportParentWidgets();
+	WidgetHostGame->SetVisibility(ESlateVisibility::Visible);
+
+	const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
+	auto [_RndGen, _Poisson, Random] = UStateLib::GetRndUnsafe(this);
+	GI->SessionConfig.CustomName = UFunctionLib::Satellites[static_cast<int>(Random.FRand() * UFunctionLib::LengthSatellites)];
+	const TObjectPtr<IOnlineSubsystem> SS = IOnlineSubsystem::Get
+		( GI->SessionConfig.bEnableLAN ? FName(TEXT("NULL")) : FName(TEXT("EOS"))
+		);
+	WidgetHostGame->SetInfo (FText::Format
+		(LOCTEXT("textinfo", "Sub: {0} | Online Service: {1} | Social Platform: {2}")
+		, FText::FromName(SS->GetSubsystemName())
+		, SS->GetOnlineServiceName()
+		, SS->GetSocialPlatformName()
+		));
+}
+
+void AMyHUDMenu::MenuMultiplayerShow()
+{
+	HideViewportParentWidgets();
+	WidgetMenuMultiplayer->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AMyHUDMenu::ServerListUpdate()
+{
+	const TObjectPtr<UMyGISubsystem> GISub = GetGameInstance<UMyGameInstance>()->GetSubsystem<UMyGISubsystem>();
+	const TArray<FOnlineSessionSearchResult> Results = GISub->GetSearchResult();
+
+	if(Results.IsEmpty())
+	{
+		WidgetServerList->SetStatusMessage(LOCTEXT("NoSessionsFound", "no sessions found"));
+		return;
+	}
+	
 	WithWidget<UScrollBox>(WidgetServerList, FName(TEXT("ScrollServers")), [this, Results] (TObjectPtr<UScrollBox> ScrollServers)
 	{
 		for(const FOnlineSessionSearchResult& Result : Results)
 		{
-			auto Row = CreateWidget(GetWorld(), WidgetServerRowClass);
+			TObjectPtr<UUW_ServerRow> Row = CreateWidget<UUW_ServerRow>(GetWorld(), WidgetServerRowClass);
+
+			Row->SetPing(Result.PingInMs);
+			FString CustomName;
+			Result.Session.SessionSettings.Get(SETTING_CUSTOMNAME, CustomName);
+			Row->SetServerName(FText::FromString(CustomName));
 			
-			WithWidget<UCommonTextBlock>(Row, FName(TEXT("TextPing")), [Result] (TObjectPtr<UCommonTextBlock> TextPing)
+			const int NumOpenPrivateConnections = Result.Session.NumOpenPrivateConnections;
+			const int NumPrivateConnections = Result.Session.SessionSettings.NumPrivateConnections;
+			const int NumOpenPublicConnections = Result.Session.NumOpenPublicConnections;
+			const int NumPublicConnections = Result.Session.SessionSettings.NumPublicConnections;
+			int MaxNumPlayers = 0;
+			int NumPlayers = 0;
+			if(NumPrivateConnections == 0)
 			{
-				TextPing->SetText(FText::Format(LOCTEXT("ping", "%d"), Result.PingInMs));
-			});
-			WithWidget<UCommonTextBlock>(Row, FName(TEXT("TextServerName")), [Result] (TObjectPtr<UCommonTextBlock> TextServerName)
+				// public session
+				MaxNumPlayers = NumPublicConnections;
+				NumPlayers = MaxNumPlayers - NumOpenPublicConnections;
+			}
+			else if(NumPublicConnections == 0)
 			{
-				FString CustomName;
-				Result.Session.SessionSettings.Get(SETTING_CUSTOMNAME, CustomName);
-				TextServerName->SetText(FText::FromString(CustomName));
-			});
-			WithWidget<UCommonTextBlock>(Row, FName(TEXT("TextPlayerCount")), [this, Result] (TObjectPtr<UCommonTextBlock> TextPlayerCount)
+				// private session
+				MaxNumPlayers = NumPrivateConnections;
+				NumPlayers = MaxNumPlayers - NumOpenPrivateConnections;
+			}
+			else
 			{
-				const int NumOpenPrivateConnections = Result.Session.NumOpenPrivateConnections;
-				const int NumPrivateConnections = Result.Session.SessionSettings.NumPrivateConnections;
-				const int NumOpenPublicConnections = Result.Session.NumOpenPublicConnections;
-				const int NumPublicConnections = Result.Session.SessionSettings.NumPublicConnections;
-				int NumMaxPlayers = 0;
-				int NumPlayers = 0;
-				if(NumPrivateConnections == 0)
-				{
-					// public session
-					NumMaxPlayers = NumPublicConnections;
-					NumPlayers = NumMaxPlayers - NumOpenPublicConnections;
-				}
-				else if(NumPublicConnections == 0)
-				{
-					// private session
-					NumMaxPlayers = NumPrivateConnections;
-					NumPlayers = NumMaxPlayers - NumOpenPrivateConnections;
-				}
-				else
-				{
-					UE_LOG
-						( LogNet
-						, Error
-						, TEXT("%s: couldn't determine whether session is private or public")
-						, *GetFullName()
-						)
-				}
-				TextPlayerCount->SetText(FText::Format(LOCTEXT("Playercount", "%d / %d"), NumPlayers, NumMaxPlayers));
-			});
+				UE_LOG
+					( LogNet
+					, Error
+					, TEXT("%s: couldn't determine whether session is private or public")
+					, *GetFullName()
+					)
+			}
+			Row->SetPlayerNumbers(NumPlayers, MaxNumPlayers);
 			ScrollServers->AddChild(Row);
 		}
 	});
 }
 
-void AMyHUDMenu::MainMenuShow()
+void AMyHUDMenu::MenuMainShow()
 {
 	HideViewportParentWidgets();
-	WidgetMainMenu->SetVisibility(ESlateVisibility::Visible);
+	WidgetMenuMain->SetVisibility(ESlateVisibility::Visible);
 }
 
-void AMyHUDMenu::LoadingScreenShow(FText StrMessage)
+void AMyHUDMenu::MenuSoloShow()
 {
 	HideViewportParentWidgets();
-	WithWidget<UCommonTextBlock>(WidgetLoadingScreen, FName(TEXT("TextMessage")), [&StrMessage] (TObjectPtr<UCommonTextBlock> TextMessage)
-	{
-		TextMessage->SetText(StrMessage);
-	});
+	WidgetMenuSolo->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AMyHUDMenu::LoadingScreenShow(const FText& StrMessage, TFunctionRef<void()> GobackFunc)
+{
+	HideViewportParentWidgets();
+	WidgetLoadingScreen->SetMessage(StrMessage);
+	WidgetLoadingScreen->SetGobackFunc(GobackFunc);
 	WidgetLoadingScreen->SetVisibility(ESlateVisibility::Visible);
 }
 
-void AMyHUDMenu::MessageShow(FText StrMessage, TFunctionRef<void()> FuncGoBack)
+void AMyHUDMenu::MessageShow(const FText& StrMessage, TFunctionRef<void()> FuncGoBack)
 {
 	HideViewportParentWidgets();
-	WithWidget<UCommonTextBlock>(WidgetMessage, FName(TEXT("TextMessage")), [&StrMessage] (TObjectPtr<UCommonTextBlock> TextMessage)
-	{
-		TextMessage->SetText(StrMessage);
-	});
-	WithWidget<UMyCommonButton>(WidgetMessage, FName(TEXT("BtnBack")), [this, FuncGoBack] (TObjectPtr<UMyCommonButton> Button)
-	{
-		DHMessageShowGoBack = Button->OnClicked().AddLambda([this, FuncGoBack, Button] ()
-		{
-			FuncGoBack();
-			Button->OnClicked().Remove(DHMessageShowGoBack);
-		});
-	});
+	WidgetMessage->SetMessage(StrMessage);
+	WidgetMessage->SetGobackFunc(FuncGoBack);
 	WidgetMessage->SetVisibility(ESlateVisibility::Visible);
 }
-# undef LOCTEXT_NAMESPACE
+
+# undef LOCTEXT_NAM
