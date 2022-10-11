@@ -4,16 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "MyHUDBase.h"
+#include "Menu/UW_HostGame.h"
+#include "Menu/UW_LoadingScreen.h"
+#include "Menu/UW_MenuMain.h"
+#include "Menu/UW_MenuMultiPlayer.h"
+#include "Menu/UW_MenuSolo.h"
+#include "Menu/UW_Message.h"
+#include "Menu/UW_ServerList.h"
+#include "Menu/UW_ServerRow.h"
 
 #include "MyHUDMenu.generated.h"
 
-class UUW_HostGame;
-class UUW_Message;
-class UUW_LoadingScreen;
-class UUW_MenuMain;
-class UUW_MenuSolo;
-class UUW_MenuMultiPlayer;
-class UUW_ServerList;
 
 /**
  * 
@@ -28,38 +29,38 @@ protected:
 
 	// main menu
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> WidgetMenuMainClass;
+	TSubclassOf<UUW_MenuMain> WidgetMenuMainClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUW_MenuMain> WidgetMenuMain;
 
 	// play solo menu
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> WidgetMenuSoloClass;
+	TSubclassOf<UUW_MenuSolo> WidgetMenuSoloClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUW_MenuSolo> WidgetMenuSolo;
 	
 	// multiplayer menu
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> WidgetMenuMultiplayerClass;
+	TSubclassOf<UUW_MenuMultiPlayer> WidgetMenuMultiplayerClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUW_MenuMultiPlayer> WidgetMenuMultiplayer;
 
 	// server list
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> WidgetServerListClass;
+	TSubclassOf<UUW_ServerList> WidgetServerListClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUW_ServerList> WidgetServerList;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> WidgetServerRowClass;
+	TSubclassOf<UUW_ServerRow> WidgetServerRowClass;
 
 	// host game session config
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> WidgetHostGameClass;
+	TSubclassOf<UUW_HostGame> WidgetHostGameClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUW_HostGame> WidgetHostGame;
@@ -67,14 +68,14 @@ protected:
 
 	// loading screen
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> WidgetLoadingScreenClass;
+	TSubclassOf<UUW_LoadingScreen> WidgetLoadingScreenClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUW_LoadingScreen> WidgetLoadingScreen;
 
 	// message
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> WidgetMessageClass;
+	TSubclassOf<UUW_Message> WidgetMessageClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUW_Message> WidgetMessage;

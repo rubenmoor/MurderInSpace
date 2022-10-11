@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "OnlineSessionSettings.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "MyGISubsystem.generated.h"
 
@@ -31,9 +32,6 @@ protected:
 private:
 	TSharedPtr<FOnlineSessionSettings> LastSessionSettings;
 	TSharedPtr<FOnlineSessionSearch> LastSessionSearch;
-	
-	FDelegateHandle DHCreateSession;
-	FDelegateHandle DHDestroySession;
-	FDelegateHandle DHStartSession;
-	FDelegateHandle DHFindSessions;
+
+	IOnlineSessionPtr GetSessionInterface() const;
 };

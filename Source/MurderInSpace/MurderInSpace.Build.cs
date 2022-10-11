@@ -14,7 +14,7 @@ public class MurderInSpace : ModuleRules
 			, "Engine"
 			, "InputCore"
 			, "Niagara"
-			, "UMG"
+			, "UMG",
 			});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

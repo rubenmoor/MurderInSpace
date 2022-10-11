@@ -433,7 +433,7 @@ void UOrbitComponent::SpawnSplineMesh(FLinearColor Color, USceneComponent* InPar
 		}
 		for(int i = 0; i < Indices.size() - 1; i++)
 		{
-			const TObjectPtr<USplineMeshComponent> SplineMesh =
+			USplineMeshComponent* SplineMesh =
 				NewObject<USplineMeshComponent>(InParent, *FString(TEXT("SplineMesh")).Append(FString::FromInt(i)));
 			
 			SplineMesh->SetMobility(EComponentMobility::Stationary);
@@ -451,7 +451,7 @@ void UOrbitComponent::SpawnSplineMesh(FLinearColor Color, USceneComponent* InPar
 			SplineMesh->CastShadow = false;
 			SplineMesh->SetStaticMesh(SMSplineMesh);
 
-			const TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial =
+			UMaterialInstanceDynamic* DynamicMaterial =
 				SplineMesh->CreateDynamicMaterialInstance(0, MSplineMesh);
 			DynamicMaterial->SetVectorParameterValue(FName(TEXT("StripesColor")), Color);
 

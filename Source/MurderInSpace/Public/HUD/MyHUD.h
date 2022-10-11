@@ -4,13 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "MyHUDBase.h"
+#include "HUD/UW_HUD.h"
+#include "HUD/UW_MenuInGame.h"
 #include "MyHUD.generated.h"
 
 class ACharacterInSpace;
-class UImage;
-class UOverlay;
-class UCanvasPanel;
-class UTextBlock;
 
 /**
  * 
@@ -24,39 +22,21 @@ class MURDERINSPACE_API AMyHUD : public AMyHUDBase
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> WidgetHUDClass;
+	TSubclassOf<UUW_HUD> WidgetHUDClass;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="UMG Widgets")
-	TObjectPtr<UUserWidget> WidgetHUD;
+	TObjectPtr<UUW_HUD> WidgetHUD;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UTextBlock> TextVelocitySI;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UTextBlock> TextVelocityVCircle;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UTextBlock> TextVelocityDirection;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UCanvasPanel> CanvasCenterOfMass;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UOverlay> OverlayCenterOfMass;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UImage> ImgPointer;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<ACharacterInSpace> MyCharacter;
 
 	// in game menu
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UUserWidget> WidgetMenuInGameClass;
+	TSubclassOf<UUW_MenuInGame> WidgetMenuInGameClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="UMG Widgets")
-	TObjectPtr<UUserWidget> WidgetMenuInGame;
+	TObjectPtr<UUW_MenuInGame> WidgetMenuInGame;
 	
 	// event handlers
 	

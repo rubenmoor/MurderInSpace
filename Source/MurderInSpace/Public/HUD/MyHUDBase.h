@@ -3,8 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
-#include "Blueprint/WidgetTree.h"
 #include "GameFramework/HUD.h"
 
 #include "MyHUDBase.generated.h"
@@ -55,50 +53,5 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void HideViewportParentWidgets();
 
-	template <typename WidgetT>
-	TObjectPtr<WidgetT> FindOrFail(const TObjectPtr<UUserWidget> InParent, const FName& Name) const
-	{
-		if(!IsValid(InParent))
-		{
-			UE_LOG(LogSlate, Error, TEXT("%s: FindOrFail: InParent invalid"), *GetFullName())
-			return nullptr;
-		}
-		TObjectPtr<WidgetT> Widget = InParent->WidgetTree->FindWidget<WidgetT>(Name);
-		if(IsValid(Widget))
-		{
-			return Widget;
-		}
-		else
-		{
-			UE_LOG(LogSlate, Error, TEXT("%s: FindOrFail: Couldn't find %s"), *GetFullName(), *Name.ToString())
-			return nullptr;
-		}
-	}
-	
-	template <typename WidgetT>
-	void WithWidget
-		( const TObjectPtr<UUserWidget> InParent
-		, const FName& Name
-		, const TFunctionRef<void(TObjectPtr<WidgetT>)> Func
-		) const
-	{
-		if(!IsValid(InParent))
-		{
-			UE_LOG(LogSlate, Error, TEXT("%s: WithWidget: InParent invalid"), *GetFullName())
-		}
-		else
-		{
-			TObjectPtr<WidgetT> Widget = InParent->WidgetTree->FindWidget<WidgetT>(Name);
-			if(IsValid(Widget))
-            {
-            	Func(Widget);
-            }
-            else
-            {
-            	UE_LOG(LogSlate, Error, TEXT("%s: WithWidget: Couldn't find %s"), *GetFullName(), *Name.ToString())
-            }
-		}
-	}
-	
 	FNumberFormattingOptions FormattingOptions;
 };

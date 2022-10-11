@@ -19,10 +19,23 @@ class MURDERINSPACE_API UUW_ServerList : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void SetStatusMessage(const FText& InText) { TextStatusMessage->SetText(InText); }
+	void SetStatusMessage(const FText& InText)
+	{
+		TextStatusMessage->SetText(InText);
+		TextStatusMessage->SetVisibility(ESlateVisibility::Visible);
+	}
+	
+	UFUNCTION(BlueprintCallable)
+	void HideStatusMessage() { TextStatusMessage->SetVisibility(ESlateVisibility::Collapsed); }
 	
 	UFUNCTION(BlueprintCallable)
 	void SetBtnRefreshEnabled(bool InBEnabled) { BtnRefresh->SetIsEnabled(InBEnabled); }
+
+	UFUNCTION(BlueprintCallable)
+	void AddServerRow(UWidget* Row) { ScrollServers->AddChild(Row); }
+
+	UFUNCTION(BlueprintCallable)
+	void ClearServerRows() { ScrollServers->ClearChildren(); }
 		
 protected:
 	UPROPERTY(meta=(BindWidget))

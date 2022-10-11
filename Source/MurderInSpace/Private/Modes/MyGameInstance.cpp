@@ -32,7 +32,6 @@ void UMyGameInstance::HostGame()
 			case EInstanceState::WaitingForSessionCreate:
 				if(bSuccess)
 				{
-					bIsMultiplayer = true;
 					GotoInGame();
 				}
 				else
@@ -54,7 +53,8 @@ void UMyGameInstance::HostGame()
 	const TObjectPtr<AMyHUDMenu> HUDMenu = GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>();
 	if(bSuccess)
 	{
-		GotoWaitingForSessionCreate();
+		bIsMultiplayer = true;
+		GotoWaitingForStart();
 	}
 	else
 	{
@@ -64,6 +64,12 @@ void UMyGameInstance::HostGame()
 			);
 		UE_LOG(LogNet, Error, TEXT("%s: couldn't create session"), *GetFullName())
 	}
+}
+
+void UMyGameInstance::StartSoloGame()
+{
+	bIsMultiplayer = false;
+	GotoInGame();
 }
 
 void UMyGameInstance::GotoInMenuMain()
@@ -111,8 +117,6 @@ void UMyGameInstance::GotoInGame()
 		InGameMenuHide();
 		break;
 	case EInstanceState::WaitingForSessionCreate:
-		bIsMultiplayer = true;
-		// fall through
 	case EInstanceState::InMainMenu:
 		UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
 		bShowInGameMenu = false;
@@ -146,13 +150,13 @@ void UMyGameInstance::InGameMenuHide()
 	bShowInGameMenu = false;
 }
 
-void UMyGameInstance::GotoWaitingForSessionCreate()
+void UMyGameInstance::GotoWaitingForStart()
 {
+	AMyHUDMenu* HUDMenu = GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>();
 	switch(InstanceState)
 	{
 	case EInstanceState::WaitingForSessionCreate:
 	case EInstanceState::InMainMenu:
-		const TObjectPtr<AMyHUDMenu> HUDMenu = GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>();
 		if(bIsMultiplayer)
 		{
 			HUDMenu->LoadingScreenShow
@@ -180,12 +184,14 @@ void UMyGameInstance::GotoWaitingForSessionCreate()
 
 void UMyGameInstance::JoinGame()
 {
+	bIsMultiplayer = true;
+	// TODO
 }
 
 void UMyGameInstance::ServerListRefresh()
 {
 	// TODO: why isn't the unique net id valid?
-	const TObjectPtr<AMyHUDMenu> HUDMenu = GetPrimaryPlayerController(false)->GetHUD<AMyHUDMenu>();
+	AMyHUDMenu* HUDMenu = GetPrimaryPlayerController(false)->GetHUD<AMyHUDMenu>();
 	HUDMenu->WidgetServerList->SetStatusMessage(LOCTEXT("SearchingSessions", "Searching for sessions ..."));
 	HUDMenu->WidgetServerList->SetBtnRefreshEnabled(false);
 	GetSubsystem<UMyGISubsystem>()->FindSessions([this, HUDMenu] (bool bSuccess)

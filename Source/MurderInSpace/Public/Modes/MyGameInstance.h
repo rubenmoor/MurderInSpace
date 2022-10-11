@@ -74,6 +74,9 @@ public:
 	void HostGame();
 
 	UFUNCTION(BlueprintCallable)
+	void StartSoloGame();
+
+	UFUNCTION(BlueprintCallable)
 	void JoinGame();
 
 	UFUNCTION(BlueprintCallable)
@@ -92,7 +95,7 @@ public:
 	void InGameMenuHide();
 
 	UFUNCTION(BlueprintCallable)
-	void GotoWaitingForSessionCreate();
+	void GotoWaitingForStart();
 
 	UFUNCTION(BlueprintCallable)
 	void QuitGame();

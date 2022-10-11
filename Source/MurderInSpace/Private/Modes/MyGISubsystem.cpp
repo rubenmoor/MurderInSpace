@@ -5,20 +5,11 @@
 #include "OnlineSubsystemUtils.h"
 #include "OnlineSessionSettings.h"
 #include "Modes/MyGameInstance.h"
+#include "Modes/MyPlayerState.h"
 
 bool UMyGISubsystem::CreateSession(FHostSessionConfig SessionConfig, TFunctionRef<void(FName, bool)> Callback)
 {
-	const IOnlineSessionPtr SI = Online::GetSessionInterfaceChecked
-		( GetWorld()
-		, Cast<UMyGameInstance>(GetGameInstance())->SessionConfig.bEnableLAN
-			? FName(TEXT("NULL"))
-			: FName(TEXT("EOS"))
-		);
-	if(!SI.IsValid())
-	{
-		UE_LOG(LogNet, Error, TEXT("%s: couldn't get session interface"), *GetFullName())
-		return false;
-	}
+	const IOnlineSessionPtr SI = GetSessionInterface();
 	UE_LOG
 		( LogNet
 		, Display
@@ -70,7 +61,7 @@ bool UMyGISubsystem::CreateSession(FHostSessionConfig SessionConfig, TFunctionRe
 	}
 	
 	FOnCreateSessionComplete OnCreateSessionComplete;
-	DHCreateSession = OnCreateSessionComplete.AddLambda([this, Callback, &OnCreateSessionComplete] (FName SessionName, bool bSuccess)
+	OnCreateSessionComplete.AddLambda([this, Callback, &OnCreateSessionComplete] (FName SessionName, bool bSuccess)
 	{
 		if(bSuccess)
 		{
@@ -80,12 +71,22 @@ bool UMyGISubsystem::CreateSession(FHostSessionConfig SessionConfig, TFunctionRe
 				Callback(SessionName, false);
 			}
 		}
-		OnCreateSessionComplete.Remove(DHCreateSession);
+		OnCreateSessionComplete.Clear();
 	});
-	
+
+	const FUniqueNetIdRepl UniqueNetIdRepl = GetGameInstance()->GetPrimaryPlayerController()->GetPlayerState<AMyPlayerState>()->GetUniqueId();
 	const TObjectPtr<ULocalPlayer> LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	// TODO: what is the cached unique net id logic?
-	if (!SI->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *LastSessionSettings))
+	UE_LOG
+		( LogOnline
+		, Display
+		, TEXT("%s: LocalPlayer->GetPreferredUniqueNetId(): %s, LocalPlayer->GetCachedUniqueNetId: %s; PlayerState->GetUniqueId: %s") 
+		, *GetFullName()
+		, *LocalPlayer->GetPreferredUniqueNetId().ToString()
+		, *LocalPlayer->GetCachedUniqueNetId().ToString()
+		, *UniqueNetIdRepl.ToString()
+		)
+	if (!SI->CreateSession(*UniqueNetIdRepl, NAME_GameSession, *LastSessionSettings))
 	{
 		return false;
 	}
@@ -94,17 +95,7 @@ bool UMyGISubsystem::CreateSession(FHostSessionConfig SessionConfig, TFunctionRe
 
 bool UMyGISubsystem::DestroySession(TFunctionRef<void(FName, bool)> Callback)
 {
-	const IOnlineSessionPtr SI = Online::GetSessionInterfaceChecked
-		( GetWorld()
-		, Cast<UMyGameInstance>(GetGameInstance())->SessionConfig.bEnableLAN
-			? FName(TEXT("NULL"))
-			: FName(TEXT("EOS"))
-		);
-	if(!SI.IsValid())
-	{
-		UE_LOG(LogNet, Error, TEXT("%s: couldn't get session interface"), *GetFullName())
-		return false;
-	}
+	const IOnlineSessionPtr SI = GetSessionInterface();
 	UE_LOG
 		( LogNet
 		, Display
@@ -118,27 +109,17 @@ bool UMyGISubsystem::DestroySession(TFunctionRef<void(FName, bool)> Callback)
 		return false;
 	}
 	FOnDestroySessionComplete OnDestroySessionComplete;
-	DHDestroySession = OnDestroySessionComplete.AddLambda([this, Callback, &OnDestroySessionComplete] (FName SessionName, bool bSuccess)
+	OnDestroySessionComplete.AddLambda([this, Callback, &OnDestroySessionComplete] (FName SessionName, bool bSuccess)
 	{
 		Callback(SessionName, bSuccess);
-		OnDestroySessionComplete.Remove(DHDestroySession);
+		OnDestroySessionComplete.Clear();
 	});
 	return true;
 }
 
 bool UMyGISubsystem::StartSession(TFunctionRef<void(FName, bool)> Callback)
 {
-	const IOnlineSessionPtr SI = Online::GetSessionInterfaceChecked
-		( GetWorld()
-		, Cast<UMyGameInstance>(GetGameInstance())->SessionConfig.bEnableLAN
-			? FName(TEXT("NULL"))
-			: FName(TEXT("EOS"))
-		);
-	if(!SI.IsValid())
-	{
-		UE_LOG(LogNet, Error, TEXT("%s: couldn't get session interface"), *GetFullName())
-		return false;
-	}
+	const IOnlineSessionPtr SI = GetSessionInterface();
 	UE_LOG
 		( LogNet
 		, Display
@@ -152,27 +133,17 @@ bool UMyGISubsystem::StartSession(TFunctionRef<void(FName, bool)> Callback)
 		return false;
 	}
 	FOnStartSessionComplete OnStartSessionComplete;
-	DHStartSession = OnStartSessionComplete.AddLambda([this, Callback, &OnStartSessionComplete] (FName SessionName, bool bSuccess)
+	OnStartSessionComplete.AddLambda([this, Callback, &OnStartSessionComplete] (FName SessionName, bool bSuccess)
 	{
 		Callback(SessionName, bSuccess);
-		OnStartSessionComplete.Remove(DHStartSession);
+		OnStartSessionComplete.Clear();
 	});
 	return true;
 }
 
 bool UMyGISubsystem::FindSessions(TFunctionRef<void(bool)> Callback)
 {
-	const IOnlineSessionPtr SI = Online::GetSessionInterfaceChecked
-		( GetWorld()
-		, Cast<UMyGameInstance>(GetGameInstance())->SessionConfig.bEnableLAN
-			? FName(TEXT("NULL"))
-			: FName(TEXT("EOS"))
-		);
-	if(!SI.IsValid())
-	{
-		UE_LOG(LogNet, Error, TEXT("%s: couldn't get session interface"), *GetFullName())
-		return false;
-	}
+	const IOnlineSessionPtr SI = GetSessionInterface();
 	UE_LOG
 		( LogNet
 		, Display
@@ -192,12 +163,21 @@ bool UMyGISubsystem::FindSessions(TFunctionRef<void(bool)> Callback)
 		return false;
 	}
 	FOnFindSessionsComplete OnFindSessionsComplete;
-	DHFindSessions = OnFindSessionsComplete.AddLambda([this, Callback, &OnFindSessionsComplete] (bool bSuccess)
+	OnFindSessionsComplete.AddLambda([this, Callback, &OnFindSessionsComplete] (bool bSuccess)
 	{
 		Callback(bSuccess);
-		OnFindSessionsComplete.Remove(DHFindSessions);
+		OnFindSessionsComplete.Clear();
 	});
 	return true;
 }
 
 
+IOnlineSessionPtr UMyGISubsystem::GetSessionInterface() const
+{
+	return Online::GetSessionInterfaceChecked
+		( GetWorld()
+		, Cast<UMyGameInstance>(GetGameInstance())->SessionConfig.bEnableLAN
+			? FName(TEXT("NULL"))
+			: FName(TEXT("EOS"))
+		);
+}

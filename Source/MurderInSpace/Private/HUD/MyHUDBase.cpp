@@ -21,8 +21,10 @@ AMyHUDBase::AMyHUDBase()
 void AMyHUDBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	WidgetHUDBorder = CreateWidget<UWidgetHUDBorder>(GetWorld(), WidgetHUDBorderClass, FName(TEXT("HUD Border")));
+
+	UE_LOG(LogSlate, Warning, TEXT("%s: AMyHUDBase::BeginPlay()"), *GetFullName())
+	UGameInstance* GI = GetGameInstance();
+	WidgetHUDBorder = CreateWidget<UWidgetHUDBorder>(GI, WidgetHUDBorderClass, FName(TEXT("HUD Border")));
 	// TODO: proly have to set foreground color
 	WidgetHUDBorder->SetParams(X0, Y0, X1, Y1);
 	WidgetHUDBorder->AddToViewport(-1);
@@ -32,7 +34,7 @@ void AMyHUDBase::HideViewportParentWidgets()
 {
 	TArray<UUserWidget*> ParentWidgets;
 	UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), ParentWidgets, UUserWidget::StaticClass());
-	for(const auto Widget : ParentWidgets)
+	for(UUserWidget* Widget : ParentWidgets)
 	{
 		if(!Widget->IsA(WidgetHUDBorder->StaticClass()))
 		{

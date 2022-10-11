@@ -6,13 +6,16 @@
 #include "Actors/OrbitComponent.h"
 #include "Lib/UStateLib.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "Blueprint/UserWidget.h"
 #include "Actors/CharacterInSpace.h"
+#include "Components/CanvasPanel.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/CanvasPanelSlot.h"
-#include "Components/CanvasPanel.h"
 #include "Components/Overlay.h"
-#include "HUD/MyCommonButton.h"
+#include "HUD/UW_HUD.h"
+#include "HUD/UW_MenuInGame.h"
+#include "Modes/MyPlayerController.h"
 
 void AMyHUD::InGameMenuShow()
 {
@@ -30,7 +33,8 @@ void AMyHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	const TObjectPtr<APlayerController> PC = GetOwningPlayerController();
+	UGameInstance* GI = GetGameInstance();
+	const AMyPlayerController* PC = Cast<AMyPlayerController>(GetOwningPlayerController());
 	if(!PC)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no player controller, disabling tick"), *GetFullName())
@@ -39,7 +43,7 @@ void AMyHUD::BeginPlay()
 	}
 	// get playing character
 	MyCharacter = PC->GetPawn<ACharacterInSpace>();
-	if(!MyCharacter)
+	if(!IsValid(MyCharacter))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no pawn, disabling tick"), *GetFullName())
 		SetActorTickEnabled(false);
@@ -48,82 +52,41 @@ void AMyHUD::BeginPlay()
 
 	// set up HUD
 
-	if(!WidgetHUDClass)
+	if(!IsValid(WidgetHUDClass))
 	{
 		UE_LOG(LogSlate, Error, TEXT("%s: WidgetHUDClass null"), *GetFullName())
 		return;
 	}
 
-	WidgetHUD = CreateWidget(GetWorld(), WidgetHUDClass, FName(TEXT("HUD")));
+	WidgetHUD = CreateWidget<UUW_HUD>(GI, WidgetHUDClass, FName(TEXT("HUD")));
 	WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
 	WidgetHUD->AddToViewport(0);
 	
-	TextVelocitySI        = FindOrFail<UTextBlock  >(WidgetHUD, FName(TEXT("TextVelocitySI"       )));
-	TextVelocityVCircle   = FindOrFail<UTextBlock  >(WidgetHUD, FName(TEXT("TextVelocityVCircle"  )));
-	TextVelocityDirection = FindOrFail<UTextBlock  >(WidgetHUD, FName(TEXT("TextVelocityDirection")));
-	CanvasCenterOfMass    = FindOrFail<UCanvasPanel>(WidgetHUD, FName(TEXT("CanvasCenterOfMass"   )));
-	
-	// Overlay with two images
-	OverlayCenterOfMass   = FindOrFail<UOverlay    >(WidgetHUD, FName(TEXT("OverlayCenterOfMass"  )));
-	ImgPointer            = FindOrFail<UImage      >(WidgetHUD, FName(TEXT("ImgPointer"           )));
-	
-	if  (  !TextVelocitySI
-		|| !TextVelocityVCircle
-		|| !TextVelocityDirection
-		|| !CanvasCenterOfMass
-		|| !OverlayCenterOfMass
-		|| !ImgPointer
-		)
-	{
-		UE_LOG
-			( LogTemp
-			, Error
-			, TEXT("%s: Some widgets could not be found. Disabling Tick.")
-			, *GetFullName()
-			)
-		SetActorTickEnabled(false);
-	}
-	
 	// set up in-game menu
 	
-	if(!WidgetMenuInGameClass)
+	if(!IsValid(WidgetMenuInGameClass))
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetInGameClass null"), *GetFullName())
+		UE_LOG(LogSlate, Error, TEXT("%s: WidgetInGameClass null"), *GetFullName())
 		return;
 	}
-	WidgetMenuInGame = CreateWidget(GetWorld(), WidgetMenuInGameClass, FName(TEXT("In-Game Menu")));
+	WidgetMenuInGame = CreateWidget<UUW_MenuInGame>(GI, WidgetMenuInGameClass, FName(TEXT("In-Game Menu")));
 	WidgetMenuInGame->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetMenuInGame->AddToViewport(1);
-
-	const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
-	
-	WithWidget<UMyCommonButton>(WidgetMenuInGame, FName(TEXT("BtnResume")), [GI] (TObjectPtr<UMyCommonButton> Button)
-	{
-		Button->OnClicked().AddLambda([GI] () { GI->GotoInGame(); });
-	});
-	WithWidget<UMyCommonButton>(WidgetMenuInGame, FName(TEXT("BtnLeave")), [GI] (TObjectPtr<UMyCommonButton> Button)
-	{
-		Button->OnClicked().AddLambda([GI] () { GI->GotoInMenuMain(); });
-	});
-	WithWidget<UMyCommonButton>(WidgetMenuInGame, FName(TEXT("BtnQuit")), [GI] (TObjectPtr<UMyCommonButton> Button)
-	{
-		Button->OnClicked().AddLambda([GI] () { GI->QuitGame(); });
-	});
 }
 
 void AMyHUD::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	
-	const TObjectPtr<APlayerController> PC = GetOwningPlayerController();
+	const APlayerController* PC = GetOwningPlayerController();
 
 	const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
 	const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
-	const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
+	UOrbitComponent* Orbit = MyCharacter->GetOrbitComponent();
 	const float Velocity = Orbit->GetVelocity();
 
-	TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FormattingOptions));
-	TextVelocityVCircle->SetText(
+	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FormattingOptions));
+	WidgetHUD->TextVelocityVCircle->SetText(
 		FText::AsNumber(
 			Velocity / Orbit->GetCircleVelocity(Physics.Alpha, Physics.VecF1
 		), &FormattingOptions));
@@ -133,7 +96,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 			( FVector(1, 0, 0)
 			, Orbit->GetVecVelocity()).GetNormalized().GetTwistAngle(FVector(0, 0, 1)
 			);
-	TextVelocityDirection->SetRenderTransformAngle(Angle * 180. / PI);
+	WidgetHUD->TextVelocityDirection->SetRenderTransformAngle(Angle * 180. / PI);
 
 	const auto Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
 	FVector2D ScreenLocation;
@@ -196,11 +159,11 @@ void AMyHUD::Tick(float DeltaSeconds)
 	// off-screen
 	if(abs(YFromCenter) > 0.5 || abs(XFromCenter) > 0.5 - XArc(YFromCenter))
 	{
-		CanvasCenterOfMass->SetVisibility(ESlateVisibility::Visible);
+		WidgetHUD->CanvasCenterOfMass->SetVisibility(ESlateVisibility::Visible);
 		
 		float OverlayX, OverlayY;
 
-		const auto Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass);
+		const auto Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(WidgetHUD->CanvasCenterOfMass);
 
 		if(abs(YFromCenter) > abs(XFromCenter) / (1. - 2 * XArc(-0.5)))
 		{
@@ -237,17 +200,17 @@ void AMyHUD::Tick(float DeltaSeconds)
 			}
 		}
 		
-		UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass)->SetPosition(
+		UWidgetLayoutLibrary::SlotAsCanvasSlot(WidgetHUD->CanvasCenterOfMass)->SetPosition(
 			  FVector2D((OverlayX + .5) * Vec2DSize.X, (OverlayY + .5) * Vec2DSize.Y)
 			/ ViewportScale);
 		//TextCenterOfMass->SetText(FText::Format(LOCTEXT("foo", "Y: {0}, YNorm: {1}, T(YNorm): {2}, XArc(YNorm): {3}"), OverlayY, (OverlayY + HalfHeight) / static_cast<float>(Vec2DSize.Y), T(OverlayY), XArc(OverlayY)));
 		//TextCenterOfMass->SetText(FText::Format(LOCTEXT("foo", "{0}"), ViewportScale));
-		ImgPointer->SetRenderTransformAngle(atan2(YFromCenter, XFromCenter) * 180. / PI + 135);
+		WidgetHUD->ImgPointer->SetRenderTransformAngle(atan2(YFromCenter, XFromCenter) * 180. / PI + 135);
 	}
 	// on-screen
 	else
 	{
-		OverlayCenterOfMass->SetVisibility(ESlateVisibility::Collapsed);
+		WidgetHUD->OverlayCenterOfMass->SetVisibility(ESlateVisibility::Collapsed);
 		//UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass)->SetPosition(ScreenLocation / ViewportScale);
 		//const TObjectPtr<UCanvasPanelSlot> Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(OverlayCenterOfMass);
 		//Slot->SetAlignment(FVector2D(.5, .5));
