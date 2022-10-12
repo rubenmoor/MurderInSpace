@@ -102,7 +102,7 @@ public:
 	static float GetInitialAngularVelocity(FRnd Rnd);
 
 	UFUNCTION(BlueprintPure)
-	static FPhysics GetPhysics(AMyGameState* GS);
+	static FPhysics GetPhysics(const AMyGameState* GS);
 
 	UFUNCTION(BlueprintPure)
 	static FPhysics GetPhysicsUnsafe(const UObject* Object);
@@ -111,19 +111,19 @@ public:
 	static FPhysics GetPhysicsEditorDefault();
 	
 	UFUNCTION(BlueprintPure)
-	static FPlayerUI GetPlayerUI(AMyPlayerState* PS);
+	static FPlayerUI GetPlayerUI(const AMyPlayerState* PS);
 
 	UFUNCTION(BlueprintPure)
-	static FPlayerUI GetPlayerUIUnsafe(UObject* Object);
+	static FPlayerUI GetPlayerUIUnsafe(const UObject* Object);
 	
 	UFUNCTION(BlueprintPure)
 	static FPlayerUI GetPlayerUIEditorDefault();
 
 	UFUNCTION(BlueprintPure)
-	static FRnd GetRnd(AMyGameState* GS, UMyGameInstance* GI);
+	static FRnd GetRnd(const AMyGameState* GS, const UMyGameInstance* GI);
 	
 	UFUNCTION(BlueprintPure)
-	static FRnd GetRndUnsafe(UObject* Object);
+	static FRnd GetRndUnsafe(const UObject* Object);
 
 	static void WithPlayerUIUnsafe(const UObject* Object, const TFunctionRef<FPlayerUI(FPlayerUI)> Func);
 

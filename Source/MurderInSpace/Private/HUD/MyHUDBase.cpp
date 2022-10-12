@@ -32,14 +32,24 @@ void AMyHUDBase::BeginPlay()
 
 void AMyHUDBase::HideViewportParentWidgets()
 {
-	TArray<UUserWidget*> ParentWidgets;
-	UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), ParentWidgets, UUserWidget::StaticClass());
-	for(UUserWidget* Widget : ParentWidgets)
+	if(IsValid(this))
 	{
-		if(!Widget->IsA(WidgetHUDBorder->StaticClass()))
+		TArray<UUserWidget*> ParentWidgets;
+		for(TObjectIterator<UUserWidget> Itr; Itr; ++Itr)
 		{
-			Widget->SetVisibility(ESlateVisibility::Collapsed);
+			UUserWidget* Widget = *Itr;
+			if
+				(  Widget->GetWorld() == GetWorld()
+				&& Widget->IsInViewport()
+				&& !Widget->IsA(UWidgetHUDBorder::StaticClass())
+				)	
+			{
+				Widget->SetVisibility(ESlateVisibility::Collapsed);
+			}
 		}
 	}
-	
+	else
+	{
+		UE_LOG(LogSlate, Warning, TEXT("AMyHUDBase: invalid HUD"))
+	}
 }

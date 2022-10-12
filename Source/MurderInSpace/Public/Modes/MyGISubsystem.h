@@ -23,6 +23,7 @@ public:
 	bool DestroySession(TFunctionRef<void(FName, bool)> Callback);
 	bool StartSession(TFunctionRef<void(FName, bool)> Callback);
 	bool FindSessions(TFunctionRef<void(bool)> Callback);
+	void ShowLoginScreen();
 
 	TArray<FOnlineSessionSearchResult> GetSearchResult() const { return LastSessionSearch->SearchResults; }
 

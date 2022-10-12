@@ -9,29 +9,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/UW_MenuInGame.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/UW_MenuInGame.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/HUD/BP_MyHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/BP_MyHUD.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/HUD/UMG_MenuInGame.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/UMG_MenuInGame.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/HUD/UMG_PlayerHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/UMG_PlayerHUD.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/HUD/Widgets/BP_MyHUDWidget.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/MurderInSpace.Build.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/MurderInSpace.Build.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/OrbitComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/OrbitComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDBase.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDBase.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDMenu.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDMenu.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/UW_HUD.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Menu/UW_MenuSolo.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Menu/UW_MenuSolo.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Lib/UStateLib.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Lib/UStateLib.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Menu/UW_MenuMain.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Menu/UW_MenuMain.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGISubsystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGISubsystem.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerState.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerState.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUD.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUD.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDBase.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDBase.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDMenu.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDMenu.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/UW_HUD.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Menu/UW_ServerList.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Menu/UW_ServerList.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Lib/UStateLib.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Lib/UStateLib.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGISubsystem.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGISubsystem.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameInstance.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameInstance.h" afterDir="false" />
     </list>
@@ -75,7 +61,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
-    "XThreadsFramesViewSplitterKey": "0.7996422",
+    "XThreadsFramesViewSplitterKey": "0.79821426",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -275,7 +261,7 @@
       <workItem from="1665231122654" duration="26555000" />
       <workItem from="1665417575970" duration="3965000" />
       <workItem from="1665421597310" duration="22269000" />
-      <workItem from="1665492607074" duration="16579000" />
+      <workItem from="1665492607074" duration="30813000" />
     </task>
     <servers />
   </component>
@@ -303,48 +289,8 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp</url>
-          <line>29</line>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGISubsystem.cpp</url>
-          <line>65</line>
-          <option name="timeStamp" value="4" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGISubsystem.cpp</url>
-          <line>137</line>
-          <option name="timeStamp" value="5" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp</url>
-          <line>113</line>
+          <line>114</line>
           <option name="timeStamp" value="7" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp</url>
-          <line>154</line>
-          <option name="timeStamp" value="9" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp</url>
-          <line>159</line>
-          <option name="timeStamp" value="10" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDMenu.cpp</url>
-          <line>138</line>
-          <option name="timeStamp" value="11" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDBase.cpp</url>
-          <line>34</line>
-          <option name="timeStamp" value="12" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGISubsystem.cpp</url>
-          <line>63</line>
-          <option name="timeStamp" value="13" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

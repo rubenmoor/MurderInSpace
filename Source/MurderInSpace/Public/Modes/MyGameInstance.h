@@ -100,6 +100,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void QuitGame();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bLoggedIn;
+
 	FHostSessionConfig SessionConfig =
 		{ ""
 		, 4

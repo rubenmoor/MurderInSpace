@@ -9,6 +9,26 @@ void AMyPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	const auto StrGuid = FGuid::NewGuid().ToString();
-	SetUniqueId(FUniqueNetIdRepl(Online::GetSubsystem(GetWorld(), FName(TEXT("NULL")))->GetIdentityInterface()->CreateUniquePlayerId(StrGuid)));
+	UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
+	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked(FName(TEXT("EOS")));
+	const FUniqueNetIdRepl UniqueNetIdRepl = GetUniqueId();
+	if(UniqueNetIdRepl.IsValid())
+	{
+		GI->bLoggedIn = OSSIdentity->GetLoginStatus(*UniqueNetIdRepl.GetUniqueNetId()) == ELoginStatus::LoggedIn;
+	}
+	else
+	{
+		const bool loggedIn = OSSIdentity->GetLoginStatus(GetPlayerId()) == ELoginStatus::LoggedIn;
+		GI->bLoggedIn = loggedIn;
+		if(loggedIn)
+		{
+			SetUniqueId(FUniqueNetIdRepl(OSSIdentity->GetUniquePlayerId(GetPlayerId())));
+		}
+		else
+		{
+			SetUniqueId(FUniqueNetIdRepl(Online::GetIdentityInterfaceChecked(FName(TEXT("NULL")))->CreateUniquePlayerId
+				(FGuid::NewGuid().ToString() )));
+		}
+	}
 }
+

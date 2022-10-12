@@ -123,9 +123,10 @@ void AMyHUDMenu::HostGameShow()
 	const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
 	auto [_RndGen, _Poisson, Random] = UStateLib::GetRndUnsafe(this);
 	GI->SessionConfig.CustomName = UFunctionLib::Satellites[static_cast<int>(Random.FRand() * UFunctionLib::LengthSatellites)];
-	const TObjectPtr<IOnlineSubsystem> SS = IOnlineSubsystem::Get
+	const IOnlineSubsystem* SS = IOnlineSubsystem::Get
 		( GI->SessionConfig.bEnableLAN ? FName(TEXT("NULL")) : FName(TEXT("EOS"))
 		);
+	
 	WidgetHostGame->SetInfo (FText::Format
 		(LOCTEXT("textinfo", "Sub: {0} | Online Service: {1} | Social Platform: {2}")
 		, FText::FromName(SS->GetSubsystemName())

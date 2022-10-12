@@ -2,8 +2,10 @@
 
 
 #include "Modes/MyGISubsystem.h"
+
 #include "OnlineSubsystemUtils.h"
 #include "OnlineSessionSettings.h"
+#include "HUD/MyHUDMenu.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyPlayerState.h"
 
@@ -171,6 +173,44 @@ bool UMyGISubsystem::FindSessions(TFunctionRef<void(bool)> Callback)
 	return true;
 }
 
+void UMyGISubsystem::ShowLoginScreen()
+{
+	FOnlineAccountCredentials OnlineAccountCredentials;
+	// for epic games account
+	//OnlineAccountCredentials.Type = "AccountPortal";
+
+	// for DevAuthTool https://dev.epicgames.com/docs/epic-account-services/developer-authentication-tool
+	OnlineAccountCredentials.Type = "Developer";
+	OnlineAccountCredentials.Id = "localhost:1234";
+	OnlineAccountCredentials.Token = "foo";
+	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked(FName(TEXT("EOS")));
+	AMyHUDMenu* HUDMenu = GetGameInstance()->GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>();
+	OSSIdentity->OnLoginCompleteDelegates->Clear();
+	OSSIdentity->OnLoginCompleteDelegates->AddLambda([this, HUDMenu] (int32 Num, bool bSuccess, const FUniqueNetId& UniqueNetId, const FString& Error)
+	{
+		if(bSuccess)
+		{
+			UMyGameInstance* GI = Cast<UMyGameInstance>(GetGameInstance());
+			GI->bLoggedIn = true;
+			GI->GetPrimaryPlayerController()->GetPlayerState<AMyPlayerState>()->SetUniqueId(FUniqueNetIdRepl(UniqueNetId));
+			GI->SessionConfig.bEnableLAN = false;
+			HUDMenu->MenuMultiplayerShow();
+		}
+		else
+		{
+			HUDMenu->MessageShow
+				( FText::FromString(Error)
+				, [HUDMenu] () { HUDMenu->MenuMainShow(); }
+				);
+		}
+	});
+	OSSIdentity->OnLogoutCompleteDelegates->Clear();
+	OSSIdentity->OnLogoutCompleteDelegates->AddLambda([this] (int32 Num, bool bSuccess)
+	{
+		Cast<UMyGameInstance>(GetGameInstance())->bLoggedIn = false;
+	});
+	OSSIdentity->Login(0, OnlineAccountCredentials);
+}
 
 IOnlineSessionPtr UMyGISubsystem::GetSessionInterface() const
 {

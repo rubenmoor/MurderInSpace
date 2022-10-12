@@ -27,6 +27,7 @@ void UMyGameInstance::HostGame()
 		( SessionConfig
 		, [this] (FName SessionName, bool bSuccess)
 		{
+			UE_LOG(LogEngine, Error, TEXT("AHA"))
 			switch(InstanceState)
 			{
 			case EInstanceState::WaitingForSessionCreate:
