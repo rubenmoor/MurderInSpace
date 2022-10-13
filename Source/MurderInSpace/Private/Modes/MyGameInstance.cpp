@@ -7,9 +7,8 @@
 #include "HUD/MyHUDMenu.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Lib/FunctionLib.h"
-#include "Menu/UW_ServerList.h"
 #include "Modes/MyGISubsystem.h"
+#include "Modes/MyPlayerState.h"
 
 #define LOCTEXT_NAMESPACE "Menu"
 
@@ -19,43 +18,70 @@ UMyGameInstance::UMyGameInstance()
 	// So the game instance can't create a seed --> maybe generate rnd elsewhere entirely
 }
 
-void UMyGameInstance::HostGame()
+// get the local user index given a unique net id
+int32 UMyGameInstance::GetLocalPlayerIndex(FUniqueNetIdRepl UNI)
 {
-	const TObjectPtr<UMyGISubsystem> GISub = GetSubsystem<UMyGISubsystem>();
+	int32 FoundIndex = -1;
+	for(int32 i = 0; i < LocalPlayers.Num(); i++)
+	{
+		if(LocalPlayers[i]->GetCachedUniqueNetId() == UNI)
+		{
+			FoundIndex = i;
+			break;
+		}
+	}
+	if(FoundIndex == -1)
+	{
+		UE_LOG
+			( LogNet
+			, Error
+			, TEXT("%s: Couldn't find local player index for unique net id %s")
+			, *GetFullName()
+			, *UNI.ToString()
+			)
+	}
+	return FoundIndex;
+}
+
+void UMyGameInstance::HostGame(const APlayerController* PC)
+{
+	UMyGISubsystem* GISub = GetSubsystem<UMyGISubsystem>();
+	AMyHUDMenu* HUDMenu = PC->GetHUD<AMyHUDMenu>();
+	
 	// ReSharper disable once CppTooWideScope
 	const bool bSuccess = GISub->CreateSession
-		( SessionConfig
-		, [this] (FName SessionName, bool bSuccess)
+		( PC->GetPlayerState<AMyPlayerState>()->GetUniqueId()
+		, SessionConfig
+		, [this, PC, HUDMenu] (FName SessionName, bool bSuccess)
 		{
-			UE_LOG(LogEngine, Error, TEXT("AHA"))
 			switch(InstanceState)
 			{
-			case EInstanceState::WaitingForSessionCreate:
+			case EInstanceState::WaitingForStart:
+			// looks like OnCreateSessionComplete fire immediately and we are still in main menu
+			case EInstanceState::InMainMenu:
 				if(bSuccess)
 				{
-					GotoInGame();
+					GotoInGame(PC);
 				}
 				else
 				{
-					const TObjectPtr<AMyHUDMenu> HUDMenu = GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>();
 					HUDMenu->MessageShow(LOCTEXT
 						( "CreateSessionOnlineSubsystemFailure", "the online subsystem returned with failure")
-						, [this] () { GotoInMenuMain(); }
+						, [this, PC] () { GotoInMenuMain(PC); }
 						);
 					UE_LOG(LogNet, Error, TEXT("%s: create session call returned with failure"), *GetFullName())
 				}
 				break;
 			default:
 				ErrorWrongState
-					( this, UEnum::GetValueAsString(EInstanceState::WaitingForSessionCreate) );
+					( this, UEnum::GetValueAsString(EInstanceState::WaitingForStart) );
 			}
 		});
 	
-	const TObjectPtr<AMyHUDMenu> HUDMenu = GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>();
 	if(bSuccess)
 	{
 		bIsMultiplayer = true;
-		GotoWaitingForStart();
+		GotoWaitingForStart(PC);
 	}
 	else
 	{
@@ -67,21 +93,21 @@ void UMyGameInstance::HostGame()
 	}
 }
 
-void UMyGameInstance::StartSoloGame()
+void UMyGameInstance::StartSoloGame(const APlayerController* PC)
 {
 	bIsMultiplayer = false;
-	GotoInGame();
+	GotoInGame(PC);
 }
 
-void UMyGameInstance::GotoInMenuMain()
+void UMyGameInstance::GotoInMenuMain(const APlayerController* PC)
 {
 	UE_LOG(LogSlate, Warning, TEXT("Debug: GotoInMenuMain"))
 	switch(InstanceState)
 	{
-	case EInstanceState::WaitingForSessionCreate:
+	case EInstanceState::WaitingForStart:
 		// try to destroy the session, in case it has been created; but fail silently otherwise
 		GetSubsystem<UMyGISubsystem>()->DestroySession([] (FName, bool) {});
-		GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>()->MenuMainShow();
+		PC->GetHUD<AMyHUDMenu>()->MenuMainShow();
 	case EInstanceState::InGame:
 		if(bIsMultiplayer)
 		{
@@ -109,15 +135,15 @@ void UMyGameInstance::GotoInMenuMain()
 	InstanceState = EInstanceState::InMainMenu;
 }
 
-void UMyGameInstance::GotoInGame()
+void UMyGameInstance::GotoInGame(const APlayerController* PC)
 {
 	const FInputModeGameOnly InputModeGameOnly;
 	switch(InstanceState)
 	{
 	case EInstanceState::InGame:
-		InGameMenuHide();
+		InGameMenuHide(PC);
 		break;
-	case EInstanceState::WaitingForSessionCreate:
+	case EInstanceState::WaitingForStart:
 	case EInstanceState::InMainMenu:
 		UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
 		bShowInGameMenu = false;
@@ -126,37 +152,37 @@ void UMyGameInstance::GotoInGame()
 		ErrorWrongState
 			( this
 			, UEnum::GetValueAsString(EInstanceState::InMainMenu)
-			+ UEnum::GetValueAsString(EInstanceState::WaitingForSessionCreate)
+			+ UEnum::GetValueAsString(EInstanceState::WaitingForStart)
 			);
 		return;
 	}
 	InstanceState = EInstanceState::InGame;
 }
 
-void UMyGameInstance::InGameMenuShow()
+void UMyGameInstance::InGameMenuShow(const APlayerController* PC)
 {
 	if(!bShowInGameMenu)
 	{
-		GetPrimaryPlayerController()->GetHUD<AMyHUD>()->InGameMenuShow();
+		PC->GetHUD<AMyHUD>()->InGameMenuShow();
 	}
 	bShowInGameMenu = true;
 }
 
-void UMyGameInstance::InGameMenuHide()
+void UMyGameInstance::InGameMenuHide(const APlayerController* PC)
 {
 	if(bShowInGameMenu)
 	{
-		GetPrimaryPlayerController()->GetHUD<AMyHUD>()->InGameMenuHide();
+		PC->GetHUD<AMyHUD>()->InGameMenuHide();
 	}
 	bShowInGameMenu = false;
 }
 
-void UMyGameInstance::GotoWaitingForStart()
+void UMyGameInstance::GotoWaitingForStart(const APlayerController* PC)
 {
-	AMyHUDMenu* HUDMenu = GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>();
+	AMyHUDMenu* HUDMenu = PC->GetHUD<AMyHUDMenu>();
 	switch(InstanceState)
 	{
-	case EInstanceState::WaitingForSessionCreate:
+	case EInstanceState::WaitingForStart:
 	case EInstanceState::InMainMenu:
 		if(bIsMultiplayer)
 		{
@@ -177,10 +203,10 @@ void UMyGameInstance::GotoWaitingForStart()
 		break;
 	default:
 		ErrorWrongState
-			( this, UEnum::GetValueAsString(EInstanceState::WaitingForSessionCreate));
+			( this, UEnum::GetValueAsString(EInstanceState::WaitingForStart));
 		return;
 	}
-	InstanceState = EInstanceState::WaitingForSessionCreate;
+	InstanceState = EInstanceState::WaitingForStart;
 }
 
 void UMyGameInstance::JoinGame()
@@ -189,30 +215,7 @@ void UMyGameInstance::JoinGame()
 	// TODO
 }
 
-void UMyGameInstance::ServerListRefresh()
-{
-	// TODO: why isn't the unique net id valid?
-	AMyHUDMenu* HUDMenu = GetPrimaryPlayerController(false)->GetHUD<AMyHUDMenu>();
-	HUDMenu->WidgetServerList->SetStatusMessage(LOCTEXT("SearchingSessions", "Searching for sessions ..."));
-	HUDMenu->WidgetServerList->SetBtnRefreshEnabled(false);
-	GetSubsystem<UMyGISubsystem>()->FindSessions([this, HUDMenu] (bool bSuccess)
-	{
-		HUDMenu->WidgetServerList->SetBtnRefreshEnabled(true);
-		if(bSuccess)
-		{
-			HUDMenu->ServerListUpdate();
-		}
-		else
-		{
-			HUDMenu->MessageShow
-				( LOCTEXT("ErrorSessionSearch", "Error when trying to search for sessions")
-				, [HUDMenu] () { HUDMenu->MenuMainShow(); }
-				);
-		}
-	});
-}
-
-void UMyGameInstance::QuitGame()
+void UMyGameInstance::QuitGame(APlayerController* PC)
 {
 	if(bIsMultiplayer)
 	{
@@ -220,7 +223,7 @@ void UMyGameInstance::QuitGame()
 	}
 	UKismetSystemLibrary::QuitGame
 		( GetWorld()
-		, GetPrimaryPlayerController()
+		, PC
 		, EQuitPreference::Quit
 		, false
 		);

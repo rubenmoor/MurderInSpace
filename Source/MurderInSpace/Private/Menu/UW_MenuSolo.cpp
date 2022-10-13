@@ -13,6 +13,6 @@ void UUW_MenuSolo::NativeConstruct()
 
 	const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
 	
-	BtnStartNew->OnClicked().AddLambda([GI] () { GI->StartSoloGame(); });
+	BtnStartNew->OnClicked().AddLambda([this, GI] () { GI->StartSoloGame(GetOwningPlayer()); });
 	BtnBack->OnClicked().AddLambda([this] () { GetOwningPlayer()->GetHUD<AMyHUDMenu>()->MenuMainShow(); } );
 }

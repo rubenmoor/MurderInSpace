@@ -21,5 +21,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FPlayerUI PlayerUI = UStateLib::DefaultPlayerUI;
 
+	// event handlers
 	virtual void BeginPlay() override;
+	virtual void OnSetUniqueId() override;
 };

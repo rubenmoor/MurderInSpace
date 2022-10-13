@@ -100,6 +100,9 @@ public:
 	void ServerListShow();
 
 	UFUNCTION(BlueprintCallable)
+	void ServerListRefresh();
+	
+	UFUNCTION(BlueprintCallable)
 	void HostGameShow();
 
 	void MessageShow(const FText& StrMessage, TFunctionRef<void()> FuncGoBack);

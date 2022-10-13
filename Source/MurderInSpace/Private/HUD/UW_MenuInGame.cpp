@@ -10,7 +10,7 @@ void UUW_MenuInGame::NativeConstruct()
 	Super::NativeConstruct();
 
 	UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
-	BtnResume->OnClicked().AddLambda([GI] () { GI->GotoInGame(); });
-	BtnLeave->OnClicked().AddLambda([GI] () { GI->GotoInMenuMain(); });
-	BtnQuit->OnClicked().AddLambda([GI] () { GI->QuitGame(); });
+	BtnResume->OnClicked().AddLambda([this, GI] () { GI->GotoInGame(GetOwningPlayer()); });
+	BtnLeave->OnClicked().AddLambda([this, GI] () { GI->GotoInMenuMain(GetOwningPlayer()); });
+	BtnQuit->OnClicked().AddLambda([this, GI] () { GI->QuitGame(GetOwningPlayer()); });
 }

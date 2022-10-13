@@ -39,7 +39,7 @@ protected:
 	TObjectPtr<UUW_MenuInGame> WidgetMenuInGame;
 	
 	// event handlers
-	
+
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	

@@ -18,6 +18,7 @@
 #include "Menu/UW_ServerRow.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGISubsystem.h"
+#include "Modes/MyPlayerState.h"
 
 #define LOCTEXT_NAMESPACE "Menu"
 
@@ -112,7 +113,30 @@ void AMyHUDMenu::ServerListShow()
 {
 	HideViewportParentWidgets();
 	WidgetServerList->SetVisibility(ESlateVisibility::Visible);
-	GetGameInstance<UMyGameInstance>()->ServerListRefresh();
+	ServerListRefresh();
+}
+
+void AMyHUDMenu::ServerListRefresh()
+{
+	WidgetServerList->SetStatusMessage(LOCTEXT("SearchingSessions", "Searching for sessions ..."));
+	WidgetServerList->SetBtnRefreshEnabled(false);
+	GetGameInstance()->GetSubsystem<UMyGISubsystem>()->FindSessions
+		( GetOwningPlayerController()->GetPlayerState<AMyPlayerState>()->GetUniqueId()
+		, [this] (bool bSuccess)
+	{
+		WidgetServerList->SetBtnRefreshEnabled(true);
+		if(bSuccess)
+		{
+			ServerListUpdate();
+		}
+		else
+		{
+			MessageShow
+				( LOCTEXT("ErrorSessionSearch", "Error when trying to search for sessions")
+				, [this] () { MenuMainShow(); }
+				);
+		}
+	});
 }
 
 void AMyHUDMenu::HostGameShow()
@@ -227,4 +251,4 @@ void AMyHUDMenu::MessageShow(const FText& StrMessage, TFunctionRef<void()> FuncG
 	WidgetMessage->SetVisibility(ESlateVisibility::Visible);
 }
 
-# undef LOCTEXT_NAM
+#undef LOCTEXT_NAMESPACE

@@ -5,6 +5,7 @@
 #include "CommonTextBlock.h"
 #include "Components/CheckBox.h"
 #include "Components/EditableTextBox.h"
+#include "GameFramework/PlayerState.h"
 #include "Misc/DefaultValueHelper.h"
 #include "Modes/MyGameInstance.h"
 #include "HUD/MyCommonButton.h"
@@ -28,7 +29,10 @@ void UUW_HostGame::NativeConstruct()
 	CheckEveryManForHimself->OnCheckStateChanged.AddUniqueDynamic(this, &UUW_HostGame::HandleCheckEveryManForHimselfChanged);
 	CheckTeams->OnCheckStateChanged.AddUniqueDynamic(this, &UUW_HostGame::HandleCheckTeamsChanged);
 	CheckCoop->OnCheckStateChanged.AddUniqueDynamic(this, &UUW_HostGame::HandleCheckCoopChanged);
-	BtnStart->OnClicked().AddLambda([this] () { GetGameInstance<UMyGameInstance>()->HostGame(); });
+	BtnStart->OnClicked().AddLambda([this] ()
+	{
+		GetGameInstance<UMyGameInstance>()->HostGame(GetOwningPlayer()); 
+	});
 	BtnBack->OnClicked().AddLambda([this] () { GetOwningPlayer()->GetHUD<AMyHUDMenu>()->MenuMultiplayerShow(); });
 }
 
@@ -89,4 +93,4 @@ void UUW_HostGame::HandleCheckCoopChanged(bool bIsChecked)
 	}
 }
 
-# undef LOCTEXT_NAM
+#undef LOCTEXT_NAMESPACE

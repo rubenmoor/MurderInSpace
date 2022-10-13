@@ -38,7 +38,7 @@ FPhysics UStateLib::GetPhysicsUnsafe(const UObject* Object)
 	switch(GI->InstanceState)
 	{
 	case EInstanceState::InMainMenu:
-	case EInstanceState::WaitingForSessionCreate:
+	case EInstanceState::WaitingForStart:
 	case EInstanceState::InGame:
 		if(!GS)
 		{
@@ -57,7 +57,7 @@ FPhysics UStateLib::GetPhysicsUnsafe(const UObject* Object)
 		GI->ErrorWrongState
 			( Object
 			, UEnum::GetValueAsString(EInstanceState::InMainMenu)
-			+ UEnum::GetValueAsString(EInstanceState::WaitingForSessionCreate)
+			+ UEnum::GetValueAsString(EInstanceState::WaitingForStart)
 			+ UEnum::GetValueAsString(EInstanceState::InGame)
 			);
 		return DefaultPhysics;

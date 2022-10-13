@@ -21,7 +21,7 @@ public:
 	void SetGobackFunc(TFunctionRef<void()> GoBack)
 	{
 		BtnAbort->OnClicked().Clear();
-		BtnAbort->OnClicked().AddLambda([GoBack] () { GoBack(); });
+		BtnAbort->OnClicked().AddLambda(GoBack);
 	}
 	
 protected:

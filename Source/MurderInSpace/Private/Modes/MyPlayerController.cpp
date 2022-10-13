@@ -5,7 +5,9 @@
 
 #include <algorithm>
 
+#include "Online.h"
 #include "Actors/CharacterInSpace.h"
+#include "Interfaces/OnlineIdentityInterface.h"
 #include "Modes/MyPlayerState.h"
 
 void AMyPlayerController::SetupInputComponent()
@@ -104,17 +106,17 @@ void AMyPlayerController::HandleEscape()
 	case EInstanceState::InGame:
 		if(GI->GetShowInGameMenu())
 		{
-			GI->InGameMenuHide();
+			GI->InGameMenuHide(this);
 			CurrentMouseCursor = EMouseCursor::Crosshairs;
 		}
 		else
 		{
-			GI->InGameMenuShow();
+			GI->InGameMenuShow(this);
 			CurrentMouseCursor = EMouseCursor::Default;
 		}
 		break;
-	case EInstanceState::WaitingForSessionCreate:
-		GI->GotoInMenuMain();
+	case EInstanceState::WaitingForStart:
+		GI->GotoInMenuMain(this);
 		break;
 	default:
 		// nothing to do here
@@ -167,6 +169,7 @@ void AMyPlayerController::BeginPlay()
 	}
 	FInputModeGameAndUI InputModeGameAndUI;
 	SetInputMode(InputModeGameAndUI);
+
 }
 
 void AMyPlayerController::Tick(float DeltaSeconds)

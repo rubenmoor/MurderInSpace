@@ -5,21 +5,15 @@
 
 #include "OnlineSubsystemUtils.h"
 #include "OnlineSessionSettings.h"
+#include "GameFramework/GameSession.h"
 #include "HUD/MyHUDMenu.h"
 #include "Modes/MyGameInstance.h"
+#include "Modes/MyPlayerController.h"
 #include "Modes/MyPlayerState.h"
 
-bool UMyGISubsystem::CreateSession(FHostSessionConfig SessionConfig, TFunctionRef<void(FName, bool)> Callback)
+bool UMyGISubsystem::CreateSession(FUniqueNetIdRepl UNI, FHostSessionConfig SessionConfig, TFunctionRef<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
-	UE_LOG
-		( LogNet
-		, Display
-		, TEXT("%s: subsystem: %s; session interface is valid and unique: %s")
-		, *GetFullName()
-		, *IOnlineSubsystem::Get()->GetSubsystemName().ToString()
-		, SI.IsUnique() ? TEXT("true") : TEXT("false")
-		)
 	
 	auto [ CustomName, NumConnections, bPrivate, bEnableLAN, _GameMode ] = SessionConfig;
 	LastSessionSettings = MakeShareable(new FOnlineSessionSettings());
@@ -45,12 +39,12 @@ bool UMyGISubsystem::CreateSession(FHostSessionConfig SessionConfig, TFunctionRe
 			, TEXT("%s: Destroying existing session")
 			, *GetFullName()
 			)
-		DestroySession([this, Callback] (FName SessionName, bool bSuccess)
+		DestroySession([this, Callback, UNI] (FName SessionName, bool bSuccess)
 		{
 			if(bSuccess)
 			{
 				// start over
-				Cast<UMyGameInstance>(GetGameInstance())->HostGame();
+				Cast<UMyGameInstance>(GetGameInstance())->HostGame(GetPlayerControllerFromNetId(GetWorld(), UNI));
 			}
 			else
 			{
@@ -61,121 +55,76 @@ bool UMyGISubsystem::CreateSession(FHostSessionConfig SessionConfig, TFunctionRe
 		// "waiting for session create" screen
 		return true;
 	}
-	
-	FOnCreateSessionComplete OnCreateSessionComplete;
-	OnCreateSessionComplete.AddLambda([this, Callback, &OnCreateSessionComplete] (FName SessionName, bool bSuccess)
+
+	if(SI->OnCreateSessionCompleteDelegates.IsBound())
+	{
+		UE_LOG(LogNet, Warning, TEXT("%s: OnCreateSessionCompleteDelegates: was bound, clearing"), *GetFullName())
+		SI->OnCreateSessionCompleteDelegates.Clear();
+	}
+	SI->OnCreateSessionCompleteDelegates.AddLambda([this, Callback] (FName SessionName, bool bSuccess)
 	{
 		if(bSuccess)
 		{
 			if(!StartSession(Callback))
 			{
-				UE_LOG(LogNet, Error, TEXT("%s: couldn't create session"), *GetFullName())
+				UE_LOG(LogNet, Error, TEXT("%s: couldn't start session"), *GetFullName())
 				Callback(SessionName, false);
 			}
 		}
-		OnCreateSessionComplete.Clear();
+		else
+		{
+			Callback(SessionName, false);
+		}
 	});
 
-	const FUniqueNetIdRepl UniqueNetIdRepl = GetGameInstance()->GetPrimaryPlayerController()->GetPlayerState<AMyPlayerState>()->GetUniqueId();
-	const TObjectPtr<ULocalPlayer> LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-	// TODO: what is the cached unique net id logic?
-	UE_LOG
-		( LogOnline
-		, Display
-		, TEXT("%s: LocalPlayer->GetPreferredUniqueNetId(): %s, LocalPlayer->GetCachedUniqueNetId: %s; PlayerState->GetUniqueId: %s") 
-		, *GetFullName()
-		, *LocalPlayer->GetPreferredUniqueNetId().ToString()
-		, *LocalPlayer->GetCachedUniqueNetId().ToString()
-		, *UniqueNetIdRepl.ToString()
-		)
-	if (!SI->CreateSession(*UniqueNetIdRepl, NAME_GameSession, *LastSessionSettings))
-	{
-		return false;
-	}
-	return true;
+	return SI->CreateSession(*UNI, NAME_GameSession, *LastSessionSettings);
 }
 
 bool UMyGISubsystem::DestroySession(TFunctionRef<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
-	UE_LOG
-		( LogNet
-		, Display
-		, TEXT("%s: subsystem: %s; session interface is valid and unique: %s")
-		, *GetFullName()
-		, *IOnlineSubsystem::Get()->GetSubsystemName().ToString()
-		, SI.IsUnique() ? TEXT("true") : TEXT("false")
-		)
-	if (!SI->DestroySession(NAME_GameSession))
+	if(SI->OnDestroySessionCompleteDelegates.IsBound())
 	{
-		return false;
+		UE_LOG(LogNet, Warning, TEXT("%s: OnDestroySessionCompleteDelegates: was bound, clearing"), *GetFullName())
+		SI->OnDestroySessionCompleteDelegates.Clear();
 	}
-	FOnDestroySessionComplete OnDestroySessionComplete;
-	OnDestroySessionComplete.AddLambda([this, Callback, &OnDestroySessionComplete] (FName SessionName, bool bSuccess)
-	{
-		Callback(SessionName, bSuccess);
-		OnDestroySessionComplete.Clear();
-	});
-	return true;
+	SI->OnDestroySessionCompleteDelegates.AddLambda(Callback);
+	return SI->DestroySession(NAME_GameSession);
 }
 
 bool UMyGISubsystem::StartSession(TFunctionRef<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
-	UE_LOG
-		( LogNet
-		, Display
-		, TEXT("%s: subsystem: %s; session interface is valid and unique: %s")
-		, *GetFullName()
-		, *IOnlineSubsystem::Get()->GetSubsystemName().ToString()
-		, SI.IsUnique() ? TEXT("true") : TEXT("false")
-		)
-	if (!SI->StartSession(NAME_GameSession))
+	if(SI->OnStartSessionCompleteDelegates.IsBound())
 	{
-		return false;
+		UE_LOG(LogNet, Warning, TEXT("%s: OnStartSessionCompleteDelegates: was bound, clearing"), *GetFullName())
+		SI->OnStartSessionCompleteDelegates.Clear();
 	}
-	FOnStartSessionComplete OnStartSessionComplete;
-	OnStartSessionComplete.AddLambda([this, Callback, &OnStartSessionComplete] (FName SessionName, bool bSuccess)
-	{
-		Callback(SessionName, bSuccess);
-		OnStartSessionComplete.Clear();
-	});
-	return true;
+	SI->OnStartSessionCompleteDelegates.AddLambda(Callback);
+	return SI->StartSession(NAME_GameSession);
 }
 
-bool UMyGISubsystem::FindSessions(TFunctionRef<void(bool)> Callback)
+bool UMyGISubsystem::FindSessions(FUniqueNetIdRepl UNI, TFunctionRef<void(bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
-	UE_LOG
-		( LogNet
-		, Display
-		, TEXT("%s: subsystem: %s; session interface is valid and unique: %s")
-		, *GetFullName()
-		, *IOnlineSubsystem::Get()->GetSubsystemName().ToString()
-		, SI.IsUnique() ? TEXT("true") : TEXT("false")
-		)
 	LastSessionSearch = MakeShareable(new FOnlineSessionSearch());
 	LastSessionSearch->MaxSearchResults = 128;
 	LastSessionSearch->bIsLanQuery = Cast<UMyGameInstance>(GetGameInstance())->SessionConfig.bEnableLAN;
 	LastSessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 
-	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-	if (!SI->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), LastSessionSearch.ToSharedRef()))
+	if(SI->OnFindSessionsCompleteDelegates.IsBound())
 	{
-		return false;
+		UE_LOG(LogNet, Warning, TEXT("%s: OnFindSessionsCompleteDelegates: was bound, clearing"), *GetFullName())
+		SI->OnFindSessionsCompleteDelegates.Clear();
 	}
-	FOnFindSessionsComplete OnFindSessionsComplete;
-	OnFindSessionsComplete.AddLambda([this, Callback, &OnFindSessionsComplete] (bool bSuccess)
-	{
-		Callback(bSuccess);
-		OnFindSessionsComplete.Clear();
-	});
-	return true;
+	SI->OnFindSessionsCompleteDelegates.AddLambda(Callback);
+	return SI->FindSessions(*UNI, LastSessionSearch.ToSharedRef());
 }
 
-void UMyGISubsystem::ShowLoginScreen()
+void UMyGISubsystem::ShowLoginScreen(FUniqueNetIdRepl OldUNI)
 {
 	FOnlineAccountCredentials OnlineAccountCredentials;
+	
 	// for epic games account
 	//OnlineAccountCredentials.Type = "AccountPortal";
 
@@ -183,16 +132,34 @@ void UMyGISubsystem::ShowLoginScreen()
 	OnlineAccountCredentials.Type = "Developer";
 	OnlineAccountCredentials.Id = "localhost:1234";
 	OnlineAccountCredentials.Token = "foo";
+	
 	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked(FName(TEXT("EOS")));
-	AMyHUDMenu* HUDMenu = GetGameInstance()->GetPrimaryPlayerController()->GetHUD<AMyHUDMenu>();
-	OSSIdentity->OnLoginCompleteDelegates->Clear();
-	OSSIdentity->OnLoginCompleteDelegates->AddLambda([this, HUDMenu] (int32 Num, bool bSuccess, const FUniqueNetId& UniqueNetId, const FString& Error)
+	
+	if(OSSIdentity->OnLoginCompleteDelegates->IsBound())
 	{
+		UE_LOG(LogNet, Warning, TEXT("%s: OnLoginCompleteDelegates: was bound, clearing"), *GetFullName())
+		OSSIdentity->OnLoginCompleteDelegates->Clear();
+	}
+	OSSIdentity->OnLoginCompleteDelegates->AddLambda([this] (int32 LocalUserNum, bool bSuccess, const FUniqueNetId& NewUNI, const FString& Error)
+	{
+		UE_LOG
+			( LogNet
+			, Display
+			, TEXT("%s: Login of player num %d: %s")
+			, *GetFullName()
+			, LocalUserNum
+			, bSuccess ? TEXT("success") : TEXT("failure")
+			)
+
+		// the unique net id may change, the player controller stays the same
+		const APlayerController* PC = GetGameInstance()->GetLocalPlayerByIndex(LocalUserNum)->GetPlayerController(GetWorld());
+		AMyHUDMenu* HUDMenu = PC->GetHUD<AMyHUDMenu>();
+		
 		if(bSuccess)
 		{
 			UMyGameInstance* GI = Cast<UMyGameInstance>(GetGameInstance());
 			GI->bLoggedIn = true;
-			GI->GetPrimaryPlayerController()->GetPlayerState<AMyPlayerState>()->SetUniqueId(FUniqueNetIdRepl(UniqueNetId));
+			PC->GetPlayerState<AMyPlayerState>()->SetUniqueId(FUniqueNetIdRepl(NewUNI));
 			GI->SessionConfig.bEnableLAN = false;
 			HUDMenu->MenuMultiplayerShow();
 		}
@@ -204,12 +171,22 @@ void UMyGISubsystem::ShowLoginScreen()
 				);
 		}
 	});
-	OSSIdentity->OnLogoutCompleteDelegates->Clear();
-	OSSIdentity->OnLogoutCompleteDelegates->AddLambda([this] (int32 Num, bool bSuccess)
+	OSSIdentity->Login
+		( Cast<UMyGameInstance>(GetGameInstance())->GetLocalPlayerIndex(OldUNI)
+		, OnlineAccountCredentials
+		);
+}
+
+// called by UW_MenuMain: when the user clicks on "multiplayer"
+void UMyGISubsystem::BindOnLogout(TFunctionRef<void(int32, bool)> Handler)
+{
+	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked(FName(TEXT("EOS")));
+	if(OSSIdentity->OnLogoutCompleteDelegates->IsBound())
 	{
-		Cast<UMyGameInstance>(GetGameInstance())->bLoggedIn = false;
-	});
-	OSSIdentity->Login(0, OnlineAccountCredentials);
+		UE_LOG(LogNet, Warning, TEXT("%s: OnLogoutCompleteDelegates: was bound, clearing"), *GetFullName())
+		OSSIdentity->OnLogoutCompleteDelegates->Clear();
+	}
+	OSSIdentity->OnLogoutCompleteDelegates->AddLambda(Handler);
 }
 
 IOnlineSessionPtr UMyGISubsystem::GetSessionInterface() const

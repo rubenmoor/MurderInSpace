@@ -21,7 +21,7 @@ public:
 	{
 		UCommonButtonBase::FCommonButtonEvent OnClicked = BtnBack->OnClicked();
 		OnClicked.Clear();
-		OnClicked.AddLambda([Func] () { Func(); });
+		OnClicked.AddLambda(Func);
 	}
 
 protected:

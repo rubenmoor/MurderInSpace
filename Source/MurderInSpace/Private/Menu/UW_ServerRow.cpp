@@ -22,4 +22,4 @@ void UUW_ServerRow::SetPlayerNumbers(int32 NumPlayers, int32 MaxNumPlayers)
 	TextPlayerCount->SetText(FText::Format(LOCTEXT("Playercount", "{0} / {1}"), NumPlayers, MaxNumPlayers));
 }
 
-# undef LOCTEXT_NAM
+#undef LOCTEXT_NAMESPACE

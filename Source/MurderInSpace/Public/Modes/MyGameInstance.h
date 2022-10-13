@@ -11,7 +11,7 @@ enum class EInstanceState : uint8
 {
 	StartUp UMETA(DisplayName="startup"),
 	InMainMenu UMETA(DisplayName="in main menu"),
-	WaitingForSessionCreate UMETA(DisplayName="waiting for session create"),
+	WaitingForStart UMETA(DisplayName="waiting for session create"),
 	MsgError UMETA(DisplayName="error message"),
 	InGame UMETA(DisplayName="in game"),
 	Indeterminate UMETA(DisplayName="status indeterminate")
@@ -65,40 +65,40 @@ public:
 	EInstanceState GetInstanceState() { return InstanceState; }
 
 	UFUNCTION(BlueprintCallable)
+	int32 GetLocalPlayerIndex(FUniqueNetIdRepl UNI);
+	
+	UFUNCTION(BlueprintCallable)
 	bool GetIsMultiplayer() { return bIsMultiplayer; }
 	
 	UFUNCTION(BlueprintCallable)
 	bool GetShowInGameMenu() { return bShowInGameMenu; }
 
 	UFUNCTION(BlueprintCallable)
-	void HostGame();
+	void HostGame(const APlayerController* PC);
 
 	UFUNCTION(BlueprintCallable)
-	void StartSoloGame();
+	void StartSoloGame(const APlayerController* PC);
 
 	UFUNCTION(BlueprintCallable)
 	void JoinGame();
-
-	UFUNCTION(BlueprintCallable)
-	void ServerListRefresh();
 	
 	UFUNCTION(BlueprintCallable)
-	void GotoInMenuMain();
+	void GotoInMenuMain(const APlayerController* PC);
 
 	UFUNCTION(BlueprintCallable)
-	void GotoInGame();
+	void GotoInGame(const APlayerController* PC);
 
 	UFUNCTION(BlueprintCallable)
-	void InGameMenuShow();
+	void InGameMenuShow(const APlayerController* PC);
 
 	UFUNCTION(BlueprintCallable)
-	void InGameMenuHide();
+	void InGameMenuHide(const APlayerController* PC);
 
 	UFUNCTION(BlueprintCallable)
-	void GotoWaitingForStart();
+	void GotoWaitingForStart(const APlayerController* PC);
 
 	UFUNCTION(BlueprintCallable)
-	void QuitGame();
+	void QuitGame(APlayerController* PC);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bLoggedIn;

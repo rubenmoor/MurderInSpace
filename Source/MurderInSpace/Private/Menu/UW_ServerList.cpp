@@ -10,7 +10,13 @@ void UUW_ServerList::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	BtnBack->OnClicked().AddLambda([this] () { GetOwningPlayer()->GetHUD<AMyHUDMenu>()->MenuMultiplayerShow(); });
-	BtnRefresh->OnClicked().AddLambda([this] () { GetGameInstance<UMyGameInstance>()->ServerListRefresh(); });
+	BtnBack->OnClicked().AddLambda([this] ()
+	{
+		GetOwningPlayer()->GetHUD<AMyHUDMenu>()->MenuMultiplayerShow();
+	});
+	BtnRefresh->OnClicked().AddLambda([this] ()
+	{
+		GetOwningPlayer()->GetHUD<AMyHUDMenu>()->ServerListRefresh();
+	});
 	// TODO: server row on clicked -> GI -> join game { join session }
 }
