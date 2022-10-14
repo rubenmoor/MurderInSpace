@@ -4,10 +4,9 @@
 #include "Modes/MyPlayerController.h"
 
 #include <algorithm>
-
-#include "Online.h"
 #include "Actors/CharacterInSpace.h"
-#include "Interfaces/OnlineIdentityInterface.h"
+#include "HUD/MyHUD.h"
+#include "Modes/MyLocalPlayer.h"
 #include "Modes/MyPlayerState.h"
 
 void AMyPlayerController::SetupInputComponent()
@@ -29,7 +28,7 @@ void AMyPlayerController::SetupInputComponent()
 
 void AMyPlayerController::Zoom(float Delta)
 {
-	if(GetGameInstance<UMyGameInstance>()->GetInstanceState() == EInstanceState::InGame)
+	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
 	{
 		if(abs(Delta) > 0)
 		{
@@ -44,12 +43,12 @@ void AMyPlayerController::Zoom(float Delta)
 
 void AMyPlayerController::HandleEndAccelerate()
 {
-	if(GetGameInstance<UMyGameInstance>()->GetInstanceState() == EInstanceState::InGame)
+	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
 	{
 		const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
 		MyCharacter->bIsAccelerating = false;
 
-		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this);
+		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
 		const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
 		Orbit->bIsVisibleAccelerating = false;
 		Orbit->UpdateVisibility(PlayerUI);
@@ -59,10 +58,10 @@ void AMyPlayerController::HandleEndAccelerate()
 
 void AMyPlayerController::HandleBeginShowMyTrajectory()
 {
-	if(GetGameInstance<UMyGameInstance>()->GetInstanceState() == EInstanceState::InGame)
+	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
 	{
 		const auto Orbit = GetPawn<ACharacterInSpace>()->GetOrbitComponent();
-		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this);
+		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
 		// abusing this variable
 		Orbit->bIsVisibleVarious = true;
 		Orbit->UpdateVisibility(PlayerUI);
@@ -71,10 +70,10 @@ void AMyPlayerController::HandleBeginShowMyTrajectory()
 
 void AMyPlayerController::HandleEndShowMyTrajectory()
 {
-	if(GetGameInstance<UMyGameInstance>()->GetInstanceState() == EInstanceState::InGame)
+	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
 	{
 		const auto Orbit = GetPawn<ACharacterInSpace>()->GetOrbitComponent();
-		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this);
+		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
 		// abusing this variable
 		Orbit->bIsVisibleVarious = false;
 		Orbit->UpdateVisibility(PlayerUI);
@@ -84,7 +83,7 @@ void AMyPlayerController::HandleEndShowMyTrajectory()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AMyPlayerController::HandleBeginShowAllTrajectories()
 {
-	if(GetGameInstance<UMyGameInstance>()->GetInstanceState() == EInstanceState::InGame)
+	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
 	{
 		SetShowAllTrajectories(true);
 	}
@@ -93,7 +92,7 @@ void AMyPlayerController::HandleBeginShowAllTrajectories()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AMyPlayerController::HandleEndShowAllTrajectories()
 {
-	if(GetGameInstance<UMyGameInstance>()->GetInstanceState() == EInstanceState::InGame)
+	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
 	{
 		SetShowAllTrajectories(false);
 	}
@@ -101,53 +100,50 @@ void AMyPlayerController::HandleEndShowAllTrajectories()
 
 void AMyPlayerController::HandleEscape()
 {
-	switch(const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>(); GI->GetInstanceState())
+	UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
+	if(!LocalPlayer->GetIsInMainMenu())
 	{
-	case EInstanceState::InGame:
-		if(GI->GetShowInGameMenu())
+		if(LocalPlayer->ShowInGameMenu)
 		{
-			GI->InGameMenuHide(this);
+			GetHUD<AMyHUD>()->InGameMenuHide();
 			CurrentMouseCursor = EMouseCursor::Crosshairs;
+			LocalPlayer->ShowInGameMenu = false;
 		}
 		else
 		{
-			GI->InGameMenuShow(this);
+			GetHUD<AMyHUD>()->InGameMenuShow();
 			CurrentMouseCursor = EMouseCursor::Default;
+			LocalPlayer->ShowInGameMenu = true;
 		}
-		break;
-	case EInstanceState::WaitingForStart:
-		GI->GotoInMenuMain(this);
-		break;
-	default:
-		// nothing to do here
-		;
 	}
+	// TODO: handle escape and other keys in HUD
+	// case EInstanceState::WaitingForStart:
+	// 	GI->GotoInMenuMain(this);
 }
 
 void AMyPlayerController::SetShowAllTrajectories(bool bInShow) const
 {
-	if(GetGameInstance<UMyGameInstance>()->GetInstanceState() == EInstanceState::InGame)
+	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
 	{
-		UStateLib::WithPlayerUIUnsafe(this, [this, bInShow] (FPlayerUI PlayerUI)
+		UStateLib::WithPlayerUIUnsafe(this, FLocalPlayerContext(this), [this, bInShow] (FPlayerUI PlayerUI)
+		{
+			PlayerUI.bShowAllTrajectories = bInShow;
+			for(TObjectIterator<UOrbitComponent> Iter; Iter; ++Iter)
 			{
-				PlayerUI.bShowAllTrajectories = bInShow;
-				for(TObjectIterator<UOrbitComponent> Iter; Iter; ++Iter)
-				{
-					(*Iter)->UpdateVisibility(PlayerUI);
-				}
-				return PlayerUI;
-			});
+				(*Iter)->UpdateVisibility(PlayerUI);
+			}
+		});
 	}
 }
 
 void AMyPlayerController::HandleBeginAccelerate()
 {
-	if(GetGameInstance<UMyGameInstance>()->GetInstanceState() == EInstanceState::InGame)
+	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
 	{
 		const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
 		MyCharacter->bIsAccelerating = true;
 		
-		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this);
+		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
 		const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
 		Orbit->SpawnSplineMesh(MyCharacter->GetTempSplineMeshColor(), MyCharacter->GetTempSplineMeshParent(), PlayerUI);
 		Orbit->bIsVisibleAccelerating = true;
@@ -155,30 +151,14 @@ void AMyPlayerController::HandleBeginAccelerate()
 	}
 }
 
-void AMyPlayerController::BeginPlay()
-{
-	Super::BeginPlay();
-	const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
-	if(!MyCharacter)
-	{
-		UE_LOG(LogPlayerController, Error, TEXT("AMyPlayerController: GetPawn: No Character."))
-	}
-	else
-	{
-		MyCharacter->UpdateSpringArm(CameraPosition);
-	}
-	FInputModeGameAndUI InputModeGameAndUI;
-	SetInputMode(InputModeGameAndUI);
-
-}
-
+// reacting to mouse move
 void AMyPlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if(GetGameInstance<UMyGameInstance>()->GetInstanceState() == EInstanceState::InGame)
+	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
 	{
-		const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
+		ACharacterInSpace* MyCharacter = GetPawn<ACharacterInSpace>();
 		if(!MyCharacter)
 		{
 			UE_LOG(LogPlayerController, Error, TEXT("MyPlayerController: Tick: no character, no pawn"))
@@ -196,4 +176,21 @@ void AMyPlayerController::Tick(float DeltaSeconds)
 			MyCharacter->LookAt(FVector(X, Y, Z));
 		}
 	}
+}
+
+void AMyPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+	
+	ACharacterInSpace* MyCharacter = Cast<ACharacterInSpace>(InPawn);
+	if(!MyCharacter)
+	{
+		UE_LOG(LogPlayerController, Error, TEXT("AMyPlayerController: GetPawn: No Character."))
+	}
+	else
+	{
+		MyCharacter->UpdateSpringArm(CameraPosition);
+	}
+	FInputModeGameAndUI InputModeGameAndUI;
+	SetInputMode(InputModeGameAndUI);
 }

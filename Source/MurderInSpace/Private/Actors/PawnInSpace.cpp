@@ -64,7 +64,10 @@ void APawnInSpace::Tick(float DeltaSeconds)
 	if(bIsAccelerating)
 	{
 		const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
-		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this);
+		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe
+			(this
+			, FLocalPlayerContext(GetGameInstance()->GetPrimaryPlayerController())
+			);
 		const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
 		Orbit->AddVelocity(MovableRoot->GetForwardVector() * DeltaV, Physics, PlayerUI);
 	}

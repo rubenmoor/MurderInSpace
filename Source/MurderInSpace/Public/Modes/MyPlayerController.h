@@ -24,8 +24,8 @@ protected:
 
 	// event handlers
 	
-	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void OnPossess(APawn* InPawn) override;
 
 	// input events
 	
@@ -53,7 +53,7 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void HandleEscape();
-private:
 	
+private:
 	void SetShowAllTrajectories(bool bInShow) const;
 };

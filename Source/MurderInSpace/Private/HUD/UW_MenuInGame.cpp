@@ -3,14 +3,23 @@
 
 #include "HUD/UW_MenuInGame.h"
 #include "HUD/MyCommonButton.h"
+#include "HUD/MyHUD.h"
 #include "Modes/MyGameInstance.h"
 
 void UUW_MenuInGame::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
-	BtnResume->OnClicked().AddLambda([this, GI] () { GI->GotoInGame(GetOwningPlayer()); });
-	BtnLeave->OnClicked().AddLambda([this, GI] () { GI->GotoInMenuMain(GetOwningPlayer()); });
-	BtnQuit->OnClicked().AddLambda([this, GI] () { GI->QuitGame(GetOwningPlayer()); });
+	BtnResume->OnClicked().AddLambda([this] ()
+	{
+		GetPlayerContext().GetHUD<AMyHUD>()->InGameMenuHide();
+	});
+	BtnLeave->OnClicked().AddLambda([this] ()
+	{
+		GetGameInstance<UMyGameInstance>()->LeaveGame(GetPlayerContext());
+	});
+	BtnQuit->OnClicked().AddLambda([this] ()
+	{
+		GetGameInstance<UMyGameInstance>()->QuitGame(GetPlayerContext());
+	});
 }

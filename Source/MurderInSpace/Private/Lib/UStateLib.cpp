@@ -35,33 +35,19 @@ FPhysics UStateLib::GetPhysicsUnsafe(const UObject* Object)
 	}
 	
 	const AMyGameState* GS = World->GetGameState<AMyGameState>();
-	switch(GI->InstanceState)
+	if(!GS)
 	{
-	case EInstanceState::InMainMenu:
-	case EInstanceState::WaitingForStart:
-	case EInstanceState::InGame:
-		if(!GS)
-		{
-			const AGameState* GSGeneric = World->GetGameState<AGameState>();
-			UE_LOG
-				( LogGameState
-				, Error
-				, TEXT("UStateLib::GetPhysicsUnsafe: %s: AMyGameState null; AGameState: %s")
-				, *Object->GetFullName()
-				, GSGeneric ? *GSGeneric->GetFullName() : TEXT("null")
-				)
-			return DefaultPhysics;
-		}
-		return GS->Physics;
-	default:
-		GI->ErrorWrongState
-			( Object
-			, UEnum::GetValueAsString(EInstanceState::InMainMenu)
-			+ UEnum::GetValueAsString(EInstanceState::WaitingForStart)
-			+ UEnum::GetValueAsString(EInstanceState::InGame)
-			);
+		const AGameState* GSGeneric = World->GetGameState<AGameState>();
+		UE_LOG
+			( LogGameState
+			, Error
+			, TEXT("UStateLib::GetPhysicsUnsafe: %s: AMyGameState null; AGameState: %s")
+			, *Object->GetFullName()
+			, GSGeneric ? *GSGeneric->GetFullName() : TEXT("null")
+			)
 		return DefaultPhysics;
 	}
+	return GS->Physics;
 }
 
 FPhysics UStateLib::GetPhysicsEditorDefault()
@@ -74,12 +60,12 @@ FPlayerUI UStateLib::GetPlayerUI(const AMyPlayerState* PS)
 	return PS->PlayerUI;
 }
 
-FPlayerUI UStateLib::GetPlayerUIUnsafe(const UObject* Object)
+FPlayerUI UStateLib::GetPlayerUIUnsafe(const UObject* Object, const FLocalPlayerContext& LPC)
 {
-	const AMyPlayerState* PS = Object->GetWorld()->GetFirstPlayerController()->GetPlayerState<AMyPlayerState>();
+	const AMyPlayerState* PS = LPC.GetPlayerState<AMyPlayerState>();
 	if(!PS)
 	{
-		const APlayerState* PSGeneric = Object->GetWorld()->GetFirstPlayerController()->GetPlayerState<APlayerState>();
+		const APlayerState* PSGeneric = LPC.GetPlayerState<APlayerState>();
 		UE_LOG
 			( LogPlayerController
 			, Error
@@ -124,46 +110,31 @@ FRnd UStateLib::GetRndUnsafe(const UObject* Object)
 	}
 	
 	const AMyGameState* GS = World->GetGameState<AMyGameState>();
-	switch(GI->InstanceState)
+	if(!GS)
 	{
-	case EInstanceState::InMainMenu:
-	case EInstanceState::InGame:
-			
-		if(!GS)
-		{
-			const AGameState* GSGeneric = World->GetGameState<AGameState>();
-			UE_LOG
-				( LogGameState
-				, Error
-				, TEXT("UStateLib::GetRndUnsafe: %s: AMyGameState null; AGameState: %s")
-				, *Object->GetFullName()
-				, GSGeneric ? *GSGeneric->GetFullName() : TEXT("null")
-				)
-			return FRnd();
-		}
-		return FRnd
-			{ GS->RndGen
-			, GS->Poisson
-			, GI->Random
-			};
-	default:
+		const AGameState* GSGeneric = World->GetGameState<AGameState>();
 		UE_LOG
 			( LogGameState
 			, Error
-			, TEXT("UStateLib::GetRndUnsafe: %s: Instance state: %s, expected InMenu* or InGame*")
+			, TEXT("UStateLib::GetRndUnsafe: %s: AMyGameState null; AGameState: %s")
 			, *Object->GetFullName()
-			, *UEnum::GetValueAsString(GI->InstanceState)
+			, GSGeneric ? *GSGeneric->GetFullName() : TEXT("null")
 			)
 		return FRnd();
 	}
+	return FRnd
+		{ GS->RndGen
+		, GS->Poisson
+		, GI->Random
+		};
 }
 
-void UStateLib::WithPlayerUIUnsafe(const UObject* Object, const TFunctionRef<FPlayerUI(FPlayerUI)> Func)
+void UStateLib::WithPlayerUIUnsafe(const UObject* Object, const FLocalPlayerContext& LPC, const TFunctionRef<void(FPlayerUI&)> Func)
 {
-	AMyPlayerState* PS = Object->GetWorld()->GetFirstPlayerController()->GetPlayerState<AMyPlayerState>();
+	AMyPlayerState* PS = LPC.GetPlayerState<AMyPlayerState>();
 	if(!PS)
 	{
-		const APlayerState* PSGeneric = Object->GetWorld()->GetFirstPlayerController()->GetPlayerState<APlayerState>();
+		const APlayerState* PSGeneric = LPC.GetPlayerState<APlayerState>();
 		UE_LOG
 			( LogPlayerController
 			, Error
@@ -173,10 +144,10 @@ void UStateLib::WithPlayerUIUnsafe(const UObject* Object, const TFunctionRef<FPl
 			)
 		return;
 	}
-	PS->PlayerUI = Func(PS->PlayerUI);
+	Func(PS->PlayerUI);
 }
 
-void UStateLib::SetInstanceState(UMyGameInstance* GI, const EInstanceState InNewState)
-{
-	GI->InstanceState = InNewState;
-}
+// void UStateLib::SetInstanceState(UMyGameInstance* GI, int32 PlayerNum, const EInstanceState InNewState)
+// {
+// 	GI->InstanceStateArray[PlayerNum] = InNewState;
+// }

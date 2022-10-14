@@ -535,7 +535,7 @@ void UOrbitComponent::BeginPlay()
 
 	// ignore the visibility set in the editor
 	bIsVisibleVarious = false;
-	UpdateVisibility(UStateLib::GetPlayerUIUnsafe(this));
+	UpdateVisibility(UStateLib::GetPlayerUIEditorDefault());
 	if(!MSplineMesh)
 	{
 		UE_LOG(LogActorComponent, Warning, TEXT("%s: spline mesh material not set"), *GetFullName())

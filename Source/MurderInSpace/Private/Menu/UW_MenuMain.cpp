@@ -3,11 +3,11 @@
 
 #include "Menu/UW_MenuMain.h"
 
-#include "GameFramework/PlayerState.h"
 #include "HUD/MyCommonButton.h"
 #include "HUD/MyHUDMenu.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGISubsystem.h"
+#include "Modes/MyLocalPlayer.h"
 
 #define LOCTEXT_NAMESPACE "Menu"
 
@@ -23,27 +23,12 @@ void UUW_MenuMain::NativeConstruct()
 	{
 		UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
 		GI->SessionConfig.bEnableLAN = true;
-		GI->GetSubsystem<UMyGISubsystem>()->BindOnLogout([this, GI] (int32 PlayerNum, bool bSuccess)
-		{
-			if(bSuccess)
-			{
-				GI->bLoggedIn = false;
-			}
-			UE_LOG
-				( LogNet
-				, Display
-				, TEXT("%s: Player %d log out: %s")
-				, *GetFullName()
-				, PlayerNum
-				, bSuccess ? TEXT("success") : TEXT("failure")
-				)
-		});
 		GetOwningPlayer()->GetHUD<AMyHUDMenu>()->MenuMultiplayerShow();
 	});
 	BtnOnlineMultiplayer->OnClicked().AddLambda([this] ()
 	{
 		UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
-		if(GI->bLoggedIn)
+		if(Cast<UMyLocalPlayer>(GetOwningPlayer())->IsLoggedIn)
 		{
 			GI->SessionConfig.bEnableLAN = false;
 			GetOwningPlayer()->GetHUD<AMyHUDMenu>()->MenuMultiplayerShow();
@@ -57,7 +42,7 @@ void UUW_MenuMain::NativeConstruct()
 	BtnLogin->OnClicked().AddLambda([this] ()
 	{
 		const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
-		GI->GetSubsystem<UMyGISubsystem>()->ShowLoginScreen(GetOwningPlayerState()->GetUniqueId());
+		GI->GetSubsystem<UMyGISubsystem>()->ShowLoginScreen(GetPlayerContext());
 		BtnLogin->SetVisibility(ESlateVisibility::Collapsed);
 		// AMyHUDMenu* HUDMenu = GetOwningPlayer()->GetHUD<AMyHUDMenu>();
 		// HUDMenu->LoadingScreenShow
@@ -68,7 +53,7 @@ void UUW_MenuMain::NativeConstruct()
 	// TODO: BtnLogin: on focus lost: hide
 	BtnQuit->OnClicked().AddLambda([this] ()
 	{
-		GetGameInstance<UMyGameInstance>()->QuitGame(GetOwningPlayer());
+		GetGameInstance<UMyGameInstance>()->QuitGame(GetPlayerContext());
 	});
 }
 #undef LOCTEXT_NAMESPACE

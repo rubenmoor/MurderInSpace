@@ -113,8 +113,7 @@ public:
 	UFUNCTION(BlueprintPure)
 	static FPlayerUI GetPlayerUI(const AMyPlayerState* PS);
 
-	UFUNCTION(BlueprintPure)
-	static FPlayerUI GetPlayerUIUnsafe(const UObject* Object);
+	static FPlayerUI GetPlayerUIUnsafe(const UObject* Object, const FLocalPlayerContext& PC);
 	
 	UFUNCTION(BlueprintPure)
 	static FPlayerUI GetPlayerUIEditorDefault();
@@ -125,8 +124,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	static FRnd GetRndUnsafe(const UObject* Object);
 
-	static void WithPlayerUIUnsafe(const UObject* Object, const TFunctionRef<FPlayerUI(FPlayerUI)> Func);
+	static void WithPlayerUIUnsafe(const UObject* Object, const FLocalPlayerContext& LPC, const TFunctionRef<void(FPlayerUI&)> Func);
 
-	UFUNCTION(BlueprintCallable)
-	static void SetInstanceState(UMyGameInstance* GI, EInstanceState InNewState);
+	// TODO
+	// UFUNCTION(BlueprintCallable)
+	// static void SetInstanceState(UMyGameInstance* GI, int32 PlayerNum, EInstanceState InNewState);
 };

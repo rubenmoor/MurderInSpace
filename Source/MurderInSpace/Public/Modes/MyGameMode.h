@@ -17,5 +17,4 @@ class MURDERINSPACE_API AMyGameMode : public AGameMode
 
 protected:
 	// event handlers
-	virtual void PostInitializeComponents() override;
 };

@@ -20,6 +20,8 @@ class MURDERINSPACE_API AMyHUDBase : public AHUD
 public:
 	AMyHUDBase();
 
+	const FLocalPlayerContext& GetLocalPlayerContext() { return LocalPlayerContext; }
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UWidgetHUDBorder> WidgetHUDBorderClass;
@@ -52,6 +54,8 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void HideViewportParentWidgets();
+
+	FLocalPlayerContext LocalPlayerContext;
 
 	FNumberFormattingOptions FormattingOptions;
 };

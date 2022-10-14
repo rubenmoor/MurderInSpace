@@ -7,17 +7,6 @@
 #include "MyGameInstance.generated.h"
 
 UENUM(BlueprintType)
-enum class EInstanceState : uint8
-{
-	StartUp UMETA(DisplayName="startup"),
-	InMainMenu UMETA(DisplayName="in main menu"),
-	WaitingForStart UMETA(DisplayName="waiting for session create"),
-	MsgError UMETA(DisplayName="error message"),
-	InGame UMETA(DisplayName="in game"),
-	Indeterminate UMETA(DisplayName="status indeterminate")
-};
-
-UENUM(BlueprintType)
 enum class EGameMode : uint8
 {
 	EveryManForHimself UMETA(DisplayName="every man for himself"),
@@ -58,50 +47,19 @@ class MURDERINSPACE_API UMyGameInstance : public UGameInstance
 	GENERATED_BODY()
 
 	friend class UStateLib;
+
 public:
 	UMyGameInstance();
+
+	void HostGame(const FLocalPlayerContext& LPC);
+
+	void LeaveGame(const FLocalPlayerContext& LPC);
 	
-	UFUNCTION(BlueprintCallable)
-	EInstanceState GetInstanceState() { return InstanceState; }
+	void StartSoloGame(const FLocalPlayerContext& LPC);
 
-	UFUNCTION(BlueprintCallable)
-	int32 GetLocalPlayerIndex(FUniqueNetIdRepl UNI);
+	void JoinGame(const FLocalPlayerContext& LPC);
 	
-	UFUNCTION(BlueprintCallable)
-	bool GetIsMultiplayer() { return bIsMultiplayer; }
-	
-	UFUNCTION(BlueprintCallable)
-	bool GetShowInGameMenu() { return bShowInGameMenu; }
-
-	UFUNCTION(BlueprintCallable)
-	void HostGame(const APlayerController* PC);
-
-	UFUNCTION(BlueprintCallable)
-	void StartSoloGame(const APlayerController* PC);
-
-	UFUNCTION(BlueprintCallable)
-	void JoinGame();
-	
-	UFUNCTION(BlueprintCallable)
-	void GotoInMenuMain(const APlayerController* PC);
-
-	UFUNCTION(BlueprintCallable)
-	void GotoInGame(const APlayerController* PC);
-
-	UFUNCTION(BlueprintCallable)
-	void InGameMenuShow(const APlayerController* PC);
-
-	UFUNCTION(BlueprintCallable)
-	void InGameMenuHide(const APlayerController* PC);
-
-	UFUNCTION(BlueprintCallable)
-	void GotoWaitingForStart(const APlayerController* PC);
-
-	UFUNCTION(BlueprintCallable)
-	void QuitGame(APlayerController* PC);
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bLoggedIn;
+	void QuitGame(const FLocalPlayerContext& LPC);
 
 	FHostSessionConfig SessionConfig =
 		{ ""
@@ -113,25 +71,10 @@ public:
 protected:
 	// event handlers
 
+	virtual int32 AddLocalPlayer(ULocalPlayer* NewPlayer, int32 ControllerId) override;
+	
 	// private properties
 	
 	UPROPERTY(BlueprintReadWrite)
 	FRandomStream Random;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EInstanceState InstanceState = EInstanceState::StartUp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool bIsMultiplayer;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool bShowInGameMenu;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int TeamId;
-
-	// private methods
-
-	UFUNCTION(BlueprintCallable)
-	void ErrorWrongState(const UObject* Object, const FString& InStatesExpected);
 };

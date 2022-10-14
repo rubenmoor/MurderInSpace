@@ -19,6 +19,13 @@ class MURDERINSPACE_API AMyHUD : public AMyHUDBase
 	GENERATED_BODY()
 
 	friend class UMyGameInstance;
+
+public:
+	UFUNCTION(BlueprintCallable)
+    void InGameMenuShow();
+	
+	UFUNCTION(BlueprintCallable)
+	void InGameMenuHide();
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
@@ -43,12 +50,5 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	
-	// private methods
-	
-	UFUNCTION(BlueprintCallable)
-    void InGameMenuShow();
-	
-	UFUNCTION(BlueprintCallable)
-	void InGameMenuHide();
 };
 	

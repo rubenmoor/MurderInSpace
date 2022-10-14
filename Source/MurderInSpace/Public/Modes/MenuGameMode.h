@@ -17,6 +17,5 @@ class MURDERINSPACE_API AMenuGameMode : public AGameMode
 protected:
 	// event handlers
 
-	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 };

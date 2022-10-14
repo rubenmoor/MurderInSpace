@@ -19,20 +19,20 @@ class MURDERINSPACE_API UMyGISubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
-	bool CreateSession(FUniqueNetIdRepl UNI, struct FHostSessionConfig SessionConfig, TFunctionRef<void(FName, bool)> Callback);
+	bool CreateSession(const FLocalPlayerContext& LPC, struct FHostSessionConfig SessionConfig, TFunctionRef<void(FName, bool)> Callback);
 	bool DestroySession(TFunctionRef<void(FName, bool)> Callback);
 	bool StartSession(TFunctionRef<void(FName, bool)> Callback);
-	bool FindSessions(FUniqueNetIdRepl UNI, TFunctionRef<void(bool)> Callback);
+	bool FindSessions(const FLocalPlayerContext& LPC, TFunctionRef<void(bool)> Callback);
 
 	// show the login browser window for EOS
 	// on a successful login, the Unique Net Id "OldUNI" will be replaced by a new one from the online subsystem
-	void ShowLoginScreen(FUniqueNetIdRepl OldUNI);
-	void BindOnLogout(TFunctionRef<void(int32, bool)> Handler);
+	void ShowLoginScreen(const FLocalPlayerContext& LPC);
 
 	TArray<FOnlineSessionSearchResult> GetSearchResult() const { return LastSessionSearch->SearchResults; }
 
 protected:
 	// event handlers
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 private:
 	TSharedPtr<FOnlineSessionSettings> LastSessionSettings;

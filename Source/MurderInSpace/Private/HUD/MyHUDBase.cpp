@@ -22,6 +22,8 @@ void AMyHUDBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	LocalPlayerContext = FLocalPlayerContext(GetOwningPlayerController());
+	
 	UE_LOG(LogSlate, Warning, TEXT("%s: AMyHUDBase::BeginPlay()"), *GetFullName())
 	UGameInstance* GI = GetGameInstance();
 	WidgetHUDBorder = CreateWidget<UWidgetHUDBorder>(GI, WidgetHUDBorderClass, FName(TEXT("HUD Border")));
