@@ -17,21 +17,21 @@ void UUW_MenuMain::NativeConstruct()
 
 	BtnSinglePlayer->OnClicked().AddLambda([this]
 	{
-		GetOwningPlayer()->GetHUD<AMyHUDMenu>()->MenuSoloShow();
+		GetPlayerContext().GetHUD<AMyHUDMenu>()->MenuSoloShow();
 	});
 	BtnLocalMultiplayer->OnClicked().AddLambda([this]
 	{
 		UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
 		GI->SessionConfig.bEnableLAN = true;
-		GetOwningPlayer()->GetHUD<AMyHUDMenu>()->MenuMultiplayerShow();
+		GetPlayerContext().GetHUD<AMyHUDMenu>()->MenuMultiplayerShow();
 	});
 	BtnOnlineMultiplayer->OnClicked().AddLambda([this] ()
 	{
 		UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
-		if(Cast<UMyLocalPlayer>(GetOwningPlayer())->IsLoggedIn)
+		if(Cast<UMyLocalPlayer>(GetOwningLocalPlayer())->IsLoggedIn)
 		{
 			GI->SessionConfig.bEnableLAN = false;
-			GetOwningPlayer()->GetHUD<AMyHUDMenu>()->MenuMultiplayerShow();
+			GetPlayerContext().GetHUD<AMyHUDMenu>()->MenuMultiplayerShow();
 		}
 		else
 		{

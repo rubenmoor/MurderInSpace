@@ -57,7 +57,7 @@ public:
 	
 	void StartSoloGame(const FLocalPlayerContext& LPC);
 
-	void JoinGame(const FLocalPlayerContext& LPC);
+	virtual bool JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessionSearchResult& SearchResult) override;
 	
 	void QuitGame(const FLocalPlayerContext& LPC);
 

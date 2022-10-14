@@ -17,7 +17,7 @@ class MURDERINSPACE_API UUW_Message : public UUserWidget
 
 public:
 	void SetMessage(const FText& Text) { TextMessage->SetText(Text); }
-	void SetGobackFunc(TFunctionRef<void()> Func)
+	void SetGobackFunc(TFunction<void()> Func)
 	{
 		UCommonButtonBase::FCommonButtonEvent OnClicked = BtnBack->OnClicked();
 		OnClicked.Clear();

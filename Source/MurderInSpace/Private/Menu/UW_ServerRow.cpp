@@ -22,4 +22,17 @@ void UUW_ServerRow::SetPlayerNumbers(int32 NumPlayers, int32 MaxNumPlayers)
 	TextPlayerCount->SetText(FText::Format(LOCTEXT("Playercount", "{0} / {1}"), NumPlayers, MaxNumPlayers));
 }
 
+void UUW_ServerRow::NativeOnCurrentTextStyleChanged()
+{
+	Super::NativeOnCurrentTextStyleChanged();
+
+	TextPing->SetStyle(GetCurrentTextStyleClass());
+	TextServerName->SetStyle(GetCurrentTextStyleClass());
+	TextPlayerSymbol->SetStyle(GetCurrentTextStyleClass());
+	FSlateFontInfo SlateFontInfo;
+	SlateFontInfo.TypefaceFontName = FName(TEXT("UnicodeAll"));
+	TextPlayerSymbol->SetFont(SlateFontInfo);
+	TextPlayerCount->SetStyle(GetCurrentTextStyleClass());
+}
+
 #undef LOCTEXT_NAMESPACE

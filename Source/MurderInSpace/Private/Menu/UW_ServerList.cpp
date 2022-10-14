@@ -5,6 +5,22 @@
 #include "HUD/MyCommonButton.h"
 #include "HUD/MyHUDMenu.h"
 #include "Modes/MyGameInstance.h"
+#include "Modes/MyGISubsystem.h"
+
+void UUW_ServerList::DeselectAllBut(int32 Index)
+{
+	TArray<UWidget*> Rows = ScrollServers->GetAllChildren();
+	//TArray<UUW_ServerRow*> Rows = ScrollServers->GetAllChildren();
+	//auto Rows = ScrollServers->GetAllChildren();
+	for(int32 i = 0; i < Rows.Num(); i++)
+	{
+		if(i == Index)
+		{
+			continue;
+		}
+		Cast<UUW_ServerRow>(Rows[i])->SetIsSelected(false);
+	}
+}
 
 void UUW_ServerList::NativeConstruct()
 {
@@ -12,11 +28,17 @@ void UUW_ServerList::NativeConstruct()
 
 	BtnBack->OnClicked().AddLambda([this] ()
 	{
-		GetOwningPlayer()->GetHUD<AMyHUDMenu>()->MenuMultiplayerShow();
+		GetPlayerContext().GetHUD<AMyHUDMenu>()->MenuMultiplayerShow();
 	});
 	BtnRefresh->OnClicked().AddLambda([this] ()
 	{
-		GetOwningPlayer()->GetHUD<AMyHUDMenu>()->ServerListRefresh();
+		GetPlayerContext().GetHUD<AMyHUDMenu>()->ServerListRefresh();
 	});
-	// TODO: server row on clicked -> GI -> join game { join session }
+	BtnJoin->OnClicked().AddLambda([this] ()
+	{
+		Cast<UMyGameInstance>(GetGameInstance())->JoinSession
+			( GetOwningLocalPlayer()
+			, GetGameInstance()->GetSubsystem<UMyGISubsystem>()->GetSearchResult()[SelectedIndex]
+			);
+	});
 }

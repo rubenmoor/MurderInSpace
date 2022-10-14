@@ -10,6 +10,7 @@ public class MurderInSpace : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[]
 			{ "Core"
+			, "CommonUI"
 			, "CoreUObject"
 			, "Engine"
 			, "InputCore"

@@ -32,8 +32,7 @@ void AMyHUD::InGameMenuHide()
 void AMyHUD::BeginPlay()
 {
 	Super::BeginPlay();
-
-	UGameInstance* GI = GetGameInstance();
+	
 	const AMyPlayerController* PC = Cast<AMyPlayerController>(GetOwningPlayerController());
 	if(!PC)
 	{
@@ -41,8 +40,10 @@ void AMyHUD::BeginPlay()
 		SetActorTickEnabled(false);
 		return;
 	}
+	
 	// get playing character
-	MyCharacter = PC->GetPawn<ACharacterInSpace>();
+	
+	MyCharacter = Cast<ACharacterInSpace>(GetOwningPawn());
 	if(!IsValid(MyCharacter))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no pawn, disabling tick"), *GetFullName())
@@ -50,6 +51,8 @@ void AMyHUD::BeginPlay()
 		return;
 	}
 
+	UGameInstance* GI = GetGameInstance();
+	
 	// set up HUD
 
 	if(!IsValid(WidgetHUDClass))

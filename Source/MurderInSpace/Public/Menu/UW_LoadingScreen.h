@@ -18,7 +18,7 @@ class MURDERINSPACE_API UUW_LoadingScreen : public UUserWidget
 
 public:
 	void SetMessage(const FText& Text) { TextMessage->SetText(Text); }
-	void SetGobackFunc(TFunctionRef<void()> GoBack)
+	void SetGobackFunc(TFunction<void()> GoBack)
 	{
 		BtnAbort->OnClicked().Clear();
 		BtnAbort->OnClicked().AddLambda(GoBack);

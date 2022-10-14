@@ -5,6 +5,7 @@
 
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
+#include "UnrealWidgetFwd.h"
 #include "Blueprint/UserWidget.h"
 #include "Lib/FunctionLib.h"
 #include "Lib/UStateLib.h"
@@ -117,11 +118,11 @@ void AMyHUDMenu::ServerListShow()
 
 void AMyHUDMenu::ServerListRefresh()
 {
+	WidgetServerList->ClearServerRows();
 	WidgetServerList->SetStatusMessage(LOCTEXT("SearchingSessions", "Searching for sessions ..."));
 	WidgetServerList->SetBtnRefreshEnabled(false);
-	GetGameInstance()->GetSubsystem<UMyGISubsystem>()->FindSessions
-		( GetLocalPlayerContext()
-		, [this] (bool bSuccess)
+	WidgetServerList->SetBtnJoinEnabled(false);
+	GetGameInstance()->GetSubsystem<UMyGISubsystem>()->FindSessions(GetLocalPlayerContext(), [this] (bool bSuccess)
 	{
 		WidgetServerList->SetBtnRefreshEnabled(true);
 		if(bSuccess)
@@ -169,31 +170,46 @@ void AMyHUDMenu::ServerListUpdate()
 	const TObjectPtr<UMyGISubsystem> GISub = GetGameInstance<UMyGameInstance>()->GetSubsystem<UMyGISubsystem>();
 	const TArray<FOnlineSessionSearchResult> Results = GISub->GetSearchResult();
 
-	WidgetServerList->ClearServerRows();
 	if(Results.IsEmpty())
 	{
-		WidgetServerList->SetStatusMessage(LOCTEXT("NoSessionsFound", "no sessions found"));
+		//WidgetServerList->SetStatusMessage(LOCTEXT("NoSessionsFound", "no sessions found"));
+
+		// dummy sessions
+
+		UGameInstance* GI = GetGameInstance();
+		for(int i = 0; i < 40; i++)
+		{
+			UUW_ServerRow* Row = CreateWidget<UUW_ServerRow>(GI, WidgetServerRowClass);
+
+			Row->SetPing(100);
+			Row->SetServerName(LOCTEXT("DummySession", "dummy session"));
+			Row->SetPlayerNumbers(7, 8);
+			WidgetServerList->AddServerRow(Row);
+		}
+		
 		return;
 	}
 	else
 	{
 		WidgetServerList->HideStatusMessage();
+		WidgetServerList->SelectedIndex = 0;
+		WidgetServerList->SetBtnJoinEnabled(true);
 	}
 
 	UGameInstance* GI = GetGameInstance();
-	for(const FOnlineSessionSearchResult& Result : Results)
+	for(int32 i = 0; i < Results.Num(); i++)
 	{
 		UUW_ServerRow* Row = CreateWidget<UUW_ServerRow>(GI, WidgetServerRowClass);
 
-		Row->SetPing(Result.PingInMs);
+		Row->SetPing(Results[i].PingInMs);
 		FString CustomName;
-		Result.Session.SessionSettings.Get(SETTING_CUSTOMNAME, CustomName);
+		Results[i].Session.SessionSettings.Get(SETTING_CUSTOMNAME, CustomName);
 		Row->SetServerName(FText::FromString(CustomName));
 		
-		const int NumOpenPrivateConnections = Result.Session.NumOpenPrivateConnections;
-		const int NumPrivateConnections = Result.Session.SessionSettings.NumPrivateConnections;
-		const int NumOpenPublicConnections = Result.Session.NumOpenPublicConnections;
-		const int NumPublicConnections = Result.Session.SessionSettings.NumPublicConnections;
+		const int NumOpenPrivateConnections = Results[i].Session.NumOpenPrivateConnections;
+		const int NumPrivateConnections = Results[i].Session.SessionSettings.NumPrivateConnections;
+		const int NumOpenPublicConnections = Results[i].Session.NumOpenPublicConnections;
+		const int NumPublicConnections = Results[i].Session.SessionSettings.NumPublicConnections;
 		int MaxNumPlayers = 0;
 		int NumPlayers = 0;
 		if(NumPrivateConnections == 0)
@@ -218,6 +234,10 @@ void AMyHUDMenu::ServerListUpdate()
 				)
 		}
 		Row->SetPlayerNumbers(NumPlayers, MaxNumPlayers);
+		Row->OnClicked().AddLambda([this, i] ()
+		{
+			WidgetServerList->DeselectAllBut(i);
+		});
 		WidgetServerList->AddServerRow(Row);
 	}
 }
@@ -234,7 +254,7 @@ void AMyHUDMenu::MenuSoloShow()
 	WidgetMenuSolo->SetVisibility(ESlateVisibility::Visible);
 }
 
-void AMyHUDMenu::LoadingScreenShow(const FText& StrMessage, TFunctionRef<void()> GobackFunc)
+void AMyHUDMenu::LoadingScreenShow(const FText& StrMessage, TFunction<void()> GobackFunc)
 {
 	HideViewportParentWidgets();
 	WidgetLoadingScreen->SetMessage(StrMessage);
@@ -242,7 +262,7 @@ void AMyHUDMenu::LoadingScreenShow(const FText& StrMessage, TFunctionRef<void()>
 	WidgetLoadingScreen->SetVisibility(ESlateVisibility::Visible);
 }
 
-void AMyHUDMenu::MessageShow(const FText& StrMessage, TFunctionRef<void()> FuncGoBack)
+void AMyHUDMenu::MessageShow(const FText& StrMessage, TFunction<void()> FuncGoBack)
 {
 	HideViewportParentWidgets();
 	WidgetMessage->SetMessage(StrMessage);

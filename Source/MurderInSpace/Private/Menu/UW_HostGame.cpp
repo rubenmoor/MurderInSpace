@@ -31,9 +31,12 @@ void UUW_HostGame::NativeConstruct()
 	CheckCoop->OnCheckStateChanged.AddUniqueDynamic(this, &UUW_HostGame::HandleCheckCoopChanged);
 	BtnStart->OnClicked().AddLambda([this] ()
 	{
-		GetGameInstance<UMyGameInstance>()->HostGame(GetOwningPlayer()); 
+		GetGameInstance<UMyGameInstance>()->HostGame(GetPlayerContext()); 
 	});
-	BtnBack->OnClicked().AddLambda([this] () { GetOwningPlayer()->GetHUD<AMyHUDMenu>()->MenuMultiplayerShow(); });
+	BtnBack->OnClicked().AddLambda([this] ()
+	{
+		GetPlayerContext().GetHUD<AMyHUDMenu>()->MenuMultiplayerShow();
+	});
 }
 
 void UUW_HostGame::HandleEditCustomNameTextChanged(const FText& InText)

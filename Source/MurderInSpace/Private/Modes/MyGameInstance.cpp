@@ -84,19 +84,48 @@ void UMyGameInstance::StartSoloGame(const FLocalPlayerContext& LPC)
 	LocalPlayer->IsMultiplayer = false;
 	LocalPlayer->CurrentLevel = ECurrentLevel::SpaceFootball;
 	
-	// TODO: howto show loading screen?
-	// HUDMenu->LoadingScreenShow
-	// 	( LOCTEXT("StartingGame...", "starting game ...")
-	// 	, [HUDMenu] () { HUDMenu->MenuSoloShow(); }
-	// 	);
+	LPC.GetHUD<AMyHUDMenu>()->LoadingScreenShow
+		( LOCTEXT("StartingGame...", "starting game ...")
+		, [LPC] () { LPC.GetHUD<AMyHUDMenu>()->MenuSoloShow(); }
+		);
 
 	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
 }
 
-void UMyGameInstance::JoinGame(const FLocalPlayerContext& LPC)
+bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessionSearchResult& SearchResult)
 {
-	Cast<UMyLocalPlayer>(LPC.GetLocalPlayer())->IsMultiplayer = true;
-	// TODO
+	Cast<UMyLocalPlayer>(LocalPlayer)->IsMultiplayer = true;
+	FLocalPlayerContext LPC = FLocalPlayerContext(LocalPlayer);
+	return GetSubsystem<UMyGISubsystem>()->JoinSession(LPC, SearchResult, [this, LPC] (FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+	{
+		auto GotoServerList = [LPC] () { LPC.GetHUD<AMyHUDMenu>()->ServerListShow(); };
+		switch(Result)
+		{
+		using namespace EOnJoinSessionCompleteResult;
+		case SessionIsFull:
+			LPC.GetHUD<AMyHUDMenu>()->MessageShow(LOCTEXT("SessionIsFull", "error: session is full"), GotoServerList);
+			break;
+		case SessionDoesNotExist:
+			LPC.GetHUD<AMyHUDMenu>()->MessageShow(LOCTEXT("SessionIsDoesNotExist", "error: session does not exist"), GotoServerList);
+			break;
+		case CouldNotRetrieveAddress:
+			LPC.GetHUD<AMyHUDMenu>()->MessageShow(LOCTEXT("SessionCouldNotRetrieveAddress", "error: could not retrieve address"), GotoServerList);
+			break;
+		case AlreadyInSession:
+			LPC.GetHUD<AMyHUDMenu>()->MessageShow(LOCTEXT("SessionAlreadyInSession", "error: already in session"), GotoServerList);
+			break;
+		case UnknownError:
+			LPC.GetHUD<AMyHUDMenu>()->MessageShow(LOCTEXT("SessionUnknownError", "error: unknown error"), GotoServerList);
+			break;
+		case Success:
+			if(!ClientTravelToSession(LPC.GetLocalPlayer()->GetControllerId(), SessionName))
+			{
+				LPC.GetHUD<AMyHUDMenu>()->MessageShow(LOCTEXT("ClientTravelToSessionFailed", "error: travel to session failed"), GotoServerList);
+			}
+			break;
+		default: ;
+		}
+	});
 }
 
 void UMyGameInstance::QuitGame(const FLocalPlayerContext& LPC)

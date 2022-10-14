@@ -3,6 +3,7 @@
 
 #include "HUD/MyHUDBase.h"
 
+#include "Actors/CharacterInSpace.h"
 #include "Blueprint/UserWidget.h"
 #include "HUD/WidgetHUDBorder.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -24,8 +25,8 @@ void AMyHUDBase::BeginPlay()
 
 	LocalPlayerContext = FLocalPlayerContext(GetOwningPlayerController());
 	
-	UE_LOG(LogSlate, Warning, TEXT("%s: AMyHUDBase::BeginPlay()"), *GetFullName())
 	UGameInstance* GI = GetGameInstance();
+	
 	WidgetHUDBorder = CreateWidget<UWidgetHUDBorder>(GI, WidgetHUDBorderClass, FName(TEXT("HUD Border")));
 	// TODO: proly have to set foreground color
 	WidgetHUDBorder->SetParams(X0, Y0, X1, Y1);

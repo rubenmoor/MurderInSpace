@@ -5,12 +5,12 @@
 
 #include "OnlineSubsystemUtils.h"
 #include "OnlineSessionSettings.h"
-#include "GameFramework/GameSession.h"
 #include "HUD/MyHUDMenu.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyLocalPlayer.h"
-#include "Modes/MyPlayerController.h"
 #include "Modes/MyPlayerState.h"
+
+#define LOCTEXT_NAMESPACE "Menu"
 
 bool UMyGISubsystem::CreateSession(const FLocalPlayerContext& LPC, FHostSessionConfig SessionConfig, TFunctionRef<void(FName, bool)> Callback)
 {
@@ -105,13 +105,13 @@ bool UMyGISubsystem::StartSession(TFunctionRef<void(FName, bool)> Callback)
 	return SI->StartSession(NAME_GameSession);
 }
 
-bool UMyGISubsystem::FindSessions(const FLocalPlayerContext& LPC, TFunctionRef<void(bool)> Callback)
+bool UMyGISubsystem::FindSessions(const FLocalPlayerContext& LPC, TFunction<void(bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	LastSessionSearch = MakeShareable(new FOnlineSessionSearch());
 	LastSessionSearch->MaxSearchResults = 128;
 	LastSessionSearch->bIsLanQuery = Cast<UMyGameInstance>(GetGameInstance())->SessionConfig.bEnableLAN;
-	LastSessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+	//LastSessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 
 	if(SI->OnFindSessionsCompleteDelegates.IsBound())
 	{
@@ -119,7 +119,19 @@ bool UMyGISubsystem::FindSessions(const FLocalPlayerContext& LPC, TFunctionRef<v
 		SI->OnFindSessionsCompleteDelegates.Clear();
 	}
 	SI->OnFindSessionsCompleteDelegates.AddLambda(Callback);
-	return SI->FindSessions(*LPC.GetPlayerState<AMyPlayerState>()->GetUniqueId(), LastSessionSearch.ToSharedRef());
+	return SI->FindSessions(*LPC.GetLocalPlayer()->GetCachedUniqueNetId(), LastSessionSearch.ToSharedRef());
+}
+
+bool UMyGISubsystem::JoinSession(const FLocalPlayerContext& LPC, const FOnlineSessionSearchResult& Result, TFunction<void(FName, EOnJoinSessionCompleteResult::Type)> Callback)
+{
+	const IOnlineSessionPtr SI = GetSessionInterface();
+	if(SI->OnJoinSessionCompleteDelegates.IsBound())
+	{
+		UE_LOG(LogNet, Warning, TEXT("%s: OnJoinSessionCompleteDelegates: was bound, clearing"), *GetFullName())
+		SI->OnJoinSessionCompleteDelegates.Clear();
+	}
+	SI->OnJoinSessionCompleteDelegates.AddLambda(Callback);
+	return SI->JoinSession(*LPC.GetLocalPlayer()->GetCachedUniqueNetId(), NAME_GameSession, Result);
 }
 
 void UMyGISubsystem::ShowLoginScreen(const FLocalPlayerContext& LPC)
@@ -133,13 +145,22 @@ void UMyGISubsystem::ShowLoginScreen(const FLocalPlayerContext& LPC)
 	OnlineAccountCredentials.Type = "Developer";
 	OnlineAccountCredentials.Id = "localhost:1234";
 	OnlineAccountCredentials.Token = "foo";
-	
+
 	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked(FName(TEXT("EOS")));
 	
 	OSSIdentity->Login
 		( LPC.GetLocalPlayer()->GetLocalPlayerIndex()
 		, OnlineAccountCredentials
 		);
+	
+	// TODO: autologin for PIE
+	
+	LPC.GetHUD<AMyHUDMenu>()->LoadingScreenShow
+		(LOCTEXT("WaitingForLogin...", "Waiting for log-in to complete ...")
+		, [LPC] ()
+		{
+			LPC.GetHUD<AMyHUDMenu>()->MenuMainShow();
+		});
 }
 
 void UMyGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -219,3 +240,4 @@ IOnlineSessionPtr UMyGISubsystem::GetSessionInterface() const
 			: FName(TEXT("EOS"))
 		);
 }
+#undef LOCTEXT_NAMESPACE

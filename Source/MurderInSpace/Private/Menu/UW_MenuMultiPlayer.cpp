@@ -10,7 +10,7 @@ void UUW_MenuMultiPlayer::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
-	BtnCreateNew->OnClicked().AddLambda([this] () { GetOwningPlayer()->GetHUD<AMyHUDMenu>()->HostGameShow(); });
-	BtnJoin->OnClicked().AddLambda([this] () { GetOwningPlayer()->GetHUD<AMyHUDMenu>()->ServerListShow(); });
-	BtnBack->OnClicked().AddLambda([this] () { GetOwningPlayer()->GetHUD<AMyHUDMenu>()->MenuMainShow(); } );
+	BtnCreateNew->OnClicked().AddLambda([this] () { GetPlayerContext().GetHUD<AMyHUDMenu>()->HostGameShow(); });
+	BtnJoin->OnClicked().AddLambda([this] () { GetPlayerContext().GetHUD<AMyHUDMenu>()->ServerListShow(); });
+	BtnBack->OnClicked().AddLambda([this] () { GetPlayerContext().GetHUD<AMyHUDMenu>()->MenuMainShow(); } );
 }

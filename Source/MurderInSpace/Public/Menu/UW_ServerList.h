@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/ScrollBox.h"
 #include "CommonTextBlock.h"
+#include "OnlineSessionSettings.h"
 #include "HUD/MyCommonButton.h"
 #include "UW_ServerList.generated.h"
 
@@ -25,18 +26,25 @@ public:
 		TextStatusMessage->SetVisibility(ESlateVisibility::Visible);
 	}
 	
+	int32 SelectedIndex = -1;
+	
 	UFUNCTION(BlueprintCallable)
 	void HideStatusMessage() { TextStatusMessage->SetVisibility(ESlateVisibility::Collapsed); }
 	
 	UFUNCTION(BlueprintCallable)
-	void SetBtnRefreshEnabled(bool InBEnabled) { BtnRefresh->SetIsEnabled(InBEnabled); }
+	void SetBtnRefreshEnabled(bool InBEnabled) const { BtnRefresh->SetIsEnabled(InBEnabled); }
+
+	UFUNCTION(BlueprintCallable)
+	void SetBtnJoinEnabled(bool InBEnabled) const { BtnJoin->SetIsEnabled(InBEnabled); }
 
 	UFUNCTION(BlueprintCallable)
 	void AddServerRow(UWidget* Row) { ScrollServers->AddChild(Row); }
 
 	UFUNCTION(BlueprintCallable)
 	void ClearServerRows() { ScrollServers->ClearChildren(); }
-		
+
+	UFUNCTION(BlueprintCallable)
+	void DeselectAllBut(int32 Index);
 protected:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UCommonTextBlock> TextStatusMessage;
@@ -46,6 +54,9 @@ protected:
 	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UMyCommonButton> BtnRefresh;
+	
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UMyCommonButton> BtnJoin;
 	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UMyCommonButton> BtnBack;
