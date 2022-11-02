@@ -3,9 +3,7 @@
 
 #include "Modes/MyGameInstance.h"
 
-#include "Online.h"
 #include "HUD/MyHUDMenu.h"
-#include "Interfaces/OnlineIdentityInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Modes/MyGISubsystem.h"
@@ -33,8 +31,8 @@ void UMyGameInstance::HostGame(const FLocalPlayerContext& LPC)
 		{
 			if(bSuccess)
 			{
-				Cast<UMyLocalPlayer>(LPC.GetLocalPlayer())->CurrentLevel = ECurrentLevel::SpaceFootball;
-				UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
+				GetWorld()->ServerTravel("/Game/Maps/spacefootball?listen");
+				//UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
 			}
 			else
 			{
@@ -66,23 +64,21 @@ void UMyGameInstance::HostGame(const FLocalPlayerContext& LPC)
 	}
 }
 
-void UMyGameInstance::LeaveGame(const FLocalPlayerContext& LPC)
-{
-	UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(LPC.GetLocalPlayer());
-	if(LocalPlayer->IsMultiplayer)
-	{
-		GetSubsystem<UMyGISubsystem>()->DestroySession([] (FName, bool) {} );
-	}
-	// TODO: loading screen?
-	LocalPlayer->CurrentLevel = ECurrentLevel::MainMenu;
-	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball_mainmenu")));
-}
+// void UMyGameInstance::LeaveGame(const FLocalPlayerContext& LPC)
+// {
+// 	UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(LPC.GetLocalPlayer());
+// 	if(LocalPlayer->IsMultiplayer)
+// 	{
+// 		GetSubsystem<UMyGISubsystem>()->DestroySession([] (FName, bool) {} );
+// 	}
+// 	// TODO: loading screen?
+// 	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball_mainmenu")));
+// }
 
 void UMyGameInstance::StartSoloGame(const FLocalPlayerContext& LPC)
 {
 	UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(LPC.GetLocalPlayer());
 	LocalPlayer->IsMultiplayer = false;
-	LocalPlayer->CurrentLevel = ECurrentLevel::SpaceFootball;
 	
 	LPC.GetHUD<AMyHUDMenu>()->LoadingScreenShow
 		( LOCTEXT("StartingGame...", "starting game ...")
@@ -98,7 +94,11 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 	FLocalPlayerContext LPC = FLocalPlayerContext(LocalPlayer);
 	return GetSubsystem<UMyGISubsystem>()->JoinSession(LPC, SearchResult, [this, LPC] (FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 	{
-		auto GotoServerList = [LPC] () { LPC.GetHUD<AMyHUDMenu>()->ServerListShow(); };
+		// auto GotoServerList = [LPC] () { LPC.GetHUD<AMyHUDMenu>()->ServerListShow(); };
+		const TFunction<void()> GotoServerList = [LPC] () { LPC.GetHUD<AMyHUDMenu>()->ServerListShow(); };
+
+		UE_LOG(LogNet, Warning, TEXT("%s: trying to join session with name: %s"), *GetFullName(), *SessionName.ToString())
+		
 		switch(Result)
 		{
 		using namespace EOnJoinSessionCompleteResult;
@@ -118,7 +118,7 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 			LPC.GetHUD<AMyHUDMenu>()->MessageShow(LOCTEXT("SessionUnknownError", "error: unknown error"), GotoServerList);
 			break;
 		case Success:
-			if(!ClientTravelToSession(LPC.GetLocalPlayer()->GetControllerId(), SessionName))
+			if(!ClientTravelToSession(LPC.GetLocalPlayer()->GetControllerId(), NAME_GameSession))
 			{
 				LPC.GetHUD<AMyHUDMenu>()->MessageShow(LOCTEXT("ClientTravelToSessionFailed", "error: travel to session failed"), GotoServerList);
 			}
@@ -128,11 +128,16 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 	});
 }
 
+void UMyGameInstance::MulticastRPC_LeaveSession_Implementation()
+{
+	GetSubsystem<UMyGISubsystem>()->LeaveSession();
+}
+
 void UMyGameInstance::QuitGame(const FLocalPlayerContext& LPC)
 {
 	if(Cast<UMyLocalPlayer>(LPC.GetLocalPlayer())->IsMultiplayer)
 	{
-		GetSubsystem<UMyGISubsystem>()->DestroySession([] (FName, bool) {});
+		GetSubsystem<UMyGISubsystem>()->LeaveSession([] (FName, bool) {});
 	}
 	UKismetSystemLibrary::QuitGame
 		( GetWorld()
@@ -146,18 +151,24 @@ int32 UMyGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, int32 ControllerI
 {
 	int32 InsertIndex = Super::AddLocalPlayer(NewPlayer, ControllerId);
 	UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(NewPlayer);
-	LocalPlayer->CurrentLevel = ECurrentLevel::MainMenu;
 	LocalPlayer->IsMultiplayer = false;
 	LocalPlayer->ShowInGameMenu = false;
 
+	/*
+	 
 	// for the identity interface, SubsystemName == "NULL" doesn't make sense, I believe, as there
 	// is nor identity provider in the NULL/LAN online subystem
 	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked(FName(TEXT("EOS")));
 	
 	// TODO save unique net id in some config and check if still logged in
+	// TODO: creating a unique net id isn't recommended
+	//       unique net ids have a type that must match the online subsystem (e.g. EOS, Steam, NULL)
+	//       otherwise GameMode::PreLogin will fail
 	LocalPlayer->SetCachedUniqueNetId(FUniqueNetIdRepl(OSSIdentity->CreateUniquePlayerId(FGuid::NewGuid().ToString())));
 	// LocalPlayer->IsLoggedIn = OSSIdentity->GetLoginStatus(LocalPlayer->GetCachedUniqueNetId()) == ELoginStatus::LoggedIn;
+	*/
 	LocalPlayer->IsLoggedIn = false;
+	
 	return InsertIndex;
 }
 

@@ -109,6 +109,9 @@ public:
 	//   * the visibility is changed in the editor
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsVisibleVarious = false;
+
+	UFUNCTION(BlueprintCallable)
+	void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
 	
 protected:
 	
@@ -130,7 +133,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<USceneComponent> MovableRoot;
 
-	/* expose a blueprint property to disable orbit visualization */
+	/* disable orbit visualization entirely */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	bool bTrajectoryShowSpline = true;
 

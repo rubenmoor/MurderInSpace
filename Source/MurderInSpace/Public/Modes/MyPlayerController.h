@@ -14,8 +14,13 @@ class MURDERINSPACE_API AMyPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
+	AMyPlayerController();
 	virtual void SetupInputComponent() override;
 
+public:
+	UFUNCTION(Client, Reliable)
+	void ClientRPC_LeaveSession();
+	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 CameraPosition = 2;
@@ -25,7 +30,10 @@ protected:
 	// event handlers
 	
 	virtual void Tick(float DeltaSeconds) override;
-	virtual void OnPossess(APawn* InPawn) override;
+	// OnPossess only runs on the server (in a listen-server setup)
+	//virtual void OnPossess(APawn* InPawn) override;
+	
+	virtual void AcknowledgePossession(APawn* P) override;
 
 	// input events
 	

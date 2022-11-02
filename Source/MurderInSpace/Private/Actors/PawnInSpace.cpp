@@ -9,7 +9,7 @@ APawnInSpace::APawnInSpace()
 	// components
 
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	Root->SetMobility(EComponentMobility::Stationary);
+	//Root->SetMobility(EComponentMobility::Stationary);
 	SetRootComponent(Root);
 
 	MovableRoot = CreateDefaultSubobject<USceneComponent>(TEXT("MovableRoot"));
@@ -26,6 +26,8 @@ APawnInSpace::APawnInSpace()
 
 	// for the editor
 	Orbit->UpdateVisibility(UStateLib::GetPlayerUIEditorDefault());
+	
+	AActor::SetReplicateMovement(false);
 }
 
 void APawnInSpace::UpdateLookTarget(FVector Target)

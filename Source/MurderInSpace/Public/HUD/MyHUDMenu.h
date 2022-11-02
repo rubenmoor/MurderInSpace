@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AnimationCompression.h"
 #include "MyHUDBase.h"
 #include "Menu/UW_HostGame.h"
 #include "Menu/UW_LoadingScreen.h"
@@ -84,6 +85,9 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	// debugging
+
+	void Shout() { UE_LOG(LogSlate, Warning, TEXT("Shouting!")); }
 public:
 	// public methods
 	

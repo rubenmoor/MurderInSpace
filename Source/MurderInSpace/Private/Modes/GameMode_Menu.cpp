@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Modes/MenuGameMode.h"
+#include "Modes/GameMode_Menu.h"
 
-#include "Modes/MyGameInstance.h"
+#include "Modes/MyLocalPlayer.h"
 
-void AMenuGameMode::BeginPlay()
+void AGameMode_Menu::BeginPlay()
 {
 	Super::BeginPlay();
 	const FInputModeUIOnly InputModeUIOnly;

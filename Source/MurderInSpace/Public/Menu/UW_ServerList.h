@@ -6,7 +6,6 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/ScrollBox.h"
 #include "CommonTextBlock.h"
-#include "OnlineSessionSettings.h"
 #include "HUD/MyCommonButton.h"
 #include "UW_ServerList.generated.h"
 
@@ -45,6 +44,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DeselectAllBut(int32 Index);
+
+	UFUNCTION(BlueprintCallable)
+	void SelectFirst();
+	
 protected:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UCommonTextBlock> TextStatusMessage;

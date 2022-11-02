@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "CommonButtonBase.h"
 #include "CommonTextBlock.h"
+#include "UW_ServerList.h"
 #include "UW_ServerRow.generated.h"
 
 /**
@@ -24,12 +25,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetPlayerNumbers(int32 NumPlayers, int32 MaxNumPlayers);
-	
+
+	using UCommonButtonBase::SetSelectedInternal;
 protected:
 	// event handlers
-
 	virtual void NativeOnCurrentTextStyleChanged() override;
-	
+
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UCommonTextBlock> TextPing;
 	

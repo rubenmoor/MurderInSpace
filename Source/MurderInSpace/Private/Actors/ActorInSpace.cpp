@@ -26,6 +26,9 @@ AActorInSpace::AActorInSpace()
 	Orbit->SetSplineMeshParent(SplineMeshParent);
 	
 	Gyration = CreateDefaultSubobject<UGyrationComponent>(TEXT("Gyration"));
+
+	bReplicates = true;
+	AActor::SetReplicateMovement(false);
 }
 
 void AActorInSpace::OnConstruction(const FTransform& Transform)

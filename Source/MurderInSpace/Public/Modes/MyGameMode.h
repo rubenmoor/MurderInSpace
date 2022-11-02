@@ -17,4 +17,6 @@ class MURDERINSPACE_API AMyGameMode : public AGameMode
 
 protected:
 	// event handlers
+	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 };

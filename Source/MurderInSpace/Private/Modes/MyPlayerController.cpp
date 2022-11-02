@@ -6,29 +6,38 @@
 #include <algorithm>
 #include "Actors/CharacterInSpace.h"
 #include "HUD/MyHUD.h"
+#include "Kismet/GameplayStatics.h"
 #include "Modes/MyLocalPlayer.h"
 #include "Modes/MyPlayerState.h"
+#include "Modes/MyGISubsystem.h"
+
+AMyPlayerController::AMyPlayerController()
+{
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
+}
 
 void AMyPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	const FInputModeGameOnly InputModeGameOnly;
-	SetInputMode(InputModeGameOnly);
-	
+	// interface actions
 	InputComponent->BindAxis("MouseWheel", this, &AMyPlayerController::Zoom);
-	InputComponent->BindAction("Accelerate", IE_Pressed, this, &AMyPlayerController::HandleBeginAccelerate);
-	InputComponent->BindAction("Accelerate", IE_Released, this, &AMyPlayerController::HandleEndAccelerate);
+	
+	InputComponent->BindAction("Escape", IE_Pressed, this, &AMyPlayerController::HandleEscape);
 	InputComponent->BindAction("ShowMyTrajectory", IE_Pressed, this, &AMyPlayerController::HandleBeginShowMyTrajectory);
 	InputComponent->BindAction("ShowMyTrajectory", IE_Released, this, &AMyPlayerController::HandleEndShowMyTrajectory);
 	InputComponent->BindAction("ShowAllTrajectories", IE_Pressed, this, &AMyPlayerController::HandleBeginShowAllTrajectories);
 	InputComponent->BindAction("ShowAllTrajectories", IE_Released, this, &AMyPlayerController::HandleEndShowAllTrajectories);
-	InputComponent->BindAction("Escape", IE_Pressed, this, &AMyPlayerController::HandleEscape);
+	
+	// gameplay actions
+	InputComponent->BindAction("Accelerate", IE_Pressed, this, &AMyPlayerController::HandleBeginAccelerate);
+	InputComponent->BindAction("Accelerate", IE_Released, this, &AMyPlayerController::HandleEndAccelerate);
 }
 
 void AMyPlayerController::Zoom(float Delta)
 {
-	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
+	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
 	{
 		if(abs(Delta) > 0)
 		{
@@ -43,7 +52,7 @@ void AMyPlayerController::Zoom(float Delta)
 
 void AMyPlayerController::HandleEndAccelerate()
 {
-	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
+	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
 	{
 		const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
 		MyCharacter->bIsAccelerating = false;
@@ -58,11 +67,10 @@ void AMyPlayerController::HandleEndAccelerate()
 
 void AMyPlayerController::HandleBeginShowMyTrajectory()
 {
-	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
+	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
 	{
 		const auto Orbit = GetPawn<ACharacterInSpace>()->GetOrbitComponent();
 		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
-		// abusing this variable
 		Orbit->bIsVisibleVarious = true;
 		Orbit->UpdateVisibility(PlayerUI);
 	}
@@ -70,11 +78,10 @@ void AMyPlayerController::HandleBeginShowMyTrajectory()
 
 void AMyPlayerController::HandleEndShowMyTrajectory()
 {
-	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
+	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
 	{
 		const auto Orbit = GetPawn<ACharacterInSpace>()->GetOrbitComponent();
 		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
-		// abusing this variable
 		Orbit->bIsVisibleVarious = false;
 		Orbit->UpdateVisibility(PlayerUI);
 	}
@@ -83,7 +90,7 @@ void AMyPlayerController::HandleEndShowMyTrajectory()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AMyPlayerController::HandleBeginShowAllTrajectories()
 {
-	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
+	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
 	{
 		SetShowAllTrajectories(true);
 	}
@@ -92,7 +99,7 @@ void AMyPlayerController::HandleBeginShowAllTrajectories()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AMyPlayerController::HandleEndShowAllTrajectories()
 {
-	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
+	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
 	{
 		SetShowAllTrajectories(false);
 	}
@@ -100,7 +107,7 @@ void AMyPlayerController::HandleEndShowAllTrajectories()
 
 void AMyPlayerController::HandleEscape()
 {
-	UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
+	UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(Player);
 	if(!LocalPlayer->GetIsInMainMenu())
 	{
 		if(LocalPlayer->ShowInGameMenu)
@@ -119,26 +126,38 @@ void AMyPlayerController::HandleEscape()
 	// TODO: handle escape and other keys in HUD
 	// case EInstanceState::WaitingForStart:
 	// 	GI->GotoInMenuMain(this);
+	else
+	{
+		GetGameInstance<UMyGameInstance>()->MulticastRPC_LeaveSession();
+	}
+}
+
+void AMyPlayerController::ClientRPC_LeaveSession_Implementation()
+{
+	GetGameInstance()->GetSubsystem<UMyGISubsystem>()->LeaveSession();
 }
 
 void AMyPlayerController::SetShowAllTrajectories(bool bInShow) const
 {
-	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
+	UStateLib::WithPlayerUIUnsafe(this, FLocalPlayerContext(this), [this, bInShow] (FPlayerUI PlayerUI)
 	{
-		UStateLib::WithPlayerUIUnsafe(this, FLocalPlayerContext(this), [this, bInShow] (FPlayerUI PlayerUI)
+		PlayerUI.bShowAllTrajectories = bInShow;
+		for(TObjectIterator<UOrbitComponent> Iter; Iter; ++Iter)
 		{
-			PlayerUI.bShowAllTrajectories = bInShow;
-			for(TObjectIterator<UOrbitComponent> Iter; Iter; ++Iter)
+			UOrbitComponent* Orbit = *Iter;
+			// For PIE multiplayer-testing only: with `Run under one process` checked, the object iterator iterates
+			// through all worlds, across host and client
+			if(Orbit->GetWorld() == GetWorld())
 			{
-				(*Iter)->UpdateVisibility(PlayerUI);
+				Orbit->UpdateVisibility(PlayerUI);
 			}
-		});
-	}
+		}
+	});
 }
 
 void AMyPlayerController::HandleBeginAccelerate()
 {
-	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
+	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
 	{
 		const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
 		MyCharacter->bIsAccelerating = true;
@@ -156,41 +175,45 @@ void AMyPlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if(!Cast<UMyLocalPlayer>(GetLocalPlayer())->GetIsInMainMenu())
+	UMyLocalPlayer* MyPlayer = Cast<UMyLocalPlayer>(Player);
+	if(!MyPlayer->GetIsInMainMenu())
 	{
 		ACharacterInSpace* MyCharacter = GetPawn<ACharacterInSpace>();
-		if(!MyCharacter)
-		{
-			UE_LOG(LogPlayerController, Error, TEXT("MyPlayerController: Tick: no character, no pawn"))
-			return;
-		}
 		FVector Position, Direction;
 		DeprojectMousePositionToWorld(Position, Direction);
 		if(abs(Direction.Z) > 1e-8)
 		{
 			// TODO: only works for Position.Z == 0
-			const auto X = Position.X - Direction.X * Position.Z / Direction.Z;
-			const auto Y = Position.Y - Direction.Y * Position.Z / Direction.Z;
-			const auto Z = MyCharacter->GetActorLocation().Z;
+			const float X = Position.X - Direction.X * Position.Z / Direction.Z;
+			const float Y = Position.Y - Direction.Y * Position.Z / Direction.Z;
+			const float Z = MyCharacter->GetActorLocation().Z;
 			// TODO: physical rotation/animation instead
 			MyCharacter->LookAt(FVector(X, Y, Z));
 		}
 	}
 }
 
-void AMyPlayerController::OnPossess(APawn* InPawn)
+void AMyPlayerController::AcknowledgePossession(APawn* P)
 {
-	Super::OnPossess(InPawn);
+	Super::AcknowledgePossession(P);
 	
-	ACharacterInSpace* MyCharacter = Cast<ACharacterInSpace>(InPawn);
-	if(!MyCharacter)
+	SetActorTickEnabled(true);
+	Cast<ACharacterInSpace>(P)->UpdateSpringArm(CameraPosition);
+	
+	const FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+	ECurrentLevel CurrentLevel;
+	if(LevelName == FString(TEXT("MainMenu")))
 	{
-		UE_LOG(LogPlayerController, Error, TEXT("AMyPlayerController: GetPawn: No Character."))
+		CurrentLevel = ECurrentLevel::MainMenu;
+	}
+	else if(LevelName == FString(TEXT("Spacefootball")))
+	{
+		CurrentLevel = ECurrentLevel::SpaceFootball;
 	}
 	else
 	{
-		MyCharacter->UpdateSpringArm(CameraPosition);
+		UE_LOG(LogNet, Error, TEXT("%s: Couldn't determine current level: %s"), *GetFullName(), *LevelName)
+		CurrentLevel = ECurrentLevel::MainMenu;
 	}
-	FInputModeGameAndUI InputModeGameAndUI;
-	SetInputMode(InputModeGameAndUI);
+	Cast<UMyLocalPlayer>(GetLocalPlayer())->CurrentLevel = CurrentLevel;
 }

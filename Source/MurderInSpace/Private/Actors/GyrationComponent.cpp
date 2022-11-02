@@ -8,11 +8,13 @@
 UGyrationComponent::UGyrationComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
 void UGyrationComponent::SetBody(UPrimitiveComponent* InBody)
 {
 	Body = InBody;
+	UActorComponent::SetComponentTickEnabled(true);
 }
 
 
@@ -23,16 +25,8 @@ void UGyrationComponent::BeginPlay()
 
 	if(!Body)
 	{
-		Body = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
-		if(!Body)
-		{
-			Body = GetOwner()->FindComponentByClass<UStaticMeshComponent>();
-		}
-		if(!Body)
-		{
-			UE_LOG(LogActorComponent, Error, TEXT("%s: body null"), *GetFullName())
-			return;
-		}
+		UE_LOG(LogActorComponent, Display, TEXT("%s: body null, gyration disabled"), *GetFullName())
+		return;
 	}
 
 	// TODO: meshes connected with sockets

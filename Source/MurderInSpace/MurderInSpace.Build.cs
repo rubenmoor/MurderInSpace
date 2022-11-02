@@ -8,7 +8,7 @@ public class MurderInSpace : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[]
+		PublicDependencyModuleNames.AddRange(new []
 			{ "Core"
 			, "CommonUI"
 			, "CoreUObject"
@@ -18,17 +18,14 @@ public class MurderInSpace : ModuleRules
 			, "UMG",
 			});
 
-		PrivateDependencyModuleNames.AddRange(new string[]
+		PrivateDependencyModuleNames.AddRange(new []
 			{ "OnlineSubsystem"
+			, "OnlineSubsystemNull"
 			, "OnlineSubsystemUtils"
 			, "Slate"
 			, "SlateCore"
 			});
 		
-		DynamicallyLoadedModuleNames.AddRange( new string[]
-			{ "OnlineSubsystemNull"
-			});
-
 		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
 	}
 }

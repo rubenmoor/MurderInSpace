@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
-#include "MenuGameMode.generated.h"
+#include "GameMode_Menu.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MURDERINSPACE_API AMenuGameMode : public AGameMode
+class MURDERINSPACE_API AGameMode_Menu : public AGameMode
 {
 	GENERATED_BODY()
 

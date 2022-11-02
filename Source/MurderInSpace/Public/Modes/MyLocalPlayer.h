@@ -9,8 +9,8 @@
 UENUM(BlueprintType)
 enum class ECurrentLevel : uint8
 {
-	MainMenu UMETA(DisplayName="maine menu"),
-	SpaceFootball UMETA(DisplayName="space football")
+	MainMenu UMETA(DisplayName="MainMenu"),
+	SpaceFootball UMETA(DisplayName="Spacefootball")
 };
 
 /**

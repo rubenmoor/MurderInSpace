@@ -4,6 +4,7 @@
 #include "Menu/UW_ServerRow.h"
 
 #include "CommonTextBlock.h"
+#include "Menu/UW_ServerList.h"
 
 #define LOCTEXT_NAMESPACE "Menu"
 

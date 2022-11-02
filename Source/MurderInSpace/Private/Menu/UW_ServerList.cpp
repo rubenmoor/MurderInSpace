@@ -9,17 +9,20 @@
 
 void UUW_ServerList::DeselectAllBut(int32 Index)
 {
-	TArray<UWidget*> Rows = ScrollServers->GetAllChildren();
-	//TArray<UUW_ServerRow*> Rows = ScrollServers->GetAllChildren();
-	//auto Rows = ScrollServers->GetAllChildren();
-	for(int32 i = 0; i < Rows.Num(); i++)
+	SelectedIndex = Index;
+	
+	for(int32 i = 0; i < ScrollServers->GetChildrenCount(); i++)
 	{
-		if(i == Index)
+		if(i != Index)
 		{
-			continue;
+			Cast<UUW_ServerRow>(ScrollServers->GetChildAt(i))->SetSelectedInternal(false, true, false);
 		}
-		Cast<UUW_ServerRow>(Rows[i])->SetIsSelected(false);
 	}
+}
+
+void UUW_ServerList::SelectFirst()
+{
+	Cast<UUW_ServerRow>(ScrollServers->GetChildAt(0))->SetIsSelected(true);
 }
 
 void UUW_ServerList::NativeConstruct()

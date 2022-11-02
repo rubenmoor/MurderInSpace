@@ -16,7 +16,8 @@ void UUW_MenuInGame::NativeConstruct()
 	});
 	BtnLeave->OnClicked().AddLambda([this] ()
 	{
-		GetGameInstance<UMyGameInstance>()->LeaveGame(GetPlayerContext());
+		//GetGameInstance<UMyGameInstance>()->LeaveGame(GetPlayerContext());
+		GetGameInstance()->ReturnToMainMenu();
 	});
 	BtnQuit->OnClicked().AddLambda([this] ()
 	{

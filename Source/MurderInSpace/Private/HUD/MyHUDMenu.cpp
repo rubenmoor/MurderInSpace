@@ -5,7 +5,6 @@
 
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
-#include "UnrealWidgetFwd.h"
 #include "Blueprint/UserWidget.h"
 #include "Lib/FunctionLib.h"
 #include "Lib/UStateLib.h"
@@ -170,6 +169,8 @@ void AMyHUDMenu::ServerListUpdate()
 	const TObjectPtr<UMyGISubsystem> GISub = GetGameInstance<UMyGameInstance>()->GetSubsystem<UMyGISubsystem>();
 	const TArray<FOnlineSessionSearchResult> Results = GISub->GetSearchResult();
 
+	WidgetServerList->HideStatusMessage();
+	
 	if(Results.IsEmpty())
 	{
 		//WidgetServerList->SetStatusMessage(LOCTEXT("NoSessionsFound", "no sessions found"));
@@ -177,68 +178,80 @@ void AMyHUDMenu::ServerListUpdate()
 		// dummy sessions
 
 		UGameInstance* GI = GetGameInstance();
-		for(int i = 0; i < 40; i++)
+		for(int i = 0; i < 3; i++)
 		{
 			UUW_ServerRow* Row = CreateWidget<UUW_ServerRow>(GI, WidgetServerRowClass);
 
 			Row->SetPing(100);
 			Row->SetServerName(LOCTEXT("DummySession", "dummy session"));
 			Row->SetPlayerNumbers(7, 8);
+			Row->OnIsSelectedChanged().AddLambda([this, i] (bool InSelected)
+			{
+				if(InSelected)
+				{
+					WidgetServerList->DeselectAllBut(i);
+				}
+			});
 			WidgetServerList->AddServerRow(Row);
 		}
+		WidgetServerList->SelectFirst();
 		
 		return;
 	}
 	else
 	{
-		WidgetServerList->HideStatusMessage();
 		WidgetServerList->SelectedIndex = 0;
 		WidgetServerList->SetBtnJoinEnabled(true);
-	}
 
-	UGameInstance* GI = GetGameInstance();
-	for(int32 i = 0; i < Results.Num(); i++)
-	{
-		UUW_ServerRow* Row = CreateWidget<UUW_ServerRow>(GI, WidgetServerRowClass);
+		UGameInstance* GI = GetGameInstance();
+		for(int32 i = 0; i < Results.Num(); i++)
+		{
+			UUW_ServerRow* Row = CreateWidget<UUW_ServerRow>(GI, WidgetServerRowClass);
 
-		Row->SetPing(Results[i].PingInMs);
-		FString CustomName;
-		Results[i].Session.SessionSettings.Get(SETTING_CUSTOMNAME, CustomName);
-		Row->SetServerName(FText::FromString(CustomName));
-		
-		const int NumOpenPrivateConnections = Results[i].Session.NumOpenPrivateConnections;
-		const int NumPrivateConnections = Results[i].Session.SessionSettings.NumPrivateConnections;
-		const int NumOpenPublicConnections = Results[i].Session.NumOpenPublicConnections;
-		const int NumPublicConnections = Results[i].Session.SessionSettings.NumPublicConnections;
-		int MaxNumPlayers = 0;
-		int NumPlayers = 0;
-		if(NumPrivateConnections == 0)
-		{
-			// public session
-			MaxNumPlayers = NumPublicConnections;
-			NumPlayers = MaxNumPlayers - NumOpenPublicConnections;
-		}
-		else if(NumPublicConnections == 0)
-		{
-			// private session
-			MaxNumPlayers = NumPrivateConnections;
-			NumPlayers = MaxNumPlayers - NumOpenPrivateConnections;
-		}
-		else
-		{
-			UE_LOG
+			Row->SetPing(Results[i].PingInMs);
+			FString CustomName;
+			Results[i].Session.SessionSettings.Get(SETTING_CUSTOMNAME, CustomName);
+			Row->SetServerName(FText::FromString(CustomName));
+			
+			const int NumOpenPrivateConnections = Results[i].Session.NumOpenPrivateConnections;
+			const int NumPrivateConnections = Results[i].Session.SessionSettings.NumPrivateConnections;
+			const int NumOpenPublicConnections = Results[i].Session.NumOpenPublicConnections;
+			const int NumPublicConnections = Results[i].Session.SessionSettings.NumPublicConnections;
+			int MaxNumPlayers = 0;
+			int NumPlayers = 0;
+			if(NumPrivateConnections == 0)
+			{
+				// public session
+				MaxNumPlayers = NumPublicConnections;
+				NumPlayers = MaxNumPlayers - NumOpenPublicConnections;
+			}
+			else if(NumPublicConnections == 0)
+			{
+				// private session
+				MaxNumPlayers = NumPrivateConnections;
+				NumPlayers = MaxNumPlayers - NumOpenPrivateConnections;
+			}
+			else
+			{
+				UE_LOG
 				( LogNet
 				, Error
 				, TEXT("%s: couldn't determine whether session is private or public")
 				, *GetFullName()
 				)
+			}
+			Row->SetPlayerNumbers(NumPlayers, MaxNumPlayers);
+			Row->OnIsSelectedChanged().AddLambda([this, i] (bool InIsSelected)
+			{
+				if(InIsSelected)
+				{
+					WidgetServerList->DeselectAllBut(i);
+				}			
+			});
+			WidgetServerList->AddServerRow(Row);
 		}
-		Row->SetPlayerNumbers(NumPlayers, MaxNumPlayers);
-		Row->OnClicked().AddLambda([this, i] ()
-		{
-			WidgetServerList->DeselectAllBut(i);
-		});
-		WidgetServerList->AddServerRow(Row);
+		
+		WidgetServerList->SelectFirst();
 	}
 }
 

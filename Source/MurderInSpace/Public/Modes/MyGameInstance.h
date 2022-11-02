@@ -53,11 +53,14 @@ public:
 
 	void HostGame(const FLocalPlayerContext& LPC);
 
-	void LeaveGame(const FLocalPlayerContext& LPC);
+	//void LeaveGame(const FLocalPlayerContext& LPC);
 	
 	void StartSoloGame(const FLocalPlayerContext& LPC);
 
 	virtual bool JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessionSearchResult& SearchResult) override;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPC_LeaveSession();
 	
 	void QuitGame(const FLocalPlayerContext& LPC);
 

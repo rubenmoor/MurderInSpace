@@ -14,17 +14,8 @@ UOrbitComponent::UOrbitComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	USceneComponent::SetMobility(EComponentMobility::Stationary);
-	
-	// debugging: trying to find source of error:
-	// Ensure condition failed: !Primitive->Bounds.ContainsNaN() [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Renderer\Private\RendererScene.cpp] [Line: 1365]
-	// TODO: doesn't have any effect
-	if(Bounds.ContainsNaN())
-	{
-		UE_LOG(LogActorComponent, Error, TEXT("%s: Constructor: contains NaN"), *GetFullName())
-	}
 }
 
-// TODO: move splinepoints as long as orbit type doesn't change instead of redoing the spline points every time
 void UOrbitComponent::Update(FPhysics Physics, FPlayerUI PlayerUI)
 {
 	if(!MovableRoot)
@@ -304,8 +295,9 @@ float UOrbitComponent::NextVelocity(float R, float Alpha, float OldVelocity, flo
 	}
 }
 
-// add spline points, add in world coordinates; however: this one only corrects
-// for the translation, not for rotation and scale
+// add spline points, add in world coordinates
+// however: this one only corrects for the translation, not for rotation and scale
+// as long as we don't scale or rotate the spline, this is fine
 void UOrbitComponent::MyAddPoints(TArray<FSplinePoint> InSplinePoints, bool bUpdateSpline)
 {
 	const FVector Loc = GetComponentLocation();
@@ -320,16 +312,6 @@ bool UOrbitComponent::GetVisibility(FPlayerUI PlayerUI) const
 {
 	return bIsSelected || bIsVisibleVarious || bIsVisibleAccelerating || PlayerUI.bShowAllTrajectories;
 }
-
-// void UOrbitComponent::SetVisibility(bool InBVisible)
-// {
-// 	TArray<USceneComponent*> OldSplinesMeshes;
-// 	GetChildrenComponents(false, OldSplinesMeshes);
-// 	for(USceneComponent* const Old : OldSplinesMeshes)
-// 	{
-// 		Old->SetVisibility(InBVisible);
-// 	}
-// }
 
 FString UOrbitComponent::GetParamsString()
 {
@@ -433,8 +415,8 @@ void UOrbitComponent::SpawnSplineMesh(FLinearColor Color, USceneComponent* InPar
 		}
 		for(int i = 0; i < Indices.size() - 1; i++)
 		{
-			USplineMeshComponent* SplineMesh =
-				NewObject<USplineMeshComponent>(InParent, *FString(TEXT("SplineMesh")).Append(FString::FromInt(i)));
+			
+			USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(InParent);
 			
 			SplineMesh->SetMobility(EComponentMobility::Stationary);
 			SplineMesh->SetVisibility(GetVisibility(PlayerUI));
@@ -518,7 +500,7 @@ void UOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 		SplineKey = FindInputKeyClosestToWorldLocation(NewLocationAtTangent);
 		VecR = GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World);
 	}
-	MovableRoot->SetWorldLocation(VecR, true, nullptr, ETeleportType::TeleportPhysics);
+	MovableRoot->SetWorldLocation(VecR, true, nullptr);
 	
 	// TODO: account for acceleration
 	// const auto RealDeltaR = (GetVecR() - VecR).Length();
@@ -536,13 +518,18 @@ void UOrbitComponent::BeginPlay()
 	// ignore the visibility set in the editor
 	bIsVisibleVarious = false;
 	UpdateVisibility(UStateLib::GetPlayerUIEditorDefault());
-	if(!MSplineMesh)
+
+	// Only care for and spline static mesh and material if this orbit is meant to be visible
+	if(bTrajectoryShowSpline)
 	{
-		UE_LOG(LogActorComponent, Warning, TEXT("%s: spline mesh material not set"), *GetFullName())
-	}
-	if(!SMSplineMesh)
-	{
-		UE_LOG(LogActorComponent, Warning, TEXT("%s: static mesh for trajectory not set"), *GetFullName())
+		if(!MSplineMesh)
+		{
+			UE_LOG(LogActorComponent, Warning, TEXT("%s: spline mesh material not set"), *GetFullName())
+		}
+		if(!SMSplineMesh)
+		{
+			UE_LOG(LogActorComponent, Warning, TEXT("%s: static mesh for trajectory not set"), *GetFullName())
+		}
 	}
 }
 

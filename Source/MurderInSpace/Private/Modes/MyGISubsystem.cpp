@@ -12,7 +12,7 @@
 
 #define LOCTEXT_NAMESPACE "Menu"
 
-bool UMyGISubsystem::CreateSession(const FLocalPlayerContext& LPC, FHostSessionConfig SessionConfig, TFunctionRef<void(FName, bool)> Callback)
+bool UMyGISubsystem::CreateSession(const FLocalPlayerContext& LPC, FHostSessionConfig SessionConfig, TFunction<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	
@@ -30,7 +30,7 @@ bool UMyGISubsystem::CreateSession(const FLocalPlayerContext& LPC, FHostSessionC
 	LastSessionSettings->bShouldAdvertise = true;
 
 	LastSessionSettings->Set(SETTING_MAPNAME, FString(TEXT("Space Football")), EOnlineDataAdvertisementType::ViaOnlineService);
-	LastSessionSettings->Set(SETTING_CUSTOMNAME, FString(TEXT("Space Football")), EOnlineDataAdvertisementType::ViaOnlineService);
+	LastSessionSettings->Set(SETTING_CUSTOMNAME, CustomName, EOnlineDataAdvertisementType::ViaOnlineService);
 
 	if(SI->GetNamedSession(NAME_GameSession))
 	{
@@ -40,7 +40,7 @@ bool UMyGISubsystem::CreateSession(const FLocalPlayerContext& LPC, FHostSessionC
 			, TEXT("%s: Destroying existing session")
 			, *GetFullName()
 			)
-		DestroySession([this, Callback, LPC] (FName SessionName, bool bSuccess)
+		LeaveSession([this, Callback, LPC] (FName SessionName, bool bSuccess)
 		{
 			if(bSuccess)
 			{
@@ -62,15 +62,19 @@ bool UMyGISubsystem::CreateSession(const FLocalPlayerContext& LPC, FHostSessionC
 		UE_LOG(LogNet, Warning, TEXT("%s: OnCreateSessionCompleteDelegates: was bound, clearing"), *GetFullName())
 		SI->OnCreateSessionCompleteDelegates.Clear();
 	}
+	// debugging: create session without subsequent call to StartSession
+	//SI->OnCreateSessionCompleteDelegates.AddLambda(Callback);
+	
+	// debugging: create session and call StartSession on callback
 	SI->OnCreateSessionCompleteDelegates.AddLambda([this, Callback] (FName SessionName, bool bSuccess)
 	{
 		if(bSuccess)
 		{
-			if(!StartSession(Callback))
-			{
-				UE_LOG(LogNet, Error, TEXT("%s: couldn't start session"), *GetFullName())
-				Callback(SessionName, false);
-			}
+			 if(!StartSession(Callback))
+			 {
+			 	UE_LOG(LogNet, Error, TEXT("%s: couldn't start session"), *GetFullName())
+			 	Callback(SessionName, false);
+			 }
 		}
 		else
 		{
@@ -78,22 +82,48 @@ bool UMyGISubsystem::CreateSession(const FLocalPlayerContext& LPC, FHostSessionC
 		}
 	});
 
-	return SI->CreateSession(*LPC.GetLocalPlayer()->GetCachedUniqueNetId(), NAME_GameSession, *LastSessionSettings);
+	//return SI->CreateSession(*LPC.GetLocalPlayer()->GetCachedUniqueNetId(), NAME_GameSession, *LastSessionSettings);
+	return SI->CreateSession(LPC.GetLocalPlayer()->GetIndexInGameInstance(), NAME_GameSession, *LastSessionSettings);
 }
 
-bool UMyGISubsystem::DestroySession(TFunctionRef<void(FName, bool)> Callback)
+void UMyGISubsystem::LeaveSession(TFunction<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
-	if(SI->OnDestroySessionCompleteDelegates.IsBound())
+	if(SI->GetNamedSession(NAME_GameSession))
 	{
-		UE_LOG(LogNet, Warning, TEXT("%s: OnDestroySessionCompleteDelegates: was bound, clearing"), *GetFullName())
-		SI->OnDestroySessionCompleteDelegates.Clear();
+		if(SI->OnDestroySessionCompleteDelegates.IsBound())
+		{
+			UE_LOG(LogNet, Warning, TEXT("%s: OnDestroySessionCompleteDelegates: was bound, clearing"), *GetFullName())
+			SI->OnDestroySessionCompleteDelegates.Clear();
+		}
+		SI->OnDestroySessionCompleteDelegates.AddLambda([this, SI, Callback] (FName SessionName, bool bSuccess)
+		{
+			// `DestroySession` does seem to have some glitches, where the session ends up not being destroyed.
+			// Unfortunately, I regularly encounter the case where `bSuccess` is true, but the session isn't destroyed.
+			if(SI->GetNamedSession(NAME_GameSession))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s: Failed to destroy session, trying again ..."), *GetFullName())
+				SI->DestroySession(NAME_GameSession);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s: Session destroyed."), *GetFullName())
+				Callback(SessionName, bSuccess);
+			}
+		});
+		SI->DestroySession(NAME_GameSession);
 	}
-	SI->OnDestroySessionCompleteDelegates.AddLambda(Callback);
-	return SI->DestroySession(NAME_GameSession);
 }
 
-bool UMyGISubsystem::StartSession(TFunctionRef<void(FName, bool)> Callback)
+void UMyGISubsystem::LeaveSession()
+{
+	LeaveSession([this] (FName, bool)
+	{
+		GetGameInstance()->ReturnToMainMenu();
+	});
+}
+
+bool UMyGISubsystem::StartSession(TFunction<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	if(SI->OnStartSessionCompleteDelegates.IsBound())
@@ -109,9 +139,9 @@ bool UMyGISubsystem::FindSessions(const FLocalPlayerContext& LPC, TFunction<void
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	LastSessionSearch = MakeShareable(new FOnlineSessionSearch());
-	LastSessionSearch->MaxSearchResults = 128;
+	LastSessionSearch->MaxSearchResults = 10000;
 	LastSessionSearch->bIsLanQuery = Cast<UMyGameInstance>(GetGameInstance())->SessionConfig.bEnableLAN;
-	//LastSessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+	LastSessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 
 	if(SI->OnFindSessionsCompleteDelegates.IsBound())
 	{
@@ -119,19 +149,45 @@ bool UMyGISubsystem::FindSessions(const FLocalPlayerContext& LPC, TFunction<void
 		SI->OnFindSessionsCompleteDelegates.Clear();
 	}
 	SI->OnFindSessionsCompleteDelegates.AddLambda(Callback);
-	return SI->FindSessions(*LPC.GetLocalPlayer()->GetCachedUniqueNetId(), LastSessionSearch.ToSharedRef());
+	return SI->FindSessions(LPC.GetLocalPlayer()->GetIndexInGameInstance(), LastSessionSearch.ToSharedRef());
 }
 
 bool UMyGISubsystem::JoinSession(const FLocalPlayerContext& LPC, const FOnlineSessionSearchResult& Result, TFunction<void(FName, EOnJoinSessionCompleteResult::Type)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
+	if(SI->GetNamedSession(NAME_GameSession))
+	{
+		UE_LOG
+			( LogNet
+			, Warning
+			, TEXT("%s: Destroying existing session")
+			, *GetFullName()
+			)
+		LeaveSession([this, Callback, LPC, Result] (FName SessionName, bool bSuccess)
+		{
+			if(bSuccess)
+			{
+				// start over
+				Cast<UMyGameInstance>(GetGameInstance())->JoinSession(LPC.GetLocalPlayer(), Result);
+			}
+			else
+			{
+				Callback(SessionName, EOnJoinSessionCompleteResult::UnknownError);
+			}
+		});
+		// we pretend, it was a success so far, because this brings us to the
+		// "waiting for session create" screen
+		return true;
+	}
+	
 	if(SI->OnJoinSessionCompleteDelegates.IsBound())
 	{
 		UE_LOG(LogNet, Warning, TEXT("%s: OnJoinSessionCompleteDelegates: was bound, clearing"), *GetFullName())
 		SI->OnJoinSessionCompleteDelegates.Clear();
 	}
 	SI->OnJoinSessionCompleteDelegates.AddLambda(Callback);
-	return SI->JoinSession(*LPC.GetLocalPlayer()->GetCachedUniqueNetId(), NAME_GameSession, Result);
+	//return SI->JoinSession(*LPC.GetLocalPlayer()->GetCachedUniqueNetId(), NAME_GameSession, Result);
+	return SI->JoinSession(LPC.GetLocalPlayer()->GetIndexInGameInstance(), NAME_GameSession, Result);
 }
 
 void UMyGISubsystem::ShowLoginScreen(const FLocalPlayerContext& LPC)
