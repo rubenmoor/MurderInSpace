@@ -34,13 +34,8 @@ protected:
 	// event handlers
 
 	virtual void PostInitializeComponents() override;
-	virtual void BeginPlay() override;
 
 	#if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	#endif
-
-private:
-	// private methods
-	void UpdateAllOrbits() const;
 };

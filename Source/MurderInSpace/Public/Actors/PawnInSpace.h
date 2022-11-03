@@ -38,7 +38,16 @@ protected:
 	
 	virtual void Tick(float DeltaSeconds) override;
 
+	#if WITH_EDITOR
+	/*
+	 * the `OnConstruction` script gets called when running the game ... unfortunately, the component `MovableRoot`
+	 * has weird location values (e.g. 1.0E-312) and as the final values for `Physics` are available only with
+	 * `BeginPlay`, we don't need to run `OnConstruction`, and rely on `BeginPlay` to set up the orbit.
+	 */
 	virtual void OnConstruction(const FTransform& Transform) override;
+	#endif
+	
+	virtual void BeginPlay() override;
 
 	// components
 	

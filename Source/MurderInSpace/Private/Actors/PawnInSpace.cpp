@@ -75,12 +75,24 @@ void APawnInSpace::Tick(float DeltaSeconds)
 	}
 }
 
+#if WITH_EDITOR
 void APawnInSpace::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	Orbit->InitializeCircle
+	Orbit->SetCircleOrbit
 		( MovableRoot->GetComponentLocation()
 		, UStateLib::GetPhysicsEditorDefault()
+		, UStateLib::GetPlayerUIEditorDefault()
+		);
+}
+#endif 
+
+void APawnInSpace::BeginPlay()
+{
+	Super::BeginPlay();
+	Orbit->SetCircleOrbit
+		( MovableRoot->GetComponentLocation()
+		, UStateLib::GetPhysicsUnsafe(this)
 		, UStateLib::GetPlayerUIEditorDefault()
 		);
 }

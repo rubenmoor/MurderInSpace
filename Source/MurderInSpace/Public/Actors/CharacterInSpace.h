@@ -40,6 +40,15 @@ public:
 	UFUNCTION(BlueprintPure)
 	FLinearColor GetTempSplineMeshColor() const { return TempSplineMeshColor; }
 
+	/*
+	 * update the orbits of all Actors In Space, e.g. asteroids
+	 * Note: Client RPC must be method of an actor and only get executed on clients that own said actor
+	 * To update all asteroids (NOT owned by any client), the server needs to call a Client RPC with the pawn
+	 * that is owned by the client instance.
+	 * This is why the `CharacterInSpace` somewhat awkwardly manipulates orbits of actors in space.
+	 */
+	UFUNCTION(Client, Reliable)
+	void ClientRPC_UpdateActorsInSpace(const TArray<FOrbitState>& States, FPhysics Physics, FPlayerUI PlayerUI);
 protected:
 
 	// event handlers

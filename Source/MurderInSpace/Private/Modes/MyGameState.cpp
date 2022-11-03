@@ -4,18 +4,12 @@
 #include "Modes/MyGameState.h"
 
 #include "Actors/OrbitComponent.h"
+#include "Lib/FunctionLib.h"
 
 void AMyGameState::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	Poisson = std::poisson_distribution(AngularVelocityPoissonMean * 1e3);
-}
-
-void AMyGameState::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	UpdateAllOrbits();
 }
 
 #if WITH_EDITOR
@@ -30,16 +24,11 @@ void AMyGameState::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prope
 	
 	if(Name == FNameSpaceParams)
 	{
-		UpdateAllOrbits();
+		for(TObjectIterator<UOrbitComponent> IOrbit; IOrbit; ++IOrbit)
+		{
+			(*IOrbit)->Update(Physics, UStateLib::GetPlayerUIEditorDefault());
+		}
 	}
 }
 #endif
-
-void AMyGameState::UpdateAllOrbits() const
-{
-	for(TObjectIterator<UOrbitComponent> Iter; Iter; ++Iter)
-	{
-		(*Iter)->Update(Physics, UStateLib::GetPlayerUIEditorDefault());
-	}
-}
 

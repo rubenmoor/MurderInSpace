@@ -6,6 +6,62 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "FunctionLib.generated.h"
 
+/*
+ * my object iterator, taking into account the World via `UWorld*` param in the constructor
+ * 
+ * For PIE multiplayer-testing: with `Run under one process` checked, the `TObjectIterator` iterates
+ * through all worlds, across host and client; this one can be restricted, e.g.
+ * 
+ for(MyObjectIterator<SomeActorComponent> IComponent(GetWorld()); IComponent; ++IComponent)
+ {
+	// components are filtered already according to `(*IComponent)->GetWorld() == GetWorld()`
+	(*IComponent)->SomeMethod();
+ }
+ */
+template<class TUObject>
+struct MyObjectIterator : TObjectIterator<TUObject>
+{
+	//typename std::iterator_traits<BaseIterator>::value_type FValue;
+	typedef TFunction<bool (const TUObject*) > FFilterFunc;
+
+	MyObjectIterator(const UWorld* World)
+		: FilterFunc([World] (const TUObject* Object)
+			{
+				return Object->GetWorld() == World;
+			})
+	{
+	}
+	MyObjectIterator(FFilterFunc InFilterFunc)
+		: FilterFunc(InFilterFunc)
+	{
+		while(*this && !FilterFunc(**this))
+		{
+			++*this;
+		}
+	}
+
+	// prefix inc
+	MyObjectIterator& operator++()
+	{
+		do
+		{
+			TObjectIterator<TUObject>::operator++();
+		} while (*this && !FilterFunc(**this));
+		return *this;
+	}
+	
+	// suffix inc
+	MyObjectIterator operator++(int)
+	{
+		MyObjectIterator Copy = *this;
+		++*this;
+		return Copy;
+	}
+
+private:
+	FFilterFunc FilterFunc;
+};
+
 /**
  * 
  */

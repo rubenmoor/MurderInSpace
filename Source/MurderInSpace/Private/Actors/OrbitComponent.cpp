@@ -269,7 +269,7 @@ float UOrbitComponent::VelocityParabola(float R, float Alpha)
 
 float UOrbitComponent::NextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign)
 {
-	if(!bInitialized)
+	if(!bHasBeenSet)
 	{
 		UE_LOG(LogActorComponent, Error, TEXT("%s: NextVelocity: not initialized"), *GetFullName());
 		return 0.;
@@ -358,19 +358,26 @@ void UOrbitComponent::AddVelocity(FVector VecDeltaV, FPhysics Physics, FPlayerUI
 	Update(Physics, PlayerUI);
 }
 
-void UOrbitComponent::InitializeCircle(FVector NewVecR, FPhysics Physics, FPlayerUI PlayerUI)
+void UOrbitComponent::SetCircleOrbit(FVector NewVecR, FPhysics Physics, FPlayerUI PlayerUI)
 {
-	if(!bInitialized)
+	if(bHasBeenSet)
 	{
-		VecR = NewVecR;
-		const FVector VecRKepler = VecR - Physics.VecF1;
-		const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecR).GetSafeNormal(1e-8, FVector(0., 1., 0.));
-		VelocityVCircle = 1.;
-		Velocity = sqrt(Physics.Alpha / VecRKepler.Length()) * VelocityVCircle;
-		VecVelocity = Velocity * VelocityNormal;
-		Update(Physics, PlayerUI);
-		bInitialized = true;
+		// SetCircleOrbit should only be called on fresh orbits that haven't been set yet, i.e. velocity not initialized
+		// Setting twice isn't a big problem, but deserves a warning
+		UE_LOG(LogActor, Warning, TEXT("%s: SetCircleOrbit: Orbit has been initialized already."), *GetFullName())
 	}
+	const FVector VecRKepler = VecR - Physics.VecF1;
+	const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
+	const FVector NewVecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
+	SetOrbitByParams(NewVecR, NewVecVelocity, Physics, PlayerUI);
+}
+
+void UOrbitComponent::SetOrbitByParams(FVector NewVecR, FVector NewVecVelocity, FPhysics Physics, FPlayerUI PlayerUI)
+{
+	VecR = NewVecR;
+	SetVelocity(NewVecVelocity, Physics.Alpha, Physics.VecF1);
+	bHasBeenSet = true;
+	Update(Physics, PlayerUI);
 }
 
 void UOrbitComponent::UpdateVisibility(FPlayerUI PlayerUI)
@@ -381,7 +388,11 @@ void UOrbitComponent::UpdateVisibility(FPlayerUI PlayerUI)
 void UOrbitComponent::SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FPlayerUI PlayerUI)
 {
 	const int nIndices = static_cast<int>(round(GetSplineLength() / SplineMeshLength));
-	
+
+	if(GetOwner()->HasAnyFlags(RF_ClassDefaultObject))
+	{
+		return;
+	}
 	if(!SMSplineMesh)
 	{
 		UE_LOG
@@ -469,7 +480,7 @@ void UOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if(!bInitialized)
+	if(!bHasBeenSet)
 	{
 		RequestEngineExit(TEXT("UOrbitComponent::TickComponent: not initialized"));
 		return;

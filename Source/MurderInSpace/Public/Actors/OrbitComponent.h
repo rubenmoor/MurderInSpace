@@ -8,6 +8,22 @@
 
 #include "OrbitComponent.generated.h"
 
+/*
+ * all the data necessary, to efficiently reproduce the state (location and velocity) of a body w/ orbit
+ * needed for network replication
+ */
+USTRUCT(BlueprintType)
+struct FOrbitState
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector VecVelocity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector VecR;
+};
+
 UENUM(BlueprintType)
 enum class EOrbitType : uint8
 {
@@ -62,7 +78,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetSplineMeshParent(USceneComponent* InSplineMeshParent) { SplineMeshParent = InSplineMeshParent; }
 
-	// whenever there's a change in velocity or the physical constants:
+	// whenever there's a change in location, velocity, or the physical constants:
 	UFUNCTION(BlueprintCallable)
 	void Update(FPhysics Physics, FPlayerUI PlayerUI);
 
@@ -92,7 +108,10 @@ public:
 	FVector GetVecR() { return VecR; }
 
 	UFUNCTION(BlueprintCallable)
-	void InitializeCircle(FVector NewVecR, FPhysics Physics, FPlayerUI PlayerUI);
+	void SetCircleOrbit(FVector NewVecR, FPhysics Physics, FPlayerUI PlayerUI);
+
+	UFUNCTION(BlueprintCallable)
+	void SetOrbitByParams(FVector NewVecR, FVector NewVecVelocity, FPhysics Physics, FPlayerUI PlayerUI);
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FPlayerUI PlayerUI);
@@ -112,6 +131,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
+
+	UFUNCTION(BlueprintCallable)
+	bool GetHasBeenSet() { return bHasBeenSet; }
 	
 protected:
 	
@@ -164,7 +186,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
 	float SplineKey;
 
-	// distance travelled at orbit creation
+	// spline distance at last orbit update
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
 	float DistanceZero;
 
@@ -181,7 +203,7 @@ protected:
 	float VelocityVCircle;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
-	bool bInitialized = false;
+	bool bHasBeenSet = false;
 	
 	/**
 	 * @brief constant factor to construct tangents for spline points

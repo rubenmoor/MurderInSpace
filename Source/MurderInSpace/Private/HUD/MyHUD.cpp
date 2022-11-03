@@ -38,7 +38,6 @@ void AMyHUD::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no player controller, disabling tick"), *GetFullName())
 		SetActorTickEnabled(false);
-		return;
 	}
 	
 	// get playing character
@@ -48,7 +47,12 @@ void AMyHUD::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no pawn, disabling tick"), *GetFullName())
 		SetActorTickEnabled(false);
-		return;
+	}
+	else if(!MyCharacter->GetOrbitComponent()->GetHasBeenSet())
+	{
+		
+		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: orbit component hasn't been set, disabling tick"), *GetFullName())
+		SetActorTickEnabled(false);
 	}
 
 	UGameInstance* GI = GetGameInstance();
@@ -124,7 +128,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 		if(!GetOwningPlayerController()->ProjectWorldLocationToScreen(VecF1InViewportPlane, ScreenLocation))
 		{
 			// If the manual projection fails, too, we're out of options
-			UE_LOG(LogActor, Error, TEXT("AAStronautHUD::Tick: couldn't project Center of mass to screen"))
+			UE_LOG(LogActor, Error, TEXT("AMyHUD::Tick: couldn't project Center of mass to screen"))
 		}
 		// only we have to make sure that this manually conceived screen location doesn't accidentally
 		// end up on screen

@@ -37,13 +37,17 @@ AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 		// shouldn't matter, feels better than `nullptr`
 		return Starts[0];
 	}
+	const FVector Loc = Starts[NumPlayers]->GetActorLocation();
 	UE_LOG
 		( LogNet
 		, Display
-		, TEXT("%s: Player %d gets Start %d")
+		, TEXT("%s: Player %d gets Start %d: (%.0f, %.0f, %.0f)")
 		, *GetFullName()
 		, NumPlayers
 		, NumPlayers
+		, Loc.X
+		, Loc.Y
+		, Loc.Z
 		)
 	return Starts[NumPlayers];
 }

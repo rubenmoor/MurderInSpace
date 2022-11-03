@@ -94,8 +94,14 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 	FLocalPlayerContext LPC = FLocalPlayerContext(LocalPlayer);
 	return GetSubsystem<UMyGISubsystem>()->JoinSession(LPC, SearchResult, [this, LPC] (FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 	{
-		// auto GotoServerList = [LPC] () { LPC.GetHUD<AMyHUDMenu>()->ServerListShow(); };
-		const TFunction<void()> GotoServerList = [LPC] () { LPC.GetHUD<AMyHUDMenu>()->ServerListShow(); };
+		const TFunction<void()> GotoServerList = [LPC] ()
+		{
+			AMyHUDMenu* HUDMenu = LPC.GetHUD<AMyHUDMenu>();
+			if(IsValid(HUDMenu))
+			{
+				HUDMenu->ServerListShow();
+			}
+		};
 
 		UE_LOG(LogNet, Warning, TEXT("%s: trying to join session with name: %s"), *GetFullName(), *SessionName.ToString())
 		

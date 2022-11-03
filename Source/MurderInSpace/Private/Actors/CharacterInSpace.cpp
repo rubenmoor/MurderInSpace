@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "NiagaraComponent.h"
+#include "Lib/FunctionLib.h"
 
 ACharacterInSpace::ACharacterInSpace()
 {
@@ -51,9 +52,10 @@ void ACharacterInSpace::UpdateSpringArm(uint8 CameraPosition)
 		, 0
 		));
 	StarAnchor->SetRelativeLocation(FVector(10000 + Length, 0, 0));
-	for(TObjectIterator<UOrbitComponent> Iter; Iter; ++Iter)
+	// TODO: maybe missing an orbit component?
+	for(MyObjectIterator<UOrbitComponent> IOrbit(GetWorld()); IOrbit; ++IOrbit)
 	{
-		(*Iter)->UpdateSplineMeshScale(Length / 1000.);
+		(*IOrbit)->UpdateSplineMeshScale(Length / 1000.);
 	}
 }
 
@@ -75,4 +77,9 @@ void ACharacterInSpace::DestroyTempSplineMesh()
 	{
 		Mesh->DestroyComponent();
 	}
+}
+
+void ACharacterInSpace::ClientRPC_UpdateActorsInSpace_Implementation(const TArray<FOrbitState>& States, FPhysics Physics,
+	FPlayerUI PlayerUI)
+{
 }

@@ -7,6 +7,7 @@
 #include "Blueprint/UserWidget.h"
 #include "HUD/WidgetHUDBorder.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Lib/FunctionLib.h"
 
 AMyHUDBase::AMyHUDBase()
 {
@@ -38,17 +39,15 @@ void AMyHUDBase::HideViewportParentWidgets()
 	if(IsValid(this))
 	{
 		TArray<UUserWidget*> ParentWidgets;
-		for(TObjectIterator<UUserWidget> Itr; Itr; ++Itr)
+		MyObjectIterator<UUserWidget> IWidget([this] (const UUserWidget* Widget)
 		{
-			UUserWidget* Widget = *Itr;
-			if
-				(  Widget->GetWorld() == GetWorld()
+			return Widget->GetWorld() == GetWorld()
 				&& Widget->IsInViewport()
-				&& !Widget->IsA(UWidgetHUDBorder::StaticClass())
-				)	
-			{
-				Widget->SetVisibility(ESlateVisibility::Collapsed);
-			}
+				&& !Widget->IsA(UWidgetHUDBorder::StaticClass());
+		});
+		for(; IWidget; ++IWidget)
+		{
+			(*IWidget)->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
 	else

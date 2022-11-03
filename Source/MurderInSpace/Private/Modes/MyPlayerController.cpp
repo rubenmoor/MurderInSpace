@@ -7,6 +7,7 @@
 #include "Actors/CharacterInSpace.h"
 #include "HUD/MyHUD.h"
 #include "Kismet/GameplayStatics.h"
+#include "Lib/FunctionLib.h"
 #include "Modes/MyLocalPlayer.h"
 #include "Modes/MyPlayerState.h"
 #include "Modes/MyGISubsystem.h"
@@ -142,15 +143,9 @@ void AMyPlayerController::SetShowAllTrajectories(bool bInShow) const
 	UStateLib::WithPlayerUIUnsafe(this, FLocalPlayerContext(this), [this, bInShow] (FPlayerUI PlayerUI)
 	{
 		PlayerUI.bShowAllTrajectories = bInShow;
-		for(TObjectIterator<UOrbitComponent> Iter; Iter; ++Iter)
+		for(MyObjectIterator<UOrbitComponent> IOrbit(GetWorld()); IOrbit; ++IOrbit)
 		{
-			UOrbitComponent* Orbit = *Iter;
-			// For PIE multiplayer-testing only: with `Run under one process` checked, the object iterator iterates
-			// through all worlds, across host and client
-			if(Orbit->GetWorld() == GetWorld())
-			{
-				Orbit->UpdateVisibility(PlayerUI);
-			}
+			(*IOrbit)->UpdateVisibility(PlayerUI);
 		}
 	});
 }

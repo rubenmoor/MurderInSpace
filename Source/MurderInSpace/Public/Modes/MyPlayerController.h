@@ -30,9 +30,10 @@ protected:
 	// event handlers
 	
 	virtual void Tick(float DeltaSeconds) override;
+	
 	// OnPossess only runs on the server (in a listen-server setup)
 	//virtual void OnPossess(APawn* InPawn) override;
-	
+	// Thus we use `AcknowledgePossesion` to set up the camera and alike
 	virtual void AcknowledgePossession(APawn* P) override;
 
 	// input events

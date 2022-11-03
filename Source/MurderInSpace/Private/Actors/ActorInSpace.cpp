@@ -33,10 +33,23 @@ AActorInSpace::AActorInSpace()
 
 void AActorInSpace::OnConstruction(const FTransform& Transform)
 {
+	// TODO: it looks like, contrary to documentation, `OnConstruction` is called twice:
+	// once when an ActorInSpace is placed in the editor (which is fine)
+	// a second time on game start, which is wrong
 	Super::OnConstruction(Transform);
-	Orbit->InitializeCircle
+	Orbit->SetCircleOrbit
 		( MovableRoot->GetComponentLocation()
 		, UStateLib::GetPhysicsEditorDefault()
+		, UStateLib::GetPlayerUIEditorDefault()
+		);
+}
+
+void AActorInSpace::BeginPlay()
+{
+	Super::BeginPlay();
+	Orbit->SetCircleOrbit
+		( MovableRoot->GetComponentLocation()
+		, UStateLib::GetPhysicsUnsafe(this)
 		, UStateLib::GetPlayerUIEditorDefault()
 		);
 }

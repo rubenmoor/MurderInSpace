@@ -16,11 +16,12 @@ class MURDERINSPACE_API AActorInSpace : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AActorInSpace();
-
+	
 protected:
 	// event handlers
 
 	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void BeginPlay() override;
 
 	// components
 	

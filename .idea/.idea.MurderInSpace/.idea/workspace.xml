@@ -9,55 +9,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Content/Actors/BP_MyPlayerStart.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Maps/Spacefootball_BuiltData.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Menu/MainMenu.umap" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Menu/MainMenu_BuiltData.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultInput.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultInput.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_Rock2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_Rock2.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockCylindric2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockCylindric2.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockFlat2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockFlat2.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_SMActor.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_SMActor.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Astronaut/SK_Astronaut.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Astronaut/SK_Astronaut.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/BP_CharacterInSpace.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/BP_CharacterInSpace.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/BP_PawnInSpace.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/BP_PawnInSpace.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/HUD/Widgets/UI_Font.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/Widgets/UI_Font.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Maps/spacefootball.umap" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Maps/spacefootball_BuiltData.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Menu/BP_MenuGameMode.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/BP_MenuGameMode.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Menu/BP_PlayerControllerMenu.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/BP_PlayerControllerMenu.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Menu/MyCommonButton/StyleButtonHover.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/MyCommonButton/StyleButtonHover.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Menu/UMG_MenuServerList.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/UMG_MenuServerList.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Menu/UMG_ServerRow.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/UMG_ServerRow.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Menu/spacefootball_mainmenu.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/spacefootball_mainmenu.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Menu/spacefootball_mainmenu_BuiltData.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/spacefootball_mainmenu_BuiltData.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Modes/BP_MyPlayerController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Modes/BP_MyPlayerController.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/MurderInSpace.Build.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/MurderInSpace.Build.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/ActorInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/ActorInSpace.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/GyrationComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/GyrationComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/CharacterInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/CharacterInSpace.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/OrbitComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/OrbitComponent.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/PawnInSpace.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/PawnInSpace.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDMenu.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDMenu.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/UW_MenuInGame.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/UW_MenuInGame.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Menu/UW_ServerList.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Menu/UW_ServerList.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Menu/UW_ServerRow.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Menu/UW_ServerRow.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MenuGameMode.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/GameMode_Menu.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGISubsystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGISubsystem.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDBase.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDBase.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameMode.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameMode.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameState.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameState.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/ActorInSpace.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/ActorInSpace.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/CharacterInSpace.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/CharacterInSpace.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/OrbitComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/OrbitComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDMenu.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDMenu.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Menu/UW_ServerList.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Menu/UW_ServerList.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Menu/UW_ServerRow.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Menu/UW_ServerRow.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MenuGameMode.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/GameMode_Menu.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGISubsystem.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGISubsystem.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameInstance.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameInstance.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameMode.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameMode.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyLocalPlayer.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyLocalPlayer.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/PawnInSpace.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/PawnInSpace.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Lib/FunctionLib.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Lib/FunctionLib.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameState.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameState.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyPlayerController.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -72,8 +42,28 @@
     <setting file="file://$PROJECT_DIR$/../../UE_5.0/Engine/Source/Developer/RigVMDeveloper/Private/RigVMModel/RigVMController.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../UE_5.0/Engine/Source/Editor/Sequencer/Private/Sequencer.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../UE_5.0/Engine/Source/Runtime/Engine/Private/UnrealEngine.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/clsocket/src/ActiveSocket.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/clsocket/src/PassiveSocket.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/clsocket/src/SimpleSocket.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/clsocket/src/SimpleSocket.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/clsocket/src/StatTimer.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/countdownlatch/countdownlatch.hpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/optional/tl/optional.hpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/ordered-map/include/tsl/ordered_map.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/ordered-map/include/tsl/ordered_set.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/async.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/details/registry-inl.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/details/registry.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/details/synchronous_factory.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/fmt/bundled/core.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/fmt/bundled/format.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/fmt/bundled/ranges.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/fmt/bundled/xchar.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/pattern_formatter-inl.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/pattern_formatter.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/spdlog-inl.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/spdlog.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Plugins/Developer/RiderLink/Source/RD/thirdparty/variant/include/mpark/variant.hpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/CharacterInSpace.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/GyrationComponent.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -336,7 +326,11 @@
       <workItem from="1667347006190" duration="1048000" />
       <workItem from="1667348981593" duration="180000" />
       <workItem from="1667349183553" duration="1789000" />
-      <workItem from="1667396900891" duration="18085000" />
+      <workItem from="1667396900891" duration="29088000" />
+      <workItem from="1667489252614" duration="2796000" />
+      <workItem from="1667500401171" duration="1393000" />
+      <workItem from="1667501853789" duration="2029000" />
+      <workItem from="1667504877100" duration="9868000" />
     </task>
     <servers />
   </component>
@@ -358,6 +352,22 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/PawnInSpace.cpp</url>
+          <line>91</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="CppProject">
+        <watch expression="this-&gt;Orbit" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
