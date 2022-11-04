@@ -40,8 +40,6 @@ void APawnInSpace::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	MovableRoot->SetWorldRotation(BodyRotation);
-	
 	DrawDebugDirectionalArrow
 		( GetWorld()
 		, MovableRoot->GetComponentLocation()

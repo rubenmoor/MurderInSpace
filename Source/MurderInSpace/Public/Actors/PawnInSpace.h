@@ -32,9 +32,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	USceneComponent* GetBody() { return MovableRoot; }
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(ReplicatedUsing=SetBodyRotation, VisibleAnywhere, BlueprintReadOnly)
 	FQuat BodyRotation;
-	
+
+	UFUNCTION()
+	void SetBodyRotation() { MovableRoot->SetWorldRotation(BodyRotation); }
 protected:
 	
 	// event handlers

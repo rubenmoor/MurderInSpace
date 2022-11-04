@@ -140,7 +140,9 @@ void AMyPlayerController::ClientRPC_LeaveSession_Implementation()
 
 void AMyPlayerController::ServerRPC_LookAt_Implementation(FQuat Quat)
 {
-	GetPawn<ACharacterInSpace>()->BodyRotation = Quat;
+	ACharacterInSpace* MyCharacter = GetPawn<ACharacterInSpace>();
+	MyCharacter->BodyRotation = Quat;
+	MyCharacter->SetBodyRotation(); // replicatedUsing
 }
 
 void AMyPlayerController::SetShowAllTrajectories(bool bInShow) const
