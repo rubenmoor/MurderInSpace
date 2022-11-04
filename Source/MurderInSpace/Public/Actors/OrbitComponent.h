@@ -8,22 +8,6 @@
 
 #include "OrbitComponent.generated.h"
 
-/*
- * all the data necessary, to efficiently reproduce the state (location and velocity) of a body w/ orbit
- * needed for network replication
- */
-USTRUCT(BlueprintType)
-struct FOrbitState
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector VecVelocity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector VecR;
-};
-
 UENUM(BlueprintType)
 enum class EOrbitType : uint8
 {
@@ -61,6 +45,50 @@ struct FOrbitParameters
 	float A = 0;
 };
 
+/*
+ * all the data that makes up the orbit
+ * needed for network replication
+ */
+USTRUCT(BlueprintType)
+struct FOrbitState
+{
+	GENERATED_BODY()
+
+	FOrbitState(): Params(), Velocity(0), SplineKey(0), SplineDistance(0)
+	{
+	}
+
+	FOrbitState(FName InOrbitName, FVector InVecR, FVector InVecVelocity, FOrbitParameters InParams, float InVelocity, float InSplineKey, float InSplineDistance)
+		: OrbitFName(InOrbitName), VecR(InVecR), VecVelocity(InVecVelocity), Params(InParams), Velocity(InVelocity), SplineKey(InSplineKey), SplineDistance(InSplineDistance)
+	{
+	}
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FName OrbitFName;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector VecR;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector VecVelocity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FOrbitParameters Params;
+
+	// this data can be computed, too, to save network bandwidth, but it's just three floats
+	// float Velocity = VecVelocity.Length()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float Velocity;
+	
+	// SplineKey = FindInputKeyClosestToWorldLocation(VecR);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float SplineKey;
+	
+	// SplineDistance = GetDistanceAlongSplineAtSplineInputKey(SplineKey);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float SplineDistance;
+};
+
 /**
  * 
  */
@@ -69,8 +97,11 @@ class MURDERINSPACE_API UOrbitComponent : public USplineComponent
 {
 	GENERATED_BODY()
 
+	friend class AMyPlayerController;
 public:
 	UOrbitComponent();
+
+	// initialization
 	
 	UFUNCTION(BlueprintCallable)
 	void SetMovableRoot(USceneComponent* InMovableRoot) { MovableRoot = InMovableRoot; }
@@ -78,20 +109,43 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetSplineMeshParent(USceneComponent* InSplineMeshParent) { SplineMeshParent = InSplineMeshParent; }
 
+	UFUNCTION(BlueprintCallable)
+	void SetCircleOrbit(FVector NewVecR, FPhysics Physics, FPlayerUI PlayerUI);
+
+	UFUNCTION(BlueprintCallable)
+	void SetOrbitByParams(FVector NewVecR, FVector NewVecVelocity, FPhysics Physics, FPlayerUI PlayerUI);
+
+	UFUNCTION(BlueprintCallable)
+	void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
+
+	UFUNCTION(BlueprintCallable)
+	bool GetHasBeenSet() { return RP_bHasBeenSet; }
+	
 	// whenever there's a change in location, velocity, or the physical constants:
 	UFUNCTION(BlueprintCallable)
 	void Update(FPhysics Physics, FPlayerUI PlayerUI);
 
 	UFUNCTION(BlueprintCallable)
+	void SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FPlayerUI PlayerUI);
+	
+	// user interface
+	
+	UFUNCTION(BlueprintCallable)
 	void UpdateSplineMeshScale(float InScaleFactor);
 
-	// whenever a splinemesh merely changes visibility:
-	UFUNCTION(BlueprintCallable)
-	void UpdateVisibility(FPlayerUI PlayerUI);
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsSelected = false;
 
-	UFUNCTION(BlueprintCallable)
-	void AddVelocity(FVector VecDeltaV, FPhysics Physics, FPlayerUI PlayerUI);
-	
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsVisibleAccelerating = false;
+
+	// this is true, when
+	//   * an actor receives the mouse over event
+	//   * the pawn of the player does ShowMyTrajectory
+	//   * the visibility is changed in the editor
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsVisibleVarious = false;
+
 	UFUNCTION(BlueprintCallable)
 	FString GetParamsString();
 
@@ -107,34 +161,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FVector GetVecR() { return VecR; }
 
+	// whenever a splinemesh merely changes visibility:
 	UFUNCTION(BlueprintCallable)
-	void SetCircleOrbit(FVector NewVecR, FPhysics Physics, FPlayerUI PlayerUI);
+	void UpdateVisibility(FPlayerUI PlayerUI);
 
-	UFUNCTION(BlueprintCallable)
-	void SetOrbitByParams(FVector NewVecR, FVector NewVecVelocity, FPhysics Physics, FPlayerUI PlayerUI);
-
-	UFUNCTION(BlueprintCallable)
-	void SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FPlayerUI PlayerUI);
+	// object interaction
 	
-	UPROPERTY(BlueprintReadWrite)
-	bool bIsSelected = false;
+	UFUNCTION(BlueprintCallable)
+	void AddVelocity(FVector VecDeltaV, FPhysics Physics, FPlayerUI PlayerUI);
 
-	UPROPERTY(BlueprintReadWrite)
-	bool bIsVisibleAccelerating = false;
-
-	// this is true, when
-	//   * an actor receives the mouse over event
-	//   * the pawn of the player does ShowMyTrajectory
-	//   * the visibility is changed in the editor
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bIsVisibleVarious = false;
+	// replication
 
 	UFUNCTION(BlueprintCallable)
-	void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
-
-	UFUNCTION(BlueprintCallable)
-	bool GetHasBeenSet() { return bHasBeenSet; }
-	
+	void ApplyOrbitState(const FOrbitState& OS);
 protected:
 	
 	// event handlers
@@ -174,8 +213,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	TObjectPtr<UStaticMesh> SMSplineMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-	FOrbitParameters Params;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
+	FOrbitParameters RP_Params;
 
 	// for orbit == LINEBOUND, the spline distance is used because the spline key closest to location cannot be reliably
 	// determined, i.e. the object jumps between the two directions
@@ -187,8 +226,8 @@ protected:
 	float SplineKey;
 
 	// spline distance at last orbit update
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
-	float DistanceZero;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
+	float RP_DistanceZero;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
 	FVector VecR;
@@ -202,8 +241,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	float VelocityVCircle;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
-	bool bHasBeenSet = false;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
+	bool RP_bHasBeenSet = false;
 	
 	/**
 	 * @brief constant factor to construct tangents for spline points
@@ -228,11 +267,32 @@ protected:
 	float NextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign);
 
 	UFUNCTION(BlueprintCallable)
-	FOrbitParameters GetParams() const { return Params; };
+	FOrbitParameters GetParams() const { return RP_Params; };
 	
 	UFUNCTION(BlueprintCallable)
-	void MyAddPoints(TArray<FSplinePoint> InSplinePoints, bool bUpdateSpline);
+	void MyAddPoints();
 
 	UFUNCTION(BlueprintPure)
 	bool GetVisibility(FPlayerUI PlayerUI) const;
+
+	// replication
+
+	UPROPERTY(ReplicatedUsing=OnRep_SplinePoints)
+	TArray<FSplinePoint> RP_SplinePoints;
+
+	UFUNCTION()
+	void OnRep_SplinePoints()
+	{
+		MyAddPoints();
+		UpdateSpline();
+	}
+
+	UPROPERTY(ReplicatedUsing=OnRep_bClosedLoop)
+	bool RP_bClosedLoop;
+
+	UFUNCTION()
+	void OnRep_bClosedLoop()
+	{
+		SetClosedLoop(RP_bClosedLoop, true);
+	}
 };

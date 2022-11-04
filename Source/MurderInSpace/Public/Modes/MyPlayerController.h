@@ -30,6 +30,8 @@ protected:
 	// event handlers
 	
 	virtual void Tick(float DeltaSeconds) override;
+	// server-only 
+	virtual void OnPossess(APawn* InPawn) override;
 	
 	// OnPossess only runs on the server (in a listen-server setup)
 	//virtual void OnPossess(APawn* InPawn) override;

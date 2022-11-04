@@ -1,5 +1,6 @@
 #include "Actors/PawnInSpace.h"
 
+#include "Lib/FunctionLib.h"
 #include "Modes/MyGameState.h"
 #include "Net/UnrealNetwork.h"
 
@@ -34,6 +35,19 @@ APawnInSpace::APawnInSpace()
 void APawnInSpace::UpdateLookTarget(FVector Target)
 {
 	// TODO
+}
+
+void APawnInSpace::ClientRPC_UpdateOrbitStates_Implementation(const TArray<FOrbitState>& OrbitStates)
+{
+	TMap<FName, FOrbitState> MapOrbitStates;
+	for(auto OrbitState : OrbitStates)
+	{
+		MapOrbitStates.Add(OrbitState.OrbitFName, OrbitState);
+	}
+	for(MyObjectIterator<UOrbitComponent> IOrbit(GetWorld()); IOrbit; ++IOrbit)
+	{
+		(*IOrbit)->ApplyOrbitState(*MapOrbitStates.Find((*IOrbit)->GetFName()));
+	}
 }
 
 void APawnInSpace::Tick(float DeltaSeconds)
@@ -82,9 +96,8 @@ void APawnInSpace::BeginPlay()
 		);
 }
 
-
 void APawnInSpace::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(APawnInSpace, BodyRotation);
+	DOREPLIFETIME_CONDITION(APawnInSpace, RP_BodyRotation, COND_SkipOwner);
 }

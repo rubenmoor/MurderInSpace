@@ -47,11 +47,14 @@ void AActorInSpace::OnConstruction(const FTransform& Transform)
 void AActorInSpace::BeginPlay()
 {
 	Super::BeginPlay();
-	Orbit->SetCircleOrbit
-		( MovableRoot->GetComponentLocation()
-		, UStateLib::GetPhysicsUnsafe(this)
-		, UStateLib::GetPlayerUIEditorDefault()
-		);
+	if(GetLocalRole() == ROLE_Authority)
+	{
+		Orbit->SetCircleOrbit
+			( MovableRoot->GetComponentLocation()
+			, UStateLib::GetPhysicsUnsafe(this)
+			, UStateLib::GetPlayerUIEditorDefault()
+			);
+	}
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

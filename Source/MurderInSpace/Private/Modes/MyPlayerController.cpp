@@ -141,8 +141,8 @@ void AMyPlayerController::ClientRPC_LeaveSession_Implementation()
 void AMyPlayerController::ServerRPC_LookAt_Implementation(FQuat Quat)
 {
 	ACharacterInSpace* MyCharacter = GetPawn<ACharacterInSpace>();
-	MyCharacter->BodyRotation = Quat;
-	MyCharacter->SetBodyRotation(); // replicatedUsing
+	MyCharacter->RP_BodyRotation = Quat;
+	MyCharacter->OnRep_BodyRotation(); // replicatedUsing
 }
 
 void AMyPlayerController::SetShowAllTrajectories(bool bInShow) const
@@ -172,14 +172,15 @@ void AMyPlayerController::HandleBeginAccelerate()
 	}
 }
 
-// reacting to mouse move
 void AMyPlayerController::Tick(float DeltaSeconds)
 {
+	// only ticking for player controller that controls local pawn
 	Super::Tick(DeltaSeconds);
 
 	UMyLocalPlayer* MyPlayer = Cast<UMyLocalPlayer>(Player);
 	if(!MyPlayer->GetIsInMainMenu())
 	{
+		// reacting to mouse move
 		ACharacterInSpace* MyCharacter = GetPawn<ACharacterInSpace>();
 		FVector Position, Direction;
 		DeprojectMousePositionToWorld(Position, Direction);
@@ -203,12 +204,40 @@ void AMyPlayerController::Tick(float DeltaSeconds)
 				);
 			if(abs(AngleDelta) > 15. / 180. * PI)
 			{
-				ServerRPC_LookAt(Quat);
+				if(GetLocalRole() == ROLE_AutonomousProxy)
+				{
+					// only if we are not on the server
+					ServerRPC_LookAt(Quat);
+				}
+				// "movement prediction"
+				MyCharacter->RP_BodyRotation = Quat;
+				MyCharacter->OnRep_BodyRotation();
 			}
 			// debugging direction
 			DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
 		}
 	}
+}
+
+void AMyPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	TArray<FOrbitState> OrbitStates;
+	for(MyObjectIterator<UOrbitComponent> IOrbit(GetWorld()); IOrbit; ++IOrbit)
+	{
+		UOrbitComponent* Orbit = *IOrbit;
+		OrbitStates.Emplace
+			( Orbit->GetFName()
+			, Orbit->VecR
+			, Orbit->VecVelocity
+			, Orbit->RP_Params
+			, Orbit->Velocity
+			, Orbit->SplineKey
+			, Orbit->SplineDistance
+			);
+	}
+	Cast<APawnInSpace>(InPawn)->ClientRPC_UpdateOrbitStates(OrbitStates);
 }
 
 void AMyPlayerController::AcknowledgePossession(APawn* P)
