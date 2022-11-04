@@ -1,6 +1,7 @@
 #include "Actors/PawnInSpace.h"
 
 #include "Modes/MyGameState.h"
+#include "Net/UnrealNetwork.h"
 
 APawnInSpace::APawnInSpace()
 {
@@ -35,27 +36,12 @@ void APawnInSpace::UpdateLookTarget(FVector Target)
 	// TODO
 }
 
-void APawnInSpace::LookAt(FVector VecP)
-{
-	const FVector VecMe = MovableRoot->GetComponentLocation();
-	const FVector VecDirection = VecP - VecMe;
-	const FQuat Quat = FQuat::FindBetween(FVector(1, 0, 0), VecDirection);
-	const float AngleDelta = Quat.GetTwistAngle
-		( FVector(0, 0, 1)) -
-			MovableRoot->GetComponentQuat().GetTwistAngle(FVector(0, 0, 1)
-		);
-	if(abs(AngleDelta) > 15. / 180. * PI)
-	{
-		MovableRoot->SetWorldRotation(Quat);
-	}
-	// debugging direction
-	DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
-}
-
 void APawnInSpace::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	MovableRoot->SetWorldRotation(BodyRotation);
+	
 	DrawDebugDirectionalArrow
 		( GetWorld()
 		, MovableRoot->GetComponentLocation()
@@ -63,6 +49,7 @@ void APawnInSpace::Tick(float DeltaSeconds)
 		, 20
 		, FColor::Yellow
 		);
+	
 	if(bIsAccelerating)
 	{
 		const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
@@ -95,4 +82,11 @@ void APawnInSpace::BeginPlay()
 		, UStateLib::GetPhysicsUnsafe(this)
 		, UStateLib::GetPlayerUIEditorDefault()
 		);
+}
+
+
+void APawnInSpace::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APawnInSpace, BodyRotation);
 }

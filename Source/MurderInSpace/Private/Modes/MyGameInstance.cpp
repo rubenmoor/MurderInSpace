@@ -101,6 +101,10 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 			{
 				HUDMenu->ServerListShow();
 			}
+			else
+			{
+				UE_LOG(LogActor, Warning, TEXT("%s: OnJoinSessionComplete/GotoServerList: Menu HUD invalid."))
+			}
 		};
 
 		UE_LOG(LogNet, Warning, TEXT("%s: trying to join session with name: %s"), *GetFullName(), *SessionName.ToString())

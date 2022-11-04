@@ -19,9 +19,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UpdateLookTarget(FVector Target);
 
-	UFUNCTION(BlueprintCallable)
-	virtual void LookAt(FVector VecP);
-
 	// Acceleration in m / s^2
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AccelerationSI = .1;
@@ -32,6 +29,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UOrbitComponent* GetOrbitComponent() { return Orbit; }
 
+	UFUNCTION(BlueprintCallable)
+	USceneComponent* GetBody() { return MovableRoot; }
+
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
+	FQuat BodyRotation;
+	
 protected:
 	
 	// event handlers

@@ -62,6 +62,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void HandleEscape();
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_LookAt(FQuat Quat);
 	
 private:
 	void SetShowAllTrajectories(bool bInShow) const;

@@ -138,6 +138,11 @@ void AMyPlayerController::ClientRPC_LeaveSession_Implementation()
 	GetGameInstance()->GetSubsystem<UMyGISubsystem>()->LeaveSession();
 }
 
+void AMyPlayerController::ServerRPC_LookAt_Implementation(FQuat Quat)
+{
+	GetPawn<ACharacterInSpace>()->BodyRotation = Quat;
+}
+
 void AMyPlayerController::SetShowAllTrajectories(bool bInShow) const
 {
 	UStateLib::WithPlayerUIUnsafe(this, FLocalPlayerContext(this), [this, bInShow] (FPlayerUI PlayerUI)
@@ -183,7 +188,23 @@ void AMyPlayerController::Tick(float DeltaSeconds)
 			const float Y = Position.Y - Direction.Y * Position.Z / Direction.Z;
 			const float Z = MyCharacter->GetActorLocation().Z;
 			// TODO: physical rotation/animation instead
-			MyCharacter->LookAt(FVector(X, Y, Z));
+
+			//MyCharacter->LookAt(FVector(X, Y, Z));
+			const FVector VecP(X, Y, Z);
+			
+			const FVector VecMe = MyCharacter->GetBody()->GetComponentLocation();
+			const FVector VecDirection = VecP - VecMe;
+			const FQuat Quat = FQuat::FindBetween(FVector(1, 0, 0), VecDirection);
+			const float AngleDelta = Quat.GetTwistAngle
+				( FVector(0, 0, 1)) -
+					MyCharacter->GetBody()->GetComponentQuat().GetTwistAngle(FVector(0, 0, 1)
+				);
+			if(abs(AngleDelta) > 15. / 180. * PI)
+			{
+				ServerRPC_LookAt(Quat);
+			}
+			// debugging direction
+			DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
 		}
 	}
 }
