@@ -38,8 +38,8 @@ public:
 	UFUNCTION()
 	void OnRep_BodyRotation() { MovableRoot->SetWorldRotation(RP_BodyRotation); }
 
-	UFUNCTION(Client, Reliable)
-	void ClientRPC_UpdateOrbitStates(const TArray<FOrbitState>& OrbitStates);
+	// UFUNCTION(Client, Reliable)
+	// void ClientRPC_UpdateOrbitStates(const TArray<FOrbitState>& OrbitStates);
 protected:
 	
 	// event handlers
@@ -55,8 +55,6 @@ protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	#endif
 	
-	virtual void BeginPlay() override;
-
 	// components
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)

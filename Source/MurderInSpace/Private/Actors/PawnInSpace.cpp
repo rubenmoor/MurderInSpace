@@ -1,6 +1,5 @@
 #include "Actors/PawnInSpace.h"
 
-#include "Lib/FunctionLib.h"
 #include "Modes/MyGameState.h"
 #include "Net/UnrealNetwork.h"
 
@@ -29,6 +28,7 @@ APawnInSpace::APawnInSpace()
 	// for the editor
 	Orbit->UpdateVisibility(UStateLib::GetPlayerUIEditorDefault());
 	
+	bNetLoadOnClient = false;
 	AActor::SetReplicateMovement(false);
 }
 
@@ -37,18 +37,31 @@ void APawnInSpace::UpdateLookTarget(FVector Target)
 	// TODO
 }
 
-void APawnInSpace::ClientRPC_UpdateOrbitStates_Implementation(const TArray<FOrbitState>& OrbitStates)
-{
-	TMap<FName, FOrbitState> MapOrbitStates;
-	for(auto OrbitState : OrbitStates)
-	{
-		MapOrbitStates.Add(OrbitState.OrbitFName, OrbitState);
-	}
-	for(MyObjectIterator<UOrbitComponent> IOrbit(GetWorld()); IOrbit; ++IOrbit)
-	{
-		(*IOrbit)->ApplyOrbitState(*MapOrbitStates.Find((*IOrbit)->GetFName()));
-	}
-}
+// void APawnInSpace::ClientRPC_UpdateOrbitStates_Implementation(const TArray<FOrbitState>& OrbitStates)
+// {
+// 	for(auto OrbitState : OrbitStates)
+// 	{
+// 		UOrbitComponent* SomeOrbit = Cast<UOrbitComponent>(StaticFindObjectFastSafe
+// 			(UOrbitComponent::StaticClass()
+// 			, GetWorld()
+// 			, OrbitState.OrbitFName
+// 			));
+// 		if(!SomeOrbit)
+// 		{
+// 			UE_LOG
+// 				(LogActor
+// 				, Error
+// 				, TEXT("%s: Could not find UOrbitComponent with FName %s.")
+// 				, *GetFullName()
+// 				, *OrbitState.OrbitFName.ToString()
+// 				)
+// 		}
+// 		else
+// 		{
+// 			SomeOrbit->ApplyOrbitState(OrbitState);
+// 		}
+// 	}
+// }
 
 void APawnInSpace::Tick(float DeltaSeconds)
 {
@@ -79,22 +92,11 @@ void APawnInSpace::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 	Orbit->SetCircleOrbit
-		( MovableRoot->GetComponentLocation()
-		, UStateLib::GetPhysicsEditorDefault()
+		( UStateLib::GetPhysicsEditorDefault()
 		, UStateLib::GetPlayerUIEditorDefault()
 		);
 }
 #endif 
-
-void APawnInSpace::BeginPlay()
-{
-	Super::BeginPlay();
-	Orbit->SetCircleOrbit
-		( MovableRoot->GetComponentLocation()
-		, UStateLib::GetPhysicsUnsafe(this)
-		, UStateLib::GetPlayerUIEditorDefault()
-		);
-}
 
 void APawnInSpace::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

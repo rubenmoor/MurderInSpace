@@ -60,6 +60,8 @@ void AMyPlayerController::HandleEndAccelerate()
 
 		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
 		const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
+		
+		Orbit->SetIsChanging(false);
 		Orbit->bIsVisibleAccelerating = false;
 		Orbit->UpdateVisibility(PlayerUI);
 		MyCharacter->DestroyTempSplineMesh();
@@ -166,6 +168,8 @@ void AMyPlayerController::HandleBeginAccelerate()
 		
 		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
 		const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
+
+		Orbit->SetIsChanging(true);
 		Orbit->SpawnSplineMesh(MyCharacter->GetTempSplineMeshColor(), MyCharacter->GetTempSplineMeshParent(), PlayerUI);
 		Orbit->bIsVisibleAccelerating = true;
 		Orbit->UpdateVisibility(PlayerUI);
@@ -219,25 +223,24 @@ void AMyPlayerController::Tick(float DeltaSeconds)
 	}
 }
 
+// server-only
 void AMyPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
 	TArray<FOrbitState> OrbitStates;
-	for(MyObjectIterator<UOrbitComponent> IOrbit(GetWorld()); IOrbit; ++IOrbit)
+	auto Filter = [this, InPawn] (const UOrbitComponent* Orbit) -> bool
 	{
-		UOrbitComponent* Orbit = *IOrbit;
-		OrbitStates.Emplace
-			( Orbit->GetFName()
-			, Orbit->VecR
-			, Orbit->VecVelocity
-			, Orbit->RP_Params
-			, Orbit->Velocity
-			, Orbit->SplineKey
-			, Orbit->SplineDistance
-			);
+		const APawnInSpace* Owner = Orbit->GetOwner<APawnInSpace>();
+		return GetWorld() == Orbit->GetWorld()
+		    // exclude the orbit of `InPawn`
+			&& (Owner != InPawn);
+	};
+	for(MyObjectIterator<UOrbitComponent> IOrbit(Filter); IOrbit; ++IOrbit)
+	{
+		(*IOrbit)->FreezeOrbitState();
 	}
-	Cast<APawnInSpace>(InPawn)->ClientRPC_UpdateOrbitStates(OrbitStates);
+	//Cast<APawnInSpace>(InPawn)->ClientRPC_UpdateOrbitStates(OrbitStates);
 }
 
 void AMyPlayerController::AcknowledgePossession(APawn* P)
@@ -245,7 +248,12 @@ void AMyPlayerController::AcknowledgePossession(APawn* P)
 	Super::AcknowledgePossession(P);
 	
 	SetActorTickEnabled(true);
-	Cast<ACharacterInSpace>(P)->UpdateSpringArm(CameraPosition);
+	ACharacterInSpace* MyCharacter = Cast<ACharacterInSpace>(P);
+	MyCharacter->UpdateSpringArm(CameraPosition);
+	MyCharacter->GetOrbitComponent()->SetCircleOrbit
+		( UStateLib::GetPhysicsUnsafe(this)
+		, UStateLib::GetPlayerUIEditorDefault()
+		);
 	
 	const FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
 	ECurrentLevel CurrentLevel;

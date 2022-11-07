@@ -54,26 +54,20 @@ struct FOrbitState
 {
 	GENERATED_BODY()
 
-	FOrbitState(): Params(), Velocity(0), SplineKey(0), SplineDistance(0)
+	FOrbitState(): Velocity(0), SplineKey(0), SplineDistance(0)
 	{
 	}
 
-	FOrbitState(FName InOrbitName, FVector InVecR, FVector InVecVelocity, FOrbitParameters InParams, float InVelocity, float InSplineKey, float InSplineDistance)
-		: OrbitFName(InOrbitName), VecR(InVecR), VecVelocity(InVecVelocity), Params(InParams), Velocity(InVelocity), SplineKey(InSplineKey), SplineDistance(InSplineDistance)
+	FOrbitState(FVector InVecR, FVector InVecVelocity, float InVelocity, float InSplineKey, float InSplineDistance)
+		: VecR(InVecR), VecVelocity(InVecVelocity), Velocity(InVelocity), SplineKey(InSplineKey), SplineDistance(InSplineDistance)
 	{
 	}
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FName OrbitFName;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector VecR;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector VecVelocity;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FOrbitParameters Params;
 
 	// this data can be computed, too, to save network bandwidth, but it's just three floats
 	// float Velocity = VecVelocity.Length()
@@ -110,7 +104,7 @@ public:
 	void SetSplineMeshParent(USceneComponent* InSplineMeshParent) { SplineMeshParent = InSplineMeshParent; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetCircleOrbit(FVector NewVecR, FPhysics Physics, FPlayerUI PlayerUI);
+	void SetCircleOrbit(FPhysics Physics, FPlayerUI PlayerUI);
 
 	UFUNCTION(BlueprintCallable)
 	void SetOrbitByParams(FVector NewVecR, FVector NewVecVelocity, FPhysics Physics, FPlayerUI PlayerUI);
@@ -173,7 +167,10 @@ public:
 	// replication
 
 	UFUNCTION(BlueprintCallable)
-	void ApplyOrbitState(const FOrbitState& OS);
+	void FreezeOrbitState() { RP_OrbitState = { VecR, VecVelocity, Velocity, SplineKey, SplineDistance}; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetIsChanging(bool InIsChanging) { bIsChanging = InIsChanging; }
 protected:
 	
 	// event handlers
@@ -182,9 +179,12 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	#if WITH_EDITOR
+#if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-	#endif
+
+	virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
+
+#endif
 	
 	// members
 	
@@ -277,6 +277,12 @@ protected:
 
 	// replication
 
+	UPROPERTY(ReplicatedUsing=OnRep_OrbitState, VisibleAnywhere, BlueprintReadWrite)
+	FOrbitState RP_OrbitState;
+
+	UFUNCTION()
+	void OnRep_OrbitState();
+
 	UPROPERTY(ReplicatedUsing=OnRep_SplinePoints)
 	TArray<FSplinePoint> RP_SplinePoints;
 
@@ -295,4 +301,7 @@ protected:
 	{
 		SetClosedLoop(RP_bClosedLoop, true);
 	}
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bIsChanging = false;
 };

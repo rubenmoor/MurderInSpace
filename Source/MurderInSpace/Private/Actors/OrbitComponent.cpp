@@ -31,8 +31,6 @@ void UOrbitComponent::Update(FPhysics Physics, FPlayerUI PlayerUI)
 		return;
 	}
 	
-	ClearSplinePoints(false);
-
 	// transform location vector r to Kepler coordinates, where F1 is the origin
 	const FVector VecRKepler = VecR - Physics.VecF1;
 	const float RKepler = VecRKepler.Length();
@@ -171,7 +169,7 @@ void UOrbitComponent::Update(FPhysics Physics, FPlayerUI PlayerUI)
 		constexpr int MAX_POINTS = 20;
 		const float MAX_N = sqrt(2 * (Physics.WorldRadius + Physics.VecF1.Length()) / RP_Params.P);
 		const float Delta = 2 * MAX_N / MAX_POINTS;
-		
+
 		Points.emplace_front(VecENorm * RP_Params.P / (1. + RP_Params.Eccentricity) + Physics.VecF1);
 		for(int i = 1; i < MAX_POINTS / 2; i++)
 		{
@@ -180,11 +178,15 @@ void UOrbitComponent::Update(FPhysics Physics, FPlayerUI PlayerUI)
 			Points.emplace_back(VecY + VecX + Physics.VecF1);
 			Points.emplace_front(VecY - VecX + Physics.VecF1);
 		}
-		
-		for(const FVector Point : Points)
+
+		RP_SplinePoints.Empty();
+		RP_SplinePoints.Reserve(Points.size());
+		for(int i = 0; i < Points.size(); i++)
 		{
-			AddSplineWorldPoint(Point);
+			RP_SplinePoints.Emplace(i, Points.front());
+			Points.pop_front();
 		}
+		MyAddPoints();
     	SetClosedLoop(false, false);
 		RP_Params.OrbitType = EOrbitType::PARABOLA;
 		RP_Params.Period = 0;
@@ -214,11 +216,15 @@ void UOrbitComponent::Update(FPhysics Physics, FPlayerUI PlayerUI)
 			Points.emplace_back(VecX + VecY + Physics.VecF1);
 			Points.emplace_front(VecX - VecY + Physics.VecF1);
 		}
-			
-		for(const FVector Point : Points)
+
+		RP_SplinePoints.Empty();
+		RP_SplinePoints.Reserve(Points.size());
+		for(int i = 0; i < Points.size(); i++)
 		{
-			AddSplineWorldPoint(Point);
+			RP_SplinePoints.Emplace(i, Points.front());
+			Points.pop_front();
 		}
+		MyAddPoints();
     	SetClosedLoop(false, false);
 		RP_Params.OrbitType = EOrbitType::HYPERBOLA;
 		RP_Params.Period = 0;
@@ -308,6 +314,8 @@ float UOrbitComponent::NextVelocity(float R, float Alpha, float OldVelocity, flo
 // as long as we don't scale or rotate the spline, this is fine
 void UOrbitComponent::MyAddPoints()
 {
+	ClearSplinePoints();
+	
 	const FVector Loc = GetComponentLocation();
 	for(FSplinePoint& p : RP_SplinePoints)
 	{
@@ -366,17 +374,18 @@ void UOrbitComponent::AddVelocity(FVector VecDeltaV, FPhysics Physics, FPlayerUI
 	Update(Physics, PlayerUI);
 }
 
-void UOrbitComponent::ApplyOrbitState(const FOrbitState& OS)
+void UOrbitComponent::OnRep_OrbitState()
 {
-	VecR = OS.VecR;
-	VecVelocity = OS.VecVelocity;
-	RP_Params = OS.Params;
-	Velocity = OS.Velocity;
-	SplineKey = OS.SplineKey;
-	SplineDistance = OS.SplineDistance;
+	// TODO: only apply orbit state on the player that just joined
+	// e.g. override FOrbitState::operator== and only return "unequal" when comparing to some uninitialized orbit state
+	VecR           = RP_OrbitState.VecR;
+	VecVelocity    = RP_OrbitState.VecVelocity;
+	Velocity       = RP_OrbitState.Velocity;
+	SplineKey      = RP_OrbitState.SplineKey;
+	SplineDistance = RP_OrbitState.SplineDistance;
 }
 
-void UOrbitComponent::SetCircleOrbit(FVector NewVecR, FPhysics Physics, FPlayerUI PlayerUI)
+void UOrbitComponent::SetCircleOrbit(FPhysics Physics, FPlayerUI PlayerUI)
 {
 	if(RP_bHasBeenSet)
 	{
@@ -384,10 +393,11 @@ void UOrbitComponent::SetCircleOrbit(FVector NewVecR, FPhysics Physics, FPlayerU
 		// Setting twice isn't a big problem, but deserves a warning
 		UE_LOG(LogActor, Warning, TEXT("%s: SetCircleOrbit: Orbit has been initialized already."), *GetFullName())
 	}
+	VecR = MovableRoot->GetComponentLocation();
 	const FVector VecRKepler = VecR - Physics.VecF1;
 	const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
 	const FVector NewVecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
-	SetOrbitByParams(NewVecR, NewVecVelocity, Physics, PlayerUI);
+	SetOrbitByParams(VecR, NewVecVelocity, Physics, PlayerUI);
 }
 
 void UOrbitComponent::SetOrbitByParams(FVector NewVecR, FVector NewVecVelocity, FPhysics Physics, FPlayerUI PlayerUI)
@@ -573,21 +583,22 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 	const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
 	static const FName FNameBTrajectoryShowSpline = GET_MEMBER_NAME_CHECKED(UOrbitComponent, bTrajectoryShowSpline);
-	static const FName FNameBVisibleVarious = GET_MEMBER_NAME_CHECKED(UOrbitComponent, bIsVisibleVarious);
-	static const FName FNameSplineMeshLength = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SplineMeshLength);
-	static const FName FNameVelocity = GET_MEMBER_NAME_CHECKED(UOrbitComponent, Velocity);
-	static const FName FNameVelocityVCircle = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VelocityVCircle);
-	static const FName FNameVecVelocity = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VecVelocity);
-	static const FName FNameSMTrajectory = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SMSplineMesh);
-	static const FName FNameSplineMeshMaterial = GET_MEMBER_NAME_CHECKED(UOrbitComponent, MSplineMesh);
-	static const FName FNameSplineMeshColor = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SplineMeshColor);
+	static const FName FNameBVisibleVarious       = GET_MEMBER_NAME_CHECKED(UOrbitComponent, bIsVisibleVarious    );
+	static const FName FNameSplineMeshLength      = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SplineMeshLength     );
+	static const FName FNameVelocity              = GET_MEMBER_NAME_CHECKED(UOrbitComponent, Velocity             );
+	static const FName FNameVelocityVCircle       = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VelocityVCircle      );
+	static const FName FNameVecVelocity           = GET_MEMBER_NAME_CHECKED(UOrbitComponent, VecVelocity          );
+	static const FName FNameSMTrajectory          = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SMSplineMesh         );
+	static const FName FNameSplineMeshMaterial    = GET_MEMBER_NAME_CHECKED(UOrbitComponent, MSplineMesh          );
+	static const FName FNameSplineMeshColor       = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SplineMeshColor      );
 	static const FName FNameSplineMeshScaleFactor = GET_MEMBER_NAME_CHECKED(UOrbitComponent, SplineMeshScaleFactor);
 
 	if(Name == FNameBVisibleVarious)
 	{
 		UpdateVisibility(UStateLib::GetPlayerUIEditorDefault());
 	}
-	else if  (  Name == FNameSplineMeshLength
+	else if
+	    (  Name == FNameSplineMeshLength
 		|| Name == FNameBTrajectoryShowSpline
 		|| Name == FNameSMTrajectory
 		|| Name == FNameSplineMeshMaterial
@@ -630,8 +641,20 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 void UOrbitComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UOrbitComponent, RP_Params)
-	DOREPLIFETIME(UOrbitComponent, RP_bHasBeenSet)
+	
+	DOREPLIFETIME(UOrbitComponent, RP_bHasBeenSet )
+	DOREPLIFETIME(UOrbitComponent, RP_OrbitState  )
+
+	DOREPLIFETIME(UOrbitComponent, RP_Params      )
 	DOREPLIFETIME(UOrbitComponent, RP_DistanceZero)
 	DOREPLIFETIME(UOrbitComponent, RP_SplinePoints)
+}
+
+void UOrbitComponent::PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker)
+{
+	Super::PreReplication(ChangedPropertyTracker);
+
+	DOREPLIFETIME_ACTIVE_OVERRIDE(UOrbitComponent, RP_Params      , !bIsChanging)
+	DOREPLIFETIME_ACTIVE_OVERRIDE(UOrbitComponent, RP_DistanceZero, !bIsChanging)
+	DOREPLIFETIME_ACTIVE_OVERRIDE(UOrbitComponent, RP_SplinePoints, !bIsChanging)
 }

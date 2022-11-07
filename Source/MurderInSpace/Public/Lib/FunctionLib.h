@@ -31,6 +31,7 @@ struct MyObjectIterator : TObjectIterator<TUObject>
 			})
 	{
 	}
+	
 	MyObjectIterator(FFilterFunc InFilterFunc)
 		: FilterFunc(InFilterFunc)
 	{

@@ -27,6 +27,7 @@ AActorInSpace::AActorInSpace()
 	
 	Gyration = CreateDefaultSubobject<UGyrationComponent>(TEXT("Gyration"));
 
+	bNetLoadOnClient = false;
 	bReplicates = true;
 	AActor::SetReplicateMovement(false);
 }
@@ -38,8 +39,7 @@ void AActorInSpace::OnConstruction(const FTransform& Transform)
 	// a second time on game start, which is wrong
 	Super::OnConstruction(Transform);
 	Orbit->SetCircleOrbit
-		( MovableRoot->GetComponentLocation()
-		, UStateLib::GetPhysicsEditorDefault()
+		( UStateLib::GetPhysicsEditorDefault()
 		, UStateLib::GetPlayerUIEditorDefault()
 		);
 }
@@ -50,8 +50,7 @@ void AActorInSpace::BeginPlay()
 	if(GetLocalRole() == ROLE_Authority)
 	{
 		Orbit->SetCircleOrbit
-			( MovableRoot->GetComponentLocation()
-			, UStateLib::GetPhysicsUnsafe(this)
+			( UStateLib::GetPhysicsUnsafe(this)
 			, UStateLib::GetPlayerUIEditorDefault()
 			);
 	}
