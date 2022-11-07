@@ -21,7 +21,7 @@ protected:
 	// event handlers
 
 	virtual void OnConstruction(const FTransform& Transform) override;
-	virtual void BeginPlay() override;
+	//virtual void BeginPlay() override;
 
 	// components
 	

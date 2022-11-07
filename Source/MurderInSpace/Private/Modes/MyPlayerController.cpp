@@ -56,7 +56,7 @@ void AMyPlayerController::HandleEndAccelerate()
 	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
 	{
 		const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
-		MyCharacter->bIsAccelerating = false;
+		MyCharacter->RP_bIsAccelerating = false;
 
 		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
 		const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
@@ -164,7 +164,7 @@ void AMyPlayerController::HandleBeginAccelerate()
 	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
 	{
 		const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
-		MyCharacter->bIsAccelerating = true;
+		MyCharacter->RP_bIsAccelerating = true;
 		
 		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
 		const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
@@ -240,7 +240,6 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 	{
 		(*IOrbit)->FreezeOrbitState();
 	}
-	//Cast<APawnInSpace>(InPawn)->ClientRPC_UpdateOrbitStates(OrbitStates);
 }
 
 void AMyPlayerController::AcknowledgePossession(APawn* P)
@@ -248,12 +247,8 @@ void AMyPlayerController::AcknowledgePossession(APawn* P)
 	Super::AcknowledgePossession(P);
 	
 	SetActorTickEnabled(true);
-	ACharacterInSpace* MyCharacter = Cast<ACharacterInSpace>(P);
-	MyCharacter->UpdateSpringArm(CameraPosition);
-	MyCharacter->GetOrbitComponent()->SetCircleOrbit
-		( UStateLib::GetPhysicsUnsafe(this)
-		, UStateLib::GetPlayerUIEditorDefault()
-		);
+	
+	Cast<ACharacterInSpace>(P)->UpdateSpringArm(CameraPosition);
 	
 	const FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
 	ECurrentLevel CurrentLevel;

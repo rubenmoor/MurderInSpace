@@ -7,6 +7,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "NiagaraComponent.h"
 #include "Lib/FunctionLib.h"
+#include "Modes/MyPlayerController.h"
 
 ACharacterInSpace::ACharacterInSpace()
 {
@@ -29,6 +30,18 @@ ACharacterInSpace::ACharacterInSpace()
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
+
+	Visor = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Visor"));
+	Visor->SetupAttachment(Camera);
+	Visor->SetRelativeLocation(FVector(10, 0, 0));
+	Visor->SetRelativeScale3D(FVector(0.8, 1.3, 1.3));
+	Visor->SetGenerateOverlapEvents(false);
+
+	VisorFrame = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisorFrame"));
+	VisorFrame->SetupAttachment(Visor);
+	VisorFrame->SetRelativeLocation(FVector(25.0, 0, 0));
+	VisorFrame->SetRelativeRotation(FRotator(90, 0, 0));
+	VisorFrame->SetGenerateOverlapEvents(false);
 
 	StarAnchor = CreateDefaultSubobject<USceneComponent>(TEXT("StarAnchor"));
 	StarAnchor->SetupAttachment(SpringArm);
@@ -79,7 +92,13 @@ void ACharacterInSpace::DestroyTempSplineMesh()
 	}
 }
 
-void ACharacterInSpace::ClientRPC_UpdateActorsInSpace_Implementation(const TArray<FOrbitState>& States, FPhysics Physics,
-	FPlayerUI PlayerUI)
+void ACharacterInSpace::BeginPlay()
 {
+	Super::BeginPlay();
+
+	if(!Controller || !Controller->IsLocalController())
+	{
+		Visor->SetVisibility(false);
+		VisorFrame->SetVisibility(false);
+	}
 }

@@ -23,8 +23,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AccelerationSI = .1;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	float bIsAccelerating = false;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	float RP_bIsAccelerating = false;
 
 	UFUNCTION(BlueprintCallable)
 	UOrbitComponent* GetOrbitComponent() { return Orbit; }
@@ -38,8 +38,6 @@ public:
 	UFUNCTION()
 	void OnRep_BodyRotation() { MovableRoot->SetWorldRotation(RP_BodyRotation); }
 
-	// UFUNCTION(Client, Reliable)
-	// void ClientRPC_UpdateOrbitStates(const TArray<FOrbitState>& OrbitStates);
 protected:
 	
 	// event handlers

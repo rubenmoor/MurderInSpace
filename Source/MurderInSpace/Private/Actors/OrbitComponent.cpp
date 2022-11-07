@@ -570,6 +570,7 @@ void UOrbitComponent::BeginPlay()
 			UE_LOG(LogActorComponent, Warning, TEXT("%s: static mesh for trajectory not set"), *GetFullName())
 		}
 	}
+	Update(UStateLib::GetPhysicsUnsafe(this), UStateLib::GetPlayerUIEditorDefault());
 }
 
 #if WITH_EDITOR

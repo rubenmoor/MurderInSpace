@@ -37,32 +37,6 @@ void APawnInSpace::UpdateLookTarget(FVector Target)
 	// TODO
 }
 
-// void APawnInSpace::ClientRPC_UpdateOrbitStates_Implementation(const TArray<FOrbitState>& OrbitStates)
-// {
-// 	for(auto OrbitState : OrbitStates)
-// 	{
-// 		UOrbitComponent* SomeOrbit = Cast<UOrbitComponent>(StaticFindObjectFastSafe
-// 			(UOrbitComponent::StaticClass()
-// 			, GetWorld()
-// 			, OrbitState.OrbitFName
-// 			));
-// 		if(!SomeOrbit)
-// 		{
-// 			UE_LOG
-// 				(LogActor
-// 				, Error
-// 				, TEXT("%s: Could not find UOrbitComponent with FName %s.")
-// 				, *GetFullName()
-// 				, *OrbitState.OrbitFName.ToString()
-// 				)
-// 		}
-// 		else
-// 		{
-// 			SomeOrbit->ApplyOrbitState(OrbitState);
-// 		}
-// 	}
-// }
-
 void APawnInSpace::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -75,7 +49,7 @@ void APawnInSpace::Tick(float DeltaSeconds)
 		, FColor::Yellow
 		);
 	
-	if(bIsAccelerating)
+	if(RP_bIsAccelerating)
 	{
 		const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
 		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe
@@ -101,5 +75,6 @@ void APawnInSpace::OnConstruction(const FTransform& Transform)
 void APawnInSpace::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME_CONDITION(APawnInSpace, RP_BodyRotation, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(APawnInSpace, RP_BodyRotation   , COND_SkipOwner)
+	DOREPLIFETIME_CONDITION(APawnInSpace, RP_bIsAccelerating, COND_SkipOwner)
 }
