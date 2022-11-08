@@ -19,7 +19,7 @@ class MURDERINSPACE_API AMyPlayerState : public APlayerState
 	
 protected:
 	// event handlers
-	virtual void BeginPlay() override;
+	//virtual void BeginPlay() override;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FPlayerUI PlayerUI = UStateLib::DefaultPlayerUI;

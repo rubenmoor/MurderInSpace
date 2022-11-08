@@ -54,33 +54,20 @@ struct FOrbitState
 {
 	GENERATED_BODY()
 
-	FOrbitState(): Velocity(0), SplineKey(0), SplineDistance(0)
+	FOrbitState()
 	{
 	}
 
-	FOrbitState(FVector InVecR, FVector InVecVelocity, float InVelocity, float InSplineKey, float InSplineDistance)
-		: VecR(InVecR), VecVelocity(InVecVelocity), Velocity(InVelocity), SplineKey(InSplineKey), SplineDistance(InSplineDistance)
+	FOrbitState(FVector InVecR, FVector InVecVelocity)
+		: VecR(InVecR), VecVelocity(InVecVelocity)
 	{
 	}
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FVector VecR;
+	FVector VecR = FVector::Zero();
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FVector VecVelocity;
-
-	// this data can be computed, too, to save network bandwidth, but it's just three floats
-	// float Velocity = VecVelocity.Length()
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float Velocity;
-	
-	// SplineKey = FindInputKeyClosestToWorldLocation(VecR);
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float SplineKey;
-	
-	// SplineDistance = GetDistanceAlongSplineAtSplineInputKey(SplineKey);
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float SplineDistance;
+	FVector VecVelocity = FVector::Zero();
 };
 
 /**
@@ -167,7 +154,7 @@ public:
 	// replication
 
 	UFUNCTION(BlueprintCallable)
-	void FreezeOrbitState() { RP_OrbitState = { VecR, VecVelocity, Velocity, SplineKey, SplineDistance}; }
+	void FreezeOrbitState() { RP_OrbitState = { VecR, VecVelocity }; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetIsChanging(bool InIsChanging) { bIsChanging = InIsChanging; }
@@ -302,6 +289,7 @@ protected:
 		SetClosedLoop(RP_bClosedLoop, true);
 	}
 
+	// server only
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bIsChanging = false;
 };

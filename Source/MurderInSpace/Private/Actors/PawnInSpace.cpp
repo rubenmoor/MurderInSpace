@@ -75,6 +75,16 @@ void APawnInSpace::OnConstruction(const FTransform& Transform)
 void APawnInSpace::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME_CONDITION(APawnInSpace, RP_BodyRotation   , COND_SkipOwner)
-	DOREPLIFETIME_CONDITION(APawnInSpace, RP_bIsAccelerating, COND_SkipOwner)
+
+	// two different ways to go about network lag and potential packet loss
+	//
+	// in case of rotation: "movement prediction": leaving the implementation to the client, allowing for quick movement;
+	// in case this goes out of syn (COND_SkipOwner prevents re-sync), the player looks into the wrong direction for a while;
+	//DOREPLIFETIME_CONDITION(APawnInSpace, RP_BodyRotation   , COND_SkipOwner)
+	// just removing the COND_SkipOwner makes sure that the client's authority doesn't last more than a couple of frames
+	DOREPLIFETIME(APawnInSpace, RP_BodyRotation)
+
+	// in case of acceleration: full server-control: the client won't react to the key press until the action has
+	// round-tripped, i.e. there is no movement prediction
+	DOREPLIFETIME(APawnInSpace, RP_bIsAccelerating)
 }

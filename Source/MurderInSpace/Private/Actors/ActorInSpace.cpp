@@ -44,18 +44,6 @@ void AActorInSpace::OnConstruction(const FTransform& Transform)
 		);
 }
 
-// void AActorInSpace::BeginPlay()
-// {
-// 	Super::BeginPlay();
-// 	if(GetLocalRole() == ROLE_Authority)
-// 	{
-// 		Orbit->SetCircleOrbit
-// 			( UStateLib::GetPhysicsUnsafe(this)
-// 			, UStateLib::GetPlayerUIEditorDefault()
-// 			);
-// 	}
-// }
-
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AActorInSpace::HandleBeginMouseOver(UPrimitiveComponent*)
 {

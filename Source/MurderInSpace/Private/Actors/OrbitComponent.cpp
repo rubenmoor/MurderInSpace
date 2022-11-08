@@ -376,13 +376,13 @@ void UOrbitComponent::AddVelocity(FVector VecDeltaV, FPhysics Physics, FPlayerUI
 
 void UOrbitComponent::OnRep_OrbitState()
 {
-	// TODO: only apply orbit state on the player that just joined
-	// e.g. override FOrbitState::operator== and only return "unequal" when comparing to some uninitialized orbit state
+	// OrbitState is replicated with condition "initial only", implying that replication (including the call
+	// to this method) happens only once
 	VecR           = RP_OrbitState.VecR;
 	VecVelocity    = RP_OrbitState.VecVelocity;
-	Velocity       = RP_OrbitState.Velocity;
-	SplineKey      = RP_OrbitState.SplineKey;
-	SplineDistance = RP_OrbitState.SplineDistance;
+	Velocity       = VecVelocity.Length();
+	SplineKey      = FindInputKeyClosestToWorldLocation(VecR);
+	SplineDistance = GetDistanceAlongSplineAtSplineInputKey(SplineKey);
 }
 
 void UOrbitComponent::SetCircleOrbit(FPhysics Physics, FPlayerUI PlayerUI)
@@ -570,6 +570,7 @@ void UOrbitComponent::BeginPlay()
 			UE_LOG(LogActorComponent, Warning, TEXT("%s: static mesh for trajectory not set"), *GetFullName())
 		}
 	}
+	// at this point, the orbit is set by the `OnConstruction` method of `ActorInSpace` or `PawnInSpace`
 	Update(UStateLib::GetPhysicsUnsafe(this), UStateLib::GetPlayerUIEditorDefault());
 }
 
@@ -644,11 +645,13 @@ void UOrbitComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(UOrbitComponent, RP_bHasBeenSet )
-	DOREPLIFETIME(UOrbitComponent, RP_OrbitState  )
+	DOREPLIFETIME(UOrbitComponent, RP_bClosedLoop )
 
 	DOREPLIFETIME(UOrbitComponent, RP_Params      )
 	DOREPLIFETIME(UOrbitComponent, RP_DistanceZero)
 	DOREPLIFETIME(UOrbitComponent, RP_SplinePoints)
+	
+	DOREPLIFETIME_CONDITION(UOrbitComponent, RP_OrbitState, COND_InitialOnly )
 }
 
 void UOrbitComponent::PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker)

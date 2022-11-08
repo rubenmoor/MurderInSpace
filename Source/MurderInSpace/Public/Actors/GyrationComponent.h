@@ -7,7 +7,24 @@
 #include "GyrationComponent.generated.h"
 
 /*
+ * rotational state of an object for network replication
+ */
+USTRUCT(BlueprintType)
+struct FGyrationState
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FRotator Rot = FRotator::ZeroRotator;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector VecL = FVector::ZeroVector;
+};
+
+/*
+ *
  * physical rotation of objects in space
+ * 
  */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MURDERINSPACE_API UGyrationComponent : public UActorComponent
@@ -20,6 +37,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetBody(UPrimitiveComponent* InBody);
+
+	UFUNCTION(BlueprintCallable)
+	void FreezeState();
 
 protected:
 	
@@ -50,6 +70,13 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	FVector VecOmega = FVector::Zero();
+
+	// replication
+	UPROPERTY(ReplicatedUsing=OnRep_GyrationState, VisibleAnywhere, BlueprintReadOnly)
+	FGyrationState RP_GyrationState;
+
+	UFUNCTION()
+	void OnRep_GyrationState();
 	
 	// private methods
 	

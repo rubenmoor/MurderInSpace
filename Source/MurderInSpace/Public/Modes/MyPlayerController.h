@@ -6,6 +6,14 @@
 #include "GameFramework/PlayerController.h"
 #include "MyPlayerController.generated.h"
 
+UENUM()
+enum class EAction : uint8
+{
+	// given your current orientation, use the main rocket engine to accelerate
+	ACCELERATE_BEGIN UMETA(DisplayName = "begin accelerate"),
+	ACCELERATE_END   UMETA(DisplayName = "end accelerate")
+};
+
 /**
  * 
  */
@@ -43,14 +51,7 @@ protected:
 	
 	// change the zoom level continuously
 	void Zoom(float Delta);
-
-	// given your current orientation, use the main rocket engine to accelerate
-	UFUNCTION()
-	void HandleBeginAccelerate();
 	
-	UFUNCTION()
-	void HandleEndAccelerate();
-
 	UFUNCTION()
 	void HandleBeginShowMyTrajectory();
 
@@ -71,4 +72,16 @@ protected:
 	
 private:
 	void SetShowAllTrajectories(bool bInShow) const;
+
+	// custom way to bind actions using the enum `EAction` and only one generic Server RPC
+	void MyBindAction(const FName ActionName, EInputEvent KeyEvent, EAction Action);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_HandleAction(EAction Action);
+
+	// handle the action: only the stuff that is relevant for replication 
+	void HandleAction(EAction Action);
+
+	// handle the action: only the stuff that is *NOT* relevant for replication, i.e. UI-related stuff
+	void HandleActionUI(EAction Action);
 };

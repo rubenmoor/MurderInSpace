@@ -7,20 +7,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Modes/MyPlayerController.h"
 
-void AMyGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId,
-                           FString& ErrorMessage)
-{
-	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
-
-	UE_LOG
-		( LogNet
-		, Warning
-		, TEXT("%s: PreLogin\n unique net id: %s")
-		, *GetFullName()
-		, *UniqueId.ToString()
-		)
-}
-
 AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
 	TArray<AActor*> Starts;

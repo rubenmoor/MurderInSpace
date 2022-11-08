@@ -107,8 +107,6 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 			}
 		};
 
-		UE_LOG(LogNet, Warning, TEXT("%s: trying to join session with name: %s"), *GetFullName(), *SessionName.ToString())
-		
 		switch(Result)
 		{
 		using namespace EOnJoinSessionCompleteResult;

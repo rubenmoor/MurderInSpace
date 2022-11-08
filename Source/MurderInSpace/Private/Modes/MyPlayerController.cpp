@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include "Actors/CharacterInSpace.h"
+#include "Actors/GyrationComponent.h"
 #include "HUD/MyHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
@@ -24,7 +25,6 @@ void AMyPlayerController::SetupInputComponent()
 
 	// interface actions
 	InputComponent->BindAxis("MouseWheel", this, &AMyPlayerController::Zoom);
-	
 	InputComponent->BindAction("Escape", IE_Pressed, this, &AMyPlayerController::HandleEscape);
 	InputComponent->BindAction("ShowMyTrajectory", IE_Pressed, this, &AMyPlayerController::HandleBeginShowMyTrajectory);
 	InputComponent->BindAction("ShowMyTrajectory", IE_Released, this, &AMyPlayerController::HandleEndShowMyTrajectory);
@@ -32,8 +32,8 @@ void AMyPlayerController::SetupInputComponent()
 	InputComponent->BindAction("ShowAllTrajectories", IE_Released, this, &AMyPlayerController::HandleEndShowAllTrajectories);
 	
 	// gameplay actions
-	InputComponent->BindAction("Accelerate", IE_Pressed, this, &AMyPlayerController::HandleBeginAccelerate);
-	InputComponent->BindAction("Accelerate", IE_Released, this, &AMyPlayerController::HandleEndAccelerate);
+	MyBindAction("Accelerate", IE_Pressed , EAction::ACCELERATE_BEGIN);
+	MyBindAction("Accelerate", IE_Released, EAction::ACCELERATE_END  );
 }
 
 void AMyPlayerController::Zoom(float Delta)
@@ -48,23 +48,6 @@ void AMyPlayerController::Zoom(float Delta)
 
 			// TODO: at `CameraPosition = 0` lookAt mouse doesn't work anymore
 		}		
-	}
-}
-
-void AMyPlayerController::HandleEndAccelerate()
-{
-	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
-	{
-		const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
-		MyCharacter->RP_bIsAccelerating = false;
-
-		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
-		const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
-		
-		Orbit->SetIsChanging(false);
-		Orbit->bIsVisibleAccelerating = false;
-		Orbit->UpdateVisibility(PlayerUI);
-		MyCharacter->DestroyTempSplineMesh();
 	}
 }
 
@@ -159,20 +142,62 @@ void AMyPlayerController::SetShowAllTrajectories(bool bInShow) const
 	});
 }
 
-void AMyPlayerController::HandleBeginAccelerate()
+void AMyPlayerController::MyBindAction(const FName ActionName, EInputEvent KeyEvent, EAction Action)
 {
-	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
+	FInputActionBinding Binding(ActionName, KeyEvent);
+	Binding.ActionDelegate.GetDelegateForManualSet().BindLambda([this, Action] ()
 	{
-		const TObjectPtr<ACharacterInSpace> MyCharacter = GetPawn<ACharacterInSpace>();
-		MyCharacter->RP_bIsAccelerating = true;
-		
-		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
-		const TObjectPtr<UOrbitComponent> Orbit = MyCharacter->GetOrbitComponent();
+		if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
+		{
+			// make sure that replication-relevant stuff is always executed on the server (regardless where we are)
+			ServerRPC_HandleAction(Action);
+			// ... whereas replication-irrelevant stuff is executed locally
+			HandleActionUI(Action);
+		}
+	});
+	InputComponent->AddActionBinding(Binding);
+}
 
+void AMyPlayerController::ServerRPC_HandleAction_Implementation(EAction Action)
+{
+	HandleAction(Action);
+}
+
+void AMyPlayerController::HandleAction(EAction Action)
+{
+	ACharacterInSpace* MyCharacter = GetPawn<ACharacterInSpace>();
+	UOrbitComponent* Orbit = MyCharacter->GetOrbitComponent();
+	switch (Action)
+	{
+	case EAction::ACCELERATE_BEGIN:
 		Orbit->SetIsChanging(true);
+		MyCharacter->RP_bIsAccelerating = true;
+		break;
+	case EAction::ACCELERATE_END:
+		MyCharacter->RP_bIsAccelerating = false;
+		Orbit->SetIsChanging(false);
+		break;
+	}
+}
+
+void AMyPlayerController::HandleActionUI(EAction Action)
+{
+	ACharacterInSpace* MyCharacter = GetPawn<ACharacterInSpace>();
+	UOrbitComponent* Orbit = MyCharacter->GetOrbitComponent();
+	const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
+	
+	switch (Action)
+	{
+	case EAction::ACCELERATE_BEGIN:
 		Orbit->SpawnSplineMesh(MyCharacter->GetTempSplineMeshColor(), MyCharacter->GetTempSplineMeshParent(), PlayerUI);
 		Orbit->bIsVisibleAccelerating = true;
 		Orbit->UpdateVisibility(PlayerUI);
+		break;
+	case EAction::ACCELERATE_END:
+		MyCharacter->DestroyTempSplineMesh();
+		Orbit->bIsVisibleAccelerating = false;
+		Orbit->UpdateVisibility(PlayerUI);
+		break;
 	}
 }
 
@@ -208,14 +233,15 @@ void AMyPlayerController::Tick(float DeltaSeconds)
 				);
 			if(abs(AngleDelta) > 15. / 180. * PI)
 			{
+				// server-only
+				ServerRPC_LookAt(Quat);
+				
 				if(GetLocalRole() == ROLE_AutonomousProxy)
 				{
-					// only if we are not on the server
-					ServerRPC_LookAt(Quat);
+					// "movement prediction"
+					MyCharacter->RP_BodyRotation = Quat;
+					MyCharacter->OnRep_BodyRotation();
 				}
-				// "movement prediction"
-				MyCharacter->RP_BodyRotation = Quat;
-				MyCharacter->OnRep_BodyRotation();
 			}
 			// debugging direction
 			DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
@@ -228,17 +254,32 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
+	// freeze orbit state for all existing orbit components for replication (condition: initial only)
 	TArray<FOrbitState> OrbitStates;
-	auto Filter = [this, InPawn] (const UOrbitComponent* Orbit) -> bool
+	auto FilterOrbits = [this, InPawn] (const UOrbitComponent* Orbit) -> bool
 	{
 		const APawnInSpace* Owner = Orbit->GetOwner<APawnInSpace>();
 		return GetWorld() == Orbit->GetWorld()
 		    // exclude the orbit of `InPawn`
 			&& (Owner != InPawn);
 	};
-	for(MyObjectIterator<UOrbitComponent> IOrbit(Filter); IOrbit; ++IOrbit)
+	for(MyObjectIterator<UOrbitComponent> IOrbit(FilterOrbits); IOrbit; ++IOrbit)
 	{
 		(*IOrbit)->FreezeOrbitState();
+	}
+	
+	// freeze gyration state for all existing gyration components for replication (condition: initial only)
+	TArray<FGyrationState> GyrationStates;
+	auto FilterGyrations = [this, InPawn] (const UGyrationComponent* Gyration) -> bool
+	{
+		const APawnInSpace* Owner = Gyration->GetOwner<APawnInSpace>();
+		return GetWorld() == Gyration->GetWorld()
+		    // exclude the gyration of `InPawn`
+			&& (Owner != InPawn);
+	};
+	for(MyObjectIterator<UGyrationComponent> IGyration(FilterGyrations); IGyration; ++IGyration)
+	{
+		(*IGyration)->FreezeState();
 	}
 }
 
