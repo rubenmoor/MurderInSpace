@@ -105,7 +105,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 			);
 	WidgetHUD->TextVelocityDirection->SetRenderTransformAngle(Angle * 180. / PI);
 
-	const auto Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
+	const FVector2D Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
 	FVector2D ScreenLocation;
 	
 	// try to project to screen coordinates, ...

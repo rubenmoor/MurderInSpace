@@ -27,8 +27,6 @@ void UGyrationComponent::FreezeState()
 	}
 }
 
-
-// Called when the game starts
 void UGyrationComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -41,12 +39,37 @@ void UGyrationComponent::BeginPlay()
 
 	// TODO: meshes connected with sockets
 	VecInertia = Body->GetInertiaTensor();
-	
-	if(VecL.IsZero())
+
+	if(GetOwnerRole() == ROLE_Authority)
 	{
-		const FRnd Rnd = UStateLib::GetRndUnsafe(this);
-		const float LRandom = UStateLib::GetInitialAngularVelocity(Rnd);
-		VecL = Rnd.Stream.VRand() * LRandom * VecInertia.Length();
+		if(VecL.IsZero())
+		{
+			const FRnd Rnd = UStateLib::GetRndUnsafe(this);
+			const float LRandom = UStateLib::GetInitialAngularVelocity(Rnd);
+			VecL = Rnd.Stream.VRand() * LRandom * VecInertia.Length();
+			UE_LOG
+				( LogActor
+				, Display
+				, TEXT("%s: Initializing angular momentum: (%.0f, %.0f, %.0f)")
+				, *GetFullName()
+				, VecL.X
+				, VecL.Y
+				, VecL.Z
+				)
+		}
+		else
+		{
+			UE_LOG
+				( LogActorComponent
+				, Error
+				, TEXT("%s: Angular momentum set already: (%.0f, %.0f, %.0f), Owner role: %d")
+				, *GetFullName()
+				, VecL.X
+				, VecL.Y
+				, VecL.Z
+				, GetOwnerRole()
+				)
+		}
 	}
 }
 

@@ -91,10 +91,10 @@ public:
 	void SetSplineMeshParent(USceneComponent* InSplineMeshParent) { SplineMeshParent = InSplineMeshParent; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetCircleOrbit(FPhysics Physics, FPlayerUI PlayerUI);
+	void SetCircleOrbit(FPhysics Physics, FInstanceUI InstanceUI);
 
 	UFUNCTION(BlueprintCallable)
-	void SetOrbitByParams(FVector NewVecR, FVector NewVecVelocity, FPhysics Physics, FPlayerUI PlayerUI);
+	void SetOrbitByParams(FVector NewVecR, FVector NewVecVelocity, FPhysics Physics, FInstanceUI InstanceUI);
 
 	UFUNCTION(BlueprintCallable)
 	void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
@@ -104,10 +104,10 @@ public:
 	
 	// whenever there's a change in location, velocity, or the physical constants:
 	UFUNCTION(BlueprintCallable)
-	void Update(FPhysics Physics, FPlayerUI PlayerUI);
+	void Update(FPhysics Physics, FInstanceUI InstanceUI);
 
 	UFUNCTION(BlueprintCallable)
-	void SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FPlayerUI PlayerUI);
+	void SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FInstanceUI InstanceUI);
 	
 	// user interface
 	
@@ -142,14 +142,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FVector GetVecR() { return VecR; }
 
-	// whenever a splinemesh merely changes visibility:
+	// whenever a spline mesh merely changes visibility:
 	UFUNCTION(BlueprintCallable)
-	void UpdateVisibility(FPlayerUI PlayerUI);
+	void UpdateVisibility(FInstanceUI InstanceUI);
 
 	// object interaction
 	
 	UFUNCTION(BlueprintCallable)
-	void AddVelocity(FVector VecDeltaV, FPhysics Physics, FPlayerUI PlayerUI);
+	void AddVelocity(FVector VecDeltaV, FPhysics Physics, FInstanceUI InstanceUI);
 
 	// replication
 
@@ -242,7 +242,7 @@ protected:
 	// private methods
 	
 	UFUNCTION(BlueprintCallable)
-	void SetVelocity(FVector _VecVelocity, float Alpha, FVector VecF1);
+	void SetVelocity(FVector InVecVelocity, float Alpha, FVector VecF1);
 
 	UFUNCTION(BlueprintCallable)
 	float VelocityEllipse(float R, float Alpha);
@@ -260,7 +260,7 @@ protected:
 	void MyAddPoints();
 
 	UFUNCTION(BlueprintPure)
-	bool GetVisibility(FPlayerUI PlayerUI) const;
+	bool GetVisibility(FInstanceUI InstanceUI) const;
 
 	// replication
 

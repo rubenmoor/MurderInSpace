@@ -18,7 +18,7 @@ UOrbitComponent::UOrbitComponent()
 	SetIsReplicatedByDefault(true);
 }
 
-void UOrbitComponent::Update(FPhysics Physics, FPlayerUI PlayerUI)
+void UOrbitComponent::Update(FPhysics Physics, FInstanceUI InstanceUI)
 {
 	if(!MovableRoot)
 	{
@@ -250,7 +250,7 @@ void UOrbitComponent::Update(FPhysics Physics, FPlayerUI PlayerUI)
 
 	if(bTrajectoryShowSpline)
 	{
-		SpawnSplineMesh(SplineMeshColor, SplineMeshParent, PlayerUI);
+		SpawnSplineMesh(SplineMeshColor, SplineMeshParent, InstanceUI);
 	}
 }
 
@@ -324,9 +324,9 @@ void UOrbitComponent::MyAddPoints()
 	AddPoints(RP_SplinePoints, false);
 }
 
-bool UOrbitComponent::GetVisibility(FPlayerUI PlayerUI) const
+bool UOrbitComponent::GetVisibility(FInstanceUI InstanceUI) const
 {
-	return bIsSelected || bIsVisibleVarious || bIsVisibleAccelerating || PlayerUI.bShowAllTrajectories;
+	return bIsSelected || bIsVisibleVarious || bIsVisibleAccelerating || InstanceUI.bShowAllTrajectories;
 }
 
 FString UOrbitComponent::GetParamsString()
@@ -361,17 +361,17 @@ float UOrbitComponent::GetCircleVelocity(float Alpha, FVector VecF1) const
 	return sqrt(Alpha / (VecR - VecF1).Length());
 }
 
-void UOrbitComponent::SetVelocity(FVector _VecVelocity, float Alpha, FVector VecF1)
+void UOrbitComponent::SetVelocity(const FVector InVecVelocity, float Alpha, FVector VecF1)
 {
-	VecVelocity = _VecVelocity;
+	VecVelocity = InVecVelocity;
 	Velocity = VecVelocity.Length();
 	VelocityVCircle = Velocity / GetCircleVelocity(Alpha, VecF1);
 }
 
-void UOrbitComponent::AddVelocity(FVector VecDeltaV, FPhysics Physics, FPlayerUI PlayerUI)
+void UOrbitComponent::AddVelocity(FVector VecDeltaV, FPhysics Physics, FInstanceUI InstanceUI)
 {
 	SetVelocity(VecVelocity + VecDeltaV, Physics.Alpha, Physics.VecF1);
-	Update(Physics, PlayerUI);
+	Update(Physics, InstanceUI);
 }
 
 void UOrbitComponent::OnRep_OrbitState()
@@ -385,7 +385,7 @@ void UOrbitComponent::OnRep_OrbitState()
 	SplineDistance = GetDistanceAlongSplineAtSplineInputKey(SplineKey);
 }
 
-void UOrbitComponent::SetCircleOrbit(FPhysics Physics, FPlayerUI PlayerUI)
+void UOrbitComponent::SetCircleOrbit(FPhysics Physics, FInstanceUI InstanceUI)
 {
 	if(RP_bHasBeenSet)
 	{
@@ -397,23 +397,23 @@ void UOrbitComponent::SetCircleOrbit(FPhysics Physics, FPlayerUI PlayerUI)
 	const FVector VecRKepler = VecR - Physics.VecF1;
 	const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
 	const FVector NewVecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
-	SetOrbitByParams(VecR, NewVecVelocity, Physics, PlayerUI);
+	SetOrbitByParams(VecR, NewVecVelocity, Physics, InstanceUI);
 }
 
-void UOrbitComponent::SetOrbitByParams(FVector NewVecR, FVector NewVecVelocity, FPhysics Physics, FPlayerUI PlayerUI)
+void UOrbitComponent::SetOrbitByParams(FVector NewVecR, FVector NewVecVelocity, FPhysics Physics, FInstanceUI InstanceUI)
 {
 	VecR = NewVecR;
 	SetVelocity(NewVecVelocity, Physics.Alpha, Physics.VecF1);
 	RP_bHasBeenSet = true;
-	Update(Physics, PlayerUI);
+	Update(Physics, InstanceUI);
 }
 
-void UOrbitComponent::UpdateVisibility(FPlayerUI PlayerUI)
+void UOrbitComponent::UpdateVisibility(FInstanceUI InstanceUI)
 {
-	SetVisibility(GetVisibility(PlayerUI), true);
+	SetVisibility(GetVisibility(InstanceUI), true);
 }
 
-void UOrbitComponent::SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FPlayerUI PlayerUI)
+void UOrbitComponent::SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FInstanceUI InstanceUI)
 {
 	const int nIndices = static_cast<int>(round(GetSplineLength() / SplineMeshLength));
 
@@ -458,7 +458,7 @@ void UOrbitComponent::SpawnSplineMesh(FLinearColor Color, USceneComponent* InPar
 			USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(InParent);
 			
 			SplineMesh->SetMobility(EComponentMobility::Stationary);
-			SplineMesh->SetVisibility(GetVisibility(PlayerUI));
+			SplineMesh->SetVisibility(GetVisibility(InstanceUI));
 			
 			// if I dont register here, the spline mesh doesn't render
 			SplineMesh->RegisterComponent();
@@ -556,7 +556,8 @@ void UOrbitComponent::BeginPlay()
 
 	// ignore the visibility set in the editor
 	bIsVisibleVarious = false;
-	UpdateVisibility(UStateLib::GetPlayerUIEditorDefault());
+	const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
+	UpdateVisibility(InstanceUI);
 
 	// Only care for and spline static mesh and material if this orbit is meant to be visible
 	if(bTrajectoryShowSpline)
@@ -570,8 +571,7 @@ void UOrbitComponent::BeginPlay()
 			UE_LOG(LogActorComponent, Warning, TEXT("%s: static mesh for trajectory not set"), *GetFullName())
 		}
 	}
-	// at this point, the orbit is set by the `OnConstruction` method of `ActorInSpace` or `PawnInSpace`
-	Update(UStateLib::GetPhysicsUnsafe(this), UStateLib::GetPlayerUIEditorDefault());
+	Update(UStateLib::GetPhysicsUnsafe(this), InstanceUI);
 }
 
 #if WITH_EDITOR
@@ -580,7 +580,7 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
 
 	const FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
-	const FPlayerUI PlayerUI = UStateLib::GetPlayerUIEditorDefault();
+	const FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
 	
 	const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
@@ -597,7 +597,7 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 
 	if(Name == FNameBVisibleVarious)
 	{
-		UpdateVisibility(UStateLib::GetPlayerUIEditorDefault());
+		UpdateVisibility(InstanceUI);
 	}
 	else if
 	    (  Name == FNameSplineMeshLength
@@ -608,7 +608,7 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 		|| Name == FNameSplineMeshScaleFactor
 		)
 	{
-		Update(Physics, PlayerUI);
+		Update(Physics, InstanceUI);
 	}
 	else if
 		(  Name == FNameVelocity
@@ -617,16 +617,15 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 		)
 	{
 		const FVector VelocityNormal = VecVelocity.GetSafeNormal(1e-8, FVector(0., 1., 0.));
-		const FVector VecRKepler = VecR - Physics.VecF1;
 
 		if(Name == FNameVelocity)
 		{
 			VecVelocity = Velocity * VelocityNormal;
-			VelocityVCircle = Velocity / sqrt(Physics.Alpha / VecRKepler.Length());
+			VelocityVCircle = Velocity / GetCircleVelocity(Physics.Alpha, Physics.VecF1);
 		}
 		else if(Name == FNameVelocityVCircle)
 		{
-			Velocity = sqrt(Physics.Alpha / VecRKepler.Length()) * VelocityVCircle;
+			Velocity = GetCircleVelocity(Physics.Alpha, Physics.VecF1) * VelocityVCircle;
 			VecVelocity = Velocity * VelocityNormal;
 		}
 		else if(Name == FNameVecVelocity)
@@ -635,7 +634,7 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 			VelocityVCircle = Velocity / GetCircleVelocity(Physics.Alpha, Physics.VecF1);
 		}
 			
-		Update(Physics, PlayerUI);
+		Update(Physics, InstanceUI);
 	}
 }
 #endif

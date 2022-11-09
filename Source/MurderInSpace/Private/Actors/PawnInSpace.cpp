@@ -26,7 +26,7 @@ APawnInSpace::APawnInSpace()
 	Orbit->SetSplineMeshParent(SplineMeshParent);
 
 	// for the editor
-	Orbit->UpdateVisibility(UStateLib::GetPlayerUIEditorDefault());
+	Orbit->UpdateVisibility(UStateLib::GetInstanceUIEditorDefault());
 	
 	bNetLoadOnClient = false;
 	AActor::SetReplicateMovement(false);
@@ -52,12 +52,9 @@ void APawnInSpace::Tick(float DeltaSeconds)
 	if(RP_bIsAccelerating)
 	{
 		const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
-		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe
-			(this
-			, FLocalPlayerContext(GetGameInstance()->GetPrimaryPlayerController())
-			);
+		const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
 		const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
-		Orbit->AddVelocity(MovableRoot->GetForwardVector() * DeltaV, Physics, PlayerUI);
+		Orbit->AddVelocity(MovableRoot->GetForwardVector() * DeltaV, Physics, InstanceUI);
 	}
 }
 
@@ -67,7 +64,7 @@ void APawnInSpace::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 	Orbit->SetCircleOrbit
 		( UStateLib::GetPhysicsEditorDefault()
-		, UStateLib::GetPlayerUIEditorDefault()
+		, UStateLib::GetInstanceUIEditorDefault()
 		);
 }
 #endif 

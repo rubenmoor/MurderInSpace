@@ -37,7 +37,6 @@ public:
 
 	UFUNCTION()
 	void OnRep_BodyRotation() { MovableRoot->SetWorldRotation(RP_BodyRotation); }
-
 protected:
 	
 	// event handlers
@@ -63,5 +62,4 @@ protected:
 	// this scene component holds everything movable
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> MovableRoot;
-
 };

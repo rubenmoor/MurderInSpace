@@ -9,8 +9,8 @@
 #include "HUD/MyHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
+#include "Modes/MyGameInstance.h"
 #include "Modes/MyLocalPlayer.h"
-#include "Modes/MyPlayerState.h"
 #include "Modes/MyGISubsystem.h"
 
 AMyPlayerController::AMyPlayerController()
@@ -56,9 +56,8 @@ void AMyPlayerController::HandleBeginShowMyTrajectory()
 	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
 	{
 		const auto Orbit = GetPawn<ACharacterInSpace>()->GetOrbitComponent();
-		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
 		Orbit->bIsVisibleVarious = true;
-		Orbit->UpdateVisibility(PlayerUI);
+		Orbit->UpdateVisibility(UStateLib::GetInstanceUIUnsafe(this));
 	}
 }
 
@@ -67,9 +66,8 @@ void AMyPlayerController::HandleEndShowMyTrajectory()
 	if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
 	{
 		const auto Orbit = GetPawn<ACharacterInSpace>()->GetOrbitComponent();
-		const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
 		Orbit->bIsVisibleVarious = false;
-		Orbit->UpdateVisibility(PlayerUI);
+		Orbit->UpdateVisibility(UStateLib::GetInstanceUIUnsafe(this));
 	}
 }
 
@@ -132,12 +130,12 @@ void AMyPlayerController::ServerRPC_LookAt_Implementation(FQuat Quat)
 
 void AMyPlayerController::SetShowAllTrajectories(bool bInShow) const
 {
-	UStateLib::WithPlayerUIUnsafe(this, FLocalPlayerContext(this), [this, bInShow] (FPlayerUI PlayerUI)
+	UStateLib::WithInstanceUIUnsafe(this, [this, bInShow] (FInstanceUI InstanceUI)
 	{
-		PlayerUI.bShowAllTrajectories = bInShow;
+		InstanceUI.bShowAllTrajectories = bInShow;
 		for(MyObjectIterator<UOrbitComponent> IOrbit(GetWorld()); IOrbit; ++IOrbit)
 		{
-			(*IOrbit)->UpdateVisibility(PlayerUI);
+			(*IOrbit)->UpdateVisibility(InstanceUI);
 		}
 	});
 }
@@ -184,19 +182,19 @@ void AMyPlayerController::HandleActionUI(EAction Action)
 {
 	ACharacterInSpace* MyCharacter = GetPawn<ACharacterInSpace>();
 	UOrbitComponent* Orbit = MyCharacter->GetOrbitComponent();
-	const FPlayerUI PlayerUI = UStateLib::GetPlayerUIUnsafe(this, FLocalPlayerContext(this));
+	const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
 	
 	switch (Action)
 	{
 	case EAction::ACCELERATE_BEGIN:
-		Orbit->SpawnSplineMesh(MyCharacter->GetTempSplineMeshColor(), MyCharacter->GetTempSplineMeshParent(), PlayerUI);
+		Orbit->SpawnSplineMesh(MyCharacter->GetTempSplineMeshColor(), MyCharacter->GetTempSplineMeshParent(), InstanceUI);
 		Orbit->bIsVisibleAccelerating = true;
-		Orbit->UpdateVisibility(PlayerUI);
+		Orbit->UpdateVisibility(InstanceUI);
 		break;
 	case EAction::ACCELERATE_END:
 		MyCharacter->DestroyTempSplineMesh();
 		Orbit->bIsVisibleAccelerating = false;
-		Orbit->UpdateVisibility(PlayerUI);
+		Orbit->UpdateVisibility(InstanceUI);
 		break;
 	}
 }

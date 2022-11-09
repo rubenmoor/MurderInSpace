@@ -40,7 +40,7 @@ void AActorInSpace::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 	Orbit->SetCircleOrbit
 		( UStateLib::GetPhysicsEditorDefault()
-		, UStateLib::GetPlayerUIEditorDefault()
+		, UStateLib::GetInstanceUIEditorDefault()
 		);
 }
 
@@ -50,20 +50,14 @@ void AActorInSpace::HandleBeginMouseOver(UPrimitiveComponent*)
 	// cheating here: for split screen, we would need to track orbit visibility in the player state
 	Orbit->bIsVisibleVarious = true;
 	// ... and cheating again: assuming mouse belongs to primary player controller
-	Orbit->UpdateVisibility(UStateLib::GetPlayerUIUnsafe
-		(this
-		, FLocalPlayerContext(GetGameInstance()->GetPrimaryPlayerController())
-		));
+	Orbit->UpdateVisibility(UStateLib::GetInstanceUIUnsafe(this));
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AActorInSpace::HandleEndMouseOver(UPrimitiveComponent*)
 {
 	Orbit->bIsVisibleVarious = false;
-	Orbit->UpdateVisibility(UStateLib::GetPlayerUIUnsafe
-		(this
-		, FLocalPlayerContext(GetGameInstance()->GetPrimaryPlayerController())
-		));
+	Orbit->UpdateVisibility(UStateLib::GetInstanceUIUnsafe(this));
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

@@ -5,7 +5,6 @@
 #include <random>
 
 #include "CoreMinimal.h"
-#include "Modes/MyGameInstance.h"
 #include "UStateLib.generated.h"
 
 /*
@@ -33,10 +32,20 @@ struct FPhysics
 };
 
 /*
- * any state that is related to the player UI
+ * any state that is related to the player UI;
+ * The player UI is specific to local players, for UI that is specific to the game instance,
+ * see the instance UI
  */
 USTRUCT(BlueprintType)
 struct FPlayerUI
+{
+	GENERATED_BODY()
+	
+	// TODO
+};
+
+USTRUCT(BlueprintType)
+struct FInstanceUI
 {
 	GENERATED_BODY()
 
@@ -68,6 +77,7 @@ class MURDERINSPACE_API UStateLib : public UObject
 
 	friend class AMyGameState;
 	friend class AMyPlayerState;
+	friend class UMyGameInstance;
 protected:
 	/**
 	 * @brief the standard gravitational parameter ALPHA [m^3/s^2] = G * M for different bodies
@@ -95,6 +105,10 @@ protected:
 	    };
 
 	inline static constexpr FPlayerUI DefaultPlayerUI = FPlayerUI
+		{ // TODO
+		};
+
+	inline static constexpr FInstanceUI DefaultInstanceUI = FInstanceUI
 		{ false
 		};
 public:
@@ -119,6 +133,15 @@ public:
 	static FPlayerUI GetPlayerUIEditorDefault();
 
 	UFUNCTION(BlueprintPure)
+	static FInstanceUI GetInstanceUI(const UMyGameInstance* GI);
+
+	UFUNCTION(BlueprintPure)
+	static FInstanceUI GetInstanceUIUnsafe(const UObject* Object);
+
+	UFUNCTION(BlueprintPure)
+	static FInstanceUI GetInstanceUIEditorDefault();
+
+	UFUNCTION(BlueprintPure)
 	static FRnd GetRnd(const AMyGameState* GS, const UMyGameInstance* GI);
 	
 	UFUNCTION(BlueprintPure)
@@ -126,6 +149,8 @@ public:
 
 	static void WithPlayerUIUnsafe(const UObject* Object, const FLocalPlayerContext& LPC, const TFunctionRef<void(FPlayerUI&)> Func);
 
+	static void WithInstanceUIUnsafe(const UObject* Object, const TFunctionRef<void(FInstanceUI&)> Func);
+	
 	// TODO
 	// UFUNCTION(BlueprintCallable)
 	// static void SetInstanceState(UMyGameInstance* GI, int32 PlayerNum, EInstanceState InNewState);

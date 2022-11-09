@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Lib/UStateLib.h"
 #include "MyGameInstance.generated.h"
 
 UENUM(BlueprintType)
@@ -80,4 +81,7 @@ protected:
 	
 	UPROPERTY(BlueprintReadWrite)
 	FRandomStream Random;
+
+	UPROPERTY(BlueprintReadWrite)
+	FInstanceUI InstanceUI = UStateLib::DefaultInstanceUI;
 };

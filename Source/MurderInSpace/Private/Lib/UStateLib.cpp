@@ -47,7 +47,7 @@ FPhysics UStateLib::GetPhysicsUnsafe(const UObject* Object)
 			)
 		return DefaultPhysics;
 	}
-	return GS->Physics;
+	return GetPhysics(GS);
 }
 
 FPhysics UStateLib::GetPhysicsEditorDefault()
@@ -81,6 +81,35 @@ FPlayerUI UStateLib::GetPlayerUIUnsafe(const UObject* Object, const FLocalPlayer
 FPlayerUI UStateLib::GetPlayerUIEditorDefault()
 {
 	return DefaultPlayerUI;
+}
+
+FInstanceUI UStateLib::GetInstanceUI(const UMyGameInstance* GI)
+{
+	return GI->InstanceUI;
+}
+
+FInstanceUI UStateLib::GetInstanceUIUnsafe(const UObject* Object)
+{
+	const UWorld* World = Object->GetWorld();
+	const UMyGameInstance* GI = World->GetGameInstance<UMyGameInstance>();
+	if(!GI)
+	{
+		const UGameInstance* GIGeneric = World->GetGameInstance();
+		UE_LOG
+		( LogGameState
+		, Error
+		, TEXT("UStateLib::GetInstanceUIUnsafe: %s: UMyGameInstance null; UGameInstance: %s")
+		, *Object->GetFullName()
+		, GIGeneric ? *GIGeneric->GetFullName() : TEXT("null")
+		)
+		return FInstanceUI();
+	}
+	return GetInstanceUI(GI);
+}
+
+FInstanceUI UStateLib::GetInstanceUIEditorDefault()
+{
+	return DefaultInstanceUI;
 }
 
 FRnd UStateLib::GetRnd(const AMyGameState* GS, const UMyGameInstance* GI)
@@ -122,11 +151,7 @@ FRnd UStateLib::GetRndUnsafe(const UObject* Object)
 			)
 		return FRnd();
 	}
-	return FRnd
-		{ GS->RndGen
-		, GS->Poisson
-		, GI->Random
-		};
+	return GetRnd(GS, GI);
 }
 
 void UStateLib::WithPlayerUIUnsafe(const UObject* Object, const FLocalPlayerContext& LPC, const TFunctionRef<void(FPlayerUI&)> Func)
@@ -145,6 +170,25 @@ void UStateLib::WithPlayerUIUnsafe(const UObject* Object, const FLocalPlayerCont
 		return;
 	}
 	Func(PS->PlayerUI);
+}
+
+void UStateLib::WithInstanceUIUnsafe(const UObject* Object, const TFunctionRef<void(FInstanceUI&)> Func)
+{
+	const UWorld* World = Object->GetWorld();
+	UMyGameInstance* GI = World->GetGameInstance<UMyGameInstance>();
+	if(!GI)
+	{
+		const UGameInstance* GIGeneric = World->GetGameInstance();
+		UE_LOG
+		( LogGameState
+		, Error
+		, TEXT("UStateLib::WithInstanceUIUnsafe: %s: UMyGameInstance null; UGameInstance: %s")
+		, *Object->GetFullName()
+		, GIGeneric ? *GIGeneric->GetFullName() : TEXT("null")
+		)
+		return;
+	}
+	Func(GI->InstanceUI);
 }
 
 // void UStateLib::SetInstanceState(UMyGameInstance* GI, int32 PlayerNum, const EInstanceState InNewState)
