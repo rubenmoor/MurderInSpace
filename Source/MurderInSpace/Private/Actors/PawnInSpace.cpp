@@ -61,11 +61,21 @@ void APawnInSpace::Tick(float DeltaSeconds)
 #if WITH_EDITOR
 void APawnInSpace::OnConstruction(const FTransform& Transform)
 {
+	if(Orbit->bSkipConstruction)
+	{
+		return;
+	}
+	
 	Super::OnConstruction(Transform);
-	Orbit->SetCircleOrbit
-		( UStateLib::GetPhysicsEditorDefault()
-		, UStateLib::GetInstanceUIEditorDefault()
-		);
+	
+	const FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
+	const FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
+	
+	if(!Orbit->GetHasBeenSet())
+	{
+		Orbit->SetCircleOrbit(Transform.GetLocation(), Physics);
+	}
+	Orbit->Update(Physics, InstanceUI);
 }
 #endif 
 

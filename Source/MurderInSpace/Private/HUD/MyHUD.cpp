@@ -94,9 +94,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 
 	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FormattingOptions));
 	WidgetHUD->TextVelocityVCircle->SetText(
-		FText::AsNumber(
-			Velocity / Orbit->GetCircleVelocity(Physics.Alpha, Physics.VecF1
-		), &FormattingOptions));
+		FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics), &FormattingOptions));
 
 	const float Angle =
 		FQuat::FindBetween
@@ -123,7 +121,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 		const FVector VecF1InViewportPlane =
 			  Physics.VecF1
 			+ CameraRotation.Vector()
-			* (MyCharacter->GetOrbitComponent()->GetVecR() - Physics.VecF1).Length();
+			* (MyCharacter->GetOrbitComponent()->GetVecRKepler(Physics)).Length();
 		// ... but in that case we can help with a manual projection
 		if(!GetOwningPlayerController()->ProjectWorldLocationToScreen(VecF1InViewportPlane, ScreenLocation))
 		{

@@ -31,15 +31,21 @@ void UOrbitComponent::Update(FPhysics Physics, FInstanceUI InstanceUI)
 		return;
 	}
 	
+	const FVector VecR = MovableRoot->GetComponentLocation();
+	
 	// transform location vector r to Kepler coordinates, where F1 is the origin
-	const FVector VecRKepler = VecR - Physics.VecF1;
+	const FVector VecRKepler = GetVecRKepler(Physics);
 	const float RKepler = VecRKepler.Length();
+
+	// TODO:
 	//const auto VelocityVCircle = Velocity / sqrt(Alpha / R);
 
 	// the bigger this value, the earlier an eccentricity close to 1 will be interpreted as parabola orbit
 	constexpr float Tolerance = 1E-2;
 	const FVector VecH = VecRKepler.Cross(VecVelocity);
 	RP_Params.P = VecH.SquaredLength() / Physics.Alpha;
+	Velocity = VecVelocity.Length();
+	VelocityVCircle = Velocity / GetCircleVelocity(Physics);
 	RP_Params.Energy = pow(Velocity, 2) / 2. - Physics.Alpha / RKepler;
 	const FVector VecE = UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Physics.Alpha);
 	RP_Params.Eccentricity = VecE.Length();
@@ -78,7 +84,9 @@ void UOrbitComponent::Update(FPhysics Physics, FInstanceUI InstanceUI)
 				SetClosedLoop(false, false);
 				UpdateSpline();
 			}
-			RP_DistanceZero = GetDistanceAlongSplineAtSplineInputKey(FindInputKeyClosestToWorldLocation(VecR));
+			RP_DistanceZero = GetDistanceAlongSplineAtSplineInputKey(FindInputKeyClosestToWorldLocation
+				( VecR)
+				);
 			SplineDistance = RP_DistanceZero;
 			SetClosedLoop(true, false);
 			
@@ -91,12 +99,19 @@ void UOrbitComponent::Update(FPhysics Physics, FInstanceUI InstanceUI)
 		else
 		{
 			RP_SplinePoints =
-				{ FSplinePoint(0, VecR, ESplinePointType::Linear)
-					, FSplinePoint
-					    ( 1
-						, VecVelocity.GetUnsafeNormal() * (Physics.WorldRadius - VecR.Length())
-						, ESplinePointType::Linear
+				{ FSplinePoint
+					(0
+					, VecR
+					, ESplinePointType::Linear
+					)
+				, FSplinePoint
+					( 1
+					, VecVelocity.GetUnsafeNormal() *
+						( Physics.WorldRadius -
+							(VecR).Length()
 						)
+					, ESplinePointType::Linear
+					)
 				};
 			MyAddPoints();
 			SetClosedLoop(false, false);
@@ -181,12 +196,20 @@ void UOrbitComponent::Update(FPhysics Physics, FInstanceUI InstanceUI)
 
 		RP_SplinePoints.Empty();
 		RP_SplinePoints.Reserve(Points.size());
-		for(int i = 0; i < Points.size(); i++)
+		const int32 NumPoints = Points.size();
+		for(int i = 0; i < NumPoints; i++)
 		{
 			RP_SplinePoints.Emplace(i, Points.front());
 			Points.pop_front();
 		}
 		MyAddPoints();
+
+		// ClearSplinePoints();
+		// for(const FVector Point : Points)
+		// {
+		// 	AddSplineWorldPoint(Point);
+		// }
+		
     	SetClosedLoop(false, false);
 		RP_Params.OrbitType = EOrbitType::PARABOLA;
 		RP_Params.Period = 0;
@@ -219,12 +242,20 @@ void UOrbitComponent::Update(FPhysics Physics, FInstanceUI InstanceUI)
 
 		RP_SplinePoints.Empty();
 		RP_SplinePoints.Reserve(Points.size());
-		for(int i = 0; i < Points.size(); i++)
+		const int32 NumPoints = Points.size();
+		for(int i = 0; i < NumPoints; i++)
 		{
 			RP_SplinePoints.Emplace(i, Points.front());
 			Points.pop_front();
 		}
 		MyAddPoints();
+
+		// ClearSplinePoints();
+		// for(const FVector Point : Points)
+		// {
+		// 	AddSplineWorldPoint(Point);
+		// }
+		
     	SetClosedLoop(false, false);
 		RP_Params.OrbitType = EOrbitType::HYPERBOLA;
 		RP_Params.Period = 0;
@@ -356,21 +387,14 @@ FString UOrbitComponent::GetParamsString()
 	return StrOrbitType + FString::Printf(TEXT(", E = %.2f, P = %.1f, Energy = %.1f, Period = %.1f, A = %.1f"), RP_Params.Eccentricity, RP_Params.P, RP_Params.Energy, RP_Params.Period, RP_Params.A);
 }
 
-float UOrbitComponent::GetCircleVelocity(float Alpha, FVector VecF1) const
+float UOrbitComponent::GetCircleVelocity(FPhysics Physics) const
 {
-	return sqrt(Alpha / (VecR - VecF1).Length());
-}
-
-void UOrbitComponent::SetVelocity(const FVector InVecVelocity, float Alpha, FVector VecF1)
-{
-	VecVelocity = InVecVelocity;
-	Velocity = VecVelocity.Length();
-	VelocityVCircle = Velocity / GetCircleVelocity(Alpha, VecF1);
+	return sqrt(Physics.Alpha / GetVecRKepler(Physics).Length());
 }
 
 void UOrbitComponent::AddVelocity(FVector VecDeltaV, FPhysics Physics, FInstanceUI InstanceUI)
 {
-	SetVelocity(VecVelocity + VecDeltaV, Physics.Alpha, Physics.VecF1);
+	SetVelocity(VecVelocity + VecDeltaV);
 	Update(Physics, InstanceUI);
 }
 
@@ -378,34 +402,26 @@ void UOrbitComponent::OnRep_OrbitState()
 {
 	// OrbitState is replicated with condition "initial only", implying that replication (including the call
 	// to this method) happens only once
-	VecR           = RP_OrbitState.VecR;
+	MovableRoot->SetWorldLocation(RP_OrbitState.VecR, true, nullptr);
 	VecVelocity    = RP_OrbitState.VecVelocity;
 	Velocity       = VecVelocity.Length();
-	SplineKey      = FindInputKeyClosestToWorldLocation(VecR);
+	SplineKey      = FindInputKeyClosestToWorldLocation(RP_OrbitState.VecR);
 	SplineDistance = GetDistanceAlongSplineAtSplineInputKey(SplineKey);
 }
 
-void UOrbitComponent::SetCircleOrbit(FPhysics Physics, FInstanceUI InstanceUI)
+void UOrbitComponent::SetCircleOrbit(FVector InVecR, FPhysics Physics)
 {
-	if(RP_bHasBeenSet)
-	{
-		// SetCircleOrbit should only be called on fresh orbits that haven't been set yet, i.e. velocity not initialized
-		// Setting twice isn't a big problem, but deserves a warning
-		UE_LOG(LogActor, Warning, TEXT("%s: SetCircleOrbit: Orbit has been initialized already."), *GetFullName())
-	}
-	VecR = MovableRoot->GetComponentLocation();
-	const FVector VecRKepler = VecR - Physics.VecF1;
+	const FVector VecRKepler = InVecR - Physics.VecF1;
 	const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
 	const FVector NewVecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
-	SetOrbitByParams(VecR, NewVecVelocity, Physics, InstanceUI);
+	SetOrbitByParams(InVecR, NewVecVelocity, Physics);
 }
 
-void UOrbitComponent::SetOrbitByParams(FVector NewVecR, FVector NewVecVelocity, FPhysics Physics, FInstanceUI InstanceUI)
+void UOrbitComponent::SetOrbitByParams(FVector InVecR, FVector InVecVelocity, FPhysics Physics)
 {
-	VecR = NewVecR;
-	SetVelocity(NewVecVelocity, Physics.Alpha, Physics.VecF1);
+	MovableRoot->SetWorldLocation(InVecR, true, nullptr);
+	SetVelocity(InVecVelocity);
 	RP_bHasBeenSet = true;
-	Update(Physics, InstanceUI);
 }
 
 void UOrbitComponent::UpdateVisibility(FInstanceUI InstanceUI)
@@ -516,30 +532,31 @@ void UOrbitComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	
 	const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
 	
-	const FVector VecRKepler = VecR - Physics.VecF1;
+	const FVector VecRKepler = MovableRoot->GetComponentLocation() - Physics.VecF1;
 
 	Velocity = NextVelocity(VecRKepler.Length(), Physics.Alpha, Velocity, DeltaTime, VecVelocity.Dot(VecRKepler));
-	VelocityVCircle = Velocity / GetCircleVelocity(Physics.Alpha, Physics.VecF1);
+	VelocityVCircle = Velocity / GetCircleVelocity(Physics);
 	const float DeltaR = Velocity * DeltaTime;
 
 	// advance on spline
+	FVector NewVecR;
 	SplineDistance = fmod(SplineDistance + DeltaR, GetSplineLength());
 	if(RP_Params.OrbitType == EOrbitType::LINEBOUND)
 	{
-		VecR = GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
 		VecVelocity = GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
+		NewVecR = GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
 	}
 	else
 	{
 		// direction at current position, i.e. at current spline key
 		VecVelocity = GetTangentAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
-		const FVector NewLocationAtTangent = VecR + VecVelocity * DeltaTime;
+		const FVector NewLocationAtTangent = MovableRoot->GetComponentLocation() + VecVelocity * DeltaTime;
 		
 		// new spline key
 		SplineKey = FindInputKeyClosestToWorldLocation(NewLocationAtTangent);
-		VecR = GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World);
+		NewVecR = GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World);
 	}
-	MovableRoot->SetWorldLocation(VecR, true, nullptr);
+	MovableRoot->SetWorldLocation(NewVecR, true, nullptr);
 	
 	// TODO: account for acceleration
 	// const auto RealDeltaR = (GetVecR() - VecR).Length();
@@ -575,14 +592,21 @@ void UOrbitComponent::BeginPlay()
 }
 
 #if WITH_EDITOR
+void UOrbitComponent::PreEditChange(FProperty* PropertyAboutToChange)
+{
+	Super::PreEditChange(PropertyAboutToChange);
+	bSkipConstruction = true;
+}
+
 void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
-
+	
 	const FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
 	const FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
 	
 	const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
+	const FName Name2 = PropertyChangedEvent.PropertyChain.GetHead()->GetNextNode()
 
 	static const FName FNameBTrajectoryShowSpline = GET_MEMBER_NAME_CHECKED(UOrbitComponent, bTrajectoryShowSpline);
 	static const FName FNameBVisibleVarious       = GET_MEMBER_NAME_CHECKED(UOrbitComponent, bIsVisibleVarious    );
@@ -608,7 +632,6 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 		|| Name == FNameSplineMeshScaleFactor
 		)
 	{
-		Update(Physics, InstanceUI);
 	}
 	else if
 		(  Name == FNameVelocity
@@ -621,21 +644,17 @@ void UOrbitComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& Pr
 		if(Name == FNameVelocity)
 		{
 			VecVelocity = Velocity * VelocityNormal;
-			VelocityVCircle = Velocity / GetCircleVelocity(Physics.Alpha, Physics.VecF1);
 		}
 		else if(Name == FNameVelocityVCircle)
 		{
-			Velocity = GetCircleVelocity(Physics.Alpha, Physics.VecF1) * VelocityVCircle;
-			VecVelocity = Velocity * VelocityNormal;
+			VecVelocity = GetCircleVelocity(Physics) * VelocityVCircle * VelocityNormal;
 		}
 		else if(Name == FNameVecVelocity)
 		{
-			Velocity = VecVelocity.Length();
-			VelocityVCircle = Velocity / GetCircleVelocity(Physics.Alpha, Physics.VecF1);
 		}
-			
-		Update(Physics, InstanceUI);
 	}
+	Update(Physics, InstanceUI);
+	bSkipConstruction = false;
 }
 #endif
 

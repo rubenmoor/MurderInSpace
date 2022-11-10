@@ -91,10 +91,11 @@ public:
 	void SetSplineMeshParent(USceneComponent* InSplineMeshParent) { SplineMeshParent = InSplineMeshParent; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetCircleOrbit(FPhysics Physics, FInstanceUI InstanceUI);
+	void SetCircleOrbit(FVector InVecR, FPhysics Physics);
 
+	// you need to call `Update` afterwards
 	UFUNCTION(BlueprintCallable)
-	void SetOrbitByParams(FVector NewVecR, FVector NewVecVelocity, FPhysics Physics, FInstanceUI InstanceUI);
+	void SetOrbitByParams(FVector InVecR, FVector InVecVelocity, FPhysics Physics);
 
 	UFUNCTION(BlueprintCallable)
 	void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
@@ -102,7 +103,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool GetHasBeenSet() { return RP_bHasBeenSet; }
 	
-	// whenever there's a change in location, velocity, or the physical constants:
+	// update the orbit given the location of `MovableRoot`, `VecVelocity` and `Physics`
 	UFUNCTION(BlueprintCallable)
 	void Update(FPhysics Physics, FInstanceUI InstanceUI);
 
@@ -134,13 +135,13 @@ public:
 	float GetVelocity() { return Velocity; }
 	
 	UFUNCTION(BlueprintCallable)
-	float GetCircleVelocity(float Alpha, FVector VecF1) const;
+	float GetCircleVelocity(FPhysics Physics) const;
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetVecVelocity() { return VecVelocity; }
 
 	UFUNCTION(BlueprintCallable)
-	FVector GetVecR() { return VecR; }
+	FVector GetVecRKepler(FPhysics Physics) const { return MovableRoot->GetComponentLocation() - Physics.VecF1; }
 
 	// whenever a spline mesh merely changes visibility:
 	UFUNCTION(BlueprintCallable)
@@ -154,10 +155,13 @@ public:
 	// replication
 
 	UFUNCTION(BlueprintCallable)
-	void FreezeOrbitState() { RP_OrbitState = { VecR, VecVelocity }; }
+	void FreezeOrbitState() { RP_OrbitState = { MovableRoot->GetComponentLocation(), VecVelocity }; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetIsChanging(bool InIsChanging) { bIsChanging = InIsChanging; }
+
+	bool bSkipConstruction = false;
+	
 protected:
 	
 	// event handlers
@@ -167,11 +171,11 @@ protected:
 	virtual void BeginPlay() override;
 
 #if WITH_EDITOR
+	virtual void PreEditChange(FProperty* PropertyAboutToChange) override;
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+#endif
 
 	virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
-
-#endif
 	
 	// members
 	
@@ -216,17 +220,17 @@ protected:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
 	float RP_DistanceZero;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
-	FVector VecR;
+	// UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
+	// FVector VecR = FVector::Zero();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	FVector VecVelocity;
+	FVector VecVelocity = FVector::Zero();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	float Velocity;
+	float Velocity = 0;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-	float VelocityVCircle;
+	float VelocityVCircle = 0;
 	
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
 	bool RP_bHasBeenSet = false;
@@ -240,9 +244,11 @@ protected:
 	static constexpr float SplineToCircle = 1.65;
 
 	// private methods
-	
+
+	// the only way to set the velocity is by providing a value for `VecVelocity`
+	// and call `Update` afterwards
 	UFUNCTION(BlueprintCallable)
-	void SetVelocity(FVector InVecVelocity, float Alpha, FVector VecF1);
+	void SetVelocity(FVector InVecVelocity) { VecVelocity = InVecVelocity; }
 
 	UFUNCTION(BlueprintCallable)
 	float VelocityEllipse(float R, float Alpha);

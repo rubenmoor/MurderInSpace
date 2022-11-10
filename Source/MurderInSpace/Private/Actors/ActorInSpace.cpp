@@ -34,14 +34,24 @@ AActorInSpace::AActorInSpace()
 
 void AActorInSpace::OnConstruction(const FTransform& Transform)
 {
+	if(Orbit->bSkipConstruction)
+	{
+		return;
+	}
+	
 	// TODO: it looks like, contrary to documentation, `OnConstruction` is called twice:
 	// once when an ActorInSpace is placed in the editor (which is fine)
 	// a second time on game start, which is wrong
 	Super::OnConstruction(Transform);
-	Orbit->SetCircleOrbit
-		( UStateLib::GetPhysicsEditorDefault()
-		, UStateLib::GetInstanceUIEditorDefault()
-		);
+
+	const FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
+	const FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
+	
+	if(!Orbit->GetHasBeenSet())
+	{
+		Orbit->SetCircleOrbit(Transform.GetLocation(), Physics);
+	}
+	Orbit->Update(Physics, InstanceUI);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
