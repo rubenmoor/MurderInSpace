@@ -45,12 +45,30 @@ struct FPlayerUI
 };
 
 USTRUCT(BlueprintType)
+struct FHighlight
+{
+	GENERATED_BODY()
+
+	FHighlight(): Orbit(), Size(0) {}
+	FHighlight(class UOrbitComponent* InOrbit, float InSize) : Orbit(InOrbit), Size(InSize) {}
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UOrbitComponent> Orbit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Size;
+};
+
+USTRUCT(BlueprintType)
 struct FInstanceUI
 {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bShowAllTrajectories = false;
+	bool bShowAllTrajectories;
+
+	TOptional<FHighlight> Selected;
+	TOptional<FHighlight> Hovered;
 };
 
 USTRUCT(BlueprintType)
@@ -104,12 +122,14 @@ protected:
 		, ALPHA_Game_SI / (DEFAULT_SCALEFACTOR * DEFAULT_SCALEFACTOR * DEFAULT_SCALEFACTOR)
 	    };
 
-	inline static constexpr FPlayerUI DefaultPlayerUI = FPlayerUI
+	inline static const FPlayerUI DefaultPlayerUI =
 		{ // TODO
 		};
 
-	inline static constexpr FInstanceUI DefaultInstanceUI = FInstanceUI
+	inline static const FInstanceUI DefaultInstanceUI =
 		{ false
+		, TOptional<FHighlight>()
+		, TOptional<FHighlight>()
 		};
 public:
 	UFUNCTION(BlueprintPure)

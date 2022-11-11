@@ -7,12 +7,11 @@
 #include "Lib/UStateLib.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/UserWidget.h"
-#include "Actors/CharacterInSpace.h"
+#include "Actors/MyCharacter.h"
 #include "Components/CanvasPanel.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/CanvasPanelSlot.h"
-#include "Components/Overlay.h"
 #include "HUD/UW_HUD.h"
 #include "HUD/UW_MenuInGame.h"
 #include "Modes/MyPlayerController.h"
@@ -42,15 +41,14 @@ void AMyHUD::BeginPlay()
 	
 	// get playing character
 	
-	MyCharacter = Cast<ACharacterInSpace>(GetOwningPawn());
+	MyCharacter = Cast<AMyCharacter>(GetOwningPawn());
 	if(!IsValid(MyCharacter))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no pawn, disabling tick"), *GetFullName())
 		SetActorTickEnabled(false);
 	}
-	else if(!MyCharacter->GetOrbitComponent()->GetHasBeenSet())
+	else if(!MyCharacter->GetOrbit()->GetHasBeenSet())
 	{
-		
 		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: orbit component hasn't been set, disabling tick"), *GetFullName())
 		SetActorTickEnabled(false);
 	}
@@ -89,7 +87,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 
 	const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
 	const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
-	UOrbitComponent* Orbit = MyCharacter->GetOrbitComponent();
+	UOrbitComponent* Orbit = MyCharacter->GetOrbit();
 	const float Velocity = Orbit->GetVelocity();
 
 	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FormattingOptions));
@@ -110,8 +108,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 	const bool bProjected = PC->ProjectWorldLocationToScreen(Physics.VecF1, ScreenLocation);
 	//const auto bProjected = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayerController(), GI->VecF1, ScreenLocation, false);
 
-	float XFromCenter;
-	float YFromCenter;
+	FVector2D Pos;
 	// ... which doesn't always work, i.e. F1 must be in front of the camera, I believe, which isn't always the case
 	if(!bProjected)
 	{
@@ -121,24 +118,22 @@ void AMyHUD::Tick(float DeltaSeconds)
 		const FVector VecF1InViewportPlane =
 			  Physics.VecF1
 			+ CameraRotation.Vector()
-			* (MyCharacter->GetOrbitComponent()->GetVecRKepler(Physics)).Length();
+			* MyCharacter->GetOrbit()->GetVecRKepler(Physics).Length();
 		// ... but in that case we can help with a manual projection
-		if(!GetOwningPlayerController()->ProjectWorldLocationToScreen(VecF1InViewportPlane, ScreenLocation))
+		if(!PC->ProjectWorldLocationToScreen(VecF1InViewportPlane, ScreenLocation))
 		{
 			// If the manual projection fails, too, we're out of options
 			UE_LOG(LogActor, Error, TEXT("AMyHUD::Tick: couldn't project Center of mass to screen"))
 		}
 		// only we have to make sure that this manually conceived screen location doesn't accidentally
 		// end up on screen
-		XFromCenter = ScreenLocation.X / Vec2DSize.X - .5;
-		YFromCenter = ScreenLocation.Y / Vec2DSize.Y - .5;
-		YFromCenter += copysign(0.5 * YFromCenter / XFromCenter, YFromCenter);
-		XFromCenter += copysign(0.5, XFromCenter);
+		Pos = ScreenToCenter(this, ScreenLocation);
+		Pos.Y += copysign(0.5 * Pos.Y / Pos.X, Pos.Y);
+		Pos.X += copysign(0.5, Pos.X);
 	}
 	else
 	{
-		XFromCenter = ScreenLocation.X / Vec2DSize.X - .5;
-		YFromCenter = ScreenLocation.Y / Vec2DSize.Y - .5;
+		Pos = ScreenToCenter(this, ScreenLocation);
 	}
 	
 	auto T = [this](float Y) -> float
@@ -162,19 +157,20 @@ void AMyHUD::Tick(float DeltaSeconds)
 	};
 	 
 	// off-screen
-	if(abs(YFromCenter) > 0.5 || abs(XFromCenter) > 0.5 - XArc(YFromCenter))
+	if(abs(Pos.Y) > 0.5 || abs(Pos.X) > 0.5 - XArc(Pos.Y))
 	{
+		WidgetHUD->F1MarkerHide();
 		WidgetHUD->CanvasCenterOfMass->SetVisibility(ESlateVisibility::Visible);
 		
 		float OverlayX, OverlayY;
 
 		const auto Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(WidgetHUD->CanvasCenterOfMass);
 
-		if(abs(YFromCenter) > abs(XFromCenter) / (1. - 2 * XArc(-0.5)))
+		if(abs(Pos.Y) > abs(Pos.X) / (1. - 2 * XArc(-0.5)))
 		{
 			// vertical case
-			OverlayX = XFromCenter * 0.5 / abs(YFromCenter);
-			if(YFromCenter < 0)
+			OverlayX = Pos.X * 0.5 / abs(Pos.Y);
+			if(Pos.Y < 0)
 			{
 				// above the viewport
 				OverlayY = -0.5;
@@ -190,8 +186,8 @@ void AMyHUD::Tick(float DeltaSeconds)
 		else
 		{
 			// horizontal case
-			OverlayY = YFromCenter * (0.5 - XArc(-0.5)) / abs(XFromCenter);
-			if(XFromCenter < 0)
+			OverlayY = Pos.Y * (0.5 - XArc(-0.5)) / abs(Pos.X);
+			if(Pos.X < 0)
 			{
 				// to the left of the viewport
 				OverlayX = -0.5 + XArc(OverlayY);
@@ -205,21 +201,16 @@ void AMyHUD::Tick(float DeltaSeconds)
 			}
 		}
 		
-		UWidgetLayoutLibrary::SlotAsCanvasSlot(WidgetHUD->CanvasCenterOfMass)->SetPosition(
-			  FVector2D((OverlayX + .5) * Vec2DSize.X, (OverlayY + .5) * Vec2DSize.Y)
-			/ ViewportScale);
-		//TextCenterOfMass->SetText(FText::Format(LOCTEXT("foo", "Y: {0}, YNorm: {1}, T(YNorm): {2}, XArc(YNorm): {3}"), OverlayY, (OverlayY + HalfHeight) / static_cast<float>(Vec2DSize.Y), T(OverlayY), XArc(OverlayY)));
-		//TextCenterOfMass->SetText(FText::Format(LOCTEXT("foo", "{0}"), ViewportScale));
-		WidgetHUD->ImgPointer->SetRenderTransformAngle(atan2(YFromCenter, XFromCenter) * 180. / PI + 135);
+		UWidgetLayoutLibrary::SlotAsCanvasSlot
+			(WidgetHUD->CanvasCenterOfMass)->SetPosition
+				( CenterToScreenScaled(this, FVector2D(OverlayX, OverlayY) )
+			);
+		WidgetHUD->ImgPointer->SetRenderTransformAngle(atan2(Pos.Y, Pos.X) * 180. / PI + 135);
 	}
 	// on-screen
 	else
 	{
-		WidgetHUD->OverlayCenterOfMass->SetVisibility(ESlateVisibility::Collapsed);
-		//UWidgetLayoutLibrary::SlotAsCanvasSlot(CanvasCenterOfMass)->SetPosition(ScreenLocation / ViewportScale);
-		//const TObjectPtr<UCanvasPanelSlot> Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(OverlayCenterOfMass);
-		//Slot->SetAlignment(FVector2D(.5, .5));
-		
-		// TODO: paint green circle around center-of-mass
+		WidgetHUD->CanvasCenterOfMass->SetVisibility(ESlateVisibility::Collapsed);
+		WidgetHUD->SetF1Marker(CenterToScreenScaled(this, Pos));
 	}
 }

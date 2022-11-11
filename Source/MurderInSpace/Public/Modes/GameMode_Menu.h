@@ -13,9 +13,4 @@ UCLASS()
 class MURDERINSPACE_API AGameMode_Menu : public AGameMode
 {
 	GENERATED_BODY()
-
-protected:
-	// event handlers
-
-	virtual void BeginPlay() override;
 };

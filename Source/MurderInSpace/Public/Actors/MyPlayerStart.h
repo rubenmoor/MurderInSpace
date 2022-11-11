@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Actors/ActorInSpace.h"
+#include "Actors/MyActor.h"
 #include "MyPlayerStart.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MURDERINSPACE_API AMyPlayerStart : public AActorInSpace
+class MURDERINSPACE_API AMyPlayerStart final : public AMyActor
 {
 	GENERATED_BODY()
 

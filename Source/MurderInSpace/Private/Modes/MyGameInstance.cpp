@@ -3,6 +3,7 @@
 
 #include "Modes/MyGameInstance.h"
 
+#include "Actors/OrbitComponent.h"
 #include "HUD/MyHUDMenu.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -178,6 +179,44 @@ int32 UMyGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, int32 ControllerI
 	LocalPlayer->IsLoggedIn = false;
 	
 	return InsertIndex;
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void UMyGameInstance::HandleBeginMouseOver(AActor* Actor)
+{
+	UE_LOG(LogActor, Error, TEXT("%s: HandleBeginMouseOver"), *Actor->GetFullName())
+	UOrbitComponent* Orbit = Cast<IHasOrbit>(Actor)->GetOrbit();
+	InstanceUI.Hovered.Emplace(Orbit, 0);
+    Orbit->bIsVisibleVarious = true;
+    Orbit->UpdateVisibility(InstanceUI);
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void UMyGameInstance::HandleEndMouseOver(AActor* Actor)
+{
+	InstanceUI.Hovered.Reset();
+	UOrbitComponent* Orbit = Cast<IHasOrbit>(Actor)->GetOrbit();
+    Orbit->bIsVisibleVarious = false;
+    Orbit->UpdateVisibility(InstanceUI);
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void UMyGameInstance::HandleClick(AActor* Actor, FKey Button)
+{
+    if(Button == EKeys::LeftMouseButton)
+    {
+		UOrbitComponent* Orbit = Cast<IHasOrbit>(Actor)->GetOrbit();
+		UOrbitComponent* Previous = InstanceUI.Selected ? InstanceUI.Selected->Orbit : nullptr;
+		InstanceUI.Selected.Emplace(Orbit, 0);
+		
+    	// `Previous` is `nullptr` when no orbit is selected
+    	if(IsValid(Previous))
+    	{
+			Previous->UpdateVisibility(InstanceUI);
+    	}
+    	
+		Orbit->UpdateVisibility(InstanceUI);
+    }
 }
 
 #undef LOCTEXT_NAMESPACE

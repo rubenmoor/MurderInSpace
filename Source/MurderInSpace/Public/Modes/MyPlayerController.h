@@ -47,26 +47,13 @@ protected:
 	// Thus we use `AcknowledgePossesion` to set up the camera and alike
 	virtual void AcknowledgePossession(APawn* P) override;
 
+	virtual void BeginPlay() override;
+
 	// input events
 	
 	// change the zoom level continuously
 	void Zoom(float Delta);
 	
-	UFUNCTION()
-	void HandleBeginShowMyTrajectory();
-
-	UFUNCTION()
-	void HandleEndShowMyTrajectory();
-	
-	UFUNCTION()
-	void HandleBeginShowAllTrajectories();
-	
-	UFUNCTION()
-	void HandleEndShowAllTrajectories();
-
-	UFUNCTION(BlueprintCallable)
-	void HandleEscape();
-
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_LookAt(FQuat Quat);
 	
@@ -74,7 +61,9 @@ private:
 	void SetShowAllTrajectories(bool bInShow) const;
 
 	// custom way to bind actions using the enum `EAction` and only one generic Server RPC
-	void MyBindAction(const FName ActionName, EInputEvent KeyEvent, EAction Action);
+	void BindEAction(const FName ActionName, EInputEvent KeyEvent, EAction Action);
+
+	void BindInputLambda(const FName ActionName, EInputEvent KeyEvent, TFunction<void()> Handler);
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_HandleAction(EAction Action);

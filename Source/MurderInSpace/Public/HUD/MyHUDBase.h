@@ -21,6 +21,16 @@ public:
 	AMyHUDBase();
 
 	const FLocalPlayerContext& GetLocalPlayerContext() { return LocalPlayerContext; }
+
+	// convert from screen coordinates ([0, Width], [0, Height])
+	// to center coordinates ([-0.5, 0.5], [-0.5, 0.5])
+	UFUNCTION(BlueprintCallable)
+	static FVector2D ScreenToCenter(const UObject* Outer, FVector2D ScreenCoords);
+	
+	// convert from center coordinates ([-0.5, 0.5], [-0.5, 0.5])
+	// to screen coordinates ([0, Width/Scale], [0, Height/Scale])
+	UFUNCTION(BlueprintCallable)
+	static FVector2D CenterToScreenScaled(const UObject* Outer, FVector2D CenterCoords);
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")

@@ -8,7 +8,7 @@
 #include "HUD/UW_MenuInGame.h"
 #include "MyHUD.generated.h"
 
-class ACharacterInSpace;
+class AMyCharacter;
 
 /**
  * 
@@ -35,7 +35,7 @@ protected:
 	TObjectPtr<UUW_HUD> WidgetHUD;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<ACharacterInSpace> MyCharacter;
+	TObjectPtr<AMyCharacter> MyCharacter;
 
 	// in game menu
 

@@ -1,9 +1,9 @@
-#include "Actors/PawnInSpace.h"
+#include "Actors/MyPawn.h"
 
 #include "Modes/MyGameState.h"
 #include "Net/UnrealNetwork.h"
 
-APawnInSpace::APawnInSpace()
+AMyPawn::AMyPawn()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -18,12 +18,10 @@ APawnInSpace::APawnInSpace()
 	
 	Orbit = CreateDefaultSubobject<UOrbitComponent>(TEXT("Orbit"));
 	Orbit->SetupAttachment(Root);
-	Orbit->SetMovableRoot(MovableRoot);
 	
 	SplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("SplineMesh"));
 	SplineMeshParent->SetupAttachment(Orbit);
 	SplineMeshParent->SetMobility(EComponentMobility::Stationary);
-	Orbit->SetSplineMeshParent(SplineMeshParent);
 
 	// for the editor
 	Orbit->UpdateVisibility(UStateLib::GetInstanceUIEditorDefault());
@@ -32,12 +30,12 @@ APawnInSpace::APawnInSpace()
 	AActor::SetReplicateMovement(false);
 }
 
-void APawnInSpace::UpdateLookTarget(FVector Target)
+void AMyPawn::UpdateLookTarget(FVector Target)
 {
 	// TODO
 }
 
-void APawnInSpace::Tick(float DeltaSeconds)
+void AMyPawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
@@ -58,28 +56,13 @@ void APawnInSpace::Tick(float DeltaSeconds)
 	}
 }
 
-#if WITH_EDITOR
-void APawnInSpace::OnConstruction(const FTransform& Transform)
+void AMyPawn::OnConstruction(const FTransform& Transform)
 {
-	if(Orbit->bSkipConstruction)
-	{
-		return;
-	}
-	
 	Super::OnConstruction(Transform);
-	
-	const FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
-	const FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
-	
-	if(!Orbit->GetHasBeenSet())
-	{
-		Orbit->SetCircleOrbit(Transform.GetLocation(), Physics);
-	}
-	Orbit->Update(Physics, InstanceUI);
+	IHasOrbit::Construction(Transform);
 }
-#endif 
 
-void APawnInSpace::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void AMyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
@@ -89,9 +72,9 @@ void APawnInSpace::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	// in case this goes out of syn (COND_SkipOwner prevents re-sync), the player looks into the wrong direction for a while;
 	//DOREPLIFETIME_CONDITION(APawnInSpace, RP_BodyRotation   , COND_SkipOwner)
 	// just removing the COND_SkipOwner makes sure that the client's authority doesn't last more than a couple of frames
-	DOREPLIFETIME(APawnInSpace, RP_BodyRotation)
+	DOREPLIFETIME(AMyPawn, RP_BodyRotation)
 
 	// in case of acceleration: full server-control: the client won't react to the key press until the action has
 	// round-tripped, i.e. there is no movement prediction
-	DOREPLIFETIME(APawnInSpace, RP_bIsAccelerating)
+	DOREPLIFETIME(AMyPawn, RP_bIsAccelerating)
 }

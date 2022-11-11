@@ -3,6 +3,7 @@
 
 #include "Actors/GyrationComponent.h"
 
+#include "Actors/IHasMesh.h"
 #include "Lib/UStateLib.h"
 #include "Net/UnrealNetwork.h"
 
@@ -10,35 +11,19 @@ UGyrationComponent::UGyrationComponent()
 {
 	SetIsReplicatedByDefault(true);
 	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.bStartWithTickEnabled = false;
-}
-
-void UGyrationComponent::SetBody(UPrimitiveComponent* InBody)
-{
-	Body = InBody;
-	UActorComponent::SetComponentTickEnabled(true);
 }
 
 void UGyrationComponent::FreezeState()
 {
-	if(IsValid(Body))
-	{
-		RP_GyrationState = { Body->GetComponentRotation(), VecL };
-	}
+	RP_GyrationState = { GetOwner<IHasMesh>()->GetMesh()->GetComponentRotation(), VecL };
 }
 
 void UGyrationComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if(!Body)
-	{
-		UE_LOG(LogActorComponent, Display, TEXT("%s: body null, gyration disabled"), *GetFullName())
-		return;
-	}
-
 	// TODO: meshes connected with sockets
-	VecInertia = Body->GetInertiaTensor();
+	VecInertia = GetOwner<IHasMesh>()->GetMesh()->GetInertiaTensor();
 
 	if(GetOwnerRole() == ROLE_Authority)
 	{
@@ -75,7 +60,7 @@ void UGyrationComponent::BeginPlay()
 
 void UGyrationComponent::OnRep_GyrationState()
 {
-	Body->SetWorldRotation(RP_GyrationState.Rot);
+	GetOwner<IHasMesh>()->GetMesh()->SetWorldRotation(RP_GyrationState.Rot);
 	VecL = RP_GyrationState.VecL;
 }
 
@@ -84,6 +69,7 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	UPrimitiveComponent* Body = GetOwner<IHasMesh>()->GetMesh();
 	const FMatrix MatROld = FRotationMatrix(Body->GetComponentRotation());
 	const FMatrix MatInertiaReverse = FMatrix
 			( FVector(1./ VecInertia.X, 0, 0)
@@ -115,7 +101,6 @@ void UGyrationComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent&
 	const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
 	static const FName FNameL = GET_MEMBER_NAME_CHECKED(UGyrationComponent, L);
-	//static const FName FNameVecL = GET_MEMBER_NAME_CHECKED(UGyrationComponent, VecL);
 	static const FName FNameE = GET_MEMBER_NAME_CHECKED(UGyrationComponent, E);
 
 	if(Name == FNameL)

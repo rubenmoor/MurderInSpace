@@ -22,9 +22,9 @@ struct FGyrationState
 };
 
 /*
- *
  * physical rotation of objects in space
- * 
+ *
+ * requires the owning actor to implement `IHasMesh`
  */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MURDERINSPACE_API UGyrationComponent : public UActorComponent
@@ -34,9 +34,6 @@ class MURDERINSPACE_API UGyrationComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UGyrationComponent();
-
-	UFUNCTION(BlueprintCallable)
-	void SetBody(UPrimitiveComponent* InBody);
 
 	UFUNCTION(BlueprintCallable)
 	void FreezeState();
@@ -52,9 +49,6 @@ protected:
 	#endif
 	
 	// private members
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UPrimitiveComponent> Body;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
 	FVector VecInertia = FVector::Zero();

@@ -1,24 +1,20 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Actors/CharacterInSpace.h"
+#include "Actors/MyCharacter.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "NiagaraComponent.h"
 #include "Lib/FunctionLib.h"
-#include "Modes/MyPlayerController.h"
 
-ACharacterInSpace::ACharacterInSpace()
+AMyCharacter::AMyCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	TempSplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("TempSplineMesh"));
 	TempSplineMeshParent->SetupAttachment(Orbit);
 
-	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
-	SkeletalMesh->SetupAttachment(MovableRoot);
-	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(MovableRoot);
 	SpringArm->TargetArmLength = 1000;
@@ -36,12 +32,16 @@ ACharacterInSpace::ACharacterInSpace()
 	Visor->SetRelativeLocation(FVector(10, 0, 0));
 	Visor->SetRelativeScale3D(FVector(0.8, 1.3, 1.3));
 	Visor->SetGenerateOverlapEvents(false);
+	Visor->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Visor->SetVisibility(false);
 
 	VisorFrame = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisorFrame"));
 	VisorFrame->SetupAttachment(Visor);
 	VisorFrame->SetRelativeLocation(FVector(25.0, 0, 0));
 	VisorFrame->SetRelativeRotation(FRotator(90, 0, 0));
 	VisorFrame->SetGenerateOverlapEvents(false);
+	VisorFrame->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	VisorFrame->SetVisibility(false);
 
 	StarAnchor = CreateDefaultSubobject<USceneComponent>(TEXT("StarAnchor"));
 	StarAnchor->SetupAttachment(SpringArm);
@@ -49,13 +49,15 @@ ACharacterInSpace::ACharacterInSpace()
 
 	StarsClose = CreateDefaultSubobject<UNiagaraComponent>(TEXT("StarsClose"));
 	StarsClose->SetupAttachment(StarAnchor);
+	StarsClose->SetVisibility(false);
 	
 	StarsDistant = CreateDefaultSubobject<UNiagaraComponent>(TEXT("StarsDistant"));
 	StarsDistant->SetupAttachment(StarAnchor);
 	StarsDistant->SetRelativeLocation(FVector(10000, 0, 0));
+	StarsDistant->SetVisibility(false);
 }
 
-void ACharacterInSpace::UpdateSpringArm(uint8 CameraPosition)
+void AMyCharacter::UpdateSpringArm(uint8 CameraPosition)
 {
 	const float Length = pow(CameraPosition, 2) * 250;
 	SpringArm->TargetArmLength = Length;
@@ -72,33 +74,30 @@ void ACharacterInSpace::UpdateSpringArm(uint8 CameraPosition)
 	}
 }
 
-void ACharacterInSpace::SetVisibility(bool bVisibility)
+void AMyCharacter::ShowEffects()
+{
+	Visor->SetVisibility(true);
+	VisorFrame->SetVisibility(true);
+	StarsClose->SetVisibility(true);
+	StarsDistant->SetVisibility(true);
+}
+
+void AMyCharacter::SetVisibility(bool bVisibility)
 {
 	SkeletalMesh->SetVisibility(bVisibility, true);
 }
 
-float ACharacterInSpace::GetSpringArmLength() const
+float AMyCharacter::GetSpringArmLength() const
 {
 	return SpringArm->TargetArmLength;
 }
 
-void ACharacterInSpace::DestroyTempSplineMesh()
+void AMyCharacter::DestroyTempSplineMesh()
 {
 	TArray<USceneComponent*> Meshes;
 	TempSplineMeshParent->GetChildrenComponents(false, Meshes);
 	for(USceneComponent* const Mesh : Meshes)
 	{
 		Mesh->DestroyComponent();
-	}
-}
-
-void ACharacterInSpace::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if(!Controller || !Controller->IsLocalController())
-	{
-		Visor->SetVisibility(false);
-		VisorFrame->SetVisibility(false);
 	}
 }
