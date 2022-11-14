@@ -13,10 +13,10 @@ AMyCharacter::AMyCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	TempSplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("TempSplineMesh"));
-	TempSplineMeshParent->SetupAttachment(Orbit);
+	TempSplineMeshParent->SetupAttachment(AMyPawn::GetOrbit());
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(MovableRoot);
+	SpringArm->SetupAttachment(AMyPawn::GetMovableRoot());
 	SpringArm->TargetArmLength = 1000;
 	SpringArm->bEnableCameraLag = true;
 	SpringArm->CameraLagSpeed = 3;

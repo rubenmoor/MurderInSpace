@@ -7,5 +7,5 @@
 
 AMyPlayerStart::AMyPlayerStart()
 {
-	Orbit->SetEnableVisibility(false);
+	GetOrbit()->SetEnableVisibility(false);
 }

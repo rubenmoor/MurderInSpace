@@ -7,26 +7,22 @@ AMyPawn::AMyPawn()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	// components
+    Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+    Root->SetMobility(EComponentMobility::Stationary);
+    SetRootComponent(Root);
+    
+    MovableRoot = CreateDefaultSubobject<USceneComponent>(TEXT("MovableRoot"));
+    MovableRoot->SetupAttachment(Root);
+    
+    Orbit = CreateDefaultSubobject<UOrbitComponent>(TEXT("Orbit"));
+    Orbit->SetupAttachment(Root);
 
-	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	//Root->SetMobility(EComponentMobility::Stationary);
-	SetRootComponent(Root);
+    SplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("SplineMesh"));
+    SplineMeshParent->SetupAttachment(Orbit);
+    SplineMeshParent->SetMobility(EComponentMobility::Stationary);
 
-	MovableRoot = CreateDefaultSubobject<USceneComponent>(TEXT("MovableRoot"));
-	MovableRoot->SetupAttachment(Root);
-	
-	Orbit = CreateDefaultSubobject<UOrbitComponent>(TEXT("Orbit"));
-	Orbit->SetupAttachment(Root);
-	
-	SplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("SplineMesh"));
-	SplineMeshParent->SetupAttachment(Orbit);
-	SplineMeshParent->SetMobility(EComponentMobility::Stationary);
-
-	// for the editor
-	Orbit->UpdateVisibility(UStateLib::GetInstanceUIEditorDefault());
-	
 	bNetLoadOnClient = false;
+	bReplicates = true;
 	AActor::SetReplicateMovement(false);
 }
 
@@ -41,8 +37,8 @@ void AMyPawn::Tick(float DeltaSeconds)
 
 	DrawDebugDirectionalArrow
 		( GetWorld()
-		, MovableRoot->GetComponentLocation()
-		, MovableRoot->GetComponentLocation() + 1000. * MovableRoot->GetForwardVector()
+		, GetMovableRoot()->GetComponentLocation()
+		, GetMovableRoot()->GetComponentLocation() + 1000. * GetMovableRoot()->GetForwardVector()
 		, 20
 		, FColor::Yellow
 		);
@@ -52,7 +48,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 		const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
 		const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
 		const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
-		Orbit->AddVelocity(MovableRoot->GetForwardVector() * DeltaV, Physics, InstanceUI);
+		GetOrbit()->AddVelocity(GetMovableRoot()->GetForwardVector() * DeltaV, Physics, InstanceUI);
 	}
 }
 

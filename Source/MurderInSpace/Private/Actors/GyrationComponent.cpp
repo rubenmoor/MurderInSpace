@@ -15,6 +15,11 @@ UGyrationComponent::UGyrationComponent()
 
 void UGyrationComponent::FreezeState()
 {
+	if(!GetOwner<IHasMesh>())
+	{
+		UE_LOG(LogTemp, Error, TEXT("GetOwner<IHasMesh>(): %s"), *GetOwner()->GetFullName())
+	}
+	else
 	RP_GyrationState = { GetOwner<IHasMesh>()->GetMesh()->GetComponentRotation(), VecL };
 }
 

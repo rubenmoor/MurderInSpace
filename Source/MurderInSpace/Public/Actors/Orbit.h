@@ -2,9 +2,23 @@
 
 #include "CoreMinimal.h"
 #include "Components/SplineComponent.h"
+#include "GameFramework/Actor.h"
 #include "Lib/UStateLib.h"
+#include "Orbit.generated.h"
 
-#include "OrbitComponent.generated.h"
+UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
+class UHasOrbit : public UInterface
+{
+    GENERATED_BODY()
+};
+
+class IHasOrbit
+{
+    GENERATED_BODY()
+    
+public:
+    virtual AOrbit* GetOrbit() = 0;
+};
 
 UENUM(BlueprintType)
 enum class EOrbitType : uint8
@@ -65,18 +79,19 @@ struct FOrbitState
     FVector VecVelocity = FVector::Zero();
 };
 
-/**
- * 
- */
 UCLASS()
-class MURDERINSPACE_API UOrbitComponent : public USplineComponent
+class MURDERINSPACE_API AOrbit final : public AActor
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
+	
+public:	
+	AOrbit();
 
-    friend class AMyPlayerController;
-public:
-    UOrbitComponent();
+	virtual void Tick(float DeltaTime) override;
 
+    // TODO: check if really needed
+	AActor* GetBody() const { return Body; }
+    
     // initialization
     
     UFUNCTION(BlueprintCallable)
@@ -88,9 +103,6 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
-
-    UFUNCTION(BlueprintCallable)
-    bool GetHasBeenSet() { return RP_bHasBeenSet; }
     
     // update the orbit given the location of `MovableRoot`, `VecVelocity` and `Physics`
     UFUNCTION(BlueprintCallable)
@@ -130,7 +142,7 @@ public:
     FVector GetVecRKepler(FPhysics Physics) const { return GetVecR() - Physics.VecF1; }
 
     UFUNCTION(BlueprintCallable)
-    FVector GetVecR() const { return GetOwner<IHasOrbit>()->GetMovableRoot()->GetComponentLocation(); }
+    FVector GetVecR() const { return GetBody()->GetActorLocation(); }
 
     // whenever a spline mesh merely changes visibility:
     UFUNCTION(BlueprintCallable)
@@ -149,22 +161,26 @@ public:
     UFUNCTION(BlueprintCallable)
     void SetIsChanging(bool InIsChanging) { bIsChanging = InIsChanging; }
 
-    bool bSkipConstruction = false;
-    
 protected:
-    
-    // event handlers
-
-    virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-    virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
 
 #if WITH_EDITOR
-    virtual void PreEditChange(FProperty* PropertyAboutToChange) override;
     virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 #endif
 
     virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
     
+	// components
+	
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    TObjectPtr<USceneComponent> Root;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    TObjectPtr<USplineComponent> Spline;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    TObjectPtr<USceneComponent> SplineMeshParent;
+
     // members
     
     /* disable orbit visualization entirely */
@@ -202,9 +218,6 @@ protected:
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
     float RP_DistanceZero;
 
-    // UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
-    // FVector VecR = FVector::Zero();
-
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     FVector VecVelocity = FVector::Zero();
     
@@ -214,9 +227,6 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     float VelocityVCircle = 0;
     
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
-    bool RP_bHasBeenSet = false;
-    
     /**
      * @brief constant factor to construct tangents for spline points
      * //const float CBezierToCircle = 4.0 / 3 * (sqrt(2) - 1);
@@ -225,6 +235,10 @@ protected:
      */
     static constexpr float SplineToCircle = 1.65;
 
+	// the Actor that moves along this Orbit
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	AActor* Body;
+    
     // private methods
 
     // the only way to set the velocity is by providing a value for `VecVelocity`
@@ -244,8 +258,12 @@ protected:
     UFUNCTION(BlueprintCallable)
     FOrbitParameters GetParams() const { return RP_Params; };
     
+    // add spline points, in world coordinates, to the spline
+    // and to the array `RP_SplinePoints`, for replication
+    // however: this one only corrects for the translation, not for rotation and scale
+    // as long as we don't scale or rotate the spline, this is fine
     UFUNCTION(BlueprintCallable)
-    void MyAddPoints();
+    void AddPointsToSpline();
 
     UFUNCTION(BlueprintPure)
     bool GetVisibility(FInstanceUI InstanceUI) const;
@@ -264,8 +282,8 @@ protected:
     UFUNCTION()
     void OnRep_SplinePoints()
     {
-        MyAddPoints();
-        UpdateSpline();
+        AddPointsToSpline();
+        Spline->UpdateSpline();
     }
 
     UPROPERTY(ReplicatedUsing=OnRep_bClosedLoop)
@@ -274,10 +292,20 @@ protected:
     UFUNCTION()
     void OnRep_bClosedLoop()
     {
-        SetClosedLoop(RP_bClosedLoop, true);
+        Spline->SetClosedLoop(RP_bClosedLoop, true);
     }
 
     // server only
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
     bool bIsChanging = false;
+
+    // custom event handlers
+	UFUNCTION(BlueprintCallable)
+	void HandleBeginMouseOver(AActor* Actor);
+	
+	UFUNCTION(BlueprintCallable)
+	void HandleEndMouseOver(AActor* Actor);
+	
+	UFUNCTION(BlueprintCallable)
+	void HandleClick(AActor* Actor, FKey Button);
 };

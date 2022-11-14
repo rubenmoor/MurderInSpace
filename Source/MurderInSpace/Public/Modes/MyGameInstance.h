@@ -90,6 +90,7 @@ public:
 	// clicking on pawns and actors impacts the visibility of their respective orbits
 	// so instead of implementing the following handlers twice, in ActorInSpace and PawnInSpace,
 	// we put them here
+	// TODO: move to AOrbit
 	UFUNCTION(BlueprintCallable)
 	void HandleBeginMouseOver(AActor* Actor);
 	

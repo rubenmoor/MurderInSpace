@@ -50,10 +50,10 @@ struct FHighlight
 	GENERATED_BODY()
 
 	FHighlight(): Orbit(), Size(0) {}
-	FHighlight(class UOrbitComponent* InOrbit, float InSize) : Orbit(InOrbit), Size(InSize) {}
+	FHighlight(class AOrbit* InOrbit, float InSize) : Orbit(InOrbit), Size(InSize) {}
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UOrbitComponent> Orbit;
+	AOrbit* Orbit;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Size;

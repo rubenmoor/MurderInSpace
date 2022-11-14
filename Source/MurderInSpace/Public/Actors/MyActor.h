@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "OrbitComponent.h"
+
 #include "MyActor.generated.h"
 
 class UOrbitComponent;
@@ -18,8 +19,8 @@ public:
     AMyActor();
 
     // IOrbit interface
-    virtual UOrbitComponent* GetOrbit() override final { return Orbit; }
-    virtual USceneComponent* GetMovableRoot() override final { return MovableRoot; }
+    virtual UOrbitComponent* GetOrbit()            override final { return Orbit;            }
+    virtual USceneComponent* GetMovableRoot()      override final { return MovableRoot;      }
     virtual USceneComponent* GetSplineMeshParent() override final { return SplineMeshParent; }
     
 protected:

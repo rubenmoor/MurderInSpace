@@ -1,12 +1,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "OrbitComponent.h"
 #include "GameFramework/Pawn.h"
 #include "MyPawn.generated.h"
 
 UCLASS()
-class MURDERINSPACE_API AMyPawn : public APawn, public IHasOrbit
+class MURDERINSPACE_API AMyPawn : public APawn
 {
     GENERATED_BODY()
 
@@ -25,15 +24,15 @@ public:
     float RP_bIsAccelerating = false;
 
     // IOrbit interface
-    virtual UOrbitComponent* GetOrbit() override { return Orbit; }
-    virtual USceneComponent* GetMovableRoot() override { return MovableRoot; }
-    virtual USceneComponent* GetSplineMeshParent() override { return SplineMeshParent; }
+    virtual UOrbitComponent* GetOrbit()            override final { return Orbit;            }
+    virtual USceneComponent* GetMovableRoot()      override final { return MovableRoot;      }
+    virtual USceneComponent* GetSplineMeshParent() override final { return SplineMeshParent; }
 
     UPROPERTY(ReplicatedUsing=OnRep_BodyRotation, VisibleAnywhere, BlueprintReadOnly)
     FQuat RP_BodyRotation;
 
     UFUNCTION()
-    void OnRep_BodyRotation() { MovableRoot->SetWorldRotation(RP_BodyRotation); }
+    void OnRep_BodyRotation() { GetMovableRoot()->SetWorldRotation(RP_BodyRotation); }
 protected:
     
     // event handlers
@@ -48,13 +47,10 @@ protected:
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UOrbitComponent> Orbit;
-    
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<USceneComponent> SplineMeshParent;
 
-    // the root component is stationary, it holds the Orbit component;
-    // this scene component holds everything movable
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<USceneComponent> MovableRoot;
-
 };
