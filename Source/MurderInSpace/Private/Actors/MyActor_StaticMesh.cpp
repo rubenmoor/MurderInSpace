@@ -4,8 +4,6 @@
 #include "Actors/MyActor_StaticMesh.h"
 
 #include "Actors/GyrationComponent.h"
-#include "Modes/MyGameInstance.h"
-#include "Tasks/GameplayTask_SpawnActor.h"
 
 AMyActor_StaticMesh::AMyActor_StaticMesh()
 {
@@ -18,40 +16,56 @@ AMyActor_StaticMesh::AMyActor_StaticMesh()
     Gyration = CreateDefaultSubobject<UGyrationComponent>(TEXT("Gyration"));
 }
 
-void AMyActor_StaticMesh::CreateOrbit()
-{
-#if WITH_EDITOR
-    FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
-#else
-    FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
-#endif
-    
-    if(!Orbit)
-    {
-        Orbit = GetWorld()->SpawnActor<AOrbit>();
-    }
-    Orbit->SetCircleOrbit(GetActorLocation(), Physics);
-}
-
-void AMyActor_StaticMesh::BeginPlay()
-{
-    Super::BeginPlay();
-
-    UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
-    
-    OnBeginCursorOver.AddDynamic(GI, &UMyGameInstance::HandleBeginMouseOver);
-    OnEndCursorOver.AddDynamic(GI, &UMyGameInstance::HandleEndMouseOver);
-    OnClicked.AddDynamic(GI, &UMyGameInstance::HandleClick);
-}
-
 void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
-    if(Orbit)
-    {
-        FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
-        FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
-        Orbit->SetCircleOrbit(Transform.GetLocation(), Physics);
-        Orbit->Update(Physics, InstanceUI);
-    }
+
+	if(HasAnyFlags(RF_Transient))
+	{
+		return;
+	}
+		
+	if(!OrbitClass)
+	{
+		UE_LOG(LogMyGame, Error, TEXT("%s: OnConstruction: OrbitClass null"), *GetFullName())
+		return;
+	}
+	const FString NewName = FString(TEXT("Orbit_")).Append(GetFName().ToString());
+	if(!IsValid(Orbit))
+	{
+		UE_LOG(LogMyGame, Warning, TEXT("%s: OnConstruction: NewName "), *NewName)
+		Orbit = AOrbit::SpawnOrbit(this, NewName);
+		Orbit->SetEnableVisibility(true);
+	}
+	else
+	{
+		// fix orbit after copying (alt + move in editor)
+		if(Orbit->GetBody() != this)
+		{
+			UObject* Object = StaticFindObjectFastSafe(AOrbit::StaticClass(), GetWorld(), FName(NewName), true);
+			// debugging: cast fails
+			Orbit = Object ? Cast<AOrbit>(Object) : nullptr;
+		}
+		Orbit->OnConstruction(FTransform());
+	}
+}
+
+void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+	
+    const FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
+    const FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
+    
+    const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
+
+    static const FName FNameOrbitColor = GET_MEMBER_NAME_CHECKED(AMyActor_StaticMesh, OrbitColor);
+
+	if(Name == FNameOrbitColor)
+	{
+		if(IsValid(Orbit))
+		{
+			Orbit->Update(Physics, InstanceUI);
+		}
+	}
 }

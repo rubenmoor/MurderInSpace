@@ -3,5 +3,5 @@
 AMyPawn_SkeletalMesh::AMyPawn_SkeletalMesh()
 {
 	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
-	SkeletalMesh->SetupAttachment(AMyPawn::GetMovableRoot());
+	SkeletalMesh->SetupAttachment(Root);
 }

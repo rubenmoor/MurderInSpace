@@ -12,11 +12,8 @@ AMyCharacter::AMyCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	TempSplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("TempSplineMesh"));
-	TempSplineMeshParent->SetupAttachment(AMyPawn::GetOrbit());
-
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(AMyPawn::GetMovableRoot());
+	SpringArm->SetupAttachment(Root);
 	SpringArm->TargetArmLength = 1000;
 	SpringArm->bEnableCameraLag = true;
 	SpringArm->CameraLagSpeed = 3;
@@ -68,7 +65,7 @@ void AMyCharacter::UpdateSpringArm(uint8 CameraPosition)
 		));
 	StarAnchor->SetRelativeLocation(FVector(10000 + Length, 0, 0));
 	// TODO: maybe missing an orbit component?
-	for(MyObjectIterator<UOrbitComponent> IOrbit(GetWorld()); IOrbit; ++IOrbit)
+	for(MyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
 	{
 		(*IOrbit)->UpdateSplineMeshScale(Length / 1000.);
 	}
@@ -90,14 +87,4 @@ void AMyCharacter::SetVisibility(bool bVisibility)
 float AMyCharacter::GetSpringArmLength() const
 {
 	return SpringArm->TargetArmLength;
-}
-
-void AMyCharacter::DestroyTempSplineMesh()
-{
-	TArray<USceneComponent*> Meshes;
-	TempSplineMeshParent->GetChildrenComponents(false, Meshes);
-	for(USceneComponent* const Mesh : Meshes)
-	{
-		Mesh->DestroyComponent();
-	}
 }

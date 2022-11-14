@@ -11,24 +11,28 @@
  * 
  */
 UCLASS()
-class MURDERINSPACE_API AMyActor_StaticMesh final : public AActor, public IHasMesh, public IHasOrbit
+class MURDERINSPACE_API AMyActor_StaticMesh final
+	: public AActor
+	, public IHasMesh
+	, public IHasOrbit
+	, public IHasOrbitColor
 {
 	GENERATED_BODY()
 
 	AMyActor_StaticMesh();
 
 public:
-	virtual UPrimitiveComponent* GetMesh()  override { return StaticMesh; }
-	virtual AOrbit*              GetOrbit() override { return Orbit;        }
-
-	UFUNCTION(BlueprintCallable, CallInEditor)
-	void CreateOrbit();
+	virtual UPrimitiveComponent* GetMesh()        override { return StaticMesh; }
+	virtual AOrbit*              GetOrbit()       override { return Orbit;        }
+	virtual TSubclassOf<AOrbit>  GetOrbitClass()  override { return OrbitClass;   }
+	virtual FLinearColor         GetOrbitColor()  override { return OrbitColor;   }
 	
 protected:
+	virtual FString GetDefaultActorLabel() const override { return GetClass()->GetName(); }
+	
 	// event handlers
-	virtual void BeginPlay() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
-	// maybe: implement posteditchangedchainproperty to update orbit on change of actor location
+	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 
 	// components
 
@@ -42,6 +46,13 @@ protected:
     TObjectPtr<class UGyrationComponent> Gyration;
 
 	// members
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AOrbit> OrbitClass;
+	
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	AOrbit* Orbit;
+	
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+    FLinearColor OrbitColor;
 };

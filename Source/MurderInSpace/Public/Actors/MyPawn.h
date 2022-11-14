@@ -1,18 +1,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Orbit.h"
 #include "GameFramework/Pawn.h"
 #include "MyPawn.generated.h"
 
 UCLASS()
-class MURDERINSPACE_API AMyPawn : public APawn
+class MURDERINSPACE_API AMyPawn
+	: public APawn
+	, public IHasOrbit
+	, public IHasOrbitColor
 {
     GENERATED_BODY()
 
 public:
     // Sets default values for this pawn's properties
     AMyPawn();
-
+	
     UFUNCTION(BlueprintCallable)
     void UpdateLookTarget(FVector Target);
 
@@ -24,33 +28,38 @@ public:
     float RP_bIsAccelerating = false;
 
     // IOrbit interface
-    virtual UOrbitComponent* GetOrbit()            override final { return Orbit;            }
-    virtual USceneComponent* GetMovableRoot()      override final { return MovableRoot;      }
-    virtual USceneComponent* GetSplineMeshParent() override final { return SplineMeshParent; }
-
+	virtual AOrbit*             GetOrbit()       override { return Orbit;      }
+	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
+	virtual FLinearColor        GetOrbitColor()  override { return OrbitColor; }
+	
     UPROPERTY(ReplicatedUsing=OnRep_BodyRotation, VisibleAnywhere, BlueprintReadOnly)
-    FQuat RP_BodyRotation;
+    FQuat RP_Rotation;
 
     UFUNCTION()
-    void OnRep_BodyRotation() { GetMovableRoot()->SetWorldRotation(RP_BodyRotation); }
+    void OnRep_BodyRotation() { Root->SetWorldRotation(RP_Rotation); }
+	
 protected:
+	virtual FString GetDefaultActorLabel() const override { return GetClass()->GetName(); }
     
     // event handlers
     
     virtual void Tick(float DeltaSeconds) override;
     virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
     
     // components
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<USceneComponent> Root;
     
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    TObjectPtr<UOrbitComponent> Orbit;
+	// members
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    TObjectPtr<USceneComponent> SplineMeshParent;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    TObjectPtr<USceneComponent> MovableRoot;
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AOrbit> OrbitClass;
+	
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	AOrbit* Orbit;
+	
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+    FLinearColor OrbitColor;
 };

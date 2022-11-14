@@ -3,6 +3,7 @@
 #include <numeric>
 
 #include "Components/SplineMeshComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
 #include "Net/UnrealNetwork.h"
 
@@ -24,6 +25,20 @@ AOrbit::AOrbit()
     SplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("SplineMeshes"));
     SplineMeshParent->SetupAttachment(Root);
     SplineMeshParent->SetMobility(EComponentMobility::Stationary);
+
+    TemporarySplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("TemporarySplineMeshes"));
+    TemporarySplineMeshParent->SetupAttachment(Root);
+    TemporarySplineMeshParent->SetMobility(EComponentMobility::Stationary);
+}
+
+void AOrbit::DestroyTempSplineMeshes()
+{
+	TArray<USceneComponent*> Meshes;
+	TemporarySplineMeshParent->GetChildrenComponents(false, Meshes);
+	for(USceneComponent* Mesh : Meshes)
+	{
+		Mesh->DestroyComponent();
+	}
 }
 
 void AOrbit::BeginPlay()
@@ -35,7 +50,7 @@ void AOrbit::BeginPlay()
 
     if(!Body)
     {
-        UE_LOG(LogActor, Error, TEXT("%s: no body"), *GetFullName())
+        UE_LOG(LogMyGame, Error, TEXT("%s: no body"), *GetFullName())
         bHasProblems = true;
         SetActorTickEnabled(false);
     }
@@ -43,14 +58,14 @@ void AOrbit::BeginPlay()
     // Only care for and spline static mesh and material if this orbit is meant to be visible
     if(bTrajectoryShowSpline)
     {
-        if(!MSplineMesh)
+        if(!SplineMeshMaterial)
         {
-            UE_LOG(LogActor, Warning, TEXT("%s: spline mesh material not set"), *GetFullName())
+            UE_LOG(LogMyGame, Warning, TEXT("%s: spline mesh material not set"), *GetFullName())
             bHasProblems = true;
         }
         if(!StaticMesh)
         {
-            UE_LOG(LogActor, Warning, TEXT("%s: static mesh for trajectory not set"), *GetFullName())
+            UE_LOG(LogMyGame, Warning, TEXT("%s: static mesh for trajectory not set"), *GetFullName())
             bHasProblems = true;
         }
     }
@@ -59,51 +74,66 @@ void AOrbit::BeginPlay()
         return;
     }
     
+    Body->OnBeginCursorOver.AddDynamic(this, &AOrbit::HandleBeginMouseOver);
+    Body->OnEndCursorOver.AddDynamic(this, &AOrbit::HandleEndMouseOver);
+    Body->OnClicked.AddDynamic(this, &AOrbit::HandleClick);
+    
     Update(UStateLib::GetPhysicsUnsafe(this), InstanceUI);
     
     // ignore the visibility set in the editor
     bIsVisibleVarious = false;
     UpdateVisibility(InstanceUI);
+}
 
+void AOrbit::OnConstruction(const FTransform& Transform)
+{
+    Super::OnConstruction(Transform);
+    if(IsValid(Body))
+    {
+#if WITH_EDITOR
+        FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
+        FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
+#else
+        UE_LOG(LogMyGame, Warning, TEXT("%s: debugging: OnConstruction: not with editor"))
+        FPhysics Physics = UStateLib::GetPhysicsUnsafe(InBody);
+        FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(InBody);
+#endif
+
+        SetCircleOrbit(Physics);
+        Update(Physics, InstanceUI);
+    }
 }
 
 void AOrbit::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-    if(!RP_bHasBeenSet)
-    {
-        UE_LOG(LogActor, Error, TEXT("%s: TickComponent: not initialized"), *GetFullName())
-        SetActorTickEnabled(false);
-        return;
-    }
-    
     const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
     const FVector VecRKepler = GetVecRKepler(Physics);
 
-    Velocity = NextVelocity(VecRKepler.Length(), Physics.Alpha, Velocity, DeltaTime, VecVelocity.Dot(VecRKepler));
-    VelocityVCircle = Velocity / GetCircleVelocity(Physics);
-    const float DeltaR = Velocity * DeltaTime;
+    ScalarVelocity = NextVelocity(VecRKepler.Length(), Physics.Alpha, ScalarVelocity, DeltaTime, VecVelocity.Dot(VecRKepler));
+    VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics);
+    const float DeltaR = ScalarVelocity * DeltaTime;
 
     // advance on spline
     FVector NewVecR;
     SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
     if(RP_Params.OrbitType == EOrbitType::LINEBOUND)
     {
-        VecVelocity = Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
+        VecVelocity = Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * ScalarVelocity;
         NewVecR = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
     }
     else
     {
         // direction at current position, i.e. at current spline key
-        VecVelocity = Spline->GetTangentAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World).GetSafeNormal() * Velocity;
+        VecVelocity = Spline->GetTangentAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World).GetSafeNormal() * ScalarVelocity;
         const FVector NewLocationAtTangent = GetVecR() + VecVelocity * DeltaTime;
         
         // new spline key
         SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewLocationAtTangent);
         NewVecR = Spline->GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World);
     }
-    GetBody()->SetActorLocation(NewVecR, true, nullptr);
+    Body->SetActorLocation(NewVecR, true, nullptr);
     
     // TODO: account for acceleration
     // const auto RealDeltaR = (GetVecR() - VecR).Length();
@@ -117,7 +147,7 @@ void AOrbit::Tick(float DeltaTime)
 
 void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
 {
-    const FVector VecR = GetBody()->GetActorLocation();
+    const FVector VecR = Body->GetActorLocation();
     
     // transform location vector r to Kepler coordinates, where F1 is the origin
     const FVector VecRKepler = GetVecRKepler(Physics);
@@ -130,9 +160,9 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
     constexpr float Tolerance = 1E-2;
     const FVector VecH = VecRKepler.Cross(VecVelocity);
     RP_Params.P = VecH.SquaredLength() / Physics.Alpha;
-    Velocity = VecVelocity.Length();
-    VelocityVCircle = Velocity / GetCircleVelocity(Physics);
-    RP_Params.Energy = pow(Velocity, 2) / 2. - Physics.Alpha / RKepler;
+    ScalarVelocity = VecVelocity.Length();
+    VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics);
+    RP_Params.Energy = pow(ScalarVelocity, 2) / 2. - Physics.Alpha / RKepler;
     const FVector VecE = UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Physics.Alpha);
     RP_Params.Eccentricity = VecE.Length();
     const FVector VecENorm = VecE.GetSafeNormal();
@@ -367,23 +397,27 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
 
     if(bTrajectoryShowSpline)
     {
-        SpawnSplineMesh
-            ( SplineMeshColor
-            , SplineMeshParent
-            , InstanceUI
-            );
+        // debugging, shouldn't be necessary
+        if(Cast<IHasOrbitColor>(Body))
+        {
+            SpawnSplineMesh
+                ( Cast<IHasOrbitColor>(Body)->GetOrbitColor()
+                , ESplineMeshParentSelector::Permanent
+                , InstanceUI
+                );
+        }
     }
 }
 
 void AOrbit::UpdateSplineMeshScale(float InScaleFactor)
 {
     SplineMeshScaleFactor = InScaleFactor;
-    TArray<USceneComponent*> Children;
-    SplineMeshParent->GetChildrenComponents(false, Children);
-    for(const auto Child : Children)
+    TArray<USceneComponent*> SceneComponents;
+    SplineMeshParent->GetChildrenComponents(false, SceneComponents);
+    for(USceneComponent* SceneComponent  : SceneComponents)
     {
-        const auto Mesh = Cast<USplineMeshComponent>(Child);
-        const auto Material = Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(0));
+        USplineMeshComponent* Mesh = Cast<USplineMeshComponent>(SceneComponent);
+        UMaterialInstanceDynamic* Material = Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(0));
         Material->SetScalarParameterValue(FName(TEXT("NumBands")), 4. / InScaleFactor);
         
         Mesh->SetStartScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
@@ -404,12 +438,6 @@ float AOrbit::VelocityParabola(float R, float Alpha)
 
 float AOrbit::NextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign)
 {
-    if(!RP_bHasBeenSet)
-    {
-        UE_LOG(LogActor, Error, TEXT("%s: NextVelocity: not initialized"), *GetFullName());
-        return 0.;
-    }
-    
     switch(RP_Params.OrbitType)
     {
     case EOrbitType::CIRCLE:
@@ -484,7 +512,7 @@ float AOrbit::GetCircleVelocity(FPhysics Physics) const
 
 void AOrbit::AddVelocity(FVector VecDeltaV, FPhysics Physics, FInstanceUI InstanceUI)
 {
-    SetVelocity(VecVelocity + VecDeltaV);
+    VecVelocity += VecDeltaV;
     Update(Physics, InstanceUI);
 }
 
@@ -492,26 +520,81 @@ void AOrbit::OnRep_OrbitState()
 {
     // OrbitState is replicated with condition "initial only", implying that replication (including the call
     // to this method) happens only once
-    GetBody()->SetActorLocation(RP_OrbitState.VecR, true, nullptr);
+    Body->SetActorLocation(RP_OrbitState.VecR, true, nullptr);
     VecVelocity    = RP_OrbitState.VecVelocity;
-    Velocity       = VecVelocity.Length();
+    ScalarVelocity       = VecVelocity.Length();
     SplineKey      = Spline->FindInputKeyClosestToWorldLocation(RP_OrbitState.VecR);
     SplineDistance = Spline->GetDistanceAlongSplineAtSplineInputKey(SplineKey);
 }
 
-void AOrbit::SetCircleOrbit(FVector InVecR, FPhysics Physics)
+void AOrbit::HandleBeginMouseOver(AActor* Actor)
 {
-    const FVector VecRKepler = InVecR - Physics.VecF1;
-    const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
-    const FVector NewVecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
-    SetOrbitByParams(InVecR, NewVecVelocity, Physics);
+    UStateLib::WithInstanceUIUnsafe(this, [this] (FInstanceUI& InstanceUI)
+    {
+        InstanceUI.Hovered.Emplace(this, 0);
+        bIsVisibleVarious = true;
+        UpdateVisibility(InstanceUI);
+    });
 }
 
-void AOrbit::SetOrbitByParams(FVector InVecR, FVector InVecVelocity, FPhysics Physics)
+void AOrbit::HandleEndMouseOver(AActor* Actor)
 {
-    GetBody()->SetActorLocation(InVecR, true, nullptr);
-    SetVelocity(InVecVelocity);
-    RP_bHasBeenSet = true;
+    UStateLib::WithInstanceUIUnsafe(this, [this] (FInstanceUI& InstanceUI)
+    {
+        InstanceUI.Hovered.Reset();
+        bIsVisibleVarious = false;
+        UpdateVisibility(InstanceUI);
+    });
+}
+
+void AOrbit::HandleClick(AActor* Actor, FKey Button)
+{
+    if(Button == EKeys::LeftMouseButton)
+    {
+        UStateLib::WithInstanceUIUnsafe(this, [this] (FInstanceUI& InstanceUI)
+        {
+            AOrbit* Previous = InstanceUI.Selected ? InstanceUI.Selected->Orbit : nullptr;
+            InstanceUI.Selected.Emplace(this, 0);
+            
+            // `Previous` is `nullptr` when no orbit is selected
+            if(IsValid(Previous))
+            {
+                Previous->UpdateVisibility(InstanceUI);
+            }
+            
+            UpdateVisibility(InstanceUI);
+        });
+    }
+}
+
+// static function
+AOrbit* AOrbit::SpawnOrbit(AActor* Actor, const FString& Name)
+{
+    const FTransform Transform;
+    FActorSpawnParameters Params;
+    Params.bDeferConstruction = true;
+    Params.Name = *Name;
+    Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Requested;
+    Params.bAllowDuringConstructionScript = true;
+    AOrbit* Orbit = Actor->GetWorld()->SpawnActor<AOrbit>
+        ( Cast<IHasOrbit>(Actor)->GetOrbitClass()
+        , Params
+        );
+    // spawning doesn't work when I just edited some Actor Blueprint's default values
+    if(IsValid(Orbit))
+    {
+        Orbit->Body = Actor;
+        Orbit->SetActorLabel(Name, false);
+    }
+    UGameplayStatics::FinishSpawningActor(Orbit, Transform);
+    return Orbit;
+}
+
+void AOrbit::SetCircleOrbit(FPhysics Physics)
+{
+    const FVector VecRKepler = Body->GetActorLocation() - Physics.VecF1;
+    const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
+    VecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
 }
 
 void AOrbit::UpdateVisibility(FInstanceUI InstanceUI)
@@ -519,28 +602,28 @@ void AOrbit::UpdateVisibility(FInstanceUI InstanceUI)
     Spline->SetVisibility(GetVisibility(InstanceUI), true);
 }
 
-void AOrbit::SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FInstanceUI InstanceUI)
+void AOrbit::SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector ParentSelector, FInstanceUI InstanceUI)
 {
     const int nIndices = static_cast<int>(round(Spline->GetSplineLength() / SplineMeshLength));
 
-    if(GetOwner()->HasAnyFlags(RF_ClassDefaultObject))
+    if(HasAnyFlags(RF_ClassDefaultObject))
     {
         return;
     }
     if(!StaticMesh)
     {
         UE_LOG
-        ( LogActor
+        ( LogMyGame
         , Warning
         , TEXT("%s: AOrbit::SpawnSplineMesh: SMSplineMesh null, skipping")
         , *GetFullName()
         )
         return;
     }
-    if(!MSplineMesh)
+    if(!SplineMeshMaterial)
     {
         UE_LOG
-        ( LogActor
+        ( LogMyGame
         , Warning
         , TEXT("%s: AOrbit::SpawnSplineMesh: MSplineMesh null, skipping")
         , *GetFullName()
@@ -560,8 +643,17 @@ void AOrbit::SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FIns
         }
         for(int i = 0; i < Indices.size() - 1; i++)
         {
-            
-            USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(InParent);
+            USceneComponent* Parent = nullptr;
+            switch(ParentSelector)
+            {
+            case ESplineMeshParentSelector::Temporary:
+                Parent = TemporarySplineMeshParent;
+                break;
+            case ESplineMeshParentSelector::Permanent:
+                Parent = SplineMeshParent;
+                break;
+            }
+            USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>();
             
             SplineMesh->SetMobility(EComponentMobility::Stationary);
             SplineMesh->SetVisibility(GetVisibility(InstanceUI));
@@ -571,15 +663,15 @@ void AOrbit::SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FIns
             // in theory, I could use `SetupAttachment` and then `RegisterComponent`
             // in practice, that messes up the location (i.e. it moves the spline mesh)
             // and the spline meshes do not show up with their correct names in the editor
-            SplineMesh->AttachToComponent(InParent, FAttachmentTransformRules::KeepWorldTransform);
+            SplineMesh->AttachToComponent(Parent, FAttachmentTransformRules::KeepWorldTransform);
             // if I don't add instance here, the spline meshes don't show in the component list in the editor
-            GetOwner()->AddInstanceComponent(SplineMesh);
+            AddInstanceComponent(SplineMesh);
 
             SplineMesh->CastShadow = false;
             SplineMesh->SetStaticMesh(StaticMesh);
 
             UMaterialInstanceDynamic* DynamicMaterial =
-                SplineMesh->CreateDynamicMaterialInstance(0, MSplineMesh);
+                SplineMesh->CreateDynamicMaterialInstance(0, SplineMeshMaterial);
             DynamicMaterial->SetVectorParameterValue(FName(TEXT("StripesColor")), Color);
 
             const FVector VecStartPos =
@@ -623,12 +715,11 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     static const FName FNameBTrajectoryShowSpline = GET_MEMBER_NAME_CHECKED(AOrbit, bTrajectoryShowSpline);
     static const FName FNameBVisibleVarious       = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleVarious    );
     static const FName FNameSplineMeshLength      = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshLength     );
-    static const FName FNameVelocity              = GET_MEMBER_NAME_CHECKED(AOrbit, Velocity             );
+    static const FName FNameVelocity              = GET_MEMBER_NAME_CHECKED(AOrbit, ScalarVelocity       );
     static const FName FNameVelocityVCircle       = GET_MEMBER_NAME_CHECKED(AOrbit, VelocityVCircle      );
     static const FName FNameVecVelocity           = GET_MEMBER_NAME_CHECKED(AOrbit, VecVelocity          );
-    static const FName FNameSMTrajectory          = GET_MEMBER_NAME_CHECKED(AOrbit, StaticMesh         );
-    static const FName FNameSplineMeshMaterial    = GET_MEMBER_NAME_CHECKED(AOrbit, MSplineMesh          );
-    static const FName FNameSplineMeshColor       = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshColor      );
+    static const FName FNameSMTrajectory          = GET_MEMBER_NAME_CHECKED(AOrbit, StaticMesh           );
+    static const FName FNameSplineMeshMaterial    = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshMaterial   );
     static const FName FNameSplineMeshScaleFactor = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshScaleFactor);
 
     if(Name == FNameBVisibleVarious)
@@ -640,7 +731,6 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         || Name == FNameBTrajectoryShowSpline
         || Name == FNameSMTrajectory
         || Name == FNameSplineMeshMaterial
-        || Name == FNameSplineMeshColor
         || Name == FNameSplineMeshScaleFactor
         )
     {
@@ -655,7 +745,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
 
         if(Name == FNameVelocity)
         {
-            VecVelocity = Velocity * VelocityNormal;
+            VecVelocity = ScalarVelocity * VelocityNormal;
         }
         else if(Name == FNameVelocityVCircle)
         {
@@ -665,7 +755,10 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         {
         }
     }
-    Update(Physics, InstanceUI);
+    if(IsValid(Body))
+    {
+        Update(Physics, InstanceUI);
+    }
 }
 #endif
 

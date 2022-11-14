@@ -9,35 +9,41 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_Rock.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockCylindric.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockFlat.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/Orbit.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Actors/BP_Orbit.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_MyActor_StaticMesh.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_MyActor_StaticMesh.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_Rock2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_Rock2.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockCylindric2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockCylindric2.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockFlat2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockFlat2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_Rock.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_Rock.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockCylindric.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockCylindric.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockFlat.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockFlat.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Actors/BP_MyCharacter.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/BP_MyCharacter.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/BP_MyPawn.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Actors/BP_MyPlayerStart.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/BP_MyPlayerStart.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Menu/MainMenu.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/MainMenu.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MurderInSpace.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/MurderInSpace.uproject" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/MurderInSpace.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/MurderInSpace.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/GyrationComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/GyrationComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor.cpp" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor_StaticMesh.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor_StaticMesh.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyCharacter.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPawn.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPawn.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPawn_SkeletalMesh.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPawn_SkeletalMesh.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPlayerStart.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPlayerStart.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/OrbitComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/OrbitComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/WithOrbit.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/OrbitComponent.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/UW_HUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/UW_HUD.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Lib/UStateLib.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Lib/UStateLib.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyActor.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyActor.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameState.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameState.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyActor.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyActor_StaticMesh.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyActor_StaticMesh.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyCharacter.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyPawn.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyPawn.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/OrbitComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/OrbitComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/WithOrbit.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyPlayerStart.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyPlayerStart.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/Orbit.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/Orbit.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/OrbitComponent.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Lib/UStateLib.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Lib/UStateLib.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameInstance.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameInstance.h" afterDir="false" />
     </list>
@@ -373,6 +379,7 @@
       <workItem from="1668353213359" duration="2514000" />
       <workItem from="1668356907873" duration="2254000" />
       <workItem from="1668359232910" duration="12784000" />
+      <workItem from="1668426408411" duration="30593000" />
     </task>
     <servers />
   </component>
@@ -396,11 +403,20 @@
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
   </component>
   <component name="XDebuggerManager">
-    <watches-manager>
-      <configuration name="CppProject">
-        <watch expression="this-&gt;OwnerPrivate" />
-      </configuration>
-    </watches-manager>
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp</url>
+          <line>400</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPlayerStart.cpp</url>
+          <line>24</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

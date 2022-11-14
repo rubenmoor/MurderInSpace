@@ -7,6 +7,8 @@
 #include "Modes/MyGameState.h"
 #include "Modes/MyPlayerState.h"
 
+DEFINE_LOG_CATEGORY(LogMyGame);
+
 float UStateLib::GetInitialAngularVelocity(FRnd Rnd)
 {
 	return Rnd.Poisson(Rnd.RndGen) / 1.e3;

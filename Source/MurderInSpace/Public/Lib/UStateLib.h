@@ -7,6 +7,8 @@
 #include "CoreMinimal.h"
 #include "UStateLib.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, All, All);
+
 /*
  * everything stateful pertaining to the physics
  */

@@ -8,19 +8,8 @@ AMyPawn::AMyPawn()
 	PrimaryActorTick.bCanEverTick = false;
 
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-    Root->SetMobility(EComponentMobility::Stationary);
     SetRootComponent(Root);
     
-    MovableRoot = CreateDefaultSubobject<USceneComponent>(TEXT("MovableRoot"));
-    MovableRoot->SetupAttachment(Root);
-    
-    Orbit = CreateDefaultSubobject<UOrbitComponent>(TEXT("Orbit"));
-    Orbit->SetupAttachment(Root);
-
-    SplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("SplineMesh"));
-    SplineMeshParent->SetupAttachment(Orbit);
-    SplineMeshParent->SetMobility(EComponentMobility::Stationary);
-
 	bNetLoadOnClient = false;
 	bReplicates = true;
 	AActor::SetReplicateMovement(false);
@@ -37,8 +26,8 @@ void AMyPawn::Tick(float DeltaSeconds)
 
 	DrawDebugDirectionalArrow
 		( GetWorld()
-		, GetMovableRoot()->GetComponentLocation()
-		, GetMovableRoot()->GetComponentLocation() + 1000. * GetMovableRoot()->GetForwardVector()
+		, Root->GetComponentLocation()
+		, Root->GetComponentLocation() + 1000. * Root->GetForwardVector()
 		, 20
 		, FColor::Yellow
 		);
@@ -48,14 +37,60 @@ void AMyPawn::Tick(float DeltaSeconds)
 		const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
 		const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
 		const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
-		GetOrbit()->AddVelocity(GetMovableRoot()->GetForwardVector() * DeltaV, Physics, InstanceUI);
+		Orbit->AddVelocity(Root->GetForwardVector() * DeltaV, Physics, InstanceUI);
 	}
 }
 
 void AMyPawn::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	IHasOrbit::Construction(Transform);
+
+	if(HasAnyFlags(RF_ClassDefaultObject | RF_Transient))
+	{
+		return;
+	}
+	
+	if(!OrbitClass)
+	{
+		UE_LOG(LogMyGame, Error, TEXT("%s: OnConstruction: OrbitClass null"), *GetFullName())
+		return;
+	}
+	const FString NewName = FString(TEXT("Orbit_")).Append(GetActorLabel());
+	if(!Orbit)
+	{
+		Orbit = AOrbit::SpawnOrbit(this, NewName);
+		Orbit->SetEnableVisibility(true);
+	}
+	else
+	{
+		// fix orbit after copying (alt + move in editor)
+		if(Orbit->GetBody() != this)
+		{
+			UObject* Object = StaticFindObjectFastSafe(AOrbit::StaticClass(), GetWorld(), FName(NewName), true);
+			Orbit = Object ? Cast<AOrbit>(Object) : nullptr;
+		}
+		Orbit->OnConstruction(FTransform());
+	}
+}
+
+void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+	
+    const FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
+    const FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
+    
+    const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
+
+    static const FName FNameOrbitColor = GET_MEMBER_NAME_CHECKED(AMyPawn, OrbitColor);
+
+	if(Name == FNameOrbitColor)
+	{
+		if(IsValid(Orbit))
+		{
+			Orbit->Update(Physics, InstanceUI);
+		}
+	}
 }
 
 void AMyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -68,7 +103,7 @@ void AMyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	// in case this goes out of syn (COND_SkipOwner prevents re-sync), the player looks into the wrong direction for a while;
 	//DOREPLIFETIME_CONDITION(APawnInSpace, RP_BodyRotation   , COND_SkipOwner)
 	// just removing the COND_SkipOwner makes sure that the client's authority doesn't last more than a couple of frames
-	DOREPLIFETIME(AMyPawn, RP_BodyRotation)
+	DOREPLIFETIME(AMyPawn, RP_Rotation)
 
 	// in case of acceleration: full server-control: the client won't react to the key press until the action has
 	// round-tripped, i.e. there is no movement prediction

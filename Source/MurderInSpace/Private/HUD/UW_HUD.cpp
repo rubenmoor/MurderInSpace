@@ -3,7 +3,7 @@
 
 #include "HUD/UW_HUD.h"
 
-#include "Actors/OrbitComponent.h"
+#include "Actors/Orbit.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Lib/UStateLib.h"
 

@@ -84,19 +84,4 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	FInstanceUI InstanceUI = UStateLib::DefaultInstanceUI;
-	
-// custom event handlers
-public:
-	// clicking on pawns and actors impacts the visibility of their respective orbits
-	// so instead of implementing the following handlers twice, in ActorInSpace and PawnInSpace,
-	// we put them here
-	// TODO: move to AOrbit
-	UFUNCTION(BlueprintCallable)
-	void HandleBeginMouseOver(AActor* Actor);
-	
-	UFUNCTION(BlueprintCallable)
-	void HandleEndMouseOver(AActor* Actor);
-	
-	UFUNCTION(BlueprintCallable)
-	void HandleClick(AActor* Actor, FKey Button);
 };

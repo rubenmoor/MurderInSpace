@@ -38,7 +38,7 @@ void UGyrationComponent::BeginPlay()
 			const float LRandom = UStateLib::GetInitialAngularVelocity(Rnd);
 			VecL = Rnd.Stream.VRand() * LRandom * VecInertia.Length();
 			UE_LOG
-				( LogActor
+				( LogMyGame
 				, Display
 				, TEXT("%s: Initializing angular momentum: (%.0f, %.0f, %.0f)")
 				, *GetFullName()
@@ -50,7 +50,7 @@ void UGyrationComponent::BeginPlay()
 		else
 		{
 			UE_LOG
-				( LogActorComponent
+				( LogMyGame
 				, Error
 				, TEXT("%s: Angular momentum set already: (%.0f, %.0f, %.0f), Owner role: %d")
 				, *GetFullName()

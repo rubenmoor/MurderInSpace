@@ -6,6 +6,13 @@
 #include "Lib/UStateLib.h"
 #include "Orbit.generated.h"
 
+UENUM()
+enum class ESplineMeshParentSelector : uint8
+{
+    Temporary,
+    Permanent
+};
+
 UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
 class UHasOrbit : public UInterface
 {
@@ -18,6 +25,21 @@ class IHasOrbit
     
 public:
     virtual AOrbit* GetOrbit() = 0;
+    virtual TSubclassOf<AOrbit> GetOrbitClass() = 0;
+};
+
+UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
+class UHasOrbitColor : public UInterface
+{
+    GENERATED_BODY()
+};
+
+class IHasOrbitColor
+{
+    GENERATED_BODY()
+    
+public:
+    virtual FLinearColor GetOrbitColor() = 0;
 };
 
 UENUM(BlueprintType)
@@ -89,27 +111,33 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
-    // TODO: check if really needed
+    template<class T>
+	T* GetBody() const { return Cast<T>(Body); }
+    
+    UFUNCTION(BlueprintCallable)
 	AActor* GetBody() const { return Body; }
+
+    //UFUNCTION(BlueprintCallable)
+	static AOrbit* SpawnOrbit(AActor* Actor, const FString& Name);
     
     // initialization
-    
-    UFUNCTION(BlueprintCallable)
-    void SetCircleOrbit(FVector InVecR, FPhysics Physics);
 
-    // you need to call `Update` afterwards
+    // requires call to `Update` afterwards
     UFUNCTION(BlueprintCallable)
-    void SetOrbitByParams(FVector InVecR, FVector InVecVelocity, FPhysics Physics);
+    void SetCircleOrbit(FPhysics Physics);
 
     UFUNCTION(BlueprintCallable)
     void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
     
-    // update the orbit given the location of `MovableRoot`, `VecVelocity` and `Physics`
+    // update the orbit given
+    // * the location of `Body`
+    // * `VecVelocity`
+    // * `Physics`
     UFUNCTION(BlueprintCallable)
     void Update(FPhysics Physics, FInstanceUI InstanceUI);
 
     UFUNCTION(BlueprintCallable)
-    void SpawnSplineMesh(FLinearColor Color, USceneComponent* InParent, FInstanceUI InstanceUI);
+    void SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector ParentSelector, FInstanceUI InstanceUI);
     
     // user interface
     
@@ -129,8 +157,8 @@ public:
     UFUNCTION(BlueprintCallable)
     FString GetParamsString();
 
-    UFUNCTION(BlueprintCallable)
-    float GetVelocity() { return Velocity; }
+    //UFUNCTION(BlueprintCallable)
+    float GetScalarVelocity() { return ScalarVelocity; }
     
     UFUNCTION(BlueprintCallable)
     float GetCircleVelocity(FPhysics Physics) const;
@@ -142,7 +170,7 @@ public:
     FVector GetVecRKepler(FPhysics Physics) const { return GetVecR() - Physics.VecF1; }
 
     UFUNCTION(BlueprintCallable)
-    FVector GetVecR() const { return GetBody()->GetActorLocation(); }
+    FVector GetVecR() const { return Body->GetActorLocation(); }
 
     // whenever a spline mesh merely changes visibility:
     UFUNCTION(BlueprintCallable)
@@ -161,7 +189,16 @@ public:
     UFUNCTION(BlueprintCallable)
     void SetIsChanging(bool InIsChanging) { bIsChanging = InIsChanging; }
 
+    UFUNCTION(BlueprintCallable)
+    void DestroyTempSplineMeshes();
+
+    virtual void OnConstruction(const FTransform& Transform) override;
+    
 protected:
+
+    virtual FString GetDefaultActorLabel() const override { return GetClass()->GetName(); }
+    
+    // event handlers
 	virtual void BeginPlay() override;
 
 #if WITH_EDITOR
@@ -181,17 +218,18 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<USceneComponent> SplineMeshParent;
 
+    // only used by possessed pawns
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    TObjectPtr<USceneComponent> TemporarySplineMeshParent;
+
     // members
     
     /* disable orbit visualization entirely */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    bool bTrajectoryShowSpline = true;
+    bool bTrajectoryShowSpline = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    TObjectPtr<UMaterial> MSplineMesh;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    FLinearColor SplineMeshColor;
+    TObjectPtr<UMaterial> SplineMeshMaterial;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     float SplineMeshScaleFactor = 1.;
@@ -222,7 +260,7 @@ protected:
     FVector VecVelocity = FVector::Zero();
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    float Velocity = 0;
+    float ScalarVelocity = 0;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     float VelocityVCircle = 0;
@@ -240,11 +278,6 @@ protected:
 	AActor* Body;
     
     // private methods
-
-    // the only way to set the velocity is by providing a value for `VecVelocity`
-    // and call `Update` afterwards
-    UFUNCTION(BlueprintCallable)
-    void SetVelocity(FVector InVecVelocity) { VecVelocity = InVecVelocity; }
 
     UFUNCTION(BlueprintCallable)
     float VelocityEllipse(float R, float Alpha);

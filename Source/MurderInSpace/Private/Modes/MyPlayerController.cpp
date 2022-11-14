@@ -123,7 +123,7 @@ void AMyPlayerController::ClientRPC_LeaveSession_Implementation()
 void AMyPlayerController::ServerRPC_LookAt_Implementation(FQuat Quat)
 {
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-    MyCharacter->RP_BodyRotation = Quat;
+    MyCharacter->RP_Rotation = Quat;
     MyCharacter->OnRep_BodyRotation(); // replicatedUsing
 }
 
@@ -132,7 +132,7 @@ void AMyPlayerController::SetShowAllTrajectories(bool bInShow) const
     UStateLib::WithInstanceUIUnsafe(this, [this, bInShow] (FInstanceUI InstanceUI)
     {
         InstanceUI.bShowAllTrajectories = bInShow;
-        for(MyObjectIterator<UOrbitComponent> IOrbit(GetWorld()); IOrbit; ++IOrbit)
+        for(MyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
         {
             (*IOrbit)->UpdateVisibility(InstanceUI);
         }
@@ -168,7 +168,7 @@ void AMyPlayerController::ServerRPC_HandleAction_Implementation(EAction Action)
 void AMyPlayerController::HandleAction(EAction Action)
 {
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-    UOrbitComponent* Orbit = MyCharacter->GetOrbit();
+    AOrbit* Orbit = MyCharacter->GetOrbit();
     switch (Action)
     {
     case EAction::ACCELERATE_BEGIN:
@@ -185,18 +185,22 @@ void AMyPlayerController::HandleAction(EAction Action)
 void AMyPlayerController::HandleActionUI(EAction Action)
 {
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-    UOrbitComponent* Orbit = MyCharacter->GetOrbit();
+    AOrbit* Orbit = MyCharacter->GetOrbit();
     const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
     
     switch (Action)
     {
     case EAction::ACCELERATE_BEGIN:
-        Orbit->SpawnSplineMesh(MyCharacter->GetTempSplineMeshColor(), MyCharacter->GetTempSplineMeshParent(), InstanceUI);
+        Orbit->SpawnSplineMesh
+            ( MyCharacter->GetTempSplineMeshColor()
+            , ESplineMeshParentSelector::Temporary
+            , InstanceUI
+            );
         Orbit->bIsVisibleAccelerating = true;
         Orbit->UpdateVisibility(InstanceUI);
         break;
     case EAction::ACCELERATE_END:
-        MyCharacter->DestroyTempSplineMesh();
+        Orbit->DestroyTempSplineMeshes();
         Orbit->bIsVisibleAccelerating = false;
         Orbit->UpdateVisibility(InstanceUI);
         break;
@@ -226,12 +230,12 @@ void AMyPlayerController::Tick(float DeltaSeconds)
             //MyCharacter->LookAt(FVector(X, Y, Z));
             const FVector VecP(X, Y, Z);
             
-            const FVector VecMe = MyCharacter->GetMovableRoot()->GetComponentLocation();
+            const FVector VecMe = MyCharacter->GetActorLocation();
             const FVector VecDirection = VecP - VecMe;
             const FQuat Quat = FQuat::FindBetween(FVector(1, 0, 0), VecDirection);
             const float AngleDelta = Quat.GetTwistAngle
                 ( FVector(0, 0, 1)) -
-                    MyCharacter->GetMovableRoot()->GetComponentQuat().GetTwistAngle(FVector(0, 0, 1)
+                    MyCharacter->GetActorQuat().GetTwistAngle(FVector(0, 0, 1)
                 );
             if(abs(AngleDelta) > 15. / 180. * PI)
             {
@@ -241,7 +245,7 @@ void AMyPlayerController::Tick(float DeltaSeconds)
                 if(GetLocalRole() == ROLE_AutonomousProxy)
                 {
                     // "movement prediction"
-                    MyCharacter->RP_BodyRotation = Quat;
+                    MyCharacter->RP_Rotation = Quat;
                     MyCharacter->OnRep_BodyRotation();
                 }
             }
@@ -258,14 +262,14 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 
     // freeze orbit state for all existing orbit components for replication (condition: initial only)
     TArray<FOrbitState> OrbitStates;
-    auto FilterOrbits = [this, InPawn] (const UOrbitComponent* Orbit) -> bool
+    auto FilterOrbits = [this, InPawn] (const AOrbit* Orbit) -> bool
     {
-        const AMyPawn* Owner = Orbit->GetOwner<AMyPawn>();
+        const AMyPawn* Owner = Orbit->GetBody<AMyPawn>();
         return GetWorld() == Orbit->GetWorld()
             // exclude the orbit of `InPawn`
             && (Owner != InPawn);
     };
-    for(MyObjectIterator<UOrbitComponent> IOrbit(FilterOrbits); IOrbit; ++IOrbit)
+    for(MyObjectIterator<AOrbit> IOrbit(FilterOrbits); IOrbit; ++IOrbit)
     {
         (*IOrbit)->FreezeOrbitState();
     }
@@ -311,23 +315,6 @@ void AMyPlayerController::AcknowledgePossession(APawn* P)
         CurrentLevel = ECurrentLevel::MainMenu;
     }
     Cast<UMyLocalPlayer>(GetLocalPlayer())->CurrentLevel = CurrentLevel;
-
-    // set mouse event bindings for pawns
-    
-    UMyGameInstance* GI = GetGameInstance<UMyGameInstance>();
-    UWorld* World = GetWorld();
-    auto Filter = [P, World] (const AMyPawn* SomePawn) -> bool
-    {
-        return SomePawn->GetWorld() == World
-            || SomePawn != P;
-    };
-    for(MyObjectIterator<AMyPawn> IPawn(Filter); IPawn; ++IPawn)
-    {
-        APawn* SomePawn = *IPawn;
-        SomePawn->OnBeginCursorOver.AddDynamic(GI, &UMyGameInstance::HandleBeginMouseOver);
-        SomePawn->OnEndCursorOver.AddDynamic(GI, &UMyGameInstance::HandleEndMouseOver);
-        SomePawn->OnClicked.AddDynamic(GI, &UMyGameInstance::HandleClick);
-    }
 }
 
 void AMyPlayerController::BeginPlay()

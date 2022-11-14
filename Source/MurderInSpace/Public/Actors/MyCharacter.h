@@ -42,12 +42,6 @@ public:
     UFUNCTION(BlueprintPure)
     float GetSpringArmLength() const;
 
-    UFUNCTION(BlueprintCallable)
-    void DestroyTempSplineMesh();
-
-    UFUNCTION(BlueprintPure)
-    USceneComponent* GetTempSplineMeshParent() const { return TempSplineMeshParent; }
-    
     UFUNCTION(BlueprintPure)
     FLinearColor GetTempSplineMeshColor() const { return TempSplineMeshColor; }
 
@@ -83,7 +77,4 @@ protected:
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UNiagaraComponent> StarsDistant;
-    
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    TObjectPtr<USceneComponent> TempSplineMeshParent;
 };

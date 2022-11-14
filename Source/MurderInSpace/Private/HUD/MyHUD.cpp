@@ -3,7 +3,6 @@
 
 #include "HUD/MyHUD.h"
 
-#include "Actors/OrbitComponent.h"
 #include "Lib/UStateLib.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/UserWidget.h"
@@ -47,9 +46,9 @@ void AMyHUD::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no pawn, disabling tick"), *GetFullName())
 		SetActorTickEnabled(false);
 	}
-	else if(!MyCharacter->GetOrbit()->GetHasBeenSet())
+	else if(!MyCharacter->GetOrbit())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: orbit component hasn't been set, disabling tick"), *GetFullName())
+		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: orbit actor null, disabling tick"), *GetFullName())
 		SetActorTickEnabled(false);
 	}
 
@@ -85,10 +84,9 @@ void AMyHUD::Tick(float DeltaSeconds)
 	
 	const APlayerController* PC = GetOwningPlayerController();
 
-	const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
 	const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
-	UOrbitComponent* Orbit = MyCharacter->GetOrbit();
-	const float Velocity = Orbit->GetVelocity();
+	AOrbit* Orbit = MyCharacter->GetOrbit();
+	const float Velocity = Orbit->GetScalarVelocity();
 
 	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FormattingOptions));
 	WidgetHUD->TextVelocityVCircle->SetText(
@@ -101,7 +99,6 @@ void AMyHUD::Tick(float DeltaSeconds)
 			);
 	WidgetHUD->TextVelocityDirection->SetRenderTransformAngle(Angle * 180. / PI);
 
-	const FVector2D Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
 	FVector2D ScreenLocation;
 	
 	// try to project to screen coordinates, ...
@@ -123,7 +120,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 		if(!PC->ProjectWorldLocationToScreen(VecF1InViewportPlane, ScreenLocation))
 		{
 			// If the manual projection fails, too, we're out of options
-			UE_LOG(LogActor, Error, TEXT("AMyHUD::Tick: couldn't project Center of mass to screen"))
+			UE_LOG(LogMyGame, Error, TEXT("AMyHUD::Tick: couldn't project Center of mass to screen"))
 		}
 		// only we have to make sure that this manually conceived screen location doesn't accidentally
 		// end up on screen

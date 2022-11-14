@@ -104,7 +104,7 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 			}
 			else
 			{
-				UE_LOG(LogActor, Warning, TEXT("%s: OnJoinSessionComplete/GotoServerList: Menu HUD invalid."))
+				UE_LOG(LogNet, Warning, TEXT("%s: OnJoinSessionComplete/GotoServerList: Menu HUD invalid."))
 			}
 		};
 
@@ -181,42 +181,5 @@ int32 UMyGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, int32 ControllerI
 	return InsertIndex;
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
-void UMyGameInstance::HandleBeginMouseOver(AActor* Actor)
-{
-	UE_LOG(LogActor, Error, TEXT("%s: HandleBeginMouseOver"), *Actor->GetFullName())
-	AOrbit* Orbit = Cast<IHasOrbit>(Actor)->GetOrbit();
-	InstanceUI.Hovered.Emplace(Orbit, 0);
-    Orbit->bIsVisibleVarious = true;
-    Orbit->UpdateVisibility(InstanceUI);
-}
-
-// ReSharper disable once CppMemberFunctionMayBeConst
-void UMyGameInstance::HandleEndMouseOver(AActor* Actor)
-{
-	InstanceUI.Hovered.Reset();
-	AOrbit* Orbit = Cast<IHasOrbit>(Actor)->GetOrbit();
-    Orbit->bIsVisibleVarious = false;
-    Orbit->UpdateVisibility(InstanceUI);
-}
-
-// ReSharper disable once CppMemberFunctionMayBeConst
-void UMyGameInstance::HandleClick(AActor* Actor, FKey Button)
-{
-    if(Button == EKeys::LeftMouseButton)
-    {
-		AOrbit* Orbit = Cast<IHasOrbit>(Actor)->GetOrbit();
-		AOrbit* Previous = InstanceUI.Selected ? InstanceUI.Selected->Orbit : nullptr;
-		InstanceUI.Selected.Emplace(Orbit, 0);
-		
-    	// `Previous` is `nullptr` when no orbit is selected
-    	if(IsValid(Previous))
-    	{
-			Previous->UpdateVisibility(InstanceUI);
-    	}
-    	
-		Orbit->UpdateVisibility(InstanceUI);
-    }
-}
 
 #undef LOCTEXT_NAMESPACE
