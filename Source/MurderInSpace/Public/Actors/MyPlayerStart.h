@@ -19,8 +19,6 @@ public:
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
 	
 protected:
-	virtual FString GetDefaultActorLabel() const override { return GetClass()->GetName(); }
-
 	// event handlers
 	virtual void OnConstruction(const FTransform& Transform) override;
 	

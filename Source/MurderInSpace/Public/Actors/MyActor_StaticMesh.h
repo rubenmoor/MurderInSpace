@@ -22,14 +22,12 @@ class MURDERINSPACE_API AMyActor_StaticMesh final
 	AMyActor_StaticMesh();
 
 public:
-	virtual UPrimitiveComponent* GetMesh()        override { return StaticMesh; }
-	virtual AOrbit*              GetOrbit()       override { return Orbit;        }
-	virtual TSubclassOf<AOrbit>  GetOrbitClass()  override { return OrbitClass;   }
-	virtual FLinearColor         GetOrbitColor()  override { return OrbitColor;   }
+	virtual UPrimitiveComponent* GetMesh()       override { return StaticMesh; }
+	virtual AOrbit*              GetOrbit()      override { return Orbit;      }
+	virtual TSubclassOf<AOrbit>  GetOrbitClass() override { return OrbitClass; }
+	virtual FLinearColor         GetOrbitColor() override { return OrbitColor; }
 	
 protected:
-	virtual FString GetDefaultActorLabel() const override { return GetClass()->GetName(); }
-	
 	// event handlers
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;

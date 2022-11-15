@@ -88,6 +88,12 @@ void AOrbit::BeginPlay()
 void AOrbit::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
+
+    if(HasAnyFlags(RF_Transient | RF_ClassDefaultObject))
+    {
+        return;
+    }
+    
     if(IsValid(Body))
     {
 #if WITH_EDITOR
@@ -398,7 +404,7 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
     if(bTrajectoryShowSpline)
     {
         // debugging, shouldn't be necessary
-        if(Cast<IHasOrbitColor>(Body))
+        if(Cast<IHasOrbitColor>(Body) && IsValid(GetWorld()))
         {
             SpawnSplineMesh
                 ( Cast<IHasOrbitColor>(Body)->GetOrbitColor()
@@ -574,7 +580,7 @@ AOrbit* AOrbit::SpawnOrbit(AActor* Actor, const FString& Name)
     FActorSpawnParameters Params;
     Params.bDeferConstruction = true;
     Params.Name = *Name;
-    Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Requested;
+    Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
     Params.bAllowDuringConstructionScript = true;
     AOrbit* Orbit = Actor->GetWorld()->SpawnActor<AOrbit>
         ( Cast<IHasOrbit>(Actor)->GetOrbitClass()
@@ -584,9 +590,14 @@ AOrbit* AOrbit::SpawnOrbit(AActor* Actor, const FString& Name)
     if(IsValid(Orbit))
     {
         Orbit->Body = Actor;
-        Orbit->SetActorLabel(Name, false);
     }
     UGameplayStatics::FinishSpawningActor(Orbit, Transform);
+#if WITH_EDITORONLY_DATA
+    if(IsValid(Orbit))
+    {
+        Orbit->SetActorLabel(Name, false);
+    }
+#endif
     return Orbit;
 }
 
@@ -606,10 +617,6 @@ void AOrbit::SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector Paren
 {
     const int nIndices = static_cast<int>(round(Spline->GetSplineLength() / SplineMeshLength));
 
-    if(HasAnyFlags(RF_ClassDefaultObject))
-    {
-        return;
-    }
     if(!StaticMesh)
     {
         UE_LOG
@@ -630,7 +637,6 @@ void AOrbit::SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector Paren
         )
         return;
     }
-    
     
     if(nIndices >= 2)
     {
@@ -653,7 +659,7 @@ void AOrbit::SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector Paren
                 Parent = SplineMeshParent;
                 break;
             }
-            USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>();
+            USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(GetWorld());
             
             SplineMesh->SetMobility(EComponentMobility::Stationary);
             SplineMesh->SetVisibility(GetVisibility(InstanceUI));

@@ -4,6 +4,7 @@
 #include "Actors/MyActor_StaticMesh.h"
 
 #include "Actors/GyrationComponent.h"
+#include "Lib/FunctionLib.h"
 
 AMyActor_StaticMesh::AMyActor_StaticMesh()
 {
@@ -20,7 +21,7 @@ void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
 
-	if(HasAnyFlags(RF_Transient))
+	if(HasAnyFlags(RF_Transient | RF_ClassDefaultObject))
 	{
 		return;
 	}
@@ -33,20 +34,42 @@ void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
 	const FString NewName = FString(TEXT("Orbit_")).Append(GetFName().ToString());
 	if(!IsValid(Orbit))
 	{
-		UE_LOG(LogMyGame, Warning, TEXT("%s: OnConstruction: NewName "), *NewName)
 		Orbit = AOrbit::SpawnOrbit(this, NewName);
-		Orbit->SetEnableVisibility(true);
+		if(Orbit)
+		{
+			Orbit->SetEnableVisibility(true);
+		}
 	}
 	else
 	{
 		// fix orbit after copying (alt + move in editor)
 		if(Orbit->GetBody() != this)
 		{
-			UObject* Object = StaticFindObjectFastSafe(AOrbit::StaticClass(), GetWorld(), FName(NewName), true);
-			// debugging: cast fails
-			Orbit = Object ? Cast<AOrbit>(Object) : nullptr;
+			// this should work, but it doesn't:
+			//Orbit = FindObjectFast<AOrbit>(this, FName(*NewName));
+			// so this is my workaround
+			UWorld* World = GetWorld();
+			auto Filter = [this, World] (const AOrbit* Orbit)
+			{
+				return Orbit->GetWorld() == World
+					&& Orbit->GetBody() == this;
+			};
+			for(MyObjectIterator<AOrbit> IOrbit(Filter); IOrbit; ++IOrbit)
+			{
+				Orbit = *IOrbit;
+			}
+			if(!IsValid(Orbit))
+			{
+				UE_LOG(LogMyGame, Error, TEXT("%s: couldn't find AObject by fname %s"), *GetFullName(), *NewName)
+			}
 		}
-		Orbit->OnConstruction(FTransform());
+		if(IsValid(Orbit))
+		{
+			Orbit->OnConstruction(FTransform());
+#if WITH_EDITORONLY_DATA
+			SetActorLabel(GetFName().ToString());
+#endif
+		}
 	}
 }
 

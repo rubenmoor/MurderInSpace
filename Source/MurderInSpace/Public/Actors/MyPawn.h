@@ -39,8 +39,6 @@ public:
     void OnRep_BodyRotation() { Root->SetWorldRotation(RP_Rotation); }
 	
 protected:
-	virtual FString GetDefaultActorLabel() const override { return GetClass()->GetName(); }
-    
     // event handlers
     
     virtual void Tick(float DeltaSeconds) override;
