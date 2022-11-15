@@ -22,7 +22,7 @@ template<class TUObject>
 struct MyObjectIterator : TObjectIterator<TUObject>
 {
 	//typename std::iterator_traits<BaseIterator>::value_type FValue;
-	typedef TFunction<bool (const TUObject*) > FFilterFunc;
+	typedef std::function<bool (const TUObject*) > FFilterFunc;
 
 	MyObjectIterator(const UWorld* World)
 		: FilterFunc([World] (const TUObject* Object)
@@ -952,7 +952,7 @@ public:
 		};
 };
 
-inline void With(UObject* Object, const FString& Name, TFunctionRef<void(UObject*)> Func)
+inline void With(UObject* Object, const FString& Name, std::function<void(UObject*)> Func)
 {
 	if(IsValid(Object))
 	{

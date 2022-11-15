@@ -156,7 +156,7 @@ FRnd UStateLib::GetRndUnsafe(const UObject* Object)
 	return GetRnd(GS, GI);
 }
 
-void UStateLib::WithPlayerUIUnsafe(const UObject* Object, const FLocalPlayerContext& LPC, const TFunctionRef<void(FPlayerUI&)> Func)
+void UStateLib::WithPlayerUIUnsafe(const UObject* Object, const FLocalPlayerContext& LPC, const std::function<void(FPlayerUI&)> Func)
 {
 	AMyPlayerState* PS = LPC.GetPlayerState<AMyPlayerState>();
 	if(!PS)
@@ -174,7 +174,7 @@ void UStateLib::WithPlayerUIUnsafe(const UObject* Object, const FLocalPlayerCont
 	Func(PS->PlayerUI);
 }
 
-void UStateLib::WithInstanceUIUnsafe(const UObject* Object, const TFunctionRef<void(FInstanceUI&)> Func)
+void UStateLib::WithInstanceUIUnsafe(const UObject* Object, const std::function<void(FInstanceUI&)> Func)
 {
 	const UWorld* World = Object->GetWorld();
 	UMyGameInstance* GI = World->GetGameInstance<UMyGameInstance>();

@@ -25,7 +25,9 @@ class IHasOrbit
     
 public:
     virtual AOrbit* GetOrbit() = 0;
+    virtual void    SetOrbit(AOrbit* InOrbit) = 0;
     virtual TSubclassOf<AOrbit> GetOrbitClass() = 0;
+    virtual void ConstructOrbitForActor(AActor* Actor, bool bEnableVisibility);
 };
 
 UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
@@ -118,7 +120,7 @@ public:
 	AActor* GetBody() const { return Body; }
 
     //UFUNCTION(BlueprintCallable)
-	static AOrbit* SpawnOrbit(AActor* Actor, const FString& Name);
+	static AOrbit* SpawnOrbit(AActor* Actor);
     
     // initialization
 

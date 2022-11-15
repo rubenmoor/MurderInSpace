@@ -63,7 +63,7 @@ private:
 	// custom way to bind actions using the enum `EAction` and only one generic Server RPC
 	void BindEAction(const FName ActionName, EInputEvent KeyEvent, EAction Action);
 
-	void BindInputLambda(const FName ActionName, EInputEvent KeyEvent, TFunction<void()> Handler);
+	void BindInputLambda(const FName ActionName, EInputEvent KeyEvent, std::function<void()> Handler);
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_HandleAction(EAction Action);

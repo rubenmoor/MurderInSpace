@@ -153,7 +153,7 @@ void AMyPlayerController::BindEAction(const FName ActionName, EInputEvent KeyEve
     });
 }
 
-void AMyPlayerController::BindInputLambda(const FName ActionName, EInputEvent KeyEvent, TFunction<void()> Handler)
+void AMyPlayerController::BindInputLambda(const FName ActionName, EInputEvent KeyEvent, std::function<void()> Handler)
 {
     FInputActionBinding Binding(ActionName, KeyEvent);
     Binding.ActionDelegate.GetDelegateForManualSet().BindLambda(Handler);

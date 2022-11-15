@@ -2,24 +2,94 @@
 
 #include <numeric>
 
+#include "Actors/MyCharacter.h"
 #include "Components/SplineMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
 #include "Net/UnrealNetwork.h"
 
+void IHasOrbit::ConstructOrbitForActor(AActor* Actor, bool bEnableVisibility)
+{
+    if(Actor->HasAnyFlags(RF_Transient) && !Cast<AMyCharacter>(Actor))
+    {
+        return;
+    }
+    if(Actor->HasAnyFlags(RF_ClassDefaultObject))
+    {
+        UE_LOG
+            ( LogMyGame
+            , Display
+            , TEXT("%s: class default object: skipping orbit construction")
+            , *Actor->GetFullName()
+            )
+        return;
+    }
+        
+    if(!GetOrbitClass())
+    {
+        UE_LOG(LogMyGame, Error, TEXT("%s: OnConstruction: OrbitClass null"), *Actor->GetFullName())
+        return;
+    }
+    
+    if(!IsValid(GetOrbit()))
+    {
+        SetOrbit(AOrbit::SpawnOrbit(Actor));
+        if(IsValid(GetOrbit()) && bEnableVisibility)
+        {
+            GetOrbit()->SetEnableVisibility(true);
+#if WITH_EDITORONLY_DATA
+            Actor->SetActorLabel(Actor->GetFName().ToString());
+#endif
+        }
+        else
+        {
+            UE_LOG(LogMyGame, Warning, TEXT("%s: Couldn't spawn orbit."), *Actor->GetFullName())
+        }
+    }
+    else
+    {
+        // fix orbit after copying (alt + move in editor)
+        if(GetOrbit()->GetBody() != Actor)
+        {
+            // this should work, but it doesn't:
+            //Orbit = FindObjectFast<AOrbit>(this, FName(*NewName));
+            // so this is my workaround
+            UWorld* World = Actor->GetWorld();
+            auto Filter = [this, Actor, World] (const AOrbit* Orbit)
+            {
+                return Orbit->GetWorld() == World && Orbit->GetBody() == Actor;
+            };
+            SetOrbit(*MyObjectIterator<AOrbit>(Filter));
+            if(!IsValid(GetOrbit()))
+            {
+                UE_LOG(LogMyGame, Error, TEXT("%s: couldn't find AObject"), *Actor->GetFullName())
+            }
+        }
+        if(IsValid(GetOrbit()))
+        {
+            // allow orbit update on drag actor
+            GetOrbit()->OnConstruction(FTransform());
+        }
+        else
+        {
+            UE_LOG(LogMyGame, Error, TEXT("%s: No orbit constructed."), *Actor->GetFullName())
+        }
+    }
+}
+
 AOrbit::AOrbit()
 {
-	PrimaryActorTick.bCanEverTick = true;
-	bNetLoadOnClient = false;
-	bReplicates = true;
-	AActor::SetReplicateMovement(false);
-	
+    PrimaryActorTick.bCanEverTick = true;
+    bNetLoadOnClient = false;
+    bReplicates = true;
+    AActor::SetReplicateMovement(false);
+    
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     Root->SetMobility(EComponentMobility::Stationary);
     SetRootComponent(Root);
     
     Spline = CreateDefaultSubobject<USplineComponent>(TEXT("Orbit"));
-	Spline->SetMobility(EComponentMobility::Stationary);
+    Spline->SetMobility(EComponentMobility::Stationary);
     Spline->SetupAttachment(Root);
 
     SplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("SplineMeshes"));
@@ -33,12 +103,12 @@ AOrbit::AOrbit()
 
 void AOrbit::DestroyTempSplineMeshes()
 {
-	TArray<USceneComponent*> Meshes;
-	TemporarySplineMeshParent->GetChildrenComponents(false, Meshes);
-	for(USceneComponent* Mesh : Meshes)
-	{
-		Mesh->DestroyComponent();
-	}
+    TArray<USceneComponent*> Meshes;
+    TemporarySplineMeshParent->GetChildrenComponents(false, Meshes);
+    for(USceneComponent* Mesh : Meshes)
+    {
+        Mesh->DestroyComponent();
+    }
 }
 
 void AOrbit::BeginPlay()
@@ -93,7 +163,13 @@ void AOrbit::OnConstruction(const FTransform& Transform)
     {
         return;
     }
-    
+    // debugging, doesn't seem to have an effect
+    if(!IsValid(this))
+    {
+        UE_LOG(LogMyGame, Error, TEXT("%s: OnConstruction: this invalid"), *GetFullName())
+    }
+
+    // debugging, `if` seems redundant
     if(IsValid(Body))
     {
 #if WITH_EDITOR
@@ -112,7 +188,7 @@ void AOrbit::OnConstruction(const FTransform& Transform)
 
 void AOrbit::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
 
     const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
     const FVector VecRKepler = GetVecRKepler(Physics);
@@ -574,12 +650,12 @@ void AOrbit::HandleClick(AActor* Actor, FKey Button)
 }
 
 // static function
-AOrbit* AOrbit::SpawnOrbit(AActor* Actor, const FString& Name)
+AOrbit* AOrbit::SpawnOrbit(AActor* Actor)
 {
     const FTransform Transform;
     FActorSpawnParameters Params;
     Params.bDeferConstruction = true;
-    Params.Name = *Name;
+    Params.Name = *Actor->GetFName().ToString().Append(TEXT("_Orbit"));
     Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
     Params.bAllowDuringConstructionScript = true;
     AOrbit* Orbit = Actor->GetWorld()->SpawnActor<AOrbit>
@@ -595,7 +671,11 @@ AOrbit* AOrbit::SpawnOrbit(AActor* Actor, const FString& Name)
 #if WITH_EDITORONLY_DATA
     if(IsValid(Orbit))
     {
-        Orbit->SetActorLabel(Name, false);
+        Orbit->SetActorLabel(Orbit->GetFName().ToString(), false);
+    }
+    else
+    {
+        UE_LOG(LogMyGame, Error, TEXT("%s: SpawnOrbit: fail"), *Actor->GetFullName())
     }
 #endif
     return Orbit;
@@ -659,7 +739,7 @@ void AOrbit::SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector Paren
                 Parent = SplineMeshParent;
                 break;
             }
-            USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(GetWorld());
+            USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>();
             
             SplineMesh->SetMobility(EComponentMobility::Stationary);
             SplineMesh->SetVisibility(GetVisibility(InstanceUI));

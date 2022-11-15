@@ -44,33 +44,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 void AMyPawn::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-
-	if(HasAnyFlags(RF_ClassDefaultObject | RF_Transient))
-	{
-		return;
-	}
-	
-	if(!OrbitClass)
-	{
-		UE_LOG(LogMyGame, Error, TEXT("%s: OnConstruction: OrbitClass null"), *GetFullName())
-		return;
-	}
-	const FString NewName = FString(TEXT("Orbit_")).Append(GetActorLabel());
-	if(!Orbit)
-	{
-		Orbit = AOrbit::SpawnOrbit(this, NewName);
-		Orbit->SetEnableVisibility(true);
-	}
-	else
-	{
-		// fix orbit after copying (alt + move in editor)
-		if(Orbit->GetBody() != this)
-		{
-			UObject* Object = StaticFindObjectFastSafe(AOrbit::StaticClass(), GetWorld(), FName(NewName), true);
-			Orbit = Object ? Cast<AOrbit>(Object) : nullptr;
-		}
-		Orbit->OnConstruction(FTransform());
-	}
+	ConstructOrbitForActor(this, true);
 }
 
 void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
@@ -90,6 +64,19 @@ void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCh
 		{
 			Orbit->Update(Physics, InstanceUI);
 		}
+	}
+}
+
+void AMyPawn::BeginDestroy()
+{
+	Super::BeginDestroy();
+	if(!IsValid(Orbit))
+	{
+		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginDestroy: orbit invalid"), *GetFullName())
+	}
+	else
+	{
+		Orbit->Destroy();
 	}
 }
 

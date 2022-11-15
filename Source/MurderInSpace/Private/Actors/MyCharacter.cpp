@@ -3,9 +3,9 @@
 
 #include "Actors/MyCharacter.h"
 
+#include "NiagaraComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "NiagaraComponent.h"
 #include "Lib/FunctionLib.h"
 
 AMyCharacter::AMyCharacter()

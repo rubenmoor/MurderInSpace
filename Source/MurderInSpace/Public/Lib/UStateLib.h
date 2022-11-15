@@ -169,9 +169,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	static FRnd GetRndUnsafe(const UObject* Object);
 
-	static void WithPlayerUIUnsafe(const UObject* Object, const FLocalPlayerContext& LPC, const TFunctionRef<void(FPlayerUI&)> Func);
+	static void WithPlayerUIUnsafe(const UObject* Object, const FLocalPlayerContext& LPC, const std::function<void(FPlayerUI&)> Func);
 
-	static void WithInstanceUIUnsafe(const UObject* Object, const TFunctionRef<void(FInstanceUI&)> Func);
+	static void WithInstanceUIUnsafe(const UObject* Object, const std::function<void(FInstanceUI&)> Func);
 	
 	// TODO
 	// UFUNCTION(BlueprintCallable)

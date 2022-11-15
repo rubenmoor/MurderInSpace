@@ -95,7 +95,7 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 	FLocalPlayerContext LPC = FLocalPlayerContext(LocalPlayer);
 	return GetSubsystem<UMyGISubsystem>()->JoinSession(LPC, SearchResult, [this, LPC] (FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 	{
-		const TFunction<void()> GotoServerList = [LPC] ()
+		const std::function<void()> GotoServerList = [LPC] ()
 		{
 			AMyHUDMenu* HUDMenu = LPC.GetHUD<AMyHUDMenu>();
 			if(IsValid(HUDMenu))

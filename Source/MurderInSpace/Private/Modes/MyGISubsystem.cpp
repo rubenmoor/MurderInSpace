@@ -12,7 +12,7 @@
 
 #define LOCTEXT_NAMESPACE "Menu"
 
-bool UMyGISubsystem::CreateSession(const FLocalPlayerContext& LPC, FHostSessionConfig SessionConfig, TFunction<void(FName, bool)> Callback)
+bool UMyGISubsystem::CreateSession(const FLocalPlayerContext& LPC, FHostSessionConfig SessionConfig, std::function<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	
@@ -86,7 +86,7 @@ bool UMyGISubsystem::CreateSession(const FLocalPlayerContext& LPC, FHostSessionC
 	return SI->CreateSession(LPC.GetLocalPlayer()->GetIndexInGameInstance(), NAME_GameSession, *LastSessionSettings);
 }
 
-void UMyGISubsystem::LeaveSession(TFunction<void(FName, bool)> Callback)
+void UMyGISubsystem::LeaveSession(std::function<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	if(SI->GetNamedSession(NAME_GameSession))
@@ -123,7 +123,7 @@ void UMyGISubsystem::LeaveSession()
 	});
 }
 
-bool UMyGISubsystem::StartSession(TFunction<void(FName, bool)> Callback)
+bool UMyGISubsystem::StartSession(std::function<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	if(SI->OnStartSessionCompleteDelegates.IsBound())
@@ -135,7 +135,7 @@ bool UMyGISubsystem::StartSession(TFunction<void(FName, bool)> Callback)
 	return SI->StartSession(NAME_GameSession);
 }
 
-bool UMyGISubsystem::FindSessions(const FLocalPlayerContext& LPC, TFunction<void(bool)> Callback)
+bool UMyGISubsystem::FindSessions(const FLocalPlayerContext& LPC, std::function<void(bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	LastSessionSearch = MakeShareable(new FOnlineSessionSearch());
@@ -152,7 +152,7 @@ bool UMyGISubsystem::FindSessions(const FLocalPlayerContext& LPC, TFunction<void
 	return SI->FindSessions(LPC.GetLocalPlayer()->GetIndexInGameInstance(), LastSessionSearch.ToSharedRef());
 }
 
-bool UMyGISubsystem::JoinSession(const FLocalPlayerContext& LPC, const FOnlineSessionSearchResult& Result, TFunction<void(FName, EOnJoinSessionCompleteResult::Type)> Callback)
+bool UMyGISubsystem::JoinSession(const FLocalPlayerContext& LPC, const FOnlineSessionSearchResult& Result, std::function<void(FName, EOnJoinSessionCompleteResult::Type)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	if(SI->GetNamedSession(NAME_GameSession))

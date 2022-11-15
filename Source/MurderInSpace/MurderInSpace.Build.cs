@@ -6,6 +6,7 @@ public class MurderInSpace : ModuleRules
 {
 	public MurderInSpace(ReadOnlyTargetRules Target) : base(Target)
 	{
+		//CppStandard = CppStandardVersion.Cpp20;
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
 		PublicDependencyModuleNames.AddRange(new []

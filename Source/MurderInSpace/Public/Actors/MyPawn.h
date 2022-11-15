@@ -29,6 +29,7 @@ public:
 
     // IOrbit interface
 	virtual AOrbit*             GetOrbit()       override { return Orbit;      }
+	virtual void                SetOrbit(AOrbit* InOrbit) override { Orbit = InOrbit; }
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
 	virtual FLinearColor        GetOrbitColor()  override { return OrbitColor; }
 	
@@ -44,6 +45,7 @@ protected:
     virtual void Tick(float DeltaSeconds) override;
     virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+	virtual void BeginDestroy() override;
     
     // components
     

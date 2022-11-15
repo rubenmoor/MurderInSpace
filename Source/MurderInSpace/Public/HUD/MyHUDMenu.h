@@ -109,12 +109,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void HostGameShow();
 
-	void MessageShow(const FText& StrMessage, TFunction<void()> FuncGoBack);
+	void MessageShow(const FText& StrMessage, std::function<void()> FuncGoBack);
 	
 	// update the server list in the HUD
 	// to be called when a session search has returned new results
 	UFUNCTION(BlueprintCallable)
 	void ServerListUpdate();
 	
-	void LoadingScreenShow(const FText& StrMessage, TFunction<void()> GobackFunc);
+	void LoadingScreenShow(const FText& StrMessage, std::function<void()> GobackFunc);
 };

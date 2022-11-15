@@ -16,10 +16,12 @@ class MURDERINSPACE_API AMyPlayerStart final : public AActor, public IHasOrbit
 
 public:
 	virtual AOrbit*             GetOrbit()       override { return Orbit;      }
+	virtual void                SetOrbit(AOrbit* InOrbit) override { Orbit = InOrbit; }
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
 	
 protected:
 	// event handlers
+	virtual void BeginDestroy() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 	
 	// members

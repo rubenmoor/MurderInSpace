@@ -267,7 +267,7 @@ void AMyHUDMenu::MenuSoloShow()
 	WidgetMenuSolo->SetVisibility(ESlateVisibility::Visible);
 }
 
-void AMyHUDMenu::LoadingScreenShow(const FText& StrMessage, TFunction<void()> GobackFunc)
+void AMyHUDMenu::LoadingScreenShow(const FText& StrMessage, std::function<void()> GobackFunc)
 {
 	HideViewportParentWidgets();
 	WidgetLoadingScreen->SetMessage(StrMessage);
@@ -275,7 +275,7 @@ void AMyHUDMenu::LoadingScreenShow(const FText& StrMessage, TFunction<void()> Go
 	WidgetLoadingScreen->SetVisibility(ESlateVisibility::Visible);
 }
 
-void AMyHUDMenu::MessageShow(const FText& StrMessage, TFunction<void()> FuncGoBack)
+void AMyHUDMenu::MessageShow(const FText& StrMessage, std::function<void()> FuncGoBack)
 {
 	HideViewportParentWidgets();
 	WidgetMessage->SetMessage(StrMessage);
