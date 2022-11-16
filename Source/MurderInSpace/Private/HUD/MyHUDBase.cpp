@@ -49,7 +49,7 @@ void AMyHUDBase::BeginPlay()
 	
 	UGameInstance* GI = GetGameInstance();
 	
-	WidgetHUDBorder = CreateWidget<UWidgetHUDBorder>(GI, WidgetHUDBorderClass, FName(TEXT("HUD Border")));
+	WidgetHUDBorder = CreateWidget<UWidgetHUDBorder>(GI, WidgetHUDBorderClass, "HUD Border");
 	// TODO: proly have to set foreground color
 	WidgetHUDBorder->SetParams(X0, Y0, X1, Y1);
 	WidgetHUDBorder->AddToViewport(-1);

@@ -50,19 +50,19 @@ protected:
 	
 	// private members
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gyration")
 	FVector VecInertia = FVector::Zero();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gyration")
 	FVector VecL = FVector::Zero();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gyration")
 	float L = 0.;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gyration")
 	float E = 0.;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gyration")
 	FVector VecOmega = FVector::Zero();
 
 	// replication

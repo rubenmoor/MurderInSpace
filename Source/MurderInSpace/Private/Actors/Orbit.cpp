@@ -2,79 +2,45 @@
 
 #include <numeric>
 
-#include "Actors/MyCharacter.h"
 #include "Components/SplineMeshComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
 #include "Net/UnrealNetwork.h"
 
-void IHasOrbit::ConstructOrbitForActor(AActor* Actor, bool bEnableVisibility)
+void IHasOrbit::OrbitOnConstruction(AActor* Actor, bool bEnableVisibility)
 {
-    if(Actor->HasAnyFlags(RF_Transient) && !Cast<AMyCharacter>(Actor))
-    {
-        return;
-    }
-    if(Actor->HasAnyFlags(RF_ClassDefaultObject))
-    {
-        UE_LOG
-            ( LogMyGame
-            , Display
-            , TEXT("%s: class default object: skipping orbit construction")
-            , *Actor->GetFullName()
-            )
-        return;
-    }
-        
-    if(!GetOrbitClass())
-    {
-        UE_LOG(LogMyGame, Error, TEXT("%s: OnConstruction: OrbitClass null"), *Actor->GetFullName())
-        return;
-    }
-    
-    if(!IsValid(GetOrbit()))
-    {
-        SetOrbit(AOrbit::SpawnOrbit(Actor));
-        if(IsValid(GetOrbit()) && bEnableVisibility)
-        {
-            GetOrbit()->SetEnableVisibility(true);
-#if WITH_EDITORONLY_DATA
-            Actor->SetActorLabel(Actor->GetFName().ToString());
+#if WITH_EDITOR
+	Actor->SetActorLabel(Actor->GetName());
 #endif
-        }
-        else
-        {
-            UE_LOG(LogMyGame, Warning, TEXT("%s: Couldn't spawn orbit."), *Actor->GetFullName())
-        }
-    }
-    else
+        
+    if(IsValid(GetOrbit()))
     {
         // fix orbit after copying (alt + move in editor)
         if(GetOrbit()->GetBody() != Actor)
         {
-            // this should work, but it doesn't:
-            //Orbit = FindObjectFast<AOrbit>(this, FName(*NewName));
-            // so this is my workaround
-            UWorld* World = Actor->GetWorld();
-            auto Filter = [this, Actor, World] (const AOrbit* Orbit)
-            {
-                return Orbit->GetWorld() == World && Orbit->GetBody() == Actor;
-            };
-            SetOrbit(*MyObjectIterator<AOrbit>(Filter));
-            if(!IsValid(GetOrbit()))
-            {
-                UE_LOG(LogMyGame, Error, TEXT("%s: couldn't find AObject"), *Actor->GetFullName())
-            }
+            SpawnOrbit(Actor);
         }
-        if(IsValid(GetOrbit()))
+        else
         {
             // allow orbit update on drag actor
             GetOrbit()->OnConstruction(FTransform());
         }
-        else
-        {
-            UE_LOG(LogMyGame, Error, TEXT("%s: No orbit constructed."), *Actor->GetFullName())
-        }
     }
+}
+
+void IHasOrbit::SpawnOrbit(AActor* Actor)
+{
+    if(!IsValid(GetOrbitClass()))
+    {
+        UE_LOG(LogMyGame, Error, TEXT("%s: OnConstruction: OrbitClass null"), *Actor->GetFullName())
+        return;
+    }
+
+    FActorSpawnParameters Params;
+    Params.Name = AOrbit::GetCustomFName(Actor);
+    Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
+    //Params.CustomPreSpawnInitalization = [Actor] (AActor* Orbit) { Cast<AOrbit>(Orbit)->Body = Actor; };
+    Params.Owner = Actor;
+    SetOrbit(Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params));
 }
 
 AOrbit::AOrbit()
@@ -163,27 +129,22 @@ void AOrbit::OnConstruction(const FTransform& Transform)
     {
         return;
     }
-    // debugging, doesn't seem to have an effect
-    if(!IsValid(this))
-    {
-        UE_LOG(LogMyGame, Error, TEXT("%s: OnConstruction: this invalid"), *GetFullName())
-    }
 
-    // debugging, `if` seems redundant
-    if(IsValid(Body))
-    {
 #if WITH_EDITOR
-        FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
-        FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
+    FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
+    FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
 #else
-        UE_LOG(LogMyGame, Warning, TEXT("%s: debugging: OnConstruction: not with editor"))
-        FPhysics Physics = UStateLib::GetPhysicsUnsafe(InBody);
-        FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(InBody);
+    UE_LOG(LogMyGame, Warning, TEXT("%s: debugging: OnConstruction: not with editor"))
+    FPhysics Physics = UStateLib::GetPhysicsUnsafe(InBody);
+    FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(InBody);
 #endif
 
-        SetCircleOrbit(Physics);
-        Update(Physics, InstanceUI);
-    }
+#if WITH_EDITOR
+    SetActorLabel(GetFName().ToString(), false);
+#endif
+        
+    SetCircleOrbit(Physics);
+    Update(Physics, InstanceUI);
 }
 
 void AOrbit::Tick(float DeltaTime)
@@ -479,15 +440,14 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
 
     if(bTrajectoryShowSpline)
     {
-        // debugging, shouldn't be necessary
-        if(Cast<IHasOrbitColor>(Body) && IsValid(GetWorld()))
-        {
-            SpawnSplineMesh
-                ( Cast<IHasOrbitColor>(Body)->GetOrbitColor()
-                , ESplineMeshParentSelector::Permanent
-                , InstanceUI
-                );
-        }
+#if WITH_EDITOR
+        if(bIsVisibleInEditor)
+#endif
+        SpawnSplineMesh
+            ( Cast<IHasOrbitColor>(Body)->GetOrbitColor()
+            , ESplineMeshParentSelector::Permanent
+            , InstanceUI
+            );
     }
 }
 
@@ -500,7 +460,7 @@ void AOrbit::UpdateSplineMeshScale(float InScaleFactor)
     {
         USplineMeshComponent* Mesh = Cast<USplineMeshComponent>(SceneComponent);
         UMaterialInstanceDynamic* Material = Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(0));
-        Material->SetScalarParameterValue(FName(TEXT("NumBands")), 4. / InScaleFactor);
+        Material->SetScalarParameterValue("NumBands", 4. / InScaleFactor);
         
         Mesh->SetStartScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
         Mesh->SetEndScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
@@ -649,38 +609,6 @@ void AOrbit::HandleClick(AActor* Actor, FKey Button)
     }
 }
 
-// static function
-AOrbit* AOrbit::SpawnOrbit(AActor* Actor)
-{
-    const FTransform Transform;
-    FActorSpawnParameters Params;
-    Params.bDeferConstruction = true;
-    Params.Name = *Actor->GetFName().ToString().Append(TEXT("_Orbit"));
-    Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
-    Params.bAllowDuringConstructionScript = true;
-    AOrbit* Orbit = Actor->GetWorld()->SpawnActor<AOrbit>
-        ( Cast<IHasOrbit>(Actor)->GetOrbitClass()
-        , Params
-        );
-    // spawning doesn't work when I just edited some Actor Blueprint's default values
-    if(IsValid(Orbit))
-    {
-        Orbit->Body = Actor;
-    }
-    UGameplayStatics::FinishSpawningActor(Orbit, Transform);
-#if WITH_EDITORONLY_DATA
-    if(IsValid(Orbit))
-    {
-        Orbit->SetActorLabel(Orbit->GetFName().ToString(), false);
-    }
-    else
-    {
-        UE_LOG(LogMyGame, Error, TEXT("%s: SpawnOrbit: fail"), *Actor->GetFullName())
-    }
-#endif
-    return Orbit;
-}
-
 void AOrbit::SetCircleOrbit(FPhysics Physics)
 {
     const FVector VecRKepler = Body->GetActorLocation() - Physics.VecF1;
@@ -739,7 +667,8 @@ void AOrbit::SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector Paren
                 Parent = SplineMeshParent;
                 break;
             }
-            USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>();
+            
+            USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(this);
             
             SplineMesh->SetMobility(EComponentMobility::Stationary);
             SplineMesh->SetVisibility(GetVisibility(InstanceUI));
@@ -758,7 +687,7 @@ void AOrbit::SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector Paren
 
             UMaterialInstanceDynamic* DynamicMaterial =
                 SplineMesh->CreateDynamicMaterialInstance(0, SplineMeshMaterial);
-            DynamicMaterial->SetVectorParameterValue(FName(TEXT("StripesColor")), Color);
+            DynamicMaterial->SetVectorParameterValue("StripesColor", Color);
 
             const FVector VecStartPos =
                 Spline->GetLocationAtDistanceAlongSpline(Indices[i] * SplineMeshLength, ESplineCoordinateSpace::World);
@@ -799,6 +728,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
     static const FName FNameBTrajectoryShowSpline = GET_MEMBER_NAME_CHECKED(AOrbit, bTrajectoryShowSpline);
+    static const FName FNameVisibleInEditor       = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleInEditor   );
     static const FName FNameBVisibleVarious       = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleVarious    );
     static const FName FNameSplineMeshLength      = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshLength     );
     static const FName FNameVelocity              = GET_MEMBER_NAME_CHECKED(AOrbit, ScalarVelocity       );
@@ -808,7 +738,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     static const FName FNameSplineMeshMaterial    = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshMaterial   );
     static const FName FNameSplineMeshScaleFactor = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshScaleFactor);
 
-    if(Name == FNameBVisibleVarious)
+    if(Name == FNameBVisibleVarious || Name == FNameVisibleInEditor)
     {
         UpdateVisibility(InstanceUI);
     }
@@ -844,6 +774,15 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     if(IsValid(Body))
     {
         Update(Physics, InstanceUI);
+    }
+    else
+    {
+        UE_LOG
+            ( LogMyGame
+            , Warning
+            , TEXT("%s: PostEditChangedChainProperty: Body invalid")
+            , *GetFullName()
+            )
     }
 }
 #endif

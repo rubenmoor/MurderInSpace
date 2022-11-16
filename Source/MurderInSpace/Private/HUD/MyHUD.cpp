@@ -62,7 +62,7 @@ void AMyHUD::BeginPlay()
 		return;
 	}
 
-	WidgetHUD = CreateWidget<UUW_HUD>(GI, WidgetHUDClass, FName(TEXT("HUD")));
+	WidgetHUD = CreateWidget<UUW_HUD>(GI, WidgetHUDClass, "HUD");
 	WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
 	WidgetHUD->AddToViewport(0);
 	
@@ -73,7 +73,7 @@ void AMyHUD::BeginPlay()
 		UE_LOG(LogSlate, Error, TEXT("%s: WidgetInGameClass null"), *GetFullName())
 		return;
 	}
-	WidgetMenuInGame = CreateWidget<UUW_MenuInGame>(GI, WidgetMenuInGameClass, FName(TEXT("In-Game Menu")));
+	WidgetMenuInGame = CreateWidget<UUW_MenuInGame>(GI, WidgetMenuInGameClass, "In-Game Menu");
 	WidgetMenuInGame->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetMenuInGame->AddToViewport(1);
 }

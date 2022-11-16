@@ -27,7 +27,8 @@ public:
     virtual AOrbit* GetOrbit() = 0;
     virtual void    SetOrbit(AOrbit* InOrbit) = 0;
     virtual TSubclassOf<AOrbit> GetOrbitClass() = 0;
-    virtual void ConstructOrbitForActor(AActor* Actor, bool bEnableVisibility);
+    virtual void OrbitOnConstruction(AActor* Actor, bool bEnableVisibility);
+	void SpawnOrbit(AActor* Actor);
 };
 
 UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
@@ -119,8 +120,7 @@ public:
     UFUNCTION(BlueprintCallable)
 	AActor* GetBody() const { return Body; }
 
-    //UFUNCTION(BlueprintCallable)
-	static AOrbit* SpawnOrbit(AActor* Actor);
+    static FName GetCustomFName(AActor* Actor) { return *Actor->GetName().Append(TEXT("_Orbit")); }
     
     // initialization
 
@@ -156,6 +156,11 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     bool bIsVisibleVarious = false;
 
+#if WITH_EDITORONLY_DATA
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool bIsVisibleInEditor = false;
+#endif
+    
     UFUNCTION(BlueprintCallable)
     FString GetParamsString();
 
@@ -276,7 +281,7 @@ protected:
     static constexpr float SplineToCircle = 1.65;
 
 	// the Actor that moves along this Orbit
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditInstanceOnly)
 	AActor* Body;
     
     // private methods

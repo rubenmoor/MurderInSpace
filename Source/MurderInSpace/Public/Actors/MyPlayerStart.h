@@ -18,17 +18,20 @@ public:
 	virtual AOrbit*             GetOrbit()       override { return Orbit;      }
 	virtual void                SetOrbit(AOrbit* InOrbit) override { Orbit = InOrbit; }
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
+
+	UFUNCTION(CallInEditor, Category="Orbit")
+	void InitializeOrbit();
 	
 protected:
 	// event handlers
-	virtual void BeginDestroy() override;
+	virtual void Destroyed() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 	
 	// members
 	
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category="Orbit")
 	TSubclassOf<AOrbit> OrbitClass;
-	
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+
+	UPROPERTY(EditInstanceOnly, Category="Orbit")
 	AOrbit* Orbit;
 };

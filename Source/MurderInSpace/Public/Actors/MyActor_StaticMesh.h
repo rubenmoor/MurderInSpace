@@ -28,9 +28,12 @@ public:
 	virtual TSubclassOf<AOrbit>  GetOrbitClass() override { return OrbitClass;   }
 	virtual FLinearColor         GetOrbitColor() override { return OrbitColor;   }
 	
+	UFUNCTION(CallInEditor, Category="Orbit")
+	void InitializeOrbit();
+	
 protected:
 	// event handlers
-	virtual void BeginDestroy() override;
+	virtual void Destroyed() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 
@@ -47,12 +50,12 @@ protected:
 
 	// members
 	
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category="Orbit")
 	TSubclassOf<AOrbit> OrbitClass;
-	
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+
+	UPROPERTY(EditInstanceOnly, Category="Orbit")
 	AOrbit* Orbit;
 	
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
     FLinearColor OrbitColor;
 };

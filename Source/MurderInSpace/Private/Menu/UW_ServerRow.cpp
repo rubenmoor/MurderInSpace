@@ -31,7 +31,7 @@ void UUW_ServerRow::NativeOnCurrentTextStyleChanged()
 	TextServerName->SetStyle(GetCurrentTextStyleClass());
 	TextPlayerSymbol->SetStyle(GetCurrentTextStyleClass());
 	FSlateFontInfo SlateFontInfo;
-	SlateFontInfo.TypefaceFontName = FName(TEXT("UnicodeAll"));
+	SlateFontInfo.TypefaceFontName = "UnicodeAll";
 	TextPlayerSymbol->SetFont(SlateFontInfo);
 	TextPlayerCount->SetStyle(GetCurrentTextStyleClass());
 }

@@ -5,9 +5,15 @@
 
 #include "Actors/Orbit.h"
 
-void AMyPlayerStart::BeginDestroy()
+void AMyPlayerStart::InitializeOrbit()
 {
-	Super::BeginDestroy();
+	SpawnOrbit(this);
+}
+
+void AMyPlayerStart::Destroyed()
+{
+	Super::Destroyed();
+	
 	if(!IsValid(Orbit))
 	{
 		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginDestroy: orbit invalid"), *GetFullName())
@@ -21,5 +27,5 @@ void AMyPlayerStart::BeginDestroy()
 void AMyPlayerStart::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	ConstructOrbitForActor(this, false);
+	OrbitOnConstruction(this, false);
 }

@@ -20,6 +20,12 @@ void AMyPawn::UpdateLookTarget(FVector Target)
 	// TODO
 }
 
+void AMyPawn::InitializeOrbit()
+{
+	SpawnOrbit(this);
+	Orbit->SetEnableVisibility(true);
+}
+
 void AMyPawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -44,7 +50,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 void AMyPawn::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	ConstructOrbitForActor(this, true);
+	OrbitOnConstruction(this, true);
 }
 
 void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
@@ -67,9 +73,9 @@ void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCh
 	}
 }
 
-void AMyPawn::BeginDestroy()
+void AMyPawn::Destroyed()
 {
-	Super::BeginDestroy();
+	Super::Destroyed();
 	if(!IsValid(Orbit))
 	{
 		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginDestroy: orbit invalid"), *GetFullName())

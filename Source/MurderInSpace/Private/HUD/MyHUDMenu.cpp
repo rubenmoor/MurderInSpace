@@ -35,7 +35,7 @@ void AMyHUDMenu::BeginPlay()
 		return;
 	}
 
-	WidgetMenuMain = CreateWidget<UUW_MenuMain>(GI, WidgetMenuMainClass, FName(TEXT("Main Menu")));
+	WidgetMenuMain = CreateWidget<UUW_MenuMain>(GI, WidgetMenuMainClass, "Main Menu");
 	WidgetMenuMain->AddToViewport(1);
 
 	// set up solo menu
@@ -45,7 +45,7 @@ void AMyHUDMenu::BeginPlay()
 		UE_LOG(LogSlate, Error, TEXT("%s: WidgetMenuMultiplayerClass null"), *GetFullName())
 		return;
 	}
-	WidgetMenuSolo = CreateWidget<UUW_MenuSolo>(GI, WidgetMenuSoloClass, FName(TEXT("Menu Solo")));
+	WidgetMenuSolo = CreateWidget<UUW_MenuSolo>(GI, WidgetMenuSoloClass, "Menu Solo");
 	WidgetMenuSolo->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetMenuSolo->AddToViewport(1);
 
@@ -56,7 +56,7 @@ void AMyHUDMenu::BeginPlay()
 		UE_LOG(LogSlate, Error, TEXT("%s: WidgetMenuMultiplayerClass null"), *GetFullName())
 		return;
 	}
-	WidgetMenuMultiplayer = CreateWidget<UUW_MenuMultiPlayer>(GI, WidgetMenuMultiplayerClass, FName(TEXT("Menu Multiplayer")));
+	WidgetMenuMultiplayer = CreateWidget<UUW_MenuMultiPlayer>(GI, WidgetMenuMultiplayerClass, "Menu Multiplayer");
 	WidgetMenuMultiplayer->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetMenuMultiplayer->AddToViewport(1);
 
@@ -72,7 +72,7 @@ void AMyHUDMenu::BeginPlay()
 		UE_LOG(LogSlate, Error, TEXT("%s: WidgetServerRowClass null"), *GetFullName())
 	}
 
-	WidgetServerList = CreateWidget<UUW_ServerList>(GI, WidgetServerListClass, FName(TEXT("Server List")));
+	WidgetServerList = CreateWidget<UUW_ServerList>(GI, WidgetServerListClass, "Server List");
 	WidgetServerList->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetServerList->AddToViewport(1);
 
@@ -83,7 +83,7 @@ void AMyHUDMenu::BeginPlay()
 		UE_LOG(LogSlate, Error, TEXT("%s: WidgetHostGameClass null"), *GetFullName())
 		return;
 	}
-	WidgetHostGame = CreateWidget<UUW_HostGame>(GI, WidgetHostGameClass, FName(TEXT("Host Game")));
+	WidgetHostGame = CreateWidget<UUW_HostGame>(GI, WidgetHostGameClass, "Host Game");
 	WidgetHostGame->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetHostGame->AddToViewport(1);
 
@@ -94,7 +94,7 @@ void AMyHUDMenu::BeginPlay()
 		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetLoadingScreenClass null"), *GetFullName())
 		return;
 	}
-	WidgetLoadingScreen = CreateWidget<UUW_LoadingScreen>(GI, WidgetLoadingScreenClass, FName(TEXT("Loading Screen")));
+	WidgetLoadingScreen = CreateWidget<UUW_LoadingScreen>(GI, WidgetLoadingScreenClass, "Loading Screen");
 	WidgetLoadingScreen->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetLoadingScreen->AddToViewport(1);
 
@@ -103,7 +103,7 @@ void AMyHUDMenu::BeginPlay()
 		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetMessageClass null"), *GetFullName())
 		return;
 	}
-	WidgetMessage = CreateWidget<UUW_Message>(GI, WidgetMessageClass, FName(TEXT("Message")));
+	WidgetMessage = CreateWidget<UUW_Message>(GI, WidgetMessageClass, "Message");
 	WidgetMessage->SetVisibility(ESlateVisibility::Collapsed);
 	WidgetMessage->AddToViewport(1);
 }
@@ -147,7 +147,7 @@ void AMyHUDMenu::HostGameShow()
 	auto [_RndGen, _Poisson, Random] = UStateLib::GetRndUnsafe(this);
 	GI->SessionConfig.CustomName = UFunctionLib::Satellites[static_cast<int>(Random.FRand() * UFunctionLib::LengthSatellites)];
 	const IOnlineSubsystem* SS = IOnlineSubsystem::Get
-		( GI->SessionConfig.bEnableLAN ? FName(TEXT("NULL")) : FName(TEXT("EOS"))
+		( GI->SessionConfig.bEnableLAN ? "NULL" : "EOS"
 		);
 	
 	WidgetHostGame->SetInfo (FText::Format

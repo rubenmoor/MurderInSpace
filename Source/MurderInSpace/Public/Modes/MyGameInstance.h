@@ -75,7 +75,7 @@ public:
 protected:
 	// event handlers
 
-	virtual int32 AddLocalPlayer(ULocalPlayer* NewPlayer, int32 ControllerId) override;
+	virtual int32 AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUserId UserId) override;
 	
 	// private properties
 	

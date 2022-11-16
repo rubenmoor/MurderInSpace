@@ -202,7 +202,7 @@ void UMyGISubsystem::ShowLoginScreen(const FLocalPlayerContext& LPC)
 	OnlineAccountCredentials.Id = "localhost:1234";
 	OnlineAccountCredentials.Token = "foo";
 
-	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked(FName(TEXT("EOS")));
+	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked("EOS");
 	
 	OSSIdentity->Login
 		( LPC.GetLocalPlayer()->GetLocalPlayerIndex()
@@ -223,7 +223,7 @@ void UMyGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked(FName(TEXT("EOS")));
+	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked("EOS");
 	
 	// login handler
 	
@@ -292,8 +292,8 @@ IOnlineSessionPtr UMyGISubsystem::GetSessionInterface() const
 	return Online::GetSessionInterfaceChecked
 		( GetWorld()
 		, Cast<UMyGameInstance>(GetGameInstance())->SessionConfig.bEnableLAN
-			? FName(TEXT("NULL"))
-			: FName(TEXT("EOS"))
+			? "NULL"
+			: "EOS"
 		);
 }
 #undef LOCTEXT_NAMESPACE

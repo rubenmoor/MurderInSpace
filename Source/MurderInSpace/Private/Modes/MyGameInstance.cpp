@@ -3,7 +3,6 @@
 
 #include "Modes/MyGameInstance.h"
 
-#include "Actors/Orbit.h"
 #include "HUD/MyHUDMenu.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -33,7 +32,7 @@ void UMyGameInstance::HostGame(const FLocalPlayerContext& LPC)
 			if(bSuccess)
 			{
 				GetWorld()->ServerTravel("/Game/Maps/spacefootball?listen");
-				//UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
+				//UGameplayStatics::OpenLevel(GetWorld(), "spacefootball");
 			}
 			else
 			{
@@ -73,7 +72,7 @@ void UMyGameInstance::HostGame(const FLocalPlayerContext& LPC)
 // 		GetSubsystem<UMyGISubsystem>()->DestroySession([] (FName, bool) {} );
 // 	}
 // 	// TODO: loading screen?
-// 	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball_mainmenu")));
+// 	UGameplayStatics::OpenLevel(GetWorld(), "spacefootball_mainmenu");
 // }
 
 void UMyGameInstance::StartSoloGame(const FLocalPlayerContext& LPC)
@@ -86,7 +85,7 @@ void UMyGameInstance::StartSoloGame(const FLocalPlayerContext& LPC)
 		, [LPC] () { LPC.GetHUD<AMyHUDMenu>()->MenuSoloShow(); }
 		);
 
-	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("spacefootball")));
+	UGameplayStatics::OpenLevel(GetWorld(), "spacefootball");
 }
 
 bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessionSearchResult& SearchResult)
@@ -156,9 +155,9 @@ void UMyGameInstance::QuitGame(const FLocalPlayerContext& LPC)
 		);
 }
 
-int32 UMyGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, int32 ControllerId)
+int32 UMyGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUserId UserId)
 {
-	int32 InsertIndex = Super::AddLocalPlayer(NewPlayer, ControllerId);
+	int32 InsertIndex = Super::AddLocalPlayer(NewPlayer, UserId);
 	UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(NewPlayer);
 	LocalPlayer->IsMultiplayer = false;
 	LocalPlayer->ShowInGameMenu = false;
@@ -167,7 +166,7 @@ int32 UMyGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, int32 ControllerI
 	 
 	// for the identity interface, SubsystemName == "NULL" doesn't make sense, I believe, as there
 	// is nor identity provider in the NULL/LAN online subystem
-	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked(FName(TEXT("EOS")));
+	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked("EOS");
 	
 	// TODO save unique net id in some config and check if still logged in
 	// TODO: creating a unique net id isn't recommended

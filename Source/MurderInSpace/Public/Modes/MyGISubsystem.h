@@ -8,7 +8,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "MyGISubsystem.generated.h"
 
-#define SETTING_CUSTOMNAME FName(TEXT("CUSTOMNAME"))
+#define SETTING_CUSTOMNAME "CUSTOMNAME"
 
 /**
  * 

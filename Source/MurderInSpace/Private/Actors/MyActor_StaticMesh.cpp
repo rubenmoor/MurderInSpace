@@ -16,12 +16,18 @@ AMyActor_StaticMesh::AMyActor_StaticMesh()
     Gyration = CreateDefaultSubobject<UGyrationComponent>(TEXT("Gyration"));
 }
 
-void AMyActor_StaticMesh::BeginDestroy()
+void AMyActor_StaticMesh::InitializeOrbit()
 {
-	Super::BeginDestroy();
+	SpawnOrbit(this);
+	Orbit->SetEnableVisibility(true);
+}
+
+void AMyActor_StaticMesh::Destroyed()
+{
+	Super::Destroyed();
 	if(!IsValid(Orbit))
 	{
-		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginDestroy: orbit invalid"), *GetFullName())
+		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginDestroy: orbit null"), *GetFullName())
 	}
 	else
 	{
@@ -32,7 +38,7 @@ void AMyActor_StaticMesh::BeginDestroy()
 void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
-	ConstructOrbitForActor(this, true);
+	OrbitOnConstruction(this, true);
 }
 
 void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)

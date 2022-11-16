@@ -260,6 +260,8 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
 
+    Cast<IHasOrbit>(InPawn)->SpawnOrbit(InPawn);
+
     // freeze orbit state for all existing orbit components for replication (condition: initial only)
     TArray<FOrbitState> OrbitStates;
     auto FilterOrbits = [this, InPawn] (const AOrbit* Orbit) -> bool

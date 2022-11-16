@@ -20,8 +20,7 @@ AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 			, *GetFullName()
 			)
 		Cast<AMyPlayerController>(Player)->ClientRPC_LeaveSession();
-		// shouldn't matter, feels better than `nullptr`
-		return Starts[0];
+		return Player->GetWorld()->SpawnActor<AActor>(FVector(1000, 0, 0), FRotator::ZeroRotator);
 	}
 	const FVector Loc = Starts[NumPlayers]->GetActorLocation();
 	UE_LOG
