@@ -46,7 +46,7 @@ AOrbit::AOrbit()
 {
     PrimaryActorTick.bCanEverTick = true;
     bNetLoadOnClient = false;
-    bReplicates = true;
+    bReplicates = false;
     AActor::SetReplicateMovement(false);
     
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
@@ -117,6 +117,8 @@ void AOrbit::BeginPlay()
     
     // ignore the visibility set in the editor
     bIsVisibleVarious = false;
+    // this is to override the `bIsVisibleInEditor` that deactivates spline mesh spawning
+    Update(UStateLib::GetPhysicsUnsafe(this), InstanceUI);
     UpdateVisibility(InstanceUI);
 }
 
@@ -513,10 +515,14 @@ void AOrbit::AddPointsToSpline()
 
 bool AOrbit::GetVisibility(FInstanceUI InstanceUI) const
 {
+#if WITH_EDITOR
+    return bIsVisibleInEditor;
+#else
     return bIsVisibleVarious
         || bIsVisibleAccelerating
         || InstanceUI.bShowAllTrajectories
         || (InstanceUI.Selected && InstanceUI.Selected->Orbit == this);
+#endif
 }
 
 FString AOrbit::GetParamsString()

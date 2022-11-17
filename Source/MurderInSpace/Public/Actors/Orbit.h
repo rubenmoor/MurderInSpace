@@ -119,6 +119,7 @@ public:
     // initialization
 
     // requires call to `Update` afterwards
+    // TODO: make editor callable version with default physics
     UFUNCTION(BlueprintCallable)
     void SetCircleOrbit(FPhysics Physics);
 
@@ -146,8 +147,7 @@ public:
     // this is true, when
     //   * an actor receives the mouse over event
     //   * the pawn of the player does ShowMyTrajectory
-    //   * the visibility is changed in the editor
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UPROPERTY(BlueprintReadWrite)
     bool bIsVisibleVarious = false;
 
 #if WITH_EDITORONLY_DATA
@@ -229,7 +229,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     bool bTrajectoryShowSpline = false;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     TObjectPtr<UMaterial> SplineMeshMaterial;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
@@ -238,10 +238,10 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     float SplineMeshLength = 1000.0;
     
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     TObjectPtr<UStaticMesh> StaticMesh;
 
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
+    UPROPERTY(Replicated, BlueprintReadOnly, Category="Kepler")
     FOrbitParameters RP_Params;
 
     // for orbit == LINEBOUND, the spline distance is used because the spline key closest to location cannot be reliably
