@@ -266,7 +266,7 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     TArray<FOrbitState> OrbitStates;
     auto FilterOrbits = [this, InPawn] (const AOrbit* Orbit) -> bool
     {
-        const AMyPawn* Owner = Orbit->GetBody<AMyPawn>();
+        const AMyPawn* Owner = Orbit->GetOwner<AMyPawn>();
         return GetWorld() == Orbit->GetWorld()
             // exclude the orbit of `InPawn`
             && (Owner != InPawn);

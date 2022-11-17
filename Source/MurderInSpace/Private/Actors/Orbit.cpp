@@ -15,7 +15,7 @@ void IHasOrbit::OrbitOnConstruction(AActor* Actor, bool bEnableVisibility)
     if(IsValid(GetOrbit()))
     {
         // fix orbit after copying (alt + move in editor)
-        if(GetOrbit()->GetBody() != Actor)
+        if(GetOrbit()->GetOwner() != Actor)
         {
             SpawnOrbit(Actor);
         }
@@ -38,7 +38,6 @@ void IHasOrbit::SpawnOrbit(AActor* Actor)
     FActorSpawnParameters Params;
     Params.Name = AOrbit::GetCustomFName(Actor);
     Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
-    //Params.CustomPreSpawnInitalization = [Actor] (AActor* Orbit) { Cast<AOrbit>(Orbit)->Body = Actor; };
     Params.Owner = Actor;
     SetOrbit(Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params));
 }
@@ -84,7 +83,7 @@ void AOrbit::BeginPlay()
     const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
     bool bHasProblems = false;
 
-    if(!Body)
+    if(!GetOwner())
     {
         UE_LOG(LogMyGame, Error, TEXT("%s: no body"), *GetFullName())
         bHasProblems = true;
@@ -110,9 +109,9 @@ void AOrbit::BeginPlay()
         return;
     }
     
-    Body->OnBeginCursorOver.AddDynamic(this, &AOrbit::HandleBeginMouseOver);
-    Body->OnEndCursorOver.AddDynamic(this, &AOrbit::HandleEndMouseOver);
-    Body->OnClicked.AddDynamic(this, &AOrbit::HandleClick);
+    GetOwner()->OnBeginCursorOver.AddDynamic(this, &AOrbit::HandleBeginMouseOver);
+    GetOwner()->OnEndCursorOver.AddDynamic(this, &AOrbit::HandleEndMouseOver);
+    GetOwner()->OnClicked.AddDynamic(this, &AOrbit::HandleClick);
     
     Update(UStateLib::GetPhysicsUnsafe(this), InstanceUI);
     
@@ -135,8 +134,8 @@ void AOrbit::OnConstruction(const FTransform& Transform)
     FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
 #else
     UE_LOG(LogMyGame, Warning, TEXT("%s: debugging: OnConstruction: not with editor"))
-    FPhysics Physics = UStateLib::GetPhysicsUnsafe(InBody);
-    FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(InBody);
+    FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
+    FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
 #endif
 
 #if WITH_EDITOR
@@ -176,7 +175,7 @@ void AOrbit::Tick(float DeltaTime)
         SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewLocationAtTangent);
         NewVecR = Spline->GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World);
     }
-    Body->SetActorLocation(NewVecR, true, nullptr);
+    GetOwner()->SetActorLocation(NewVecR, true, nullptr);
     
     // TODO: account for acceleration
     // const auto RealDeltaR = (GetVecR() - VecR).Length();
@@ -190,7 +189,7 @@ void AOrbit::Tick(float DeltaTime)
 
 void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
 {
-    const FVector VecR = Body->GetActorLocation();
+    const FVector VecR = GetOwner()->GetActorLocation();
     
     // transform location vector r to Kepler coordinates, where F1 is the origin
     const FVector VecRKepler = GetVecRKepler(Physics);
@@ -444,7 +443,7 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
         if(bIsVisibleInEditor)
 #endif
         SpawnSplineMesh
-            ( Cast<IHasOrbitColor>(Body)->GetOrbitColor()
+            ( GetOwner<IHasOrbitColor>()->GetOrbitColor()
             , ESplineMeshParentSelector::Permanent
             , InstanceUI
             );
@@ -562,7 +561,7 @@ void AOrbit::OnRep_OrbitState()
 {
     // OrbitState is replicated with condition "initial only", implying that replication (including the call
     // to this method) happens only once
-    Body->SetActorLocation(RP_OrbitState.VecR, true, nullptr);
+    GetOwner()->SetActorLocation(RP_OrbitState.VecR, true, nullptr);
     VecVelocity    = RP_OrbitState.VecVelocity;
     ScalarVelocity       = VecVelocity.Length();
     SplineKey      = Spline->FindInputKeyClosestToWorldLocation(RP_OrbitState.VecR);
@@ -611,7 +610,7 @@ void AOrbit::HandleClick(AActor* Actor, FKey Button)
 
 void AOrbit::SetCircleOrbit(FPhysics Physics)
 {
-    const FVector VecRKepler = Body->GetActorLocation() - Physics.VecF1;
+    const FVector VecRKepler = GetOwner()->GetActorLocation() - Physics.VecF1;
     const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
     VecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
 }
@@ -771,7 +770,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         {
         }
     }
-    if(IsValid(Body))
+    if(IsValid(GetOwner()))
     {
         Update(Physics, InstanceUI);
     }
@@ -780,7 +779,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         UE_LOG
             ( LogMyGame
             , Warning
-            , TEXT("%s: PostEditChangedChainProperty: Body invalid")
+            , TEXT("%s: PostEditChangedChainProperty: owner invalid")
             , *GetFullName()
             )
     }

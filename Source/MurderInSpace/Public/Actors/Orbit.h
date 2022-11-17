@@ -114,12 +114,6 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
-    template<class T>
-	T* GetBody() const { return Cast<T>(Body); }
-    
-    UFUNCTION(BlueprintCallable)
-	AActor* GetBody() const { return Body; }
-
     static FName GetCustomFName(AActor* Actor) { return *Actor->GetName().Append(TEXT("_Orbit")); }
     
     // initialization
@@ -132,7 +126,7 @@ public:
     void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
     
     // update the orbit given
-    // * the location of `Body`
+    // * the location of the owner
     // * `VecVelocity`
     // * `Physics`
     UFUNCTION(BlueprintCallable)
@@ -177,7 +171,7 @@ public:
     FVector GetVecRKepler(FPhysics Physics) const { return GetVecR() - Physics.VecF1; }
 
     UFUNCTION(BlueprintCallable)
-    FVector GetVecR() const { return Body->GetActorLocation(); }
+    FVector GetVecR() const { return GetOwner()->GetActorLocation(); }
 
     // whenever a spline mesh merely changes visibility:
     UFUNCTION(BlueprintCallable)
@@ -279,10 +273,6 @@ protected:
      * trying out in UE results in 1.65 being optimal
      */
     static constexpr float SplineToCircle = 1.65;
-
-	// the Actor that moves along this Orbit
-	UPROPERTY(EditInstanceOnly)
-	AActor* Body;
     
     // private methods
 

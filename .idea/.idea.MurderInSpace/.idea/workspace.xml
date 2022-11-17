@@ -10,35 +10,58 @@
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultInput.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultInput.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Menu/BP_MenuGameMode.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/BP_MenuGameMode.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Menu/MainMenu.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/MainMenu.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Menu/UMG_MenuMain.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/UMG_MenuMain.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MurderInSpace.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/MurderInSpace.uproject" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/MurderInSpace.Build.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/MurderInSpace.Build.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor_StaticMesh.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor_StaticMesh.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPawn.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPawn.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPlayerStart.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPlayerStart.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Resources/Icon128.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Category/SubsystemBrowserCategory_Editor.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Category/SubsystemBrowserCategory_Editor.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Category/SubsystemBrowserCategory_Engine.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Category/SubsystemBrowserCategory_Engine.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Category/SubsystemBrowserCategory_GameInstance.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Category/SubsystemBrowserCategory_GameInstance.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Category/SubsystemBrowserCategory_Player.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Category/SubsystemBrowserCategory_Player.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Category/SubsystemBrowserCategory_World.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Category/SubsystemBrowserCategory_World.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Column/SubsystemBrowserColumn_Config.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Column/SubsystemBrowserColumn_Config.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Column/SubsystemBrowserColumn_Module.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Column/SubsystemBrowserColumn_Module.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Column/SubsystemBrowserColumn_Name.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Column/SubsystemBrowserColumn_Name.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Column/SubsystemBrowserColumn_Plugin.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/Column/SubsystemBrowserColumn_Plugin.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/SubsystemBrowserCategory.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/SubsystemBrowserCategory.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/SubsystemBrowserColumn.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/SubsystemBrowserColumn.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/SubsystemBrowserDescriptor.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/SubsystemBrowserDescriptor.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/SubsystemBrowserModel.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/SubsystemBrowserModel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/Model/SubsystemBrowserSorting.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/SubsystemBrowser.Build.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/SubsystemBrowserFlags.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/SubsystemBrowserModule.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/SubsystemBrowserModule.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/SubsystemBrowserSettings.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/SubsystemBrowserSettings.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/SubsystemBrowserStyle.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/SubsystemBrowserStyle.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/SubsystemBrowserUtils.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/SubsystemBrowserUtils.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/UI/SubsystemBrowserPanel.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/UI/SubsystemBrowserPanel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/UI/SubsystemTableHeader.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/UI/SubsystemTableHeader.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/UI/SubsystemTableItem.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/UI/SubsystemTableItem.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/UI/SubsystemTreeWidget.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser/UI/SubsystemTreeWidget.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowser/SubsystemBrowserPlugin.uplugin" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDBase.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDBase.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDMenu.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDMenu.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Menu/UW_ServerRow.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Menu/UW_ServerRow.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGISubsystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGISubsystem.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameInstance.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameMode.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameMode.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/GyrationComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/GyrationComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyActor_StaticMesh.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyActor_StaticMesh.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyPawn.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyPawn.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyPlayerStart.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyPlayerStart.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/Orbit.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/Orbit.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Lib/UStateLib.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Lib/UStateLib.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGISubsystem.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGISubsystem.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameInstance.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyGameInstance.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpaceEditor.Target.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpaceEditor.Target.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -124,6 +147,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
     "XThreadsFramesViewSplitterKey": "0.5083612",
+    "last_opened_file_path": "F:/ue/projects/MurderInSpace/Plugins/Developer/SubsystemBrowser/Source/SubsystemBrowser",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -392,7 +416,7 @@
       <workItem from="1668541078977" duration="2253000" />
       <workItem from="1668545687858" duration="728000" />
       <workItem from="1668546913988" duration="7275000" />
-      <workItem from="1668601599429" duration="29741000" />
+      <workItem from="1668601599429" duration="32332000" />
     </task>
     <servers />
   </component>
