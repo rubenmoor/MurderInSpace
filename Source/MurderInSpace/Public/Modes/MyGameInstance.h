@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MyState.h"
 #include "Engine/GameInstance.h"
-#include "Lib/UStateLib.h"
 #include "MyGameInstance.generated.h"
 
 UENUM(BlueprintType)
@@ -47,7 +47,6 @@ class MURDERINSPACE_API UMyGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
-	friend class UStateLib;
 	friend class UMyState;
 
 public:

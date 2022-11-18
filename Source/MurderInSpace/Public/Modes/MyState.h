@@ -5,9 +5,6 @@
 #include "CoreMinimal.h"
 #include <random>
 
-#include "MyGameInstance.h"
-#include "MyGameState.h"
-#include "MyPlayerState.h"
 #include "Subsystems/EngineSubsystem.h"
 #include "MyState.generated.h"
 
@@ -100,18 +97,18 @@ public:
 	/**
 	 * @brief the standard gravitational parameter ALPHA [m^3/s^2] = G * M for different bodies
 	 */
-	constexpr float ALPHA_Game_SI = 800;
+	const float ALPHA_Game_SI = 800;
 	
-	constexpr float ALPHA_Ceres_SI = 7e10;
-	constexpr float ALPHA_Moon_SI = 4.8e12;
-	constexpr float ALPHA_Earth_SI = 4e14;
-	constexpr float ALPHA_Sun_SI = 1.3e20;
+	const float ALPHA_Ceres_SI = 7e10;
+	const float ALPHA_Moon_SI = 4.8e12;
+	const float ALPHA_Earth_SI = 4e14;
+	const float ALPHA_Sun_SI = 1.3e20;
 
 	// for actors, unreal guaranties sanity for values of x and y within [-1048535, 1048535]
-	constexpr float MAX_WORLDRADIUS_UU = 1.048535e6;
+	const float MAX_WORLDRADIUS_UU = 1.048535e6;
 
 	// length [m] = length [UU] * scale factor
-	constexpr float DEFAULT_SCALEFACTOR = .01;
+	const float DEFAULT_SCALEFACTOR = .01;
 
 	UFUNCTION(BlueprintCallable)
 	FPhysics GetPhysicsEditorDefault()
@@ -144,43 +141,27 @@ public:
 	}
 	
 	UFUNCTION(BlueprintPure)
-	static FPhysics GetPhysics(const AMyGameState* GS)
-	{
-		return GS->Physics;
-	}
+	FPhysics GetPhysics(const AMyGameState* GS);
 
 	UFUNCTION(BlueprintPure)
-	static FPhysics GetPhysicsAny(const UObject* Object);
+	FPhysics GetPhysicsAny(const UObject* Object);
 
 	UFUNCTION(BlueprintPure)
-	static FPlayerUI GetPlayerUI(const AMyPlayerState* PS)
-	{
-		return PS->PlayerUI;
-	}
+	FPlayerUI GetPlayerUI(const AMyPlayerState* PS);
 
-	static FPlayerUI GetPlayerUIAny(const UObject* Object, const FLocalPlayerContext& LPC);
+	FPlayerUI GetPlayerUIAny(const UObject* Object, const FLocalPlayerContext& LPC);
 	
 	UFUNCTION(BlueprintPure)
-	static FInstanceUI GetInstanceUI(const UMyGameInstance* GI)
-	{
-		return GI->InstanceUI;
-	}
+	FInstanceUI GetInstanceUI(const UMyGameInstance* GI);
 
 	UFUNCTION(BlueprintPure)
-	static FInstanceUI GetInstanceUIAny(const UObject* Object);
+	FInstanceUI GetInstanceUIAny(const UObject* Object);
 
 	UFUNCTION(BlueprintPure)
-	static FRnd GetRnd(const AMyGameState* GS, const UMyGameInstance* GI)
-	{
-		return FRnd
-			{ GS->RndGen
-			, GS->Poisson
-			, GI->Random
-			};
-	}
-	
+	FRnd GetRnd(const AMyGameState* GS, const UMyGameInstance* GI);
+
 	UFUNCTION(BlueprintPure)
-	static FRnd GetRndAny(const UObject* Object);
+	FRnd GetRndAny(const UObject* Object);
 
 	void WithPlayerUI(const UObject* Object, const FLocalPlayerContext& LPC, const std::function<void(FPlayerUI&)> Func);
 

@@ -30,7 +30,9 @@ protected:
 	// event handlers
 	virtual void Destroyed() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
+#if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+#endif
 
 	// components
 

@@ -3,16 +3,28 @@
 
 #include "Modes/MyState.h"
 
+#include "Modes/MyGameInstance.h"
+#include "Modes/MyGameState.h"
+#include "Modes/MyPlayerState.h"
+
+DEFINE_LOG_CATEGORY(LogMyGame);
+
 float UMyState::GetInitialAngularVelocity(FRnd Rnd)
 {
 	return Rnd.Poisson(Rnd.RndGen) / 1.e3;
+}
+
+FPhysics UMyState::GetPhysics(const AMyGameState* GS)
+{
+	return GS->Physics;
 }
 
 FPhysics UMyState::GetPhysicsAny(const UObject* Object)
 {
 	const UWorld* World = Object->GetWorld();
 	const UGameInstance* GIGeneric = World->GetGameInstance();
-	if(!IsValid(GIGeneric))
+	const AGameState* GSGeneric = World->GetGameState<AGameState>();
+	if(!IsValid(GIGeneric) || !IsValid(GSGeneric))
 	{
 		return GetPhysicsEditorDefault();
 	}
@@ -22,9 +34,9 @@ FPhysics UMyState::GetPhysicsAny(const UObject* Object)
 		UE_LOG
 			( LogGameState
 			, Error
-			, TEXT("UStateLib::GetPhysicsUnsafe: %s: UMyGameInstance null; generic game instance: %s")
+			, TEXT("UMyState::GetPhysicsAny: %s: UMyGameInstance null; generic game instance: %s")
 			, *Object->GetFullName()
-			, GIGeneric ? *GIGeneric->GetFullName() : TEXT("null")
+			, *GIGeneric->GetFullName()
 			)
 		return GetPhysicsEditorDefault();
 	}
@@ -32,17 +44,21 @@ FPhysics UMyState::GetPhysicsAny(const UObject* Object)
 	const AMyGameState* GS = World->GetGameState<AMyGameState>();
 	if(!GS)
 	{
-		const AGameState* GSGeneric = World->GetGameState<AGameState>();
 		UE_LOG
 			( LogGameState
 			, Error
-			, TEXT("UStateLib::GetPhysicsUnsafe: %s: AMyGameState null; AGameState: %s")
+			, TEXT("UMyState::GetPhysicsAny: %s: AMyGameState null; AGameState: %s")
 			, *Object->GetFullName()
-			, GSGeneric ? *GSGeneric->GetFullName() : TEXT("null")
+			, *GSGeneric->GetFullName()
 			)
 		return GetPhysicsEditorDefault();
 	}
 	return GetPhysics(GS);
+}
+
+FPlayerUI UMyState::GetPlayerUI(const AMyPlayerState* PS)
+{
+	return PS->PlayerUI;
 }
 
 FPlayerUI UMyState::GetPlayerUIAny(const UObject* Object, const FLocalPlayerContext& LPC)
@@ -60,11 +76,16 @@ FPlayerUI UMyState::GetPlayerUIAny(const UObject* Object, const FLocalPlayerCont
 			, Error
 			, TEXT("UStateLib::GetPlayerUIUnsafe: %s: AMyPlayerState null; APlayerState: %s")
 			, *Object->GetFullName()
-			, PSGeneric ? *PSGeneric->GetFullName() : TEXT("null")
+			, *PSGeneric->GetFullName()
 			)
 		return GetPlayerUIEditorDefault();
 	}
 	return GetPlayerUI(PS);
+}
+
+FInstanceUI UMyState::GetInstanceUI(const UMyGameInstance* GI)
+{
+	return GI->InstanceUI;
 }
 
 FInstanceUI UMyState::GetInstanceUIAny(const UObject* Object)
@@ -83,18 +104,28 @@ FInstanceUI UMyState::GetInstanceUIAny(const UObject* Object)
 		, Error
 		, TEXT("UStateLib::GetInstanceUIUnsafe: %s: UMyGameInstance null; UGameInstance: %s")
 		, *Object->GetFullName()
-		, GIGeneric ? *GIGeneric->GetFullName() : TEXT("null")
+		, *GIGeneric->GetFullName()
 		)
 		return GetInstanceUIEditorDefault();
 	}
 	return GetInstanceUI(GI);
 }
 
+FRnd UMyState::GetRnd(const AMyGameState* GS, const UMyGameInstance* GI)
+{
+	return FRnd
+	{ GS->RndGen
+		, GS->Poisson
+		, GI->Random
+	};
+}
+
 FRnd UMyState::GetRndAny(const UObject* Object)
 {
 	const UWorld* World = Object->GetWorld();
 	const UGameInstance* GIGeneric = World->GetGameInstance();
-	if(!IsValid(GIGeneric))
+	const AGameState* GSGeneric = World->GetGameState<AGameState>();
+	if(!IsValid(GIGeneric) || !IsValid(GSGeneric))
 	{
 		return FRnd();
 	}
@@ -106,7 +137,7 @@ FRnd UMyState::GetRndAny(const UObject* Object)
 			, Error
 			, TEXT("UStateLib::GetRndUnsafe: %s: UMyGameInstance null; UGameInstance: %s")
 			, *Object->GetFullName()
-			, GIGeneric ? *GIGeneric->GetFullName() : TEXT("null")
+			, *GIGeneric->GetFullName()
 			)
 		return FRnd();
 	}
@@ -114,13 +145,12 @@ FRnd UMyState::GetRndAny(const UObject* Object)
 	const AMyGameState* GS = World->GetGameState<AMyGameState>();
 	if(!GS)
 	{
-		const AGameState* GSGeneric = World->GetGameState<AGameState>();
 		UE_LOG
 			( LogGameState
 			, Error
 			, TEXT("UStateLib::GetRndUnsafe: %s: AMyGameState null; AGameState: %s")
 			, *Object->GetFullName()
-			, GSGeneric ? *GSGeneric->GetFullName() : TEXT("null")
+			, *GSGeneric->GetFullName()
 			)
 		return FRnd();
 	}

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Lib/UStateLib.h"
+#include "MyState.h"
 #include "GameFramework/PlayerState.h"
 #include "MyPlayerState.generated.h"
 
@@ -23,6 +23,6 @@ protected:
 	//virtual void BeginPlay() override;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FPlayerUI PlayerUI = UStateLib::DefaultPlayerUI;
+	FPlayerUI PlayerUI;
 	
 };

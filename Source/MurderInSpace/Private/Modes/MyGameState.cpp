@@ -25,7 +25,7 @@ void AMyGameState::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prope
 	{
 		for(TObjectIterator<AOrbit> IOrbit; IOrbit; ++IOrbit)
 		{
-			(*IOrbit)->Update(Physics, UStateLib::GetInstanceUIEditorDefault());
+			(*IOrbit)->Update(Physics, GEngine->GetEngineSubsystem<UMyState>()->GetInstanceUIEditorDefault());
 		}
 	}
 }

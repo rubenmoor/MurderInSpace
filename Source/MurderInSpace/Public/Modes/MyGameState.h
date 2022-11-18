@@ -5,7 +5,7 @@
 #include <random>
 
 #include "CoreMinimal.h"
-#include "Lib/UStateLib.h"
+#include "MyState.h"
 #include "GameFramework/GameState.h"
 #include "MyGameState.generated.h"
 
@@ -17,7 +17,6 @@ class MURDERINSPACE_API AMyGameState : public AGameState
 {
 	GENERATED_BODY()
 
-	friend class UStateLib;
 	friend class UMyState;
 protected:
 

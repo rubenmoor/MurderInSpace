@@ -39,12 +39,14 @@ void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
 	OrbitSetup(this);
 }
 
+#if WITH_EDITOR
 void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
-	
-    const FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
-    const FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
+
+	UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+    const FPhysics Physics = MyState->GetPhysicsEditorDefault();
+    const FInstanceUI InstanceUI = MyState->GetInstanceUIEditorDefault();
     
     const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
@@ -58,3 +60,4 @@ void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent
 		}
 	}
 }
+#endif

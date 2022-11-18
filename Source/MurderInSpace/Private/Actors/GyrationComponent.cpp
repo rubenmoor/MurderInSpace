@@ -4,7 +4,7 @@
 #include "Actors/GyrationComponent.h"
 
 #include "Actors/IHasMesh.h"
-#include "Lib/UStateLib.h"
+#include "Modes/MyState.h"
 #include "Net/UnrealNetwork.h"
 
 UGyrationComponent::UGyrationComponent()
@@ -34,8 +34,9 @@ void UGyrationComponent::BeginPlay()
 	{
 		if(VecL.IsZero())
 		{
-			const FRnd Rnd = UStateLib::GetRndUnsafe(this);
-			const float LRandom = UStateLib::GetInitialAngularVelocity(Rnd);
+			UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+			const FRnd Rnd = MyState->GetRndAny(this);
+			const float LRandom = MyState->GetInitialAngularVelocity(Rnd);
 			VecL = Rnd.Stream.VRand() * LRandom * VecInertia.Length();
 			UE_LOG
 				( LogMyGame

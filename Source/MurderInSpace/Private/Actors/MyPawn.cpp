@@ -35,8 +35,9 @@ void AMyPawn::Tick(float DeltaSeconds)
 	
 	if(RP_bIsAccelerating)
 	{
-		const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
-		const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
+		UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+		const FPhysics Physics = MyState->GetPhysicsAny(this);
+		const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(this);
 		const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
 		Cast<AOrbit>(Children[0])->AddVelocity(Root->GetForwardVector() * DeltaV, Physics, InstanceUI);
 	}
@@ -48,12 +49,14 @@ void AMyPawn::OnConstruction(const FTransform& Transform)
 	OrbitSetup(this);
 }
 
+#if WITH_EDITOR
 void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
-	
-    const FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
-    const FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
+
+	UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+    const FPhysics Physics = MyState->GetPhysicsEditorDefault();
+    const FInstanceUI InstanceUI = MyState->GetInstanceUIEditorDefault();
     
     const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
@@ -67,6 +70,7 @@ void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCh
 		}
 	}
 }
+#endif
 
 void AMyPawn::Destroyed()
 {

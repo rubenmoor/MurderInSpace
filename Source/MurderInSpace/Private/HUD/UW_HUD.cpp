@@ -5,7 +5,6 @@
 
 #include "Actors/Orbit.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
-#include "Lib/UStateLib.h"
 
 void UUW_HUD::SetF1Marker(FVector2D InCoords)
 {
@@ -35,7 +34,7 @@ int32 UUW_HUD::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
             );
     }
 
-    const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
+    const FInstanceUI InstanceUI = GEngine->GetEngineSubsystem<UMyState>()->GetInstanceUIAny(this);
     if(InstanceUI.Hovered)
     {
         FVector ScreenPos;

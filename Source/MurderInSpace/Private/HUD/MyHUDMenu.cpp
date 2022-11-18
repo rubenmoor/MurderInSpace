@@ -7,7 +7,6 @@
 #include "OnlineSubsystem.h"
 #include "Blueprint/UserWidget.h"
 #include "Lib/FunctionLib.h"
-#include "Lib/UStateLib.h"
 #include "Menu/UW_HostGame.h"
 #include "Menu/UW_LoadingScreen.h"
 #include "Menu/UW_MenuMain.h"
@@ -144,7 +143,7 @@ void AMyHUDMenu::HostGameShow()
 	WidgetHostGame->SetVisibility(ESlateVisibility::Visible);
 
 	const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
-	auto [_RndGen, _Poisson, Random] = UStateLib::GetRndUnsafe(this);
+	auto [_RndGen, _Poisson, Random] = GEngine->GetEngineSubsystem<UMyState>()->GetRndAny(this);
 	GI->SessionConfig.CustomName = UFunctionLib::Satellites[static_cast<int>(Random.FRand() * UFunctionLib::LengthSatellites)];
 	const IOnlineSubsystem* SS = IOnlineSubsystem::Get
 		( GI->SessionConfig.bEnableLAN ? "NULL" : "EOS"

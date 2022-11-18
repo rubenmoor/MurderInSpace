@@ -23,6 +23,8 @@ void AMyPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
 
+    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+    
     // interface actions
     InputComponent->BindAxis("MouseWheel", this, &AMyPlayerController::Zoom);
 
@@ -54,23 +56,23 @@ void AMyPlayerController::SetupInputComponent()
         }
     });
     
-    BindInputLambda("ShowMyTrajectory", IE_Pressed, [this, LocalPlayer] ()
+    BindInputLambda("ShowMyTrajectory", IE_Pressed, [this, MyState, LocalPlayer] ()
     {
         if(!LocalPlayer->GetIsInMainMenu())
         {
             AOrbit* Orbit = Cast<AOrbit>(GetPawn<AMyCharacter>()->Children[0]);
             Orbit->bIsVisibleVarious = true;
-            Orbit->UpdateVisibility(UStateLib::GetInstanceUIUnsafe(this));
+            Orbit->UpdateVisibility(MyState->GetInstanceUIAny(this));
         }
     });
     
-    BindInputLambda("ShowMyTrajectory", IE_Released, [this, LocalPlayer] ()
+    BindInputLambda("ShowMyTrajectory", IE_Released, [this, MyState, LocalPlayer] ()
     {
         if(!LocalPlayer->GetIsInMainMenu())
         {
             AOrbit* Orbit = Cast<AOrbit>(GetPawn<AMyCharacter>()->Children[0]);
             Orbit->bIsVisibleVarious = false;
-            Orbit->UpdateVisibility(UStateLib::GetInstanceUIUnsafe(this));
+            Orbit->UpdateVisibility(MyState->GetInstanceUIAny(this));
         }
     });
     
@@ -129,7 +131,8 @@ void AMyPlayerController::ServerRPC_LookAt_Implementation(FQuat Quat)
 
 void AMyPlayerController::SetShowAllTrajectories(bool bInShow) const
 {
-    UStateLib::WithInstanceUIUnsafe(this, [this, bInShow] (FInstanceUI InstanceUI)
+    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+    MyState->WithInstanceUI(this, [this, bInShow] (FInstanceUI InstanceUI)
     {
         InstanceUI.bShowAllTrajectories = bInShow;
         for(MyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
@@ -184,9 +187,10 @@ void AMyPlayerController::HandleAction(EAction Action)
 
 void AMyPlayerController::HandleActionUI(EAction Action)
 {
+    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
     AOrbit* Orbit = Cast<AOrbit>(MyCharacter->Children[0]);
-    const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
+    const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(this);
     
     switch (Action)
     {

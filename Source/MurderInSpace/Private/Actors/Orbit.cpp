@@ -25,15 +25,12 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
     {
         UE_LOG(LogMyGame, Display, TEXT("%s: OrbitSetup: AMyCharacter"), *Actor->GetFullName())
     }
+    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
 #if WITH_EDITOR
     Actor->SetActorLabel(Actor->GetName());
-    FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
-    FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
-#else
-    UE_LOG(LogMyGame, Warning, TEXT("%s: debugging: OnConstruction: not with editor"))
-    FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
-    FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
 #endif
+    const FPhysics Physics = MyState->GetPhysicsAny(Actor);
+    const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(Actor);
         
     if(Actor->Children.Num() == 1)
     { 
@@ -100,7 +97,8 @@ void AOrbit::BeginPlay()
 {
     Super::BeginPlay();
 
-    const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
+    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+    const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(this);
     bool bHasProblems = false;
 
     if(!GetOwner())
@@ -136,7 +134,7 @@ void AOrbit::BeginPlay()
     // ignore the visibility set in the editor
     bIsVisibleVarious = false;
     // this is to override the `bIsVisibleInEditor` that deactivates spline mesh spawning
-    Update(UStateLib::GetPhysicsUnsafe(this), InstanceUI);
+    Update(MyState->GetPhysicsAny(this), InstanceUI);
     UpdateVisibility(InstanceUI);
 }
 
@@ -153,7 +151,7 @@ void AOrbit::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
+    const FPhysics Physics = GEngine->GetEngineSubsystem<UMyState>()->GetPhysicsAny(this);
     const FVector VecRKepler = GetVecRKepler(Physics);
 
     ScalarVelocity = NextVelocity(VecRKepler.Length(), Physics.Alpha, ScalarVelocity, DeltaTime, VecVelocity.Dot(VecRKepler));
@@ -575,7 +573,7 @@ void AOrbit::OnRep_OrbitState()
 
 void AOrbit::HandleBeginMouseOver(AActor* Actor)
 {
-    UStateLib::WithInstanceUIUnsafe(this, [this] (FInstanceUI& InstanceUI)
+    GEngine->GetEngineSubsystem<UMyState>()->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
     {
         InstanceUI.Hovered.Emplace(this, 0);
         bIsVisibleVarious = true;
@@ -585,7 +583,7 @@ void AOrbit::HandleBeginMouseOver(AActor* Actor)
 
 void AOrbit::HandleEndMouseOver(AActor* Actor)
 {
-    UStateLib::WithInstanceUIUnsafe(this, [this] (FInstanceUI& InstanceUI)
+    GEngine->GetEngineSubsystem<UMyState>()->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
     {
         InstanceUI.Hovered.Reset();
         bIsVisibleVarious = false;
@@ -597,7 +595,7 @@ void AOrbit::HandleClick(AActor* Actor, FKey Button)
 {
     if(Button == EKeys::LeftMouseButton)
     {
-        UStateLib::WithInstanceUIUnsafe(this, [this] (FInstanceUI& InstanceUI)
+        GEngine->GetEngineSubsystem<UMyState>()->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
         {
             AOrbit* Previous = InstanceUI.Selected ? InstanceUI.Selected->Orbit : nullptr;
             InstanceUI.Selected.Emplace(this, 0);
@@ -725,9 +723,10 @@ void AOrbit::SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector Paren
 void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
     Super::PostEditChangeChainProperty(PropertyChangedEvent);
-    
-    const FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
-    const FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
+
+    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+    const FPhysics Physics = MyState->GetPhysicsEditorDefault();
+    const FInstanceUI InstanceUI = MyState->GetInstanceUIEditorDefault();
     
     const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 

@@ -3,7 +3,6 @@
 
 #include "HUD/MyHUD.h"
 
-#include "Lib/UStateLib.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/UserWidget.h"
 #include "Actors/MyCharacter.h"
@@ -84,7 +83,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 	
 	const APlayerController* PC = GetOwningPlayerController();
 
-	const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
+	const FPhysics Physics = GEngine->GetEngineSubsystem<UMyState>()->GetPhysicsAny(this);
 	AOrbit* Orbit = Cast<AOrbit>(MyCharacter->Children[0]);
 	const float Velocity = Orbit->GetScalarVelocity();
 

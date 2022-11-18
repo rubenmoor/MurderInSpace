@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/Actor.h"
-#include "Lib/UStateLib.h"
+#include "Modes/MyState.h"
 #include "Orbit.generated.h"
 
 UENUM()
