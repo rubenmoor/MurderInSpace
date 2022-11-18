@@ -17,7 +17,7 @@
 #include "Menu/UW_ServerList.h"
 #include "Menu/UW_ServerRow.h"
 #include "Modes/MyGameInstance.h"
-#include "Modes/MyGISubsystem.h"
+#include "Modes/MySessionManager.h"
 
 #define LOCTEXT_NAMESPACE "Menu"
 
@@ -121,7 +121,7 @@ void AMyHUDMenu::ServerListRefresh()
 	WidgetServerList->SetStatusMessage(LOCTEXT("SearchingSessions", "Searching for sessions ..."));
 	WidgetServerList->SetBtnRefreshEnabled(false);
 	WidgetServerList->SetBtnJoinEnabled(false);
-	GetGameInstance()->GetSubsystem<UMyGISubsystem>()->FindSessions(GetLocalPlayerContext(), [this] (bool bSuccess)
+	GetGameInstance()->GetSubsystem<UMySessionManager>()->FindSessions(GetLocalPlayerContext(), [this] (bool bSuccess)
 	{
 		WidgetServerList->SetBtnRefreshEnabled(true);
 		if(bSuccess)
@@ -166,7 +166,7 @@ void AMyHUDMenu::MenuMultiplayerShow()
 
 void AMyHUDMenu::ServerListUpdate()
 {
-	const TObjectPtr<UMyGISubsystem> GISub = GetGameInstance<UMyGameInstance>()->GetSubsystem<UMyGISubsystem>();
+	const TObjectPtr<UMySessionManager> GISub = GetGameInstance<UMyGameInstance>()->GetSubsystem<UMySessionManager>();
 	const TArray<FOnlineSessionSearchResult> Results = GISub->GetSearchResult();
 
 	WidgetServerList->HideStatusMessage();

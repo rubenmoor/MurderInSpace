@@ -5,7 +5,7 @@
 #include "HUD/MyCommonButton.h"
 #include "HUD/MyHUDMenu.h"
 #include "Modes/MyGameInstance.h"
-#include "Modes/MyGISubsystem.h"
+#include "Modes/MySessionManager.h"
 
 void UUW_ServerList::DeselectAllBut(int32 Index)
 {
@@ -41,7 +41,7 @@ void UUW_ServerList::NativeConstruct()
 	{
 		Cast<UMyGameInstance>(GetGameInstance())->JoinSession
 			( GetOwningLocalPlayer()
-			, GetGameInstance()->GetSubsystem<UMyGISubsystem>()->GetSearchResult()[SelectedIndex]
+			, GetGameInstance()->GetSubsystem<UMySessionManager>()->GetSearchResult()[SelectedIndex]
 			);
 	});
 }

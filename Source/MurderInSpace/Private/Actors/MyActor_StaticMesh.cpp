@@ -7,6 +7,11 @@
 
 AMyActor_StaticMesh::AMyActor_StaticMesh()
 {
+	bNetLoadOnClient = false;
+	bReplicates = true;
+    bAlwaysRelevant = true;
+	AActor::SetReplicateMovement(false);
+	
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     SetRootComponent(Root);
     
@@ -31,7 +36,7 @@ void AMyActor_StaticMesh::Destroyed()
 void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
-	OrbitOnConstruction(this, true);
+	OrbitSetup(this);
 }
 
 void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)

@@ -6,7 +6,7 @@
 #include "HUD/MyHUDMenu.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Modes/MyGISubsystem.h"
+#include "Modes/MySessionManager.h"
 #include "Modes/MyLocalPlayer.h"
 
 
@@ -20,7 +20,7 @@ UMyGameInstance::UMyGameInstance()
 
 void UMyGameInstance::HostGame(const FLocalPlayerContext& LPC)
 {
-	UMyGISubsystem* GISub = GetSubsystem<UMyGISubsystem>();
+	UMySessionManager* GISub = GetSubsystem<UMySessionManager>();
 	AMyHUDMenu* HUDMenu = LPC.GetHUD<AMyHUDMenu>();
 	
 	// ReSharper disable once CppTooWideScope
@@ -92,7 +92,7 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 {
 	Cast<UMyLocalPlayer>(LocalPlayer)->IsMultiplayer = true;
 	FLocalPlayerContext LPC = FLocalPlayerContext(LocalPlayer);
-	return GetSubsystem<UMyGISubsystem>()->JoinSession(LPC, SearchResult, [this, LPC] (FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+	return GetSubsystem<UMySessionManager>()->JoinSession(LPC, SearchResult, [this, LPC] (FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 	{
 		const std::function<void()> GotoServerList = [LPC] ()
 		{
@@ -138,14 +138,14 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 
 void UMyGameInstance::MulticastRPC_LeaveSession_Implementation()
 {
-	GetSubsystem<UMyGISubsystem>()->LeaveSession();
+	GetSubsystem<UMySessionManager>()->LeaveSession();
 }
 
 void UMyGameInstance::QuitGame(const FLocalPlayerContext& LPC)
 {
 	if(Cast<UMyLocalPlayer>(LPC.GetLocalPlayer())->IsMultiplayer)
 	{
-		GetSubsystem<UMyGISubsystem>()->LeaveSession([] (FName, bool) {});
+		GetSubsystem<UMySessionManager>()->LeaveSession([] (FName, bool) {});
 	}
 	UKismetSystemLibrary::QuitGame
 		( GetWorld()

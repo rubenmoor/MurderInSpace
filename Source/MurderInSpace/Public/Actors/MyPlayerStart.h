@@ -15,6 +15,7 @@ class MURDERINSPACE_API AMyPlayerStart final : public AActor, public IHasOrbit
 	GENERATED_BODY()
 
 public:
+	AMyPlayerStart();
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
 	
 protected:

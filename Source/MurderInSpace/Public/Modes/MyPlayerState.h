@@ -16,6 +16,7 @@ class MURDERINSPACE_API AMyPlayerState : public APlayerState
 	GENERATED_BODY()
 
 	friend class UStateLib;
+	friend class UMyState;
 	
 protected:
 	// event handlers

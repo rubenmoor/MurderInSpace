@@ -5,14 +5,15 @@
 
 AMyPawn::AMyPawn()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	bNetLoadOnClient = false;
+	bReplicates = true;
+	// TODO: not sure if necessary, but not harmful either
+    bAlwaysRelevant = true;
+	AActor::SetReplicateMovement(false);
 
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     SetRootComponent(Root);
-    
-	bNetLoadOnClient = false;
-	bReplicates = true;
-	AActor::SetReplicateMovement(false);
 }
 
 void AMyPawn::UpdateLookTarget(FVector Target)
@@ -44,7 +45,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 void AMyPawn::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	OrbitOnConstruction(this, true);
+	OrbitSetup(this);
 }
 
 void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)

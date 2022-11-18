@@ -6,15 +6,15 @@
 #include "OnlineSessionSettings.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "Subsystems/GameInstanceSubsystem.h"
-#include "MyGISubsystem.generated.h"
+#include "MySessionManager.generated.h"
 
 #define SETTING_CUSTOMNAME "CUSTOMNAME"
 
 /**
- * 
+ * using a game instance subsystem to manage LAN and online sessions 
  */
 UCLASS()
-class MURDERINSPACE_API UMyGISubsystem : public UGameInstanceSubsystem
+class MURDERINSPACE_API UMySessionManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 

@@ -2,47 +2,61 @@
 
 #include <numeric>
 
+#include "Actors/MyCharacter.h"
 #include "Components/SplineMeshComponent.h"
 #include "Lib/FunctionLib.h"
 #include "Net/UnrealNetwork.h"
 
-void IHasOrbit::OrbitOnConstruction(AActor* Actor, bool bEnableVisibility)
+void IHasOrbit::OrbitSetup(AActor* Actor)
 {
-    // TODO
-    if(!IsValid(Actor))
+    // debugging, no effect
+    if(Actor->GetLocalRole() < ROLE_Authority)
     {
-        
+        UE_LOG(LogMyGame, Display, TEXT("%s: OrbitSetup: not authority"), *Actor->GetFullName())
+        return;
     }
-    if(!Actor->IsActorInitialized())
+    // end debugging
+    
+    if((!Cast<AMyCharacter>(Actor) && Actor->HasAnyFlags(RF_Transient)) || Actor->GetActorLocation().IsZero())
     {
+        return;
     }
-    if(Actor->GetActorLocation().IsZero())
+    if(Cast<AMyCharacter>(Actor))
     {
+        UE_LOG(LogMyGame, Display, TEXT("%s: OrbitSetup: AMyCharacter"), *Actor->GetFullName())
     }
 #if WITH_EDITOR
-	Actor->SetActorLabel(Actor->GetName());
+    Actor->SetActorLabel(Actor->GetName());
+    FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
+    FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
+#else
+    UE_LOG(LogMyGame, Warning, TEXT("%s: debugging: OnConstruction: not with editor"))
+    FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
+    FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
 #endif
         
-    if(Actor->Children.Num() == 1 && IsValid(Actor->Children[0]))
-    {
-        Actor->Children[0]->OnConstruction(FTransform());
+    if(Actor->Children.Num() == 1)
+    { 
+        AOrbit* Orbit = Cast<AOrbit>(Actor->Children[0]);
+        Orbit->SetCircleOrbit(Physics);
+        Orbit->Update(Physics, InstanceUI);
     }
     else
     {
-        FVector Loc = Actor->GetActorLocation();
-        UE_LOG(LogMyGame, Display, TEXT("%f %f %f"), Loc.X, Loc.Y, Loc.Z)
         if(!IsValid(GetOrbitClass()))
         {
             UE_LOG(LogMyGame, Error, TEXT("%s: OnConstruction: OrbitClass null"), *Actor->GetFullName())
             return;
         }
 
+        UE_LOG(LogMyGame, Warning, TEXT("%s: going to spawn orbit"), *Actor->GetFullName())
         FActorSpawnParameters Params;
         Params.Name = AOrbit::GetCustomFName(Actor);
         Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
         Params.Owner = Actor;
         AOrbit* Orbit = Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
-        Orbit->SetEnableVisibility(bEnableVisibility);
+        Orbit->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
+        Orbit->SetCircleOrbit(Physics);
     }
 }
 
@@ -50,8 +64,10 @@ AOrbit::AOrbit()
 {
     PrimaryActorTick.bCanEverTick = true;
     bNetLoadOnClient = false;
-    bReplicates = false;
-    AActor::SetReplicateMovement(false);
+    bReplicates = true;
+    //bReplicates = false;
+    bAlwaysRelevant = true;
+    //AActor::SetReplicateMovement(false);
     
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     Root->SetMobility(EComponentMobility::Stationary);
@@ -117,8 +133,6 @@ void AOrbit::BeginPlay()
     GetOwner()->OnEndCursorOver.AddDynamic(this, &AOrbit::HandleEndMouseOver);
     GetOwner()->OnClicked.AddDynamic(this, &AOrbit::HandleClick);
     
-    Update(UStateLib::GetPhysicsUnsafe(this), InstanceUI);
-    
     // ignore the visibility set in the editor
     bIsVisibleVarious = false;
     // this is to override the `bIsVisibleInEditor` that deactivates spline mesh spawning
@@ -130,26 +144,9 @@ void AOrbit::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
 
-    if(!IsValid(GetOwner()))
-    {
-        return;
-    }
-
-#if WITH_EDITOR
-    FPhysics Physics = UStateLib::GetPhysicsEditorDefault();
-    FInstanceUI InstanceUI = UStateLib::GetInstanceUIEditorDefault();
-#else
-    UE_LOG(LogMyGame, Warning, TEXT("%s: debugging: OnConstruction: not with editor"))
-    FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
-    FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
-#endif
-
 #if WITH_EDITOR
     SetActorLabel(GetFName().ToString(), false);
 #endif
-        
-    SetCircleOrbit(Physics);
-    Update(Physics, InstanceUI);
 }
 
 void AOrbit::Tick(float DeltaTime)
@@ -569,11 +566,9 @@ void AOrbit::AddVelocity(FVector VecDeltaV, FPhysics Physics, FInstanceUI Instan
 
 void AOrbit::OnRep_OrbitState()
 {
-    // OrbitState is replicated with condition "initial only", implying that replication (including the call
-    // to this method) happens only once
     GetOwner()->SetActorLocation(RP_OrbitState.VecR, true, nullptr);
     VecVelocity    = RP_OrbitState.VecVelocity;
-    ScalarVelocity       = VecVelocity.Length();
+    ScalarVelocity = VecVelocity.Length();
     SplineKey      = Spline->FindInputKeyClosestToWorldLocation(RP_OrbitState.VecR);
     SplineDistance = Spline->GetDistanceAlongSplineAtSplineInputKey(SplineKey);
 }
@@ -620,12 +615,9 @@ void AOrbit::HandleClick(AActor* Actor, FKey Button)
 
 void AOrbit::SetCircleOrbit(FPhysics Physics)
 {
-    if(IsValid(GetOwner()))
-    {
-        const FVector VecRKepler = GetOwner()->GetActorLocation() - Physics.VecF1;
-        const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
-        VecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
-    }
+    const FVector VecRKepler = GetOwner()->GetActorLocation() - Physics.VecF1;
+    const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
+    VecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
 }
 
 void AOrbit::UpdateVisibility(FInstanceUI InstanceUI)

@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Modes/MyGISubsystem.h"
+#include "Modes/MySessionManager.h"
 
 #include "OnlineSubsystemUtils.h"
 #include "OnlineSessionSettings.h"
@@ -12,7 +12,7 @@
 
 #define LOCTEXT_NAMESPACE "Menu"
 
-bool UMyGISubsystem::CreateSession(const FLocalPlayerContext& LPC, FHostSessionConfig SessionConfig, std::function<void(FName, bool)> Callback)
+bool UMySessionManager::CreateSession(const FLocalPlayerContext& LPC, FHostSessionConfig SessionConfig, std::function<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	
@@ -86,7 +86,7 @@ bool UMyGISubsystem::CreateSession(const FLocalPlayerContext& LPC, FHostSessionC
 	return SI->CreateSession(LPC.GetLocalPlayer()->GetIndexInGameInstance(), NAME_GameSession, *LastSessionSettings);
 }
 
-void UMyGISubsystem::LeaveSession(std::function<void(FName, bool)> Callback)
+void UMySessionManager::LeaveSession(std::function<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	if(SI->GetNamedSession(NAME_GameSession))
@@ -115,7 +115,7 @@ void UMyGISubsystem::LeaveSession(std::function<void(FName, bool)> Callback)
 	}
 }
 
-void UMyGISubsystem::LeaveSession()
+void UMySessionManager::LeaveSession()
 {
 	LeaveSession([this] (FName, bool)
 	{
@@ -123,7 +123,7 @@ void UMyGISubsystem::LeaveSession()
 	});
 }
 
-bool UMyGISubsystem::StartSession(std::function<void(FName, bool)> Callback)
+bool UMySessionManager::StartSession(std::function<void(FName, bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	if(SI->OnStartSessionCompleteDelegates.IsBound())
@@ -135,7 +135,7 @@ bool UMyGISubsystem::StartSession(std::function<void(FName, bool)> Callback)
 	return SI->StartSession(NAME_GameSession);
 }
 
-bool UMyGISubsystem::FindSessions(const FLocalPlayerContext& LPC, std::function<void(bool)> Callback)
+bool UMySessionManager::FindSessions(const FLocalPlayerContext& LPC, std::function<void(bool)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	LastSessionSearch = MakeShareable(new FOnlineSessionSearch());
@@ -152,7 +152,7 @@ bool UMyGISubsystem::FindSessions(const FLocalPlayerContext& LPC, std::function<
 	return SI->FindSessions(LPC.GetLocalPlayer()->GetIndexInGameInstance(), LastSessionSearch.ToSharedRef());
 }
 
-bool UMyGISubsystem::JoinSession(const FLocalPlayerContext& LPC, const FOnlineSessionSearchResult& Result, std::function<void(FName, EOnJoinSessionCompleteResult::Type)> Callback)
+bool UMySessionManager::JoinSession(const FLocalPlayerContext& LPC, const FOnlineSessionSearchResult& Result, std::function<void(FName, EOnJoinSessionCompleteResult::Type)> Callback)
 {
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	if(SI->GetNamedSession(NAME_GameSession))
@@ -190,7 +190,7 @@ bool UMyGISubsystem::JoinSession(const FLocalPlayerContext& LPC, const FOnlineSe
 	return SI->JoinSession(LPC.GetLocalPlayer()->GetIndexInGameInstance(), NAME_GameSession, Result);
 }
 
-void UMyGISubsystem::ShowLoginScreen(const FLocalPlayerContext& LPC)
+void UMySessionManager::ShowLoginScreen(const FLocalPlayerContext& LPC)
 {
 	FOnlineAccountCredentials OnlineAccountCredentials;
 	
@@ -219,7 +219,7 @@ void UMyGISubsystem::ShowLoginScreen(const FLocalPlayerContext& LPC)
 		});
 }
 
-void UMyGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
+void UMySessionManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
@@ -287,7 +287,7 @@ void UMyGISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	});
 }
 
-IOnlineSessionPtr UMyGISubsystem::GetSessionInterface() const
+IOnlineSessionPtr UMySessionManager::GetSessionInterface() const
 {
 	return Online::GetSessionInterfaceChecked
 		( GetWorld()

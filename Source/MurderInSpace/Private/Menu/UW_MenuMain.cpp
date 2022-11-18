@@ -6,7 +6,7 @@
 #include "HUD/MyCommonButton.h"
 #include "HUD/MyHUDMenu.h"
 #include "Modes/MyGameInstance.h"
-#include "Modes/MyGISubsystem.h"
+#include "Modes/MySessionManager.h"
 #include "Modes/MyLocalPlayer.h"
 
 #define LOCTEXT_NAMESPACE "Menu"
@@ -42,7 +42,7 @@ void UUW_MenuMain::NativeConstruct()
 	BtnLogin->OnClicked().AddLambda([this] ()
 	{
 		const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
-		GI->GetSubsystem<UMyGISubsystem>()->ShowLoginScreen(GetPlayerContext());
+		GI->GetSubsystem<UMySessionManager>()->ShowLoginScreen(GetPlayerContext());
 		BtnLogin->SetVisibility(ESlateVisibility::Collapsed);
 		// AMyHUDMenu* HUDMenu = GetOwningPlayer()->GetHUD<AMyHUDMenu>();
 		// HUDMenu->LoadingScreenShow

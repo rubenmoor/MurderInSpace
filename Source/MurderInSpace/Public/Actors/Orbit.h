@@ -25,7 +25,7 @@ class IHasOrbit
     
 public:
     virtual TSubclassOf<AOrbit> GetOrbitClass() = 0;
-    virtual void OrbitOnConstruction(AActor* Actor, bool bEnableVisibility);
+    virtual void OrbitSetup(AActor* Actor);
 };
 
 UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
@@ -300,6 +300,8 @@ protected:
     UPROPERTY(ReplicatedUsing=OnRep_OrbitState, VisibleAnywhere, BlueprintReadWrite)
     FOrbitState RP_OrbitState;
 
+    // OrbitState is replicated with condition "initial only", implying that replication (including the call
+    // to this method) happens only once
     UFUNCTION()
     void OnRep_OrbitState();
 

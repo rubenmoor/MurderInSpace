@@ -5,6 +5,15 @@
 
 #include "Actors/Orbit.h"
 
+AMyPlayerStart::AMyPlayerStart()
+{
+	bNetLoadOnClient = false;
+	bReplicates = true;
+	// TODO: not sure if necessary, but not harmful either
+    bAlwaysRelevant = true;
+	AActor::SetReplicateMovement(false);
+}
+
 void AMyPlayerStart::Destroyed()
 {
 	Super::Destroyed();
@@ -17,5 +26,5 @@ void AMyPlayerStart::Destroyed()
 void AMyPlayerStart::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	OrbitOnConstruction(this, false);
+	OrbitSetup(this);
 }

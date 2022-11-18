@@ -48,6 +48,7 @@ class MURDERINSPACE_API UMyGameInstance : public UGameInstance
 	GENERATED_BODY()
 
 	friend class UStateLib;
+	friend class UMyState;
 
 public:
 	UMyGameInstance();
@@ -83,5 +84,5 @@ protected:
 	FRandomStream Random;
 
 	UPROPERTY(BlueprintReadWrite)
-	FInstanceUI InstanceUI = UStateLib::DefaultInstanceUI;
+	FInstanceUI InstanceUI;
 };

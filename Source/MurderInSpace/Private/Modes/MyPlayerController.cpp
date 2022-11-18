@@ -11,7 +11,7 @@
 #include "Lib/FunctionLib.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyLocalPlayer.h"
-#include "Modes/MyGISubsystem.h"
+#include "Modes/MySessionManager.h"
 
 AMyPlayerController::AMyPlayerController()
 {
@@ -117,7 +117,7 @@ void AMyPlayerController::Zoom(float Delta)
 
 void AMyPlayerController::ClientRPC_LeaveSession_Implementation()
 {
-    GetGameInstance()->GetSubsystem<UMyGISubsystem>()->LeaveSession();
+    GetGameInstance()->GetSubsystem<UMySessionManager>()->LeaveSession();
 }
 
 void AMyPlayerController::ServerRPC_LookAt_Implementation(FQuat Quat)
@@ -260,16 +260,22 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
 
-    //Cast<IHasOrbit>(InPawn)->SpawnOrbit(InPawn);
+    // FVector Loc = InPawn->GetActorLocation();
+    // UE_LOG(LogMyGame, Warning, TEXT("%s: onpossess: actor location: %f, %f, %f"), *GetFullName(), Loc.X, Loc.Y, Loc.Z)
+    // FActorSpawnParameters Params;
+    // Params.Owner = InPawn;
+    // AOrbit* NewOrbit = InPawn->GetWorld()->SpawnActor<AOrbit>
+    //     ( Cast<IHasOrbit>(InPawn)->GetOrbitClass()
+    //     , Params
+    //     );
+    // NewOrbit->SetEnableVisibility(true);
 
     // freeze orbit state for all existing orbit components for replication (condition: initial only)
-    TArray<FOrbitState> OrbitStates;
     auto FilterOrbits = [this, InPawn] (const AOrbit* Orbit) -> bool
     {
-        const AMyPawn* Owner = Orbit->GetOwner<AMyPawn>();
         return GetWorld() == Orbit->GetWorld()
             // exclude the orbit of `InPawn`
-            && (Owner != InPawn);
+            && (Orbit->GetOwner() != InPawn);
     };
     for(MyObjectIterator<AOrbit> IOrbit(FilterOrbits); IOrbit; ++IOrbit)
     {
@@ -277,7 +283,6 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     }
     
     // freeze gyration state for all existing gyration components for replication (condition: initial only)
-    TArray<FGyrationState> GyrationStates;
     auto FilterGyrations = [this, InPawn] (const UGyrationComponent* Gyration) -> bool
     {
         const AMyPawn* Owner = Gyration->GetOwner<AMyPawn>();
