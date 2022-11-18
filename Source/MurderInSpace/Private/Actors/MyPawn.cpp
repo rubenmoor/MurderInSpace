@@ -20,12 +20,6 @@ void AMyPawn::UpdateLookTarget(FVector Target)
 	// TODO
 }
 
-void AMyPawn::InitializeOrbit()
-{
-	SpawnOrbit(this);
-	Orbit->SetEnableVisibility(true);
-}
-
 void AMyPawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -43,7 +37,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 		const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
 		const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
 		const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
-		Orbit->AddVelocity(Root->GetForwardVector() * DeltaV, Physics, InstanceUI);
+		Cast<AOrbit>(Children[0])->AddVelocity(Root->GetForwardVector() * DeltaV, Physics, InstanceUI);
 	}
 }
 
@@ -66,9 +60,9 @@ void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCh
 
 	if(Name == FNameOrbitColor)
 	{
-		if(IsValid(Orbit))
+		if(!Children.IsEmpty())
 		{
-			Orbit->Update(Physics, InstanceUI);
+			Cast<AOrbit>(Children[0])->Update(Physics, InstanceUI);
 		}
 	}
 }
@@ -76,13 +70,9 @@ void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCh
 void AMyPawn::Destroyed()
 {
 	Super::Destroyed();
-	if(!IsValid(Orbit))
+	while(Children.Num() > 0)
 	{
-		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginDestroy: orbit invalid"), *GetFullName())
-	}
-	else
-	{
-		Orbit->Destroy();
+		Children.Last()->Destroy();
 	}
 }
 

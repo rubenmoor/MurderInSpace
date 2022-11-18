@@ -46,7 +46,7 @@ void AMyHUD::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no pawn, disabling tick"), *GetFullName())
 		SetActorTickEnabled(false);
 	}
-	else if(!MyCharacter->GetOrbit())
+	else if(MyCharacter->Children.IsEmpty())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: orbit actor null, disabling tick"), *GetFullName())
 		SetActorTickEnabled(false);
@@ -85,7 +85,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 	const APlayerController* PC = GetOwningPlayerController();
 
 	const FPhysics Physics = UStateLib::GetPhysicsUnsafe(this);
-	AOrbit* Orbit = MyCharacter->GetOrbit();
+	AOrbit* Orbit = Cast<AOrbit>(MyCharacter->Children[0]);
 	const float Velocity = Orbit->GetScalarVelocity();
 
 	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FormattingOptions));
@@ -115,7 +115,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 		const FVector VecF1InViewportPlane =
 			  Physics.VecF1
 			+ CameraRotation.Vector()
-			* MyCharacter->GetOrbit()->GetVecRKepler(Physics).Length();
+			* Orbit->GetVecRKepler(Physics).Length();
 		// ... but in that case we can help with a manual projection
 		if(!PC->ProjectWorldLocationToScreen(VecF1InViewportPlane, ScreenLocation))
 		{

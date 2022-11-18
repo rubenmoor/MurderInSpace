@@ -16,22 +16,15 @@ AMyActor_StaticMesh::AMyActor_StaticMesh()
     Gyration = CreateDefaultSubobject<UGyrationComponent>(TEXT("Gyration"));
 }
 
-void AMyActor_StaticMesh::InitializeOrbit()
-{
-	SpawnOrbit(this);
-	Orbit->SetEnableVisibility(true);
-}
-
 void AMyActor_StaticMesh::Destroyed()
 {
 	Super::Destroyed();
-	if(!IsValid(Orbit))
+	while(Children.Num() > 0)
 	{
-		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginDestroy: orbit null"), *GetFullName())
-	}
-	else
-	{
-		Orbit->Destroy();
+		if(IsValid(Children.Last()))
+		{
+			Children.Last()->Destroy();
+		}
 	}
 }
 
@@ -54,9 +47,9 @@ void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent
 
 	if(Name == FNameOrbitColor)
 	{
-		if(IsValid(Orbit))
+		if(!Children.IsEmpty())
 		{
-			Orbit->Update(Physics, InstanceUI);
+			Cast<AOrbit>(Children[0])->Update(Physics, InstanceUI);
 		}
 	}
 }

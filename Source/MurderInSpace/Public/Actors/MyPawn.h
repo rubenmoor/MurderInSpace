@@ -28,8 +28,6 @@ public:
     float RP_bIsAccelerating = false;
 
     // IOrbit interface
-	virtual AOrbit*             GetOrbit()       override { return Orbit;      }
-	virtual void                SetOrbit(AOrbit* InOrbit) override { Orbit = InOrbit; }
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
 	virtual FLinearColor        GetOrbitColor()  override { return OrbitColor; }
 	
@@ -39,8 +37,6 @@ public:
     UFUNCTION()
     void OnRep_BodyRotation() { Root->SetWorldRotation(RP_Rotation); }
 	
-	UFUNCTION(CallInEditor, Category="Orbit")
-	void InitializeOrbit();
 protected:
     // event handlers
     
@@ -59,9 +55,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Orbit")
 	TSubclassOf<AOrbit> OrbitClass;
 
-	UPROPERTY(EditInstanceOnly, Category="Orbit")
-	AOrbit* Orbit;
-	
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
     FLinearColor OrbitColor;
 };

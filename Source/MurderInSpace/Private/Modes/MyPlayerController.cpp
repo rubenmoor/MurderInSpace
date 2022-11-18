@@ -58,7 +58,7 @@ void AMyPlayerController::SetupInputComponent()
     {
         if(!LocalPlayer->GetIsInMainMenu())
         {
-            const auto Orbit = GetPawn<AMyCharacter>()->GetOrbit();
+            AOrbit* Orbit = Cast<AOrbit>(GetPawn<AMyCharacter>()->Children[0]);
             Orbit->bIsVisibleVarious = true;
             Orbit->UpdateVisibility(UStateLib::GetInstanceUIUnsafe(this));
         }
@@ -68,7 +68,7 @@ void AMyPlayerController::SetupInputComponent()
     {
         if(!LocalPlayer->GetIsInMainMenu())
         {
-            const auto Orbit = GetPawn<AMyCharacter>()->GetOrbit();
+            AOrbit* Orbit = Cast<AOrbit>(GetPawn<AMyCharacter>()->Children[0]);
             Orbit->bIsVisibleVarious = false;
             Orbit->UpdateVisibility(UStateLib::GetInstanceUIUnsafe(this));
         }
@@ -168,7 +168,7 @@ void AMyPlayerController::ServerRPC_HandleAction_Implementation(EAction Action)
 void AMyPlayerController::HandleAction(EAction Action)
 {
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-    AOrbit* Orbit = MyCharacter->GetOrbit();
+    AOrbit* Orbit = Cast<AOrbit>(MyCharacter->Children[0]);
     switch (Action)
     {
     case EAction::ACCELERATE_BEGIN:
@@ -185,7 +185,7 @@ void AMyPlayerController::HandleAction(EAction Action)
 void AMyPlayerController::HandleActionUI(EAction Action)
 {
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-    AOrbit* Orbit = MyCharacter->GetOrbit();
+    AOrbit* Orbit = Cast<AOrbit>(MyCharacter->Children[0]);
     const FInstanceUI InstanceUI = UStateLib::GetInstanceUIUnsafe(this);
     
     switch (Action)
@@ -260,7 +260,7 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
 
-    Cast<IHasOrbit>(InPawn)->SpawnOrbit(InPawn);
+    //Cast<IHasOrbit>(InPawn)->SpawnOrbit(InPawn);
 
     // freeze orbit state for all existing orbit components for replication (condition: initial only)
     TArray<FOrbitState> OrbitStates;

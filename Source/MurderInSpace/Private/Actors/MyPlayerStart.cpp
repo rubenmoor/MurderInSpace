@@ -5,22 +5,12 @@
 
 #include "Actors/Orbit.h"
 
-void AMyPlayerStart::InitializeOrbit()
-{
-	SpawnOrbit(this);
-}
-
 void AMyPlayerStart::Destroyed()
 {
 	Super::Destroyed();
-	
-	if(!IsValid(Orbit))
+	while(Children.Num() > 0)
 	{
-		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginDestroy: orbit invalid"), *GetFullName())
-	}
-	else
-	{
-		Orbit->Destroy();
+		Children.Last()->Destroy();
 	}
 }
 

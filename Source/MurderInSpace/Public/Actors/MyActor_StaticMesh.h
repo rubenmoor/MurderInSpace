@@ -23,13 +23,8 @@ class MURDERINSPACE_API AMyActor_StaticMesh final
 
 public:
 	virtual UPrimitiveComponent* GetMesh()       override { return StaticMesh; }
-	virtual AOrbit*              GetOrbit()      override { return Orbit;        }
-	virtual void       SetOrbit(AOrbit* InOrbit) override { Orbit = InOrbit;     }
 	virtual TSubclassOf<AOrbit>  GetOrbitClass() override { return OrbitClass;   }
 	virtual FLinearColor         GetOrbitColor() override { return OrbitColor;   }
-	
-	UFUNCTION(CallInEditor, Category="Orbit")
-	void InitializeOrbit();
 	
 protected:
 	// event handlers
@@ -53,9 +48,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Orbit")
 	TSubclassOf<AOrbit> OrbitClass;
 
-	UPROPERTY(EditInstanceOnly, Category="Orbit")
-	AOrbit* Orbit;
-	
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
     FLinearColor OrbitColor;
 };

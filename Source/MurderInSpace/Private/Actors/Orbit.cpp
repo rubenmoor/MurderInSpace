@@ -8,38 +8,42 @@
 
 void IHasOrbit::OrbitOnConstruction(AActor* Actor, bool bEnableVisibility)
 {
+    // TODO
+    if(!IsValid(Actor))
+    {
+        
+    }
+    if(!Actor->IsActorInitialized())
+    {
+    }
+    if(Actor->GetActorLocation().IsZero())
+    {
+    }
 #if WITH_EDITOR
 	Actor->SetActorLabel(Actor->GetName());
 #endif
         
-    if(IsValid(GetOrbit()))
+    if(Actor->Children.Num() == 1 && IsValid(Actor->Children[0]))
     {
-        // fix orbit after copying (alt + move in editor)
-        if(GetOrbit()->GetOwner() != Actor)
-        {
-            SpawnOrbit(Actor);
-        }
-        else
-        {
-            // allow orbit update on drag actor
-            GetOrbit()->OnConstruction(FTransform());
-        }
+        Actor->Children[0]->OnConstruction(FTransform());
     }
-}
-
-void IHasOrbit::SpawnOrbit(AActor* Actor)
-{
-    if(!IsValid(GetOrbitClass()))
+    else
     {
-        UE_LOG(LogMyGame, Error, TEXT("%s: OnConstruction: OrbitClass null"), *Actor->GetFullName())
-        return;
-    }
+        FVector Loc = Actor->GetActorLocation();
+        UE_LOG(LogMyGame, Display, TEXT("%f %f %f"), Loc.X, Loc.Y, Loc.Z)
+        if(!IsValid(GetOrbitClass()))
+        {
+            UE_LOG(LogMyGame, Error, TEXT("%s: OnConstruction: OrbitClass null"), *Actor->GetFullName())
+            return;
+        }
 
-    FActorSpawnParameters Params;
-    Params.Name = AOrbit::GetCustomFName(Actor);
-    Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
-    Params.Owner = Actor;
-    SetOrbit(Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params));
+        FActorSpawnParameters Params;
+        Params.Name = AOrbit::GetCustomFName(Actor);
+        Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
+        Params.Owner = Actor;
+        AOrbit* Orbit = Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
+        Orbit->SetEnableVisibility(bEnableVisibility);
+    }
 }
 
 AOrbit::AOrbit()
@@ -126,7 +130,7 @@ void AOrbit::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
 
-    if(HasAnyFlags(RF_Transient | RF_ClassDefaultObject))
+    if(!IsValid(GetOwner()))
     {
         return;
     }
@@ -616,9 +620,12 @@ void AOrbit::HandleClick(AActor* Actor, FKey Button)
 
 void AOrbit::SetCircleOrbit(FPhysics Physics)
 {
-    const FVector VecRKepler = GetOwner()->GetActorLocation() - Physics.VecF1;
-    const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
-    VecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
+    if(IsValid(GetOwner()))
+    {
+        const FVector VecRKepler = GetOwner()->GetActorLocation() - Physics.VecF1;
+        const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
+        VecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
+    }
 }
 
 void AOrbit::UpdateVisibility(FInstanceUI InstanceUI)

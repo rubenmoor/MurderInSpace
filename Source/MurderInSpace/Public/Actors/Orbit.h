@@ -24,11 +24,8 @@ class IHasOrbit
     GENERATED_BODY()
     
 public:
-    virtual AOrbit* GetOrbit() = 0;
-    virtual void    SetOrbit(AOrbit* InOrbit) = 0;
     virtual TSubclassOf<AOrbit> GetOrbitClass() = 0;
     virtual void OrbitOnConstruction(AActor* Actor, bool bEnableVisibility);
-	void SpawnOrbit(AActor* Actor);
 };
 
 UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
