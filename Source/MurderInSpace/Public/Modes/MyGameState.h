@@ -22,7 +22,7 @@ protected:
 
 	// game world parameters to be edited in blueprint and to be used in game
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FPhysics Physics;
+	FPhysics Physics = PhysicsEditorDefault;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AngularVelocityPoissonMean = 1.;

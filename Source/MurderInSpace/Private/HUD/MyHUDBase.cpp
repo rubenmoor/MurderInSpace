@@ -13,6 +13,7 @@
 AMyHUDBase::AMyHUDBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	FormattingOptions.SetUseGrouping(false);
 	FormattingOptions.SetMinimumFractionalDigits(1);

@@ -122,6 +122,11 @@ void AMyHUDMenu::ServerListRefresh()
 	WidgetServerList->SetBtnJoinEnabled(false);
 	GetGameInstance()->GetSubsystem<UMySessionManager>()->FindSessions(GetLocalPlayerContext(), [this] (bool bSuccess)
 	{
+		// debugging
+		if(!IsValid(this))
+		{
+			return;
+		}
 		WidgetServerList->SetBtnRefreshEnabled(true);
 		if(bSuccess)
 		{

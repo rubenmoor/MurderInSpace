@@ -26,15 +26,26 @@ void AMyHUD::InGameMenuHide()
 	WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
+void AMyHUD::MarkOrbitInitDone()
+{
+	bOrbitNetInitDone = true;
+	if(bSuccessfulInitialization)
+	{
+		SetActorTickEnabled(true);
+	}
+}
+
 void AMyHUD::BeginPlay()
 {
 	Super::BeginPlay();
+
+	bool bHasProblems = false;
 	
 	const AMyPlayerController* PC = Cast<AMyPlayerController>(GetOwningPlayerController());
 	if(!PC)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no player controller, disabling tick"), *GetFullName())
-		SetActorTickEnabled(false);
+		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginPlay: no player controller"), *GetFullName())
+		bHasProblems = true;
 	}
 	
 	// get playing character
@@ -42,39 +53,57 @@ void AMyHUD::BeginPlay()
 	MyCharacter = Cast<AMyCharacter>(GetOwningPawn());
 	if(!IsValid(MyCharacter))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: no pawn, disabling tick"), *GetFullName())
-		SetActorTickEnabled(false);
+		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginPlay: no pawn"), *GetFullName())
+		bHasProblems = true;
 	}
-	else if(MyCharacter->Children.IsEmpty())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: orbit actor null, disabling tick"), *GetFullName())
-		SetActorTickEnabled(false);
-	}
+	// at BeginPlay, the orbit hasn't replicated to the client yet,
+	// thus 'Children' is empty
+	//else if(MyCharacter->Children.IsEmpty())
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: orbit actor null"), *GetFullName())
+	//}
 
 	UGameInstance* GI = GetGameInstance();
 	
 	// set up HUD
 
-	if(!IsValid(WidgetHUDClass))
+	if(IsValid(WidgetHUDClass))
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: WidgetHUDClass null"), *GetFullName())
-		return;
+		WidgetHUD = CreateWidget<UUW_HUD>(GI, WidgetHUDClass, "HUD");
+		WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
+		WidgetHUD->AddToViewport(0);
+		bHasProblems = true;
 	}
-
-	WidgetHUD = CreateWidget<UUW_HUD>(GI, WidgetHUDClass, "HUD");
-	WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
-	WidgetHUD->AddToViewport(0);
-	
+	else
+	{
+		UE_LOG(LogMyGame, Error, TEXT("%s: WidgetHUDClass null"), *GetFullName())
+	}
 	// set up in-game menu
 	
-	if(!IsValid(WidgetMenuInGameClass))
+	if(IsValid(WidgetMenuInGameClass))
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: WidgetInGameClass null"), *GetFullName())
-		return;
+		WidgetMenuInGame = CreateWidget<UUW_MenuInGame>(GI, WidgetMenuInGameClass, "In-Game Menu");
+		WidgetMenuInGame->SetVisibility(ESlateVisibility::Collapsed);
+		WidgetMenuInGame->AddToViewport(1);
+		bHasProblems = true;
 	}
-	WidgetMenuInGame = CreateWidget<UUW_MenuInGame>(GI, WidgetMenuInGameClass, "In-Game Menu");
-	WidgetMenuInGame->SetVisibility(ESlateVisibility::Collapsed);
-	WidgetMenuInGame->AddToViewport(1);
+	else
+	{
+		UE_LOG(LogMyGame, Error, TEXT("%s: WidgetInGameClass null"), *GetFullName())
+	}
+
+	if(!bHasProblems)
+	{
+		bSuccessfulInitialization = true;
+		if(bOrbitNetInitDone)
+		{
+			SetActorTickEnabled(true);
+		}
+	}
+	else
+	{
+		UE_LOG(LogMyGame, Error, TEXT("%s: there were problems, not ticking"), *GetFullName())
+	}
 }
 
 void AMyHUD::Tick(float DeltaSeconds)

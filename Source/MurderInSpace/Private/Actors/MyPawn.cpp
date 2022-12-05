@@ -54,10 +54,6 @@ void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCh
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
 
-	UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-    const FPhysics Physics = MyState->GetPhysicsEditorDefault();
-    const FInstanceUI InstanceUI = MyState->GetInstanceUIEditorDefault();
-    
     const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
     static const FName FNameOrbitColor = GET_MEMBER_NAME_CHECKED(AMyPawn, OrbitColor);
@@ -66,7 +62,7 @@ void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCh
 	{
 		if(!Children.IsEmpty())
 		{
-			Cast<AOrbit>(Children[0])->Update(Physics, InstanceUI);
+			Cast<AOrbit>(Children[0])->Update(PhysicsEditorDefault, InstanceUIEditorDefault);
 		}
 	}
 }

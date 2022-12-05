@@ -26,7 +26,10 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void InGameMenuHide();
-	
+
+	UFUNCTION(BlueprintCallable)
+	void MarkOrbitInitDone();
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUW_HUD> WidgetHUDClass;
@@ -49,6 +52,10 @@ protected:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+
+	// private members
+	bool bSuccessfulInitialization = false;
+	bool bOrbitNetInitDone = false;
 	
 };
 	

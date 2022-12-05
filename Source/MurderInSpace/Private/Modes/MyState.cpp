@@ -22,25 +22,11 @@ FPhysics UMyState::GetPhysics(const AMyGameState* GS)
 FPhysics UMyState::GetPhysicsAny(const UObject* Object)
 {
 	const UWorld* World = Object->GetWorld();
-	const UGameInstance* GIGeneric = World->GetGameInstance();
 	const AGameState* GSGeneric = World->GetGameState<AGameState>();
-	if(!IsValid(GIGeneric) || !IsValid(GSGeneric))
+	if(!IsValid(GSGeneric))
 	{
-		return GetPhysicsEditorDefault();
+		return PhysicsEditorDefault;
 	}
-	UMyGameInstance* GI = World->GetGameInstance<UMyGameInstance>();
-	if(!GI)
-	{
-		UE_LOG
-			( LogGameState
-			, Error
-			, TEXT("UMyState::GetPhysicsAny: %s: UMyGameInstance null; generic game instance: %s")
-			, *Object->GetFullName()
-			, *GIGeneric->GetFullName()
-			)
-		return GetPhysicsEditorDefault();
-	}
-	
 	const AMyGameState* GS = World->GetGameState<AMyGameState>();
 	if(!GS)
 	{
@@ -51,7 +37,7 @@ FPhysics UMyState::GetPhysicsAny(const UObject* Object)
 			, *Object->GetFullName()
 			, *GSGeneric->GetFullName()
 			)
-		return GetPhysicsEditorDefault();
+		return PhysicsEditorDefault;
 	}
 	return GetPhysics(GS);
 }
@@ -66,7 +52,7 @@ FPlayerUI UMyState::GetPlayerUIAny(const UObject* Object, const FLocalPlayerCont
 	const APlayerState* PSGeneric = LPC.GetPlayerState<APlayerState>();
 	if(!IsValid(PSGeneric))
 	{
-		return GetPlayerUIEditorDefault();
+		return PlayerUIEditorDefault;
 	}
 	const AMyPlayerState* PS = LPC.GetPlayerState<AMyPlayerState>();
 	if(!PS)
@@ -78,7 +64,7 @@ FPlayerUI UMyState::GetPlayerUIAny(const UObject* Object, const FLocalPlayerCont
 			, *Object->GetFullName()
 			, *PSGeneric->GetFullName()
 			)
-		return GetPlayerUIEditorDefault();
+		return PlayerUIEditorDefault;
 	}
 	return GetPlayerUI(PS);
 }
@@ -94,7 +80,7 @@ FInstanceUI UMyState::GetInstanceUIAny(const UObject* Object)
 	const UGameInstance* GIGeneric = World->GetGameInstance();
 	if(!IsValid(GIGeneric))
 	{
-		return GetInstanceUIEditorDefault();
+		return InstanceUIEditorDefault;
 	}
 	const UMyGameInstance* GI = World->GetGameInstance<UMyGameInstance>();
 	if(!GI)
@@ -106,7 +92,7 @@ FInstanceUI UMyState::GetInstanceUIAny(const UObject* Object)
 		, *Object->GetFullName()
 		, *GIGeneric->GetFullName()
 		)
-		return GetInstanceUIEditorDefault();
+		return InstanceUIEditorDefault;
 	}
 	return GetInstanceUI(GI);
 }

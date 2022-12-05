@@ -4,7 +4,9 @@
 
 #include "Actors/MyCharacter.h"
 #include "Components/SplineMeshComponent.h"
+#include "HUD/MyHUD.h"
 #include "Lib/FunctionLib.h"
+#include "Modes/MyPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 void IHasOrbit::OrbitSetup(AActor* Actor)
@@ -51,9 +53,7 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
         Params.Name = AOrbit::GetCustomFName(Actor);
         Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
         Params.Owner = Actor;
-        AOrbit* Orbit = Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
-        Orbit->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
-        Orbit->SetCircleOrbit(Physics);
+        Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
     }
 }
 
@@ -62,9 +62,8 @@ AOrbit::AOrbit()
     PrimaryActorTick.bCanEverTick = true;
     bNetLoadOnClient = false;
     bReplicates = true;
-    //bReplicates = false;
     bAlwaysRelevant = true;
-    //AActor::SetReplicateMovement(false);
+    AActor::SetReplicateMovement(false);
     
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     Root->SetMobility(EComponentMobility::Stationary);
@@ -99,16 +98,17 @@ void AOrbit::BeginPlay()
 
     UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
     const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(this);
+    const FPhysics Physics = MyState->GetPhysicsAny(this);
     bool bHasProblems = false;
 
-    if(!GetOwner())
+    if(!IsValid(GetOwner()))
     {
-        UE_LOG(LogMyGame, Error, TEXT("%s: no body"), *GetFullName())
+        UE_LOG(LogMyGame, Error, TEXT("%s: GetOwner: invalid"), *GetFullName())
         bHasProblems = true;
         SetActorTickEnabled(false);
     }
     
-    // Only care for and spline static mesh and material if this orbit is meant to be visible
+    // Only care for spline static mesh and material if this orbit is meant to be visible
     if(bTrajectoryShowSpline)
     {
         if(!SplineMeshMaterial)
@@ -134,17 +134,47 @@ void AOrbit::BeginPlay()
     // ignore the visibility set in the editor
     bIsVisibleVarious = false;
     // this is to override the `bIsVisibleInEditor` that deactivates spline mesh spawning
-    Update(MyState->GetPhysicsAny(this), InstanceUI);
+    Update(Physics, InstanceUI);
     UpdateVisibility(InstanceUI);
 }
 
-void AOrbit::OnConstruction(const FTransform& Transform)
+void AOrbit::PostNetInit()
 {
-    Super::OnConstruction(Transform);
+    Super::PostNetInit();
+    AMyCharacter* MyCharacter = Cast<AMyCharacter>(GetOwner());
+    if(IsValid(MyCharacter) && MyCharacter->GetLocalRole() == ROLE_AutonomousProxy)
+    {
+        MyCharacter->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->MarkOrbitInitDone();
+    }
+}
 
+void AOrbit::PostInitializeComponents()
+{
+    Super::PostInitializeComponents();
+    
+    if(GetLocalRole() < ROLE_Authority)
+    {
+        UE_LOG(LogMyGame, Display, TEXT("%s: PostInitializeComponents: not authority"), *GetFullName())
+        return;
+    }
+    
+    if(IsValid(GetOwner()))
+    {
+        SetEnableVisibility(GetOwner()->Implements<UHasOrbitColor>());
+        UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+        const FPhysics Physics = MyState->GetPhysicsAny(this);
+        const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(this);
+        SetCircleOrbit(Physics);
+        Update(Physics, InstanceUI);
+    }
+    else
+    {
+        UE_LOG(LogMyGame, Warning, TEXT("%s: OnConstruction: GetOwner null"), *GetFullName())
+    }
 #if WITH_EDITOR
     SetActorLabel(GetFName().ToString(), false);
 #endif
+
 }
 
 void AOrbit::Tick(float DeltaTime)
@@ -564,7 +594,6 @@ void AOrbit::AddVelocity(FVector VecDeltaV, FPhysics Physics, FInstanceUI Instan
 
 void AOrbit::OnRep_OrbitState()
 {
-    GetOwner()->SetActorLocation(RP_OrbitState.VecR, true, nullptr);
     VecVelocity    = RP_OrbitState.VecVelocity;
     ScalarVelocity = VecVelocity.Length();
     SplineKey      = Spline->FindInputKeyClosestToWorldLocation(RP_OrbitState.VecR);
@@ -613,7 +642,7 @@ void AOrbit::HandleClick(AActor* Actor, FKey Button)
 
 void AOrbit::SetCircleOrbit(FPhysics Physics)
 {
-    const FVector VecRKepler = GetOwner()->GetActorLocation() - Physics.VecF1;
+    const FVector VecRKepler = GetVecR() - Physics.VecF1;
     const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
     VecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
 }
@@ -724,10 +753,6 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
 {
     Super::PostEditChangeChainProperty(PropertyChangedEvent);
 
-    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-    const FPhysics Physics = MyState->GetPhysicsEditorDefault();
-    const FInstanceUI InstanceUI = MyState->GetInstanceUIEditorDefault();
-    
     const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
     static const FName FNameBTrajectoryShowSpline = GET_MEMBER_NAME_CHECKED(AOrbit, bTrajectoryShowSpline);
@@ -743,7 +768,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
 
     if(Name == FNameBVisibleVarious || Name == FNameVisibleInEditor)
     {
-        UpdateVisibility(InstanceUI);
+        UpdateVisibility(InstanceUIEditorDefault);
     }
     else if
         (  Name == FNameSplineMeshLength
@@ -768,7 +793,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         }
         else if(Name == FNameVelocityVCircle)
         {
-            VecVelocity = GetCircleVelocity(Physics) * VelocityVCircle * VelocityNormal;
+            VecVelocity = GetCircleVelocity(PhysicsEditorDefault) * VelocityVCircle * VelocityNormal;
         }
         else if(Name == FNameVecVelocity)
         {
@@ -776,7 +801,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     }
     if(IsValid(GetOwner()))
     {
-        Update(Physics, InstanceUI);
+        Update(PhysicsEditorDefault, InstanceUIEditorDefault);
     }
     else
     {

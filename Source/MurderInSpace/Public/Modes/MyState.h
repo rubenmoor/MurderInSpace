@@ -85,6 +85,41 @@ struct FRnd
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FRandomStream Stream;
 };
+
+/**
+ * @brief the standard gravitational parameter ALPHA [m^3/s^2] = G * M for different bodies
+ */
+constexpr float ALPHA_Game_SI = 800;
+
+constexpr float ALPHA_Ceres_SI = 7e10;
+constexpr float ALPHA_Moon_SI = 4.8e12;
+constexpr float ALPHA_Earth_SI = 4e14;
+constexpr float ALPHA_Sun_SI = 1.3e20;
+
+// for actors, unreal guaranties sanity for values of x and y within [-1048535, 1048535]
+constexpr float MAX_WORLDRADIUS_UU = 1.048535e6;
+
+// length [m] = length [UU] * scale factor
+constexpr float DEFAULT_SCALEFACTOR = .01;
+
+const FPhysics PhysicsEditorDefault =
+	{ DEFAULT_SCALEFACTOR
+	, MAX_WORLDRADIUS_UU
+	, MAX_WORLDRADIUS_UU * DEFAULT_SCALEFACTOR // = 1.048535e4 = 10 km
+	, FVector::Zero()
+	, ALPHA_Game_SI / (DEFAULT_SCALEFACTOR * DEFAULT_SCALEFACTOR * DEFAULT_SCALEFACTOR)
+	};
+
+constexpr FPlayerUI PlayerUIEditorDefault =
+	{ //TODO
+	};
+
+const FInstanceUI InstanceUIEditorDefault
+	{ false
+	, TOptional<FHighlight>()
+	, TOptional<FHighlight>()
+	};
+	
 /**
  * 
  */
@@ -94,52 +129,6 @@ class MURDERINSPACE_API UMyState : public UEngineSubsystem
 	GENERATED_BODY()
 
 public:
-	/**
-	 * @brief the standard gravitational parameter ALPHA [m^3/s^2] = G * M for different bodies
-	 */
-	const float ALPHA_Game_SI = 800;
-	
-	const float ALPHA_Ceres_SI = 7e10;
-	const float ALPHA_Moon_SI = 4.8e12;
-	const float ALPHA_Earth_SI = 4e14;
-	const float ALPHA_Sun_SI = 1.3e20;
-
-	// for actors, unreal guaranties sanity for values of x and y within [-1048535, 1048535]
-	const float MAX_WORLDRADIUS_UU = 1.048535e6;
-
-	// length [m] = length [UU] * scale factor
-	const float DEFAULT_SCALEFACTOR = .01;
-
-	UFUNCTION(BlueprintCallable)
-	FPhysics GetPhysicsEditorDefault()
-	{
-		return
-			{ DEFAULT_SCALEFACTOR
-			, MAX_WORLDRADIUS_UU
-			, MAX_WORLDRADIUS_UU * DEFAULT_SCALEFACTOR // = 1.048535e4 = 10 km
-			, FVector(0., 0., 0.)
-			, ALPHA_Game_SI / (DEFAULT_SCALEFACTOR * DEFAULT_SCALEFACTOR * DEFAULT_SCALEFACTOR)
-			};
-	}
-	
-	UFUNCTION(BlueprintCallable)
-	FPlayerUI GetPlayerUIEditorDefault()
-	{
-		return FPlayerUI
-			{ //TODO
-			};
-	}
-
-	UFUNCTION(BlueprintCallable)
-	FInstanceUI GetInstanceUIEditorDefault()
-	{
-		return
-			{ false
-			, TOptional<FHighlight>()
-			, TOptional<FHighlight>()
-			};
-	}
-	
 	UFUNCTION(BlueprintPure)
 	FPhysics GetPhysics(const AMyGameState* GS);
 

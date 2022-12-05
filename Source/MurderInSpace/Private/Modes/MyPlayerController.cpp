@@ -281,7 +281,9 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
             // exclude the orbit of `InPawn`
             && (Orbit->GetOwner() != InPawn);
     };
-    for(MyObjectIterator<AOrbit> IOrbit(FilterOrbits); IOrbit; ++IOrbit)
+    // debugging
+    //for(MyObjectIterator<AOrbit> IOrbit(FilterOrbits); IOrbit; ++IOrbit)
+    for(MyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
     {
         (*IOrbit)->FreezeOrbitState();
     }

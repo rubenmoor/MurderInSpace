@@ -190,7 +190,7 @@ public:
     UFUNCTION(BlueprintCallable)
     void DestroyTempSplineMeshes();
 
-    virtual void OnConstruction(const FTransform& Transform) override;
+    virtual void PostInitializeComponents() override;
     
 protected:
 
@@ -198,6 +198,7 @@ protected:
     
     // event handlers
 	virtual void BeginPlay() override;
+    virtual void PostNetInit() override;
 
 #if WITH_EDITOR
     virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
