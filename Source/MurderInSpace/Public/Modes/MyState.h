@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include <random>
 
+#include "Input/MyInputTags.h"
 #include "Subsystems/EngineSubsystem.h"
 #include "MyState.generated.h"
 
@@ -159,4 +160,11 @@ public:
 	UFUNCTION(BlueprintPure)
 	float GetInitialAngularVelocity(FRnd Rnd);
 
+	FInputTag& GetInputTags() { return MyInputTags; }
+
+protected:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
+	// private members
+	FInputTag MyInputTags;
 };

@@ -11,26 +11,23 @@
 
 void IHasOrbit::OrbitSetup(AActor* Actor)
 {
-    // debugging, no effect
     if(Actor->GetLocalRole() < ROLE_Authority)
     {
-        UE_LOG(LogMyGame, Display, TEXT("%s: OrbitSetup: not authority"), *Actor->GetFullName())
         return;
     }
-    // end debugging
-    
+
+    // avoid orbit spawning when editing and compiling blueprint
     if((!Cast<AMyCharacter>(Actor) && Actor->HasAnyFlags(RF_Transient)) || Actor->GetActorLocation().IsZero())
     {
         return;
     }
-    if(Cast<AMyCharacter>(Actor))
-    {
-        UE_LOG(LogMyGame, Display, TEXT("%s: OrbitSetup: AMyCharacter"), *Actor->GetFullName())
-    }
+        
     UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+
 #if WITH_EDITOR
     Actor->SetActorLabel(Actor->GetName());
 #endif
+    
     const FPhysics Physics = MyState->GetPhysicsAny(Actor);
     const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(Actor);
         
@@ -53,7 +50,8 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
         Params.Name = AOrbit::GetCustomFName(Actor);
         Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
         Params.Owner = Actor;
-        Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
+        AOrbit* NewOrbit = Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
+        UE_LOG(LogMyGame, Warning, TEXT("%s: orbit spawned: %s"), *Actor->GetFullName(), *NewOrbit->GetFullName())
     }
 }
 
@@ -141,9 +139,10 @@ void AOrbit::BeginPlay()
 void AOrbit::PostNetInit()
 {
     Super::PostNetInit();
-    AMyCharacter* MyCharacter = Cast<AMyCharacter>(GetOwner());
+    const AMyCharacter* MyCharacter = Cast<AMyCharacter>(GetOwner());
     if(IsValid(MyCharacter) && MyCharacter->GetLocalRole() == ROLE_AutonomousProxy)
     {
+        UE_LOG(LogMyGame, Warning, TEXT("%s: PostNetInit"), *GetFullName())
         MyCharacter->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->MarkOrbitInitDone();
     }
 }
@@ -154,7 +153,6 @@ void AOrbit::PostInitializeComponents()
     
     if(GetLocalRole() < ROLE_Authority)
     {
-        UE_LOG(LogMyGame, Display, TEXT("%s: PostInitializeComponents: not authority"), *GetFullName())
         return;
     }
     
@@ -169,8 +167,9 @@ void AOrbit::PostInitializeComponents()
     }
     else
     {
-        UE_LOG(LogMyGame, Warning, TEXT("%s: OnConstruction: GetOwner null"), *GetFullName())
+        UE_LOG(LogMyGame, Error, TEXT("%s: GetOwner invalid"), *GetFullName())
     }
+
 #if WITH_EDITOR
     SetActorLabel(GetFName().ToString(), false);
 #endif

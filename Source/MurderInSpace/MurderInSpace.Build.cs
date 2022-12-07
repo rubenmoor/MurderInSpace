@@ -20,7 +20,9 @@ public class MurderInSpace : ModuleRules
 			});
 
 		PrivateDependencyModuleNames.AddRange(new []
-			{ "OnlineSubsystem"
+			{ "EnhancedInput"
+			, "GameplayTags"
+			, "OnlineSubsystem"
 			, "OnlineSubsystemNull"
 			, "OnlineSubsystemUtils"
 			, "Slate"

@@ -4,9 +4,12 @@
 #include "Modes/MyPlayerController.h"
 
 #include <algorithm>
+
+#include "EnhancedInputSubsystems.h"
 #include "Actors/MyCharacter.h"
 #include "Actors/GyrationComponent.h"
 #include "HUD/MyHUD.h"
+#include "Input/MyEnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
 #include "Modes/MyGameInstance.h"
@@ -23,79 +26,24 @@ void AMyPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
 
+    UEnhancedInputLocalPlayerSubsystem* Input =
+        GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+    Input->AddMappingContext(IMC_InGame.LoadSynchronous(), 0);
+
     UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
     
     // interface actions
     InputComponent->BindAxis("MouseWheel", this, &AMyPlayerController::Zoom);
 
     UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(Player);
-    
-    BindInputLambda("Escape", IE_Pressed, [this, LocalPlayer] ()
-    {
-        if(!LocalPlayer->GetIsInMainMenu())
-        {
-            if(LocalPlayer->ShowInGameMenu)
-            {
-                GetHUD<AMyHUD>()->InGameMenuHide();
-                CurrentMouseCursor = EMouseCursor::Crosshairs;
-                LocalPlayer->ShowInGameMenu = false;
-            }
-            else
-            {
-                GetHUD<AMyHUD>()->InGameMenuShow();
-                CurrentMouseCursor = EMouseCursor::Default;
-                LocalPlayer->ShowInGameMenu = true;
-            }
-        }
-        // TODO: handle escape and other keys in HUD
-        // case EInstanceState::WaitingForStart:
-        // 	GI->GotoInMenuMain(this);
-        else
-        {
-            GetGameInstance<UMyGameInstance>()->MulticastRPC_LeaveSession();
-        }
-    });
-    
-    BindInputLambda("ShowMyTrajectory", IE_Pressed, [this, MyState, LocalPlayer] ()
-    {
-        if(!LocalPlayer->GetIsInMainMenu())
-        {
-            AOrbit* Orbit = Cast<AOrbit>(GetPawn<AMyCharacter>()->Children[0]);
-            Orbit->bIsVisibleVarious = true;
-            Orbit->UpdateVisibility(MyState->GetInstanceUIAny(this));
-        }
-    });
-    
-    BindInputLambda("ShowMyTrajectory", IE_Released, [this, MyState, LocalPlayer] ()
-    {
-        if(!LocalPlayer->GetIsInMainMenu())
-        {
-            AOrbit* Orbit = Cast<AOrbit>(GetPawn<AMyCharacter>()->Children[0]);
-            Orbit->bIsVisibleVarious = false;
-            Orbit->UpdateVisibility(MyState->GetInstanceUIAny(this));
-        }
-    });
-    
-    BindInputLambda("ShowAllTrajectories", IE_Pressed, [this, LocalPlayer] ()
-    {
-        if(!LocalPlayer->GetIsInMainMenu())
-        {
-            SetShowAllTrajectories(true);
-        }
-    });
-    
-    BindInputLambda("ShowAllTrajectories", IE_Released, [this, LocalPlayer] ()
-    {
-        if(!LocalPlayer->GetIsInMainMenu())
-        {
-            SetShowAllTrajectories(false);
-        }
-    });
-    
-    BindInputLambda("ToggleMyTrajectory", IE_Pressed, [] ()
-    {
-        // do stuff
-    });
+
+    const FInputTag InputTag = MyState->GetInputTags();
+    BindPureUIAction<EPureUIAction::ToggleIngameMenu>(InputTag.ToggleIngameMenu);
+    BindPureUIAction<EPureUIAction::ShowMyTrajectory>(InputTag.ShowMyTrajectory);
+    BindPureUIAction<EPureUIAction::HideMyTrajectory>(InputTag.HideMyTrajectory);
+    BindPureUIAction<EPureUIAction::ShowAllTrajectories>(InputTag.ShowAllTrajectories);
+    BindPureUIAction<EPureUIAction::HideAllTrajectories>(InputTag.HideAllTrajectories);
+    BindPureUIAction<EPureUIAction::ToggleMyTrajectory>(InputTag.ToggleMyTrajectory);
     
     // gameplay actions
     BindEAction("Accelerate", IE_Pressed , EAction::ACCELERATE_BEGIN);
@@ -333,6 +281,11 @@ void AMyPlayerController::AcknowledgePossession(APawn* P)
 void AMyPlayerController::BeginPlay()
 {
     Super::BeginPlay();
+
+    if(IMC_InGame.IsNull())
+    {
+        UE_LOG(LogMyGame, Error, TEXT("%s: IMC_InGame null"))
+    }
     
     const FInputModeGameAndUI InputModeGameAndUI;
     SetInputMode(InputModeGameAndUI);

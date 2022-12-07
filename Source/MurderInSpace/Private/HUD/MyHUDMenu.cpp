@@ -120,26 +120,30 @@ void AMyHUDMenu::ServerListRefresh()
 	WidgetServerList->SetStatusMessage(LOCTEXT("SearchingSessions", "Searching for sessions ..."));
 	WidgetServerList->SetBtnRefreshEnabled(false);
 	WidgetServerList->SetBtnJoinEnabled(false);
-	GetGameInstance()->GetSubsystem<UMySessionManager>()->FindSessions(GetLocalPlayerContext(), [this] (bool bSuccess)
-	{
-		// debugging
-		if(!IsValid(this))
-		{
-			return;
-		}
-		WidgetServerList->SetBtnRefreshEnabled(true);
-		if(bSuccess)
-		{
-			ServerListUpdate();
-		}
-		else
-		{
-			MessageShow
-				( LOCTEXT("ErrorSessionSearch", "Error when trying to search for sessions")
-				, [this] () { MenuMainShow(); }
-				);
-		}
-	});
+	GetGameInstance()->GetSubsystem<UMySessionManager>()->FindSessions
+		(GetLocalPlayerContext()
+		, [this] (bool bSuccess)
+			{
+				// debugging
+				if(!IsValid(this))
+				{
+					UE_LOG(LogMyGame, Warning, TEXT("%s: 'this' invalid"))
+					return;
+				}
+				WidgetServerList->SetBtnRefreshEnabled(true);
+				if(bSuccess)
+				{
+					ServerListUpdate();
+				}
+				else
+				{
+					MessageShow
+						( LOCTEXT("ErrorSessionSearch", "Error when trying to search for sessions")
+						, [this] () { MenuMainShow(); }
+						);
+				}
+			}
+		);
 }
 
 void AMyHUDMenu::HostGameShow()

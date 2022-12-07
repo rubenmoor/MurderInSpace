@@ -14,6 +14,12 @@ float UMyState::GetInitialAngularVelocity(FRnd Rnd)
 	return Rnd.Poisson(Rnd.RndGen) / 1.e3;
 }
 
+void UMyState::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	MyInputTags.InitializeNativeTags();
+}
+
 FPhysics UMyState::GetPhysics(const AMyGameState* GS)
 {
 	return GS->Physics;

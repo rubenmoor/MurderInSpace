@@ -32,6 +32,11 @@ void AMyHUD::MarkOrbitInitDone()
 	if(bSuccessfulInitialization)
 	{
 		SetActorTickEnabled(true);
+		UE_LOG(LogMyGame, Error, TEXT("%s: MarkOrbitInitDone: tick enabled"), *GetFullName())
+	}
+	else
+	{
+		UE_LOG(LogMyGame, Error, TEXT("%s: waiting for BeginPlay"), *GetFullName())
 	}
 }
 
@@ -56,6 +61,11 @@ void AMyHUD::BeginPlay()
 		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginPlay: no pawn"), *GetFullName())
 		bHasProblems = true;
 	}
+	// if(MyCharacter->Children.Num() < 1)
+	// {
+	// 	UE_LOG(LogMyGame, Warning, TEXT("%s: BeginPlay: no children"), *GetFullName())
+	// 	bHasProblems = true;
+	// }
 	// at BeginPlay, the orbit hasn't replicated to the client yet,
 	// thus 'Children' is empty
 	//else if(MyCharacter->Children.IsEmpty())
@@ -72,11 +82,11 @@ void AMyHUD::BeginPlay()
 		WidgetHUD = CreateWidget<UUW_HUD>(GI, WidgetHUDClass, "HUD");
 		WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
 		WidgetHUD->AddToViewport(0);
-		bHasProblems = true;
 	}
 	else
 	{
 		UE_LOG(LogMyGame, Error, TEXT("%s: WidgetHUDClass null"), *GetFullName())
+		bHasProblems = true;
 	}
 	// set up in-game menu
 	
@@ -85,19 +95,25 @@ void AMyHUD::BeginPlay()
 		WidgetMenuInGame = CreateWidget<UUW_MenuInGame>(GI, WidgetMenuInGameClass, "In-Game Menu");
 		WidgetMenuInGame->SetVisibility(ESlateVisibility::Collapsed);
 		WidgetMenuInGame->AddToViewport(1);
-		bHasProblems = true;
 	}
 	else
 	{
 		UE_LOG(LogMyGame, Error, TEXT("%s: WidgetInGameClass null"), *GetFullName())
+		bHasProblems = true;
 	}
 
 	if(!bHasProblems)
 	{
 		bSuccessfulInitialization = true;
-		if(bOrbitNetInitDone)
+		//if(bOrbitNetInitDone || GetLocalRole() == ROLE_Authority)
+		if(bOrbitNetInitDone || MyCharacter->GetLocalRole() == ROLE_Authority)
 		{
 			SetActorTickEnabled(true);
+			UE_LOG(LogMyGame, Error, TEXT("%s: BeginPlay: tick enabled"), *GetFullName())
+		}
+		else
+		{
+			UE_LOG(LogMyGame, Error, TEXT("%s: waiting for OrbitNetInit"), *GetFullName())
 		}
 	}
 	else

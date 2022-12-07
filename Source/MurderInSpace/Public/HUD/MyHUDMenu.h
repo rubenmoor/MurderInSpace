@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AnimationCompression.h"
 #include "MyHUDBase.h"
 #include "Menu/UW_HostGame.h"
 #include "Menu/UW_LoadingScreen.h"
@@ -13,6 +12,7 @@
 #include "Menu/UW_Message.h"
 #include "Menu/UW_ServerList.h"
 #include "Menu/UW_ServerRow.h"
+#include "Modes/MyState.h"
 
 #include "MyHUDMenu.generated.h"
 
@@ -84,10 +84,15 @@ protected:
 	// event handlers
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override
+	{
+		UE_LOG(LogMyGame, Warning, TEXT("%s: EndPlay"), *GetFullName())
+	}
+	virtual void Destroyed() override
+	{
+		UE_LOG(LogMyGame, Warning, TEXT("%s: Destroyed"), *GetFullName())
+	}
 
-	// debugging
-
-	void Shout() { UE_LOG(LogSlate, Warning, TEXT("Shouting!")); }
 public:
 	// public methods
 	

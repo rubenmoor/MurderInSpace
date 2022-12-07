@@ -3,7 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
+#include "InputMappingContext.h"
+#include "MyLocalPlayer.h"
+#include "Actors/MyCharacter.h"
+#include "Actors/Orbit.h"
 #include "GameFramework/PlayerController.h"
+#include "HUD/MyHUD.h"
+#include "Input/MyEnhancedInputComponent.h"
 #include "MyPlayerController.generated.h"
 
 UENUM()
@@ -12,6 +19,18 @@ enum class EAction : uint8
 	// given your current orientation, use the main rocket engine to accelerate
 	ACCELERATE_BEGIN UMETA(DisplayName = "begin accelerate"),
 	ACCELERATE_END   UMETA(DisplayName = "end accelerate")
+};
+
+UENUM()
+enum class EPureUIAction : uint8
+{
+	// given your current orientation, use the main rocket engine to accelerate
+	  ToggleIngameMenu UMETA(DisplayName = "toggle in-game menu")
+	, ShowMyTrajectory UMETA(DisplayName = "show my trajectory")
+	, HideMyTrajectory UMETA(DisplayName = "hide my trajectory")
+	, ShowAllTrajectories UMETA(DisplayName = "show all trajectories")
+	, HideAllTrajectories UMETA(DisplayName = "hide all trajectories")
+	, ToggleMyTrajectory UMETA(DisplayName = "toggle my trajectories visibility")
 };
 
 /**
@@ -65,6 +84,64 @@ private:
 
 	void BindInputLambda(const FName ActionName, EInputEvent KeyEvent, std::function<void()> Handler);
 
+	template<EPureUIAction PureUIAction>
+	void BindPureUIAction(FGameplayTag GameplayTag)
+	{
+		Cast<UMyEnhancedInputComponent>(InputComponent)->BindActionByTag
+			( MyInputActionsData
+			, GameplayTag
+			, ETriggerEvent::Triggered
+			, this
+			, &AMyPlayerController::HandlePureUIAction<PureUIAction>
+			);
+	}
+
+	// pure UI actions
+	template<EPureUIAction PureUIAction>
+	void HandlePureUIAction()
+	{
+		UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(Player);
+		UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+		AOrbit* Orbit;
+		switch(PureUIAction)
+		{
+		case EPureUIAction::ToggleIngameMenu:
+			if(LocalPlayer->ShowInGameMenu)
+			{
+				GetHUD<AMyHUD>()->InGameMenuHide();
+				CurrentMouseCursor = EMouseCursor::Crosshairs;
+				LocalPlayer->ShowInGameMenu = false;
+			}
+			else
+			{
+				GetHUD<AMyHUD>()->InGameMenuShow();
+				CurrentMouseCursor = EMouseCursor::Default;
+				LocalPlayer->ShowInGameMenu = true;
+			}
+			break;
+		case EPureUIAction::ShowMyTrajectory:
+            Orbit = Cast<AOrbit>(GetPawn<AMyCharacter>()->Children[0]);
+            Orbit->bIsVisibleVarious = true;
+            Orbit->UpdateVisibility(MyState->GetInstanceUIAny(this));
+			break;
+		case EPureUIAction::HideMyTrajectory:
+            Orbit = Cast<AOrbit>(GetPawn<AMyCharacter>()->Children[0]);
+            Orbit->bIsVisibleVarious = false;
+            Orbit->UpdateVisibility(MyState->GetInstanceUIAny(this));
+			break;
+		case EPureUIAction::ShowAllTrajectories:
+            SetShowAllTrajectories(true);
+			break;
+		case EPureUIAction::HideAllTrajectories:
+            SetShowAllTrajectories(false);
+			break;
+		case EPureUIAction::ToggleMyTrajectory:
+			// TODO
+			break;
+		}
+	}
+	
+	// gameplay actions
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_HandleAction(EAction Action);
 
@@ -73,4 +150,13 @@ private:
 
 	// handle the action: only the stuff that is *NOT* relevant for replication, i.e. UI-related stuff
 	void HandleActionUI(EAction Action);
+
+	// private members
+
+	// input mapping context: in-game
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<UInputMappingContext> IMC_InGame;
+
+	UPROPERTY(VisibleAnywhere)
+	class UMyInputActionsData* MyInputActionsData;
 };
