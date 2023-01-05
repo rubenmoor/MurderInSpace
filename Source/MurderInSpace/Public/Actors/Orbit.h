@@ -145,7 +145,13 @@ public:
     //   * an actor receives the mouse over event
     //   * the pawn of the player does ShowMyTrajectory
     UPROPERTY(BlueprintReadWrite)
-    bool bIsVisibleVarious = false;
+    bool bIsVisibleMouseover = false;
+
+    UPROPERTY(BlueprintReadWrite)
+    bool bIsVisibleShowMyTrajectory = false;
+
+    UPROPERTY(BlueprintReadWrite)
+    bool bIsVisibleToggleMyTrajectory = false;
 
 #if WITH_EDITORONLY_DATA
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -194,7 +200,9 @@ public:
     
 protected:
 
+#if WITH_EDITOR
     virtual FString GetDefaultActorLabel() const override { return GetClass()->GetName(); }
+#endif
     
     // event handlers
 	virtual void BeginPlay() override;

@@ -11,6 +11,28 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, All, All);
 
+/**
+ * 
+ */
+UENUM()
+enum class EInputAction : uint8
+{
+	// given your current orientation, use the main rocket engine to accelerate
+	  AccelerateBegin     UMETA(DisplayName = "begin accelerate")
+	, AccelerateEnd       UMETA(DisplayName = "end accelerate")
+
+	// given your current orientation, use the main rocket engine to accelerate
+	, ToggleIngameMenu    UMETA(DisplayName = "toggle in-game menu")
+	, ShowMyTrajectory    UMETA(DisplayName = "show my trajectory")
+	, HideMyTrajectory    UMETA(DisplayName = "hide my trajectory")
+	, ShowAllTrajectories UMETA(DisplayName = "show all trajectories")
+	, HideAllTrajectories UMETA(DisplayName = "hide all trajectories")
+	, ToggleMyTrajectory  UMETA(DisplayName = "toggle my trajectories visibility")
+	
+	, MinPureUI = ToggleIngameMenu
+	, Last = ToggleMyTrajectory
+};
+
 /*
  * everything stateful pertaining to the physics
  */
@@ -53,7 +75,7 @@ struct FHighlight
 {
 	GENERATED_BODY()
 
-	FHighlight(): Orbit(), Size(0) {}
+	FHighlight(): Orbit(nullptr), Size(0) {}
 	FHighlight(class AOrbit* InOrbit, float InSize) : Orbit(InOrbit), Size(InSize) {}
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -69,10 +91,10 @@ struct FInstanceUI
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bShowAllTrajectories;
+	bool bShowAllTrajectories = false;
 
-	TOptional<FHighlight> Selected;
-	TOptional<FHighlight> Hovered;
+	FHighlight Selected;
+	FHighlight Hovered;
 };
 
 USTRUCT(BlueprintType)
@@ -115,11 +137,7 @@ constexpr FPlayerUI PlayerUIEditorDefault =
 	{ //TODO
 	};
 
-const FInstanceUI InstanceUIEditorDefault
-	{ false
-	, TOptional<FHighlight>()
-	, TOptional<FHighlight>()
-	};
+const FInstanceUI InstanceUIEditorDefault;
 	
 /**
  * 
@@ -160,11 +178,11 @@ public:
 	UFUNCTION(BlueprintPure)
 	float GetInitialAngularVelocity(FRnd Rnd);
 
-	FInputTag& GetInputTags() { return MyInputTags; }
+	TArray<FGameplayTag> GetInputTags() const { return InputTags; }
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	// private members
-	FInputTag MyInputTags;
+    TArray<FGameplayTag> InputTags;
 };

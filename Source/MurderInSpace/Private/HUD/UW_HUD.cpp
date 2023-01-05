@@ -35,12 +35,13 @@ int32 UUW_HUD::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
     }
 
     const FInstanceUI InstanceUI = GEngine->GetEngineSubsystem<UMyState>()->GetInstanceUIAny(this);
-    if(InstanceUI.Hovered)
+    AOrbit* OrbitHovered = InstanceUI.Hovered.Orbit;
+    if(IsValid(OrbitHovered))
     {
         FVector ScreenPos;
         UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPositionWithDistance
             (GetOwningPlayer()
-            , InstanceUI.Hovered->Orbit->GetVecR()
+            , OrbitHovered->GetVecR()
             , ScreenPos, false
             );
         //GetOwningPlayer()->ProjectWorldLocationToScreen(InstanceUI.HoveredOrbit->GetVecR(), ScreenLoc);
@@ -49,7 +50,7 @@ int32 UUW_HUD::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
             , LayerId
             , PG
             , FVector2D(ScreenPos)
-            , 1000. / ScreenPos.Z * InstanceUI.Hovered->Size
+            , 1000. / ScreenPos.Z * InstanceUI.Hovered.Size
             , 30.
             , 3.
             , ESlateDrawEffect::None
@@ -57,12 +58,13 @@ int32 UUW_HUD::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
             );
     }
 
-    if(InstanceUI.Selected)
+    AOrbit* OrbitSelected = InstanceUI.Selected.Orbit;
+    if(IsValid(OrbitSelected))
     {
         FVector ScreenPos;
         UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPositionWithDistance
             (GetOwningPlayer()
-            , InstanceUI.Selected->Orbit->GetVecR()
+            , OrbitSelected->GetVecR()
             , ScreenPos
             , false
             );
@@ -72,7 +74,7 @@ int32 UUW_HUD::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
             , LayerId
             , PG
             , FVector2D(ScreenPos)
-            , 0.9 * 1000. / ScreenPos.Z * InstanceUI.Selected->Size
+            , 0.9 * 1000. / ScreenPos.Z * InstanceUI.Selected.Size
             , 1.
             , ESlateDrawEffect::None
             , FLinearColor::Green

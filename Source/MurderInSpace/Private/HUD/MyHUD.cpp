@@ -32,7 +32,7 @@ void AMyHUD::MarkOrbitInitDone()
 	if(bSuccessfulInitialization)
 	{
 		SetActorTickEnabled(true);
-		UE_LOG(LogMyGame, Error, TEXT("%s: MarkOrbitInitDone: tick enabled"), *GetFullName())
+		UE_LOG(LogMyGame, Display, TEXT("%s: MarkOrbitInitDone: initialization successful, tick enabled"), *GetFullName())
 	}
 	else
 	{
@@ -109,7 +109,7 @@ void AMyHUD::BeginPlay()
 		if(bOrbitNetInitDone || MyCharacter->GetLocalRole() == ROLE_Authority)
 		{
 			SetActorTickEnabled(true);
-			UE_LOG(LogMyGame, Error, TEXT("%s: BeginPlay: tick enabled"), *GetFullName())
+			UE_LOG(LogMyGame, Display, TEXT("%s: BeginPlay: OrbitNetInit done, tick enabled"), *GetFullName())
 		}
 		else
 		{

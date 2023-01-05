@@ -130,8 +130,10 @@ void AOrbit::BeginPlay()
     GetOwner()->OnClicked.AddDynamic(this, &AOrbit::HandleClick);
     
     // ignore the visibility set in the editor
-    bIsVisibleVarious = false;
-    // this is to override the `bIsVisibleInEditor` that deactivates spline mesh spawning
+    bIsVisibleMouseover = false;
+    bIsVisibleShowMyTrajectory = false;
+    bIsVisibleToggleMyTrajectory = false;
+    
     Update(Physics, InstanceUI);
     UpdateVisibility(InstanceUI);
 }
@@ -543,14 +545,22 @@ void AOrbit::AddPointsToSpline()
 
 bool AOrbit::GetVisibility(FInstanceUI InstanceUI) const
 {
+
+    bool bIsVisibleInEditorActive = false;
 #if WITH_EDITOR
-    return bIsVisibleInEditor;
-#else
-    return bIsVisibleVarious
+    if(GetWorld()->WorldType == EWorldType::Editor)
+    {
+        bIsVisibleInEditorActive = bIsVisibleInEditor;
+    }
+#endif
+    
+    return
+           bIsVisibleInEditorActive
+        || bIsVisibleMouseover
+        || (bIsVisibleShowMyTrajectory != bIsVisibleToggleMyTrajectory)
         || bIsVisibleAccelerating
         || InstanceUI.bShowAllTrajectories
-        || (InstanceUI.Selected && InstanceUI.Selected->Orbit == this);
-#endif
+        || InstanceUI.Selected.Orbit == this;
 }
 
 FString AOrbit::GetParamsString()
@@ -603,8 +613,8 @@ void AOrbit::HandleBeginMouseOver(AActor* Actor)
 {
     GEngine->GetEngineSubsystem<UMyState>()->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
     {
-        InstanceUI.Hovered.Emplace(this, 0);
-        bIsVisibleVarious = true;
+        InstanceUI.Hovered.Orbit = this;
+        bIsVisibleMouseover = true;
         UpdateVisibility(InstanceUI);
     });
 }
@@ -613,8 +623,8 @@ void AOrbit::HandleEndMouseOver(AActor* Actor)
 {
     GEngine->GetEngineSubsystem<UMyState>()->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
     {
-        InstanceUI.Hovered.Reset();
-        bIsVisibleVarious = false;
+        InstanceUI.Hovered.Orbit = nullptr;
+        bIsVisibleMouseover = false;
         UpdateVisibility(InstanceUI);
     });
 }
@@ -625,15 +635,13 @@ void AOrbit::HandleClick(AActor* Actor, FKey Button)
     {
         GEngine->GetEngineSubsystem<UMyState>()->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
         {
-            AOrbit* Previous = InstanceUI.Selected ? InstanceUI.Selected->Orbit : nullptr;
-            InstanceUI.Selected.Emplace(this, 0);
-            
-            // `Previous` is `nullptr` when no orbit is selected
-            if(IsValid(Previous))
+            AOrbit* Orbit = InstanceUI.Selected.Orbit;
+            if(IsValid(Orbit))
             {
-                Previous->UpdateVisibility(InstanceUI);
+                InstanceUI.Selected.Orbit = nullptr;
+                Orbit->UpdateVisibility(InstanceUI);
             }
-            
+            InstanceUI.Selected.Orbit = this;
             UpdateVisibility(InstanceUI);
         });
     }
@@ -648,7 +656,7 @@ void AOrbit::SetCircleOrbit(FPhysics Physics)
 
 void AOrbit::UpdateVisibility(FInstanceUI InstanceUI)
 {
-    Spline->SetVisibility(GetVisibility(InstanceUI), true);
+    SplineMeshParent->SetVisibility(GetVisibility(InstanceUI), true);
 }
 
 void AOrbit::SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector ParentSelector, FInstanceUI InstanceUI)
@@ -756,7 +764,9 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
 
     static const FName FNameBTrajectoryShowSpline = GET_MEMBER_NAME_CHECKED(AOrbit, bTrajectoryShowSpline);
     static const FName FNameVisibleInEditor       = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleInEditor   );
-    static const FName FNameBVisibleVarious       = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleVarious    );
+    static const FName FNameBVisibleMouseOver     = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleMouseover  );
+    static const FName FNameBVisibleShowMy        = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleShowMyTrajectory);
+    static const FName FNameBVisibleToggleMy      = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleToggleMyTrajectory);
     static const FName FNameSplineMeshLength      = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshLength     );
     static const FName FNameVelocity              = GET_MEMBER_NAME_CHECKED(AOrbit, ScalarVelocity       );
     static const FName FNameVelocityVCircle       = GET_MEMBER_NAME_CHECKED(AOrbit, VelocityVCircle      );
@@ -765,7 +775,12 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     static const FName FNameSplineMeshMaterial    = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshMaterial   );
     static const FName FNameSplineMeshScaleFactor = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshScaleFactor);
 
-    if(Name == FNameBVisibleVarious || Name == FNameVisibleInEditor)
+    if(
+           Name == FNameVisibleInEditor
+        || Name == FNameBVisibleMouseOver
+        || Name == FNameBVisibleShowMy
+        || Name == FNameBVisibleToggleMy
+        )
     {
         UpdateVisibility(InstanceUIEditorDefault);
     }

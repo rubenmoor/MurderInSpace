@@ -25,22 +25,6 @@ struct FTaggedInputAction
 };
 
 /**
- * 
- */
-struct FInputTag
-{
-    void InitializeNativeTags();
-    
-    //Input Tags
-    FGameplayTag ToggleIngameMenu;
-    FGameplayTag ShowMyTrajectory;
-    FGameplayTag HideMyTrajectory;
-    FGameplayTag ShowAllTrajectories;
-    FGameplayTag HideAllTrajectories;
-    FGameplayTag ToggleMyTrajectory;
-};
-
-/**
  *
  */
 UCLASS()

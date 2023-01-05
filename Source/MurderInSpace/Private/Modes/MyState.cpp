@@ -3,6 +3,7 @@
 
 #include "Modes/MyState.h"
 
+#include "GameplayTagsManager.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
 #include "Modes/MyPlayerState.h"
@@ -17,7 +18,22 @@ float UMyState::GetInitialAngularVelocity(FRnd Rnd)
 void UMyState::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	MyInputTags.InitializeNativeTags();
+	
+    UGameplayTagsManager& GTM = UGameplayTagsManager::Get();
+
+	InputTags.SetNumZeroed(static_cast<uint8>(EInputAction::Last) + 1);
+	
+    InputTags[static_cast<uint8>(EInputAction::AccelerateBegin    )] = GTM.AddNativeGameplayTag(FName(TEXT("Input.AccelerateBegin")));
+    InputTags[static_cast<uint8>(EInputAction::AccelerateEnd      )] = GTM.AddNativeGameplayTag(FName(TEXT("Input.AccelerateEnd")));
+    
+    InputTags[static_cast<uint8>(EInputAction::ToggleIngameMenu   )] = GTM.AddNativeGameplayTag(FName(TEXT("Input.ToggleIngameMenu")));
+    InputTags[static_cast<uint8>(EInputAction::ShowMyTrajectory   )] = GTM.AddNativeGameplayTag(FName(TEXT("Input.ShowMyTrajectory")));
+    InputTags[static_cast<uint8>(EInputAction::HideMyTrajectory   )] = GTM.AddNativeGameplayTag(FName(TEXT("Input.HideMyTrajectory")));
+    InputTags[static_cast<uint8>(EInputAction::ShowAllTrajectories)] = GTM.AddNativeGameplayTag(FName(TEXT("Input.ShowAllTrajectories")));
+    InputTags[static_cast<uint8>(EInputAction::HideAllTrajectories)] = GTM.AddNativeGameplayTag(FName(TEXT("Input.HideAllTrajectories")));
+    InputTags[static_cast<uint8>(EInputAction::ToggleMyTrajectory )] = GTM.AddNativeGameplayTag(FName(TEXT("Input.ToggleMyTrajectory")));
+    
+    GTM.DoneAddingNativeTags();
 }
 
 FPhysics UMyState::GetPhysics(const AMyGameState* GS)

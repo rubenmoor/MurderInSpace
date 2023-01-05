@@ -6,20 +6,6 @@
 #include "GameplayTagsManager.h"
 #include "Modes/MyState.h"
 
-void FInputTag::InitializeNativeTags()
-{
-    UGameplayTagsManager& GameplayTagsManager = UGameplayTagsManager::Get();
-    
-    ToggleIngameMenu    = GameplayTagsManager.AddNativeGameplayTag(FName(TEXT("InputTag.ToggleIngameMenu")));
-    ShowMyTrajectory    = GameplayTagsManager.AddNativeGameplayTag(FName(TEXT("InputTag.ShowMyTrajectory")));
-    HideMyTrajectory    = GameplayTagsManager.AddNativeGameplayTag(FName(TEXT("InputTag.HideMyTrajectory")));
-    ShowAllTrajectories = GameplayTagsManager.AddNativeGameplayTag(FName(TEXT("InputTag.ShowAllTrajectories")));
-    HideAllTrajectories = GameplayTagsManager.AddNativeGameplayTag(FName(TEXT("InputTag.HideAllTrajectories")));
-    ToggleMyTrajectory  = GameplayTagsManager.AddNativeGameplayTag(FName(TEXT("InputTag.ToggleMyTrajectory")));
-    
-    GameplayTagsManager.DoneAddingNativeTags();
-}
-
 const UInputAction* UMyInputActionsData::FindInputActionForTag(const FGameplayTag& InputTag) const
 {
     for (const FTaggedInputAction& TaggedInputAction : TaggedInputActions)
