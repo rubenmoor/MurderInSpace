@@ -18,19 +18,16 @@ UENUM()
 enum class EInputAction : uint8
 {
 	// given your current orientation, use the main rocket engine to accelerate
-	  AccelerateBegin     UMETA(DisplayName = "begin accelerate")
-	, AccelerateEnd       UMETA(DisplayName = "end accelerate")
+	  AccelerateBeginEnd      UMETA(DisplayName = "accelerate")
 
 	// given your current orientation, use the main rocket engine to accelerate
-	, ToggleIngameMenu    UMETA(DisplayName = "toggle in-game menu")
-	, ShowMyTrajectory    UMETA(DisplayName = "show my trajectory")
-	, HideMyTrajectory    UMETA(DisplayName = "hide my trajectory")
-	, ShowAllTrajectories UMETA(DisplayName = "show all trajectories")
-	, HideAllTrajectories UMETA(DisplayName = "hide all trajectories")
-	, ToggleMyTrajectory  UMETA(DisplayName = "toggle my trajectories visibility")
+	, IngameMenuToggle        UMETA(DisplayName = "toggle in-game menu")
+	, MyTrajectoryShowHide    UMETA(DisplayName = "show my trajectory")
+	, AllTrajectoriesShowHide UMETA(DisplayName = "show all trajectories")
+	, MyTrajectoryToggle      UMETA(DisplayName = "toggle my trajectories visibility")
 	
-	, MinPureUI = ToggleIngameMenu
-	, Last = ToggleMyTrajectory
+	, MinPureUI = IngameMenuToggle
+	, Last = MyTrajectoryToggle
 };
 
 /*

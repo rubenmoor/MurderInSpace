@@ -472,7 +472,7 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
     if(bTrajectoryShowSpline)
     {
 #if WITH_EDITOR
-        if(bIsVisibleInEditor)
+        if(GetWorld()->WorldType != EWorldType::Editor || bIsVisibleInEditor)
 #endif
         SpawnSplineMesh
             ( GetOwner<IHasOrbitColor>()->GetOrbitColor()
@@ -543,7 +543,7 @@ void AOrbit::AddPointsToSpline()
     Spline->AddPoints(RP_SplinePoints, false);
 }
 
-bool AOrbit::GetVisibility(FInstanceUI InstanceUI) const
+bool AOrbit::GetVisibility(const FInstanceUI& InstanceUI) const
 {
 
     bool bIsVisibleInEditorActive = false;
@@ -554,10 +554,17 @@ bool AOrbit::GetVisibility(FInstanceUI InstanceUI) const
     }
 #endif
     
+    UE_LOG ( LogMyGame , Warning , TEXT("bIsVisibleInEditorActive: %s") , bIsVisibleInEditorActive ? TEXT("true") : TEXT("false") )
+    UE_LOG ( LogMyGame , Warning , TEXT("bIsVisibleMouseOver: %s") , bIsVisibleMouseover ? TEXT("true") : TEXT("false") )
+    UE_LOG ( LogMyGame , Warning , TEXT("bIsVisibleShowMyTrajectory: %s") , bIsVisibleShowMyTrajectory ? TEXT("true") : TEXT("false") )
+    UE_LOG ( LogMyGame , Warning , TEXT("bIsVisibleToggleMyTrajectory: %s") , bIsVisibleToggleMyTrajectory ? TEXT("true") : TEXT("false") )
+    UE_LOG ( LogMyGame , Warning , TEXT("bIsVisibleAccelerating: %s") , bIsVisibleAccelerating ? TEXT("true") : TEXT("false") )
+    UE_LOG ( LogMyGame , Warning , TEXT("InstanceUI.bShowAllTrajectories: %s") , InstanceUI.bShowAllTrajectories ? TEXT("true") : TEXT("false") )
+    UE_LOG ( LogMyGame , Warning , TEXT("InstanceUI.Selected.Orbit == this: %s") , InstanceUI.Selected.Orbit == this ? TEXT("true") : TEXT("false") )
     return
            bIsVisibleInEditorActive
         || bIsVisibleMouseover
-        || (bIsVisibleShowMyTrajectory != bIsVisibleToggleMyTrajectory)
+        || bIsVisibleShowMyTrajectory != bIsVisibleToggleMyTrajectory
         || bIsVisibleAccelerating
         || InstanceUI.bShowAllTrajectories
         || InstanceUI.Selected.Orbit == this;
@@ -641,7 +648,10 @@ void AOrbit::HandleClick(AActor* Actor, FKey Button)
                 InstanceUI.Selected.Orbit = nullptr;
                 Orbit->UpdateVisibility(InstanceUI);
             }
-            InstanceUI.Selected.Orbit = this;
+            if(Orbit != this)
+            {
+                InstanceUI.Selected.Orbit = this;
+            }
             UpdateVisibility(InstanceUI);
         });
     }
@@ -654,7 +664,7 @@ void AOrbit::SetCircleOrbit(FPhysics Physics)
     VecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
 }
 
-void AOrbit::UpdateVisibility(FInstanceUI InstanceUI)
+void AOrbit::UpdateVisibility(const FInstanceUI& InstanceUI)
 {
     SplineMeshParent->SetVisibility(GetVisibility(InstanceUI), true);
 }

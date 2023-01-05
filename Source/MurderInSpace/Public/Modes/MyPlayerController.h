@@ -55,8 +55,6 @@ protected:
 	void ServerRPC_LookAt(FQuat Quat);
 	
 private:
-	void SetShowAllTrajectories(bool bInShow) const;
-
 	template<EInputAction InputAction>
 	void BindAction()
 	{
@@ -83,7 +81,8 @@ private:
 				)
 		}
 	}
-	
+
+	// for any input action, call 'LocallyHandleAction' and make the RPC only if necessary
 	template<EInputAction InputAction>
 	void HandleInputAction()
 	{
@@ -99,11 +98,11 @@ private:
 		LocallyHandleAction(InputAction);
 	}
 
-	// gameplay actions
+	// for gameplay input actions, execute their effects
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_HandleAction(EInputAction Action);
 
-	// handle the action: only the stuff that is *NOT* relevant for replication, i.e. UI-related stuff
+	// for gameplay input actions AND mere UI interactions: execute their local effects
 	void LocallyHandleAction(EInputAction Action);
 
 	// private members

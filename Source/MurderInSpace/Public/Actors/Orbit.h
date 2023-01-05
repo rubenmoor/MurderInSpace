@@ -178,7 +178,7 @@ public:
 
     // whenever a spline mesh merely changes visibility:
     UFUNCTION(BlueprintCallable)
-    void UpdateVisibility(FInstanceUI InstanceUI);
+    void UpdateVisibility(const FInstanceUI& InstanceUI);
 
     // object interaction
     
@@ -191,7 +191,7 @@ public:
     void FreezeOrbitState() { RP_OrbitState = { GetVecR(), VecVelocity }; }
 
     UFUNCTION(BlueprintCallable)
-    void SetIsChanging(bool InIsChanging) { bIsChanging = InIsChanging; }
+    void ToggleIsChanging() { bIsChanging = !bIsChanging; }
 
     UFUNCTION(BlueprintCallable)
     void DestroyTempSplineMeshes();
@@ -302,7 +302,7 @@ protected:
     void AddPointsToSpline();
 
     UFUNCTION(BlueprintPure)
-    bool GetVisibility(FInstanceUI InstanceUI) const;
+    bool GetVisibility(const FInstanceUI& InstanceUI) const;
 
     // replication
 

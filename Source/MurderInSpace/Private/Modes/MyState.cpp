@@ -23,15 +23,12 @@ void UMyState::Initialize(FSubsystemCollectionBase& Collection)
 
 	InputTags.SetNumZeroed(static_cast<uint8>(EInputAction::Last) + 1);
 	
-    InputTags[static_cast<uint8>(EInputAction::AccelerateBegin    )] = GTM.AddNativeGameplayTag(FName(TEXT("Input.AccelerateBegin")));
-    InputTags[static_cast<uint8>(EInputAction::AccelerateEnd      )] = GTM.AddNativeGameplayTag(FName(TEXT("Input.AccelerateEnd")));
+    InputTags[static_cast<uint8>(EInputAction::AccelerateBeginEnd     )] = GTM.AddNativeGameplayTag(FName(TEXT("InputAction.AccelerateBeginEnd")));
     
-    InputTags[static_cast<uint8>(EInputAction::ToggleIngameMenu   )] = GTM.AddNativeGameplayTag(FName(TEXT("Input.ToggleIngameMenu")));
-    InputTags[static_cast<uint8>(EInputAction::ShowMyTrajectory   )] = GTM.AddNativeGameplayTag(FName(TEXT("Input.ShowMyTrajectory")));
-    InputTags[static_cast<uint8>(EInputAction::HideMyTrajectory   )] = GTM.AddNativeGameplayTag(FName(TEXT("Input.HideMyTrajectory")));
-    InputTags[static_cast<uint8>(EInputAction::ShowAllTrajectories)] = GTM.AddNativeGameplayTag(FName(TEXT("Input.ShowAllTrajectories")));
-    InputTags[static_cast<uint8>(EInputAction::HideAllTrajectories)] = GTM.AddNativeGameplayTag(FName(TEXT("Input.HideAllTrajectories")));
-    InputTags[static_cast<uint8>(EInputAction::ToggleMyTrajectory )] = GTM.AddNativeGameplayTag(FName(TEXT("Input.ToggleMyTrajectory")));
+    InputTags[static_cast<uint8>(EInputAction::IngameMenuToggle       )] = GTM.AddNativeGameplayTag(FName(TEXT("InputAction.IngameMenuToggle")));
+    InputTags[static_cast<uint8>(EInputAction::MyTrajectoryShowHide   )] = GTM.AddNativeGameplayTag(FName(TEXT("InputAction.MyTrajectoryShowHide")));
+    InputTags[static_cast<uint8>(EInputAction::AllTrajectoriesShowHide)] = GTM.AddNativeGameplayTag(FName(TEXT("InputAction.AllTrajectoriesShowHide")));
+    InputTags[static_cast<uint8>(EInputAction::MyTrajectoryToggle     )] = GTM.AddNativeGameplayTag(FName(TEXT("InputAction.MyTrajectoryToggle")));
     
     GTM.DoneAddingNativeTags();
 }
