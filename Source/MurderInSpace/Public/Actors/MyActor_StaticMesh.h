@@ -22,7 +22,7 @@ class MURDERINSPACE_API AMyActor_StaticMesh final
 	AMyActor_StaticMesh();
 
 public:
-	virtual UPrimitiveComponent* GetMesh()       override { return StaticMesh; }
+	virtual UPrimitiveComponent* GetMesh() const override { return StaticMesh; }
 	virtual TSubclassOf<AOrbit>  GetOrbitClass() override { return OrbitClass;   }
 	virtual FLinearColor         GetOrbitColor() override { return OrbitColor;   }
 	

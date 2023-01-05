@@ -13,5 +13,5 @@ class IHasMesh
     GENERATED_BODY()
     
 public:
-    virtual UPrimitiveComponent* GetMesh() = 0;
+    virtual UPrimitiveComponent* GetMesh() const = 0;
 };

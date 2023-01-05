@@ -17,7 +17,7 @@ class MURDERINSPACE_API AMyPawn_SkeletalMesh : public AMyPawn, public IHasMesh
 public:
 	AMyPawn_SkeletalMesh();
 
-	virtual UPrimitiveComponent* GetMesh() override final { return SkeletalMesh; }
+	virtual UPrimitiveComponent* GetMesh() const override final { return SkeletalMesh; }
 	
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

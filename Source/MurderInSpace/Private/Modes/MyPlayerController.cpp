@@ -99,7 +99,7 @@ void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Act
 void AMyPlayerController::LocallyHandleAction(EInputAction Action)
 {
     UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-    MyState->WithInstanceUI(this, [&] (FInstanceUI& InstanceUI)
+    MyState->WithInstanceUI(this, [this, Action] (FInstanceUI& InstanceUI)
     {
         AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
         AOrbit* Orbit = Cast<AOrbit>(MyCharacter->Children[0]);
@@ -142,7 +142,7 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
             
         case EInputAction::MyTrajectoryShowHide:
             Orbit->bIsVisibleShowMyTrajectory = !Orbit->bIsVisibleShowMyTrajectory;
-            Orbit->UpdateVisibility(MyState->GetInstanceUIAny(this));
+            Orbit->UpdateVisibility(InstanceUI);
             break;
             
         case EInputAction::AllTrajectoriesShowHide:

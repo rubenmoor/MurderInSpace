@@ -99,9 +99,9 @@ void AOrbit::BeginPlay()
     const FPhysics Physics = MyState->GetPhysicsAny(this);
     bool bHasProblems = false;
 
-    if(!IsValid(GetOwner()))
+    if(!IsValid(Owner))
     {
-        UE_LOG(LogMyGame, Error, TEXT("%s: GetOwner: invalid"), *GetFullName())
+        UE_LOG(LogMyGame, Error, TEXT("%s: Owner invalid"), *GetFullName())
         bHasProblems = true;
         SetActorTickEnabled(false);
     }
@@ -124,10 +124,13 @@ void AOrbit::BeginPlay()
     {
         return;
     }
-    
-    GetOwner()->OnBeginCursorOver.AddDynamic(this, &AOrbit::HandleBeginMouseOver);
-    GetOwner()->OnEndCursorOver.AddDynamic(this, &AOrbit::HandleEndMouseOver);
-    GetOwner()->OnClicked.AddDynamic(this, &AOrbit::HandleClick);
+
+    if(Owner->Implements<UHasMesh>())
+    {
+        Owner->OnBeginCursorOver.AddDynamic(this, &AOrbit::HandleBeginMouseOver);
+        Owner->OnEndCursorOver.AddDynamic(this, &AOrbit::HandleEndMouseOver);
+        Owner->OnClicked.AddDynamic(this, &AOrbit::HandleClick);
+    }
     
     // ignore the visibility set in the editor
     bIsVisibleMouseover = false;
@@ -141,7 +144,7 @@ void AOrbit::BeginPlay()
 void AOrbit::PostNetInit()
 {
     Super::PostNetInit();
-    const AMyCharacter* MyCharacter = Cast<AMyCharacter>(GetOwner());
+    const AMyCharacter* MyCharacter = Cast<AMyCharacter>(Owner);
     if(IsValid(MyCharacter) && MyCharacter->GetLocalRole() == ROLE_AutonomousProxy)
     {
         UE_LOG(LogMyGame, Warning, TEXT("%s: PostNetInit"), *GetFullName())
@@ -158,9 +161,9 @@ void AOrbit::PostInitializeComponents()
         return;
     }
     
-    if(IsValid(GetOwner()))
+    if(IsValid(Owner))
     {
-        SetEnableVisibility(GetOwner()->Implements<UHasOrbitColor>());
+        SetEnableVisibility(Owner->Implements<UHasOrbitColor>());
         UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
         const FPhysics Physics = MyState->GetPhysicsAny(this);
         const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(this);
@@ -169,7 +172,7 @@ void AOrbit::PostInitializeComponents()
     }
     else
     {
-        UE_LOG(LogMyGame, Error, TEXT("%s: GetOwner invalid"), *GetFullName())
+        UE_LOG(LogMyGame, Error, TEXT("%s: owner invalid"), *GetFullName())
     }
 
 #if WITH_EDITOR
@@ -207,7 +210,7 @@ void AOrbit::Tick(float DeltaTime)
         SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewLocationAtTangent);
         NewVecR = Spline->GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World);
     }
-    GetOwner()->SetActorLocation(NewVecR, true, nullptr);
+    Owner->SetActorLocation(NewVecR, true, nullptr);
     
     // TODO: account for acceleration
     // const auto RealDeltaR = (GetVecR() - VecR).Length();
@@ -221,7 +224,7 @@ void AOrbit::Tick(float DeltaTime)
 
 void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
 {
-    const FVector VecR = GetOwner()->GetActorLocation();
+    const FVector VecR = Owner->GetActorLocation();
     
     // transform location vector r to Kepler coordinates, where F1 is the origin
     const FVector VecRKepler = GetVecRKepler(Physics);
@@ -554,13 +557,6 @@ bool AOrbit::GetVisibility(const FInstanceUI& InstanceUI) const
     }
 #endif
     
-    UE_LOG ( LogMyGame , Warning , TEXT("bIsVisibleInEditorActive: %s") , bIsVisibleInEditorActive ? TEXT("true") : TEXT("false") )
-    UE_LOG ( LogMyGame , Warning , TEXT("bIsVisibleMouseOver: %s") , bIsVisibleMouseover ? TEXT("true") : TEXT("false") )
-    UE_LOG ( LogMyGame , Warning , TEXT("bIsVisibleShowMyTrajectory: %s") , bIsVisibleShowMyTrajectory ? TEXT("true") : TEXT("false") )
-    UE_LOG ( LogMyGame , Warning , TEXT("bIsVisibleToggleMyTrajectory: %s") , bIsVisibleToggleMyTrajectory ? TEXT("true") : TEXT("false") )
-    UE_LOG ( LogMyGame , Warning , TEXT("bIsVisibleAccelerating: %s") , bIsVisibleAccelerating ? TEXT("true") : TEXT("false") )
-    UE_LOG ( LogMyGame , Warning , TEXT("InstanceUI.bShowAllTrajectories: %s") , InstanceUI.bShowAllTrajectories ? TEXT("true") : TEXT("false") )
-    UE_LOG ( LogMyGame , Warning , TEXT("InstanceUI.Selected.Orbit == this: %s") , InstanceUI.Selected.Orbit == this ? TEXT("true") : TEXT("false") )
     return
            bIsVisibleInEditorActive
         || bIsVisibleMouseover
@@ -620,7 +616,8 @@ void AOrbit::HandleBeginMouseOver(AActor* Actor)
 {
     GEngine->GetEngineSubsystem<UMyState>()->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
     {
-        InstanceUI.Hovered.Orbit = this;
+        float Size = GetOwner<IHasMesh>()->GetMesh()->Bounds.SphereRadius;
+        InstanceUI.Hovered = {this, Size };
         bIsVisibleMouseover = true;
         UpdateVisibility(InstanceUI);
     });
@@ -636,7 +633,7 @@ void AOrbit::HandleEndMouseOver(AActor* Actor)
     });
 }
 
-void AOrbit::HandleClick(AActor* Actor, FKey Button)
+void AOrbit::HandleClick(AActor*, FKey Button)
 {
     if(Button == EKeys::LeftMouseButton)
     {
@@ -650,7 +647,9 @@ void AOrbit::HandleClick(AActor* Actor, FKey Button)
             }
             if(Orbit != this)
             {
-                InstanceUI.Selected.Orbit = this;
+                float Size = GetOwner<IHasMesh>()->GetMesh()->Bounds.SphereRadius;
+                UE_LOG(LogMyGame, Warning, TEXT("%s: spere radius: %.2f"), *GetFullName(), Size)
+                InstanceUI.Selected = {this, Size };
             }
             UpdateVisibility(InstanceUI);
         });
