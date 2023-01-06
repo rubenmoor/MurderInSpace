@@ -16,12 +16,23 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
         return;
     }
 
-    // avoid orbit spawning when editing and compiling blueprint
-    if((!Cast<AMyCharacter>(Actor) && Actor->HasAnyFlags(RF_Transient)) || Actor->GetActorLocation().IsZero())
+    if(Actor->GetWorld()->WorldType == EWorldType::EditorPreview)
     {
         return;
     }
-        
+
+    // avoid orbit spawning when editing and compiling blueprint
+    if(!Cast<AMyCharacter>(Actor) && Actor->HasAnyFlags(RF_Transient))
+    {
+        UE_LOG
+            ( LogMyGame
+            , Warning
+            , TEXT("%s: Actor is transient and not MyCharacter")
+            , *Actor->GetFullName()
+            )       
+        return;
+    }
+    
     UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
 
 #if WITH_EDITOR
@@ -30,12 +41,24 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
     
     const FPhysics Physics = MyState->GetPhysicsAny(Actor);
     const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(Actor);
-        
+
     if(Actor->Children.Num() == 1)
     { 
         AOrbit* Orbit = Cast<AOrbit>(Actor->Children[0]);
-        Orbit->SetCircleOrbit(Physics);
-        Orbit->Update(Physics, InstanceUI);
+        if(IsValid(Orbit))
+        {
+            Orbit->SetCircleOrbit(Physics);
+            Orbit->Update(Physics, InstanceUI);
+        }
+        else
+        {
+            UE_LOG
+                ( LogMyGame
+                , Warning
+                , TEXT("%s: Orbit invalid")
+                , *Actor->GetFullName()
+                )       
+        }
     }
     else
     {
@@ -648,7 +671,6 @@ void AOrbit::HandleClick(AActor*, FKey Button)
             if(Orbit != this)
             {
                 float Size = GetOwner<IHasMesh>()->GetMesh()->Bounds.SphereRadius;
-                UE_LOG(LogMyGame, Warning, TEXT("%s: spere radius: %.2f"), *GetFullName(), Size)
                 InstanceUI.Selected = {this, Size };
             }
             UpdateVisibility(InstanceUI);

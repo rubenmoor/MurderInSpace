@@ -44,7 +44,6 @@ int32 UUW_HUD::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
             , OrbitHovered->GetVecR()
             , ScreenPos, false
             );
-        //GetOwningPlayer()->ProjectWorldLocationToScreen(InstanceUI.HoveredOrbit->GetVecR(), ScreenLoc);
         MakeCircularFrame
             ( OutDrawElements
             , LayerId
@@ -54,7 +53,7 @@ int32 UUW_HUD::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
             , 30.
             , 3.
             , ESlateDrawEffect::None
-            , FLinearColor::Green
+            , FLinearColor::Green.CopyWithNewOpacity(0.7)
             );
     }
 
@@ -68,7 +67,6 @@ int32 UUW_HUD::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
             , ScreenPos
             , false
             );
-        //GetOwningPlayer()->ProjectWorldLocationToScreen(InstanceUI.SelectedOrbit->GetVecR(), ScreenLoc);
         MakeCircle
             ( OutDrawElements
             , LayerId
@@ -77,7 +75,7 @@ int32 UUW_HUD::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
             , 0.9 * 1000. / ScreenPos.Z * InstanceUI.Selected.Size
             , 1.
             , ESlateDrawEffect::None
-            , FLinearColor::Green
+            , FLinearColor::Green.CopyWithNewOpacity(0.7)
             );
     }
     
