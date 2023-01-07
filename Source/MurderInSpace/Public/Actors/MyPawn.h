@@ -30,6 +30,8 @@ public:
     // IOrbit interface
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
 	virtual FLinearColor        GetOrbitColor()  override { return OrbitColor; }
+	virtual AOrbit*				GetOrbit() const override { return RP_Orbit; };
+	virtual void 				SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
 	
     UPROPERTY(ReplicatedUsing=OnRep_BodyRotation, VisibleAnywhere, BlueprintReadOnly)
     FQuat RP_Rotation;
@@ -56,9 +58,17 @@ protected:
     
 	// members
 
+	UPROPERTY(ReplicatedUsing=OnRep_Orbit, VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
+	AOrbit* RP_Orbit = nullptr;
+	
 	UPROPERTY(EditDefaultsOnly, Category="Orbit")
 	TSubclassOf<AOrbit> OrbitClass;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
     FLinearColor OrbitColor;
+
+	// private methods
+
+	UFUNCTION()
+	void OnRep_Orbit();
 };

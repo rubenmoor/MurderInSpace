@@ -26,7 +26,7 @@ void AMyHUD::InGameMenuHide()
 	WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
-void AMyHUD::MarkOrbitInitDone()
+void AMyHUD::MarkReplicationDone()
 {
 	bOrbitNetInitDone = true;
 	if(bSuccessfulInitialization)
@@ -61,13 +61,7 @@ void AMyHUD::BeginPlay()
 		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginPlay: no pawn"), *GetFullName())
 		bHasProblems = true;
 	}
-	// if(MyCharacter->Children.Num() < 1)
-	// {
-	// 	UE_LOG(LogMyGame, Warning, TEXT("%s: BeginPlay: no children"), *GetFullName())
-	// 	bHasProblems = true;
-	// }
 	// at BeginPlay, the orbit hasn't replicated to the client yet,
-	// thus 'Children' is empty
 	//else if(MyCharacter->Children.IsEmpty())
 	//{
 	//	UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: orbit actor null"), *GetFullName())
@@ -129,7 +123,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 	const APlayerController* PC = GetOwningPlayerController();
 
 	const FPhysics Physics = GEngine->GetEngineSubsystem<UMyState>()->GetPhysicsAny(this);
-	AOrbit* Orbit = Cast<AOrbit>(MyCharacter->Children[0]);
+	AOrbit* Orbit = MyCharacter->GetOrbit();
 	const float Velocity = Orbit->GetScalarVelocity();
 
 	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FormattingOptions));

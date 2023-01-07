@@ -84,6 +84,15 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 			, FVector(0, 0, 0)
 			);
 	VecOmega = (MatROld * MatInertiaReverse * MatROld.GetTransposed()).TransformFVector4(VecL);
+	if(VecOmega.IsNearlyZero())
+	{
+		if(VecOmega.IsZero())
+		{
+			UE_LOG(LogMyGame, Error, TEXT("%s: VecOmega zero, skipping."), *GetFullName())
+			return;
+		}
+		UE_LOG(LogMyGame, Warning, TEXT("%s: VecOmega nearly zero, just a warning."), *GetFullName())
+	}
 	const float Theta = VecOmega.Length();
 	const FMatrix BNorm = FMatrix
 			( FVector(0., -VecOmega.Z, VecOmega.Y)

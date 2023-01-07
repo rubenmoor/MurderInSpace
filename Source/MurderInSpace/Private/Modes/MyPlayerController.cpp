@@ -77,7 +77,7 @@ void AMyPlayerController::ServerRPC_LookAt_Implementation(FQuat Quat)
 void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Action)
 {
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-    AOrbit* Orbit = Cast<AOrbit>(MyCharacter->Children[0]);
+    AOrbit* Orbit = MyCharacter->GetOrbit();
     switch (Action)
     {
     case EInputAction::AccelerateBeginEnd:
@@ -101,8 +101,8 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
     UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
     MyState->WithInstanceUI(this, [this, Action] (FInstanceUI& InstanceUI)
     {
-        AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-        AOrbit* Orbit = Cast<AOrbit>(MyCharacter->Children[0]);
+        const AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
+        AOrbit* Orbit = MyCharacter->GetOrbit();
         UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
         
         switch (Action)

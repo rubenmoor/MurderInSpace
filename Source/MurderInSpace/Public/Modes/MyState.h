@@ -168,6 +168,8 @@ public:
 	UFUNCTION(BlueprintPure)
 	FRnd GetRndAny(const UObject* Object);
 
+	void WithPhysics(const UObject* Object, const std::function<void(FPhysics&)> Func);
+	
 	void WithPlayerUI(const UObject* Object, const FLocalPlayerContext& LPC, const std::function<void(FPlayerUI&)> Func);
 
 	void WithInstanceUI(const UObject* Object, const std::function<void(FInstanceUI&)> Func);

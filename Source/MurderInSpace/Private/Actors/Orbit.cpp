@@ -6,22 +6,16 @@
 #include "Components/SplineMeshComponent.h"
 #include "HUD/MyHUD.h"
 #include "Lib/FunctionLib.h"
+#include "Logging/LogMacros.h"
 #include "Modes/MyPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 void IHasOrbit::OrbitSetup(AActor* Actor)
 {
-    if(Actor->GetLocalRole() < ROLE_Authority)
-    {
-        return;
-    }
-
-    if(Actor->GetWorld()->WorldType == EWorldType::EditorPreview)
-    {
-        return;
-    }
-
-    // avoid orbit spawning when editing and compiling blueprint
+    // avoid orbit spawning when dragging an actor with orbit into the viewport at first
+    // The preview actor that is created doesn't have a valid location
+    // Once the actor is placed inside the viewport, it's no longer transient and the orbit is reconstructed properly
+    // according to the actor location
     if(!Cast<AMyCharacter>(Actor) && Actor->HasAnyFlags(RF_Transient))
     {
         UE_LOG
@@ -42,23 +36,11 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
     const FPhysics Physics = MyState->GetPhysicsAny(Actor);
     const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(Actor);
 
-    if(Actor->Children.Num() == 1)
+    // TODO: maybe check for nullptr and isvalid seperately
+    if(IsValid(GetOrbit()))
     { 
-        AOrbit* Orbit = Cast<AOrbit>(Actor->Children[0]);
-        if(IsValid(Orbit))
-        {
-            Orbit->SetCircleOrbit(Physics);
-            Orbit->Update(Physics, InstanceUI);
-        }
-        else
-        {
-            UE_LOG
-                ( LogMyGame
-                , Warning
-                , TEXT("%s: Orbit invalid")
-                , *Actor->GetFullName()
-                )       
-        }
+        GetOrbit()->SetCircleOrbit(Physics);
+        GetOrbit()->Update(Physics, InstanceUI);
     }
     else
     {
@@ -70,17 +52,22 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
 
         UE_LOG(LogMyGame, Warning, TEXT("%s: going to spawn orbit"), *Actor->GetFullName())
         FActorSpawnParameters Params;
-        Params.Name = AOrbit::GetCustomFName(Actor);
-        Params.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Required_ErrorAndReturnNull;
-        Params.Owner = Actor;
+        Params.CustomPreSpawnInitalization = [Actor] (AActor* ActorOrbit)
+        {
+            Cast<AOrbit>(ActorOrbit)->RP_Body = Actor;
+        };
         AOrbit* NewOrbit = Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
+        SetOrbit(NewOrbit);
         UE_LOG(LogMyGame, Warning, TEXT("%s: orbit spawned: %s"), *Actor->GetFullName(), *NewOrbit->GetFullName())
     }
 }
 
 AOrbit::AOrbit()
 {
+    // only start to tick after PostNetInit
     PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bStartWithTickEnabled = false;
+    
     bNetLoadOnClient = false;
     bReplicates = true;
     bAlwaysRelevant = true;
@@ -113,22 +100,60 @@ void AOrbit::DestroyTempSplineMeshes()
     }
 }
 
+void AOrbit::OnConstruction(const FTransform& Transform)
+{
+    Super::OnConstruction(Transform);
+#if WITH_EDITOR
+    if(IsValid(RP_Body))
+    {
+        SetActorLabel(MakeOrbitLabel(RP_Body), false);
+    }
+#endif
+}
+
+void AOrbit::Initialize()
+{
+    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+
+    if(!IsValid(RP_Body))
+    {
+        UE_LOG(LogMyGame, Error, TEXT("%s: body invalid"), *GetFullName())
+        return;
+    }
+    
+    if(RP_Body->Implements<UHasMesh>())
+    {
+        RP_Body->OnBeginCursorOver.AddDynamic(this, &AOrbit::HandleBeginMouseOver);
+        RP_Body->OnEndCursorOver.AddDynamic(this, &AOrbit::HandleEndMouseOver);
+        RP_Body->OnClicked.AddDynamic(this, &AOrbit::HandleClick);
+    }
+    
+    MyState->WithInstanceUI(this, [this, MyState] (auto& InstanceUI)
+    {
+        MyState->WithPhysics(this, [this, &InstanceUI] (auto& Physics)
+        {
+            Update(Physics, InstanceUI);
+        });
+    });
+    
+    if(RP_Body->GetLocalRole() == ROLE_AutonomousProxy)
+    {
+        Cast<AMyCharacter>(RP_Body)->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->MarkReplicationDone();
+    }
+    
+    SetActorTickEnabled(true);
+}
+
 void AOrbit::BeginPlay()
 {
     Super::BeginPlay();
 
+    UE_LOG(LogMyGame, Warning, TEXT("%s: BeginPlay()"), *GetFullName())
+    
     UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-    const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(this);
-    const FPhysics Physics = MyState->GetPhysicsAny(this);
+    
     bool bHasProblems = false;
 
-    if(!IsValid(Owner))
-    {
-        UE_LOG(LogMyGame, Error, TEXT("%s: Owner invalid"), *GetFullName())
-        bHasProblems = true;
-        SetActorTickEnabled(false);
-    }
-    
     // Only care for spline static mesh and material if this orbit is meant to be visible
     if(bTrajectoryShowSpline)
     {
@@ -148,31 +173,28 @@ void AOrbit::BeginPlay()
         return;
     }
 
-    if(Owner->Implements<UHasMesh>())
-    {
-        Owner->OnBeginCursorOver.AddDynamic(this, &AOrbit::HandleBeginMouseOver);
-        Owner->OnEndCursorOver.AddDynamic(this, &AOrbit::HandleEndMouseOver);
-        Owner->OnClicked.AddDynamic(this, &AOrbit::HandleClick);
-    }
-    
-    // ignore the visibility set in the editor
+    // ignore any of the visibility booleans set in the editor
     bIsVisibleMouseover = false;
     bIsVisibleShowMyTrajectory = false;
     bIsVisibleToggleMyTrajectory = false;
-    
-    Update(Physics, InstanceUI);
-    UpdateVisibility(InstanceUI);
+
+    MyState->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
+    {
+        UpdateVisibility(InstanceUI);
+    });
+
+    if(GetLocalRole() == ROLE_Authority)
+    {
+        Initialize();
+    }
+
 }
 
 void AOrbit::PostNetInit()
 {
     Super::PostNetInit();
-    const AMyCharacter* MyCharacter = Cast<AMyCharacter>(Owner);
-    if(IsValid(MyCharacter) && MyCharacter->GetLocalRole() == ROLE_AutonomousProxy)
-    {
-        UE_LOG(LogMyGame, Warning, TEXT("%s: PostNetInit"), *GetFullName())
-        MyCharacter->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->MarkOrbitInitDone();
-    }
+
+    UE_LOG(LogMyGame, Warning, TEXT("%s: PostNetInit()"), *GetFullName())
 }
 
 void AOrbit::PostInitializeComponents()
@@ -184,9 +206,9 @@ void AOrbit::PostInitializeComponents()
         return;
     }
     
-    if(IsValid(Owner))
+    if(IsValid(RP_Body))
     {
-        SetEnableVisibility(Owner->Implements<UHasOrbitColor>());
+        SetEnableVisibility(RP_Body->Implements<UHasOrbitColor>());
         UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
         const FPhysics Physics = MyState->GetPhysicsAny(this);
         const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(this);
@@ -195,12 +217,8 @@ void AOrbit::PostInitializeComponents()
     }
     else
     {
-        UE_LOG(LogMyGame, Error, TEXT("%s: owner invalid"), *GetFullName())
+        UE_LOG(LogMyGame, Error, TEXT("%s: body invalid"), *GetFullName())
     }
-
-#if WITH_EDITOR
-    SetActorLabel(GetFName().ToString(), false);
-#endif
 
 }
 
@@ -233,7 +251,7 @@ void AOrbit::Tick(float DeltaTime)
         SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewLocationAtTangent);
         NewVecR = Spline->GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World);
     }
-    Owner->SetActorLocation(NewVecR, true, nullptr);
+    RP_Body->SetActorLocation(NewVecR, true, nullptr);
     
     // TODO: account for acceleration
     // const auto RealDeltaR = (GetVecR() - VecR).Length();
@@ -247,7 +265,7 @@ void AOrbit::Tick(float DeltaTime)
 
 void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
 {
-    const FVector VecR = Owner->GetActorLocation();
+    const FVector VecR = RP_Body->GetActorLocation();
     
     // transform location vector r to Kepler coordinates, where F1 is the origin
     const FVector VecRKepler = GetVecRKepler(Physics);
@@ -501,7 +519,7 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
         if(GetWorld()->WorldType != EWorldType::Editor || bIsVisibleInEditor)
 #endif
         SpawnSplineMesh
-            ( GetOwner<IHasOrbitColor>()->GetOrbitColor()
+            ( Cast<IHasOrbitColor>(RP_Body)->GetOrbitColor()
             , ESplineMeshParentSelector::Permanent
             , InstanceUI
             );
@@ -635,11 +653,18 @@ void AOrbit::OnRep_OrbitState()
     SplineDistance = Spline->GetDistanceAlongSplineAtSplineInputKey(SplineKey);
 }
 
+void AOrbit::OnRep_Body()
+{
+    // somehow, neither 'BeginPlay' nor 'PostNetInit' guarantee that 'RP_Body' has been replicated
+    UE_LOG(LogMyGame, Warning, TEXT("%s: OnRep_Body"), *GetFullName())
+    Initialize();
+}
+
 void AOrbit::HandleBeginMouseOver(AActor* Actor)
 {
     GEngine->GetEngineSubsystem<UMyState>()->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
     {
-        float Size = GetOwner<IHasMesh>()->GetMesh()->Bounds.SphereRadius;
+        float Size = Cast<IHasMesh>(RP_Body)->GetMesh()->Bounds.SphereRadius;
         InstanceUI.Hovered = {this, Size };
         bIsVisibleMouseover = true;
         UpdateVisibility(InstanceUI);
@@ -670,7 +695,7 @@ void AOrbit::HandleClick(AActor*, FKey Button)
             }
             if(Orbit != this)
             {
-                float Size = GetOwner<IHasMesh>()->GetMesh()->Bounds.SphereRadius;
+                float Size = Cast<IHasMesh>(RP_Body)->GetMesh()->Bounds.SphereRadius;
                 InstanceUI.Selected = {this, Size };
             }
             UpdateVisibility(InstanceUI);
@@ -844,7 +869,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         {
         }
     }
-    if(IsValid(GetOwner()))
+    if(IsValid(RP_Body))
     {
         Update(PhysicsEditorDefault, InstanceUIEditorDefault);
     }
@@ -853,7 +878,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         UE_LOG
             ( LogMyGame
             , Warning
-            , TEXT("%s: PostEditChangedChainProperty: owner invalid")
+            , TEXT("%s: PostEditChangedChainProperty: body invalid")
             , *GetFullName()
             )
     }
@@ -863,13 +888,14 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
 void AOrbit::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    
+
     DOREPLIFETIME(AOrbit, RP_bClosedLoop )
 
     DOREPLIFETIME(AOrbit, RP_Params      )
     DOREPLIFETIME(AOrbit, RP_DistanceZero)
     DOREPLIFETIME(AOrbit, RP_SplinePoints)
     
+    DOREPLIFETIME_CONDITION(AOrbit, RP_Body      , COND_InitialOnly)
     DOREPLIFETIME_CONDITION(AOrbit, RP_OrbitState, COND_InitialOnly )
 }
 

@@ -8,6 +8,8 @@
 #include "HUD/UW_MenuInGame.h"
 #include "MyHUD.generated.h"
 
+// TODO enum flags
+
 class AMyCharacter;
 
 /**
@@ -28,7 +30,7 @@ public:
 	void InGameMenuHide();
 
 	UFUNCTION(BlueprintCallable)
-	void MarkOrbitInitDone();
+	void MarkReplicationDone();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")

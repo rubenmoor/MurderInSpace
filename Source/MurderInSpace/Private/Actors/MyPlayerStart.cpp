@@ -4,6 +4,7 @@
 #include "Actors/MyPlayerStart.h"
 
 #include "Actors/Orbit.h"
+#include "Net/UnrealNetwork.h"
 
 AMyPlayerStart::AMyPlayerStart()
 {
@@ -17,14 +18,35 @@ AMyPlayerStart::AMyPlayerStart()
 void AMyPlayerStart::Destroyed()
 {
 	Super::Destroyed();
-	while(Children.Num() > 0)
+	if(IsValid(RP_Orbit))
 	{
-		Children.Last()->Destroy();
+		RP_Orbit->Destroy();
 	}
 }
 
 void AMyPlayerStart::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	OrbitSetup(this);
+    if  (
+		// Only the server spawns orbits
+    	   GetLocalRole()        == ROLE_Authority
+    	   
+		// avoid orbit spawning when editing and compiling blueprint
+		&& GetWorld()->WorldType != EWorldType::EditorPreview
+		
+		// avoid orbit spawning when dragging an actor with orbit into the viewport at first
+		// The preview actor that is created doesn't have a valid location
+		// Once the actor is placed inside the viewport, it's no longer transient and the orbit is reconstructed properly
+		// according to the actor location
+		&& !HasAnyFlags(RF_Transient)
+		)
+    {
+		OrbitSetup(this);
+    }
+}
+
+void AMyPlayerStart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME_CONDITION(AMyPlayerStart, RP_Orbit      , COND_InitialOnly)
 }

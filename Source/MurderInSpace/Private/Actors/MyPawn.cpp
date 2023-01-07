@@ -1,6 +1,8 @@
 #include "Actors/MyPawn.h"
 
+#include "HUD/MyHUD.h"
 #include "Modes/MyGameState.h"
+#include "Modes/MyPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 AMyPawn::AMyPawn()
@@ -39,14 +41,29 @@ void AMyPawn::Tick(float DeltaSeconds)
 		const FPhysics Physics = MyState->GetPhysicsAny(this);
 		const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(this);
 		const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
-		Cast<AOrbit>(Children[0])->AddVelocity(Root->GetForwardVector() * DeltaV, Physics, InstanceUI);
+		RP_Orbit->AddVelocity(Root->GetForwardVector() * DeltaV, Physics, InstanceUI);
 	}
 }
 
 void AMyPawn::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	OrbitSetup(this);
+    if  (
+		// Only the server spawns orbits
+    	   GetLocalRole()        == ROLE_Authority
+    	   
+		// avoid orbit spawning when editing and compiling blueprint
+		&& GetWorld()->WorldType != EWorldType::EditorPreview
+		
+		// avoid orbit spawning when dragging an actor with orbit into the viewport at first
+		// The preview actor that is created doesn't have a valid location
+		// Once the actor is placed inside the viewport, it's no longer transient and the orbit is reconstructed properly
+		// according to the actor location
+		&& !HasAnyFlags(RF_Transient)
+		)
+    {
+		OrbitSetup(this);
+    }
 }
 
 #if WITH_EDITOR
@@ -60,9 +77,9 @@ void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCh
 
 	if(Name == FNameOrbitColor)
 	{
-		if(!Children.IsEmpty())
+		if(IsValid(RP_Orbit))
 		{
-			Cast<AOrbit>(Children[0])->Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+			RP_Orbit->Update(PhysicsEditorDefault, InstanceUIEditorDefault);
 		}
 	}
 }
@@ -71,9 +88,17 @@ void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCh
 void AMyPawn::Destroyed()
 {
 	Super::Destroyed();
-	while(Children.Num() > 0)
+	if(IsValid(RP_Orbit))
 	{
-		Children.Last()->Destroy();
+		RP_Orbit->Destroy();
+	}
+}
+
+void AMyPawn::OnRep_Orbit()
+{
+	if(GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->MarkReplicationDone();
 	}
 }
 
@@ -81,6 +106,8 @@ void AMyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+    DOREPLIFETIME_CONDITION(AMyPawn, RP_Orbit, COND_InitialOnly)
+	
 	// two different ways to go about network lag and potential packet loss
 	//
 	// in case of rotation: "movement prediction": leaving the implementation to the client, allowing for quick movement;

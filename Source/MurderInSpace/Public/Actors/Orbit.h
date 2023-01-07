@@ -26,6 +26,8 @@ class IHasOrbit
 public:
     virtual TSubclassOf<AOrbit> GetOrbitClass() = 0;
     virtual void OrbitSetup(AActor* Actor);
+    virtual AOrbit* GetOrbit() const = 0;
+    virtual void SetOrbit(AOrbit* Orbit) = 0;
 };
 
 UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
@@ -111,7 +113,7 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
-    static FName GetCustomFName(AActor* Actor) { return *Actor->GetName().Append(TEXT("_Orbit")); }
+    static FString MakeOrbitLabel(const AActor* Actor) { return Actor->GetName().Append(TEXT("_Orbit")); }
     
     // initialization
 
@@ -174,7 +176,7 @@ public:
     FVector GetVecRKepler(FPhysics Physics) const { return GetVecR() - Physics.VecF1; }
 
     UFUNCTION(BlueprintCallable)
-    FVector GetVecR() const { return GetOwner()->GetActorLocation(); }
+    FVector GetVecR() const { return RP_Body->GetActorLocation(); }
 
     // whenever a spline mesh merely changes visibility:
     UFUNCTION(BlueprintCallable)
@@ -205,6 +207,7 @@ protected:
 #endif
     
     // event handlers
+    virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
     virtual void PostNetInit() override;
 
@@ -215,6 +218,12 @@ protected:
     virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
     
 	// components
+
+    // TODO
+public:
+    UPROPERTY(ReplicatedUsing=OnRep_Body, VisibleAnywhere, BlueprintReadOnly)
+    AActor* RP_Body = nullptr;
+protected:
 	
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<USceneComponent> Root;
@@ -282,6 +291,11 @@ protected:
     
     // private methods
 
+    // server calls 'Initialize' in 'BeginPlay'
+    // clients call 'Initialize' in 'PostNetInit'
+    UFUNCTION(BlueprintCallable)
+    void Initialize();
+    
     UFUNCTION(BlueprintCallable)
     float VelocityEllipse(float R, float Alpha);
 
@@ -313,6 +327,9 @@ protected:
     // to this method) happens only once
     UFUNCTION()
     void OnRep_OrbitState();
+
+    UFUNCTION()
+    void OnRep_Body();
 
     UPROPERTY(ReplicatedUsing=OnRep_SplinePoints)
     TArray<FSplinePoint> RP_SplinePoints;

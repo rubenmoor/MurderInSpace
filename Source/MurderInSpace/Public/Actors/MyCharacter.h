@@ -51,6 +51,7 @@ public:
 protected:
 
     // event handlers
+    virtual void OnConstruction(const FTransform& Transform) override;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FLinearColor TempSplineMeshColor;

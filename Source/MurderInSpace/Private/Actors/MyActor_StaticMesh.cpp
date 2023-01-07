@@ -4,6 +4,7 @@
 #include "Actors/MyActor_StaticMesh.h"
 
 #include "Actors/GyrationComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AMyActor_StaticMesh::AMyActor_StaticMesh()
 {
@@ -24,19 +25,38 @@ AMyActor_StaticMesh::AMyActor_StaticMesh()
 void AMyActor_StaticMesh::Destroyed()
 {
 	Super::Destroyed();
-	while(Children.Num() > 0)
+	if(IsValid(RP_Orbit))
 	{
-		if(IsValid(Children.Last()))
-		{
-			Children.Last()->Destroy();
-		}
+		RP_Orbit->Destroy();
 	}
 }
 
 void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
-	OrbitSetup(this);
+	
+    if  (
+		// Only the server spawns orbits
+    	   GetLocalRole()        == ROLE_Authority
+    	   
+		// avoid orbit spawning when editing and compiling blueprint
+		&& GetWorld()->WorldType != EWorldType::EditorPreview
+		
+		// avoid orbit spawning when dragging an actor with orbit into the viewport at first
+		// The preview actor that is created doesn't have a valid location
+		// Once the actor is placed inside the viewport, it's no longer transient and the orbit is reconstructed properly
+		// according to the actor location
+		&& !HasAnyFlags(RF_Transient)
+		)
+    {
+		OrbitSetup(this);
+    }
+}
+
+void AMyActor_StaticMesh::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME_CONDITION(AMyActor_StaticMesh, RP_Orbit      , COND_InitialOnly)
 }
 
 #if WITH_EDITOR
@@ -50,9 +70,9 @@ void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent
 
 	if(Name == FNameOrbitColor)
 	{
-		if(!Children.IsEmpty())
+		if(IsValid(RP_Orbit))
 		{
-			Cast<AOrbit>(Children[0])->Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+			RP_Orbit->Update(PhysicsEditorDefault, InstanceUIEditorDefault);
 		}
 	}
 }

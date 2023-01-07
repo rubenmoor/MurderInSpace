@@ -53,7 +53,7 @@ FPhysics UMyState::GetPhysicsAny(const UObject* Object)
 			( LogGameState
 			, Error
 			, TEXT("UMyState::GetPhysicsAny: %s: AMyGameState null; AGameState: %s")
-			, *Object->GetFullName()
+			, *Object->GetName()
 			, *GSGeneric->GetFullName()
 			)
 		return PhysicsEditorDefault;
@@ -197,4 +197,23 @@ void UMyState::WithInstanceUI(const UObject* Object, const std::function<void(FI
 		return;
 	}
 	Func(GI->InstanceUI);
+}
+
+void UMyState::WithPhysics(const UObject* Object, const std::function<void(FPhysics&)> Func)
+{
+	const UWorld* World = Object->GetWorld();
+	AMyGameState* GS = World->GetGameState<AMyGameState>();
+	if(!GS)
+	{
+		const AGameState* GSGeneric = World->GetGameState<AGameState>();
+		UE_LOG
+		( LogGameState
+		, Error
+		, TEXT("UMyState::WithPhysics: %s: AMyGameState null; AGameState: %s")
+		, *Object->GetFullName()
+		, GSGeneric ? *GSGeneric->GetFullName() : TEXT("null")
+		)
+		return;
+	}
+	Func(GS->Physics);
 }

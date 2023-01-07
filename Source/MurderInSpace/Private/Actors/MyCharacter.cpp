@@ -88,3 +88,18 @@ float AMyCharacter::GetSpringArmLength() const
 {
 	return SpringArm->TargetArmLength;
 }
+
+void AMyCharacter::OnConstruction(const FTransform& Transform)
+{
+	APawn::OnConstruction(Transform);
+    if  (
+		// Only the server spawns orbits
+    	   GetLocalRole()        == ROLE_Authority
+    	   
+		// avoid orbit spawning when editing and compiling blueprint
+		&& GetWorld()->WorldType != EWorldType::EditorPreview
+		)
+    {
+		OrbitSetup(this);
+    }
+}

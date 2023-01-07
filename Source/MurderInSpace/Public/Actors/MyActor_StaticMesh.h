@@ -22,9 +22,11 @@ class MURDERINSPACE_API AMyActor_StaticMesh final
 	AMyActor_StaticMesh();
 
 public:
-	virtual UPrimitiveComponent* GetMesh() const override { return StaticMesh; }
-	virtual TSubclassOf<AOrbit>  GetOrbitClass() override { return OrbitClass;   }
-	virtual FLinearColor         GetOrbitColor() override { return OrbitColor;   }
+	virtual UPrimitiveComponent* GetMesh()  const override { return StaticMesh; }
+	virtual TSubclassOf<AOrbit>  GetOrbitClass()  override { return OrbitClass;   }
+	virtual FLinearColor         GetOrbitColor()  override { return OrbitColor;   }
+	virtual AOrbit*				 GetOrbit() const override { return RP_Orbit; };
+	virtual void 				 SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
 	
 protected:
 	// event handlers
@@ -46,6 +48,9 @@ protected:
     TObjectPtr<class UGyrationComponent> Gyration;
 
 	// members
+	
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
+	AOrbit* RP_Orbit = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Orbit")
 	TSubclassOf<AOrbit> OrbitClass;

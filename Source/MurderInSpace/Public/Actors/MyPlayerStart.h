@@ -16,7 +16,10 @@ class MURDERINSPACE_API AMyPlayerStart final : public AActor, public IHasOrbit
 
 public:
 	AMyPlayerStart();
+	
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
+	virtual AOrbit*				GetOrbit() const override { return RP_Orbit; };
+	virtual void 				SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
 	
 protected:
 	// event handlers
@@ -24,6 +27,9 @@ protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	
 	// members
+	
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
+	AOrbit* RP_Orbit = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Orbit")
 	TSubclassOf<AOrbit> OrbitClass;
