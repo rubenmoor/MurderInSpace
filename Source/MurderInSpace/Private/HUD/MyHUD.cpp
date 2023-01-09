@@ -26,17 +26,30 @@ void AMyHUD::InGameMenuHide()
 	WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
-void AMyHUD::MarkReplicationDone()
+void AMyHUD::SetReadyFlags(EHUDReady ReadyFlags)
 {
-	bOrbitNetInitDone = true;
-	if(bSuccessfulInitialization)
+	HUDReady |= ReadyFlags;
+	if(HUDReady == EHUDReady::All)
 	{
+		UE_LOG
+			( LogMyGame
+			, Display
+			, TEXT("%s: HUD ready")
+			, *GetFullName()
+			)
 		SetActorTickEnabled(true);
-		UE_LOG(LogMyGame, Display, TEXT("%s: MarkOrbitInitDone: initialization successful, tick enabled"), *GetFullName())
 	}
 	else
 	{
-		UE_LOG(LogMyGame, Error, TEXT("%s: waiting for BeginPlay"), *GetFullName())
+		UE_LOG
+			( LogMyGame
+			, Display
+			, TEXT("%s: Internal %s, Orbit %s, Pawn->GetOrbit %s")
+			, *GetFullName()
+			, !(HUDReady & EHUDReady::InternalReady ) ? TEXT("waiting") : TEXT("ready")
+			, !(HUDReady & EHUDReady::OrbitReady) ? TEXT("waiting") : TEXT("ready")
+			, !(HUDReady & EHUDReady::PawnOrbitReady    ) ? TEXT("waiting") : TEXT("ready")
+			)
 	}
 }
 
@@ -98,16 +111,13 @@ void AMyHUD::BeginPlay()
 
 	if(!bHasProblems)
 	{
-		bSuccessfulInitialization = true;
-		//if(bOrbitNetInitDone || GetLocalRole() == ROLE_Authority)
-		if(bOrbitNetInitDone || MyCharacter->GetLocalRole() == ROLE_Authority)
+		if(MyCharacter->GetLocalRole() == ROLE_Authority)
 		{
 			SetActorTickEnabled(true);
-			UE_LOG(LogMyGame, Display, TEXT("%s: BeginPlay: OrbitNetInit done, tick enabled"), *GetFullName())
 		}
 		else
 		{
-			UE_LOG(LogMyGame, Error, TEXT("%s: waiting for OrbitNetInit"), *GetFullName())
+			SetReadyFlags(EHUDReady::InternalReady);
 		}
 	}
 	else

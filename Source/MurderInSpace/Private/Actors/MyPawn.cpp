@@ -98,7 +98,7 @@ void AMyPawn::OnRep_Orbit()
 {
 	if(GetLocalRole() == ROLE_AutonomousProxy)
 	{
-		GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->MarkReplicationDone();
+		GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->SetReadyFlags(EHUDReady::PawnOrbitReady);
 	}
 }
 

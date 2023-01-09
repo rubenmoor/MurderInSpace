@@ -6,6 +6,17 @@
 #include "Modes/MyState.h"
 #include "Orbit.generated.h"
 
+UENUM(meta=(Bitflags))
+enum class EOrbitReady : uint8
+{
+    None           = 0,
+    InternalReady  = 1 << 0,
+    BodyReady      = 1 << 1,
+
+    All = InternalReady | BodyReady
+};
+ENUM_CLASS_FLAGS(EOrbitReady)
+
 UENUM()
 enum class ESplineMeshParentSelector : uint8
 {
@@ -190,7 +201,12 @@ public:
     // replication
 
     UFUNCTION(BlueprintCallable)
-    void FreezeOrbitState() { RP_OrbitState = { GetVecR(), VecVelocity }; }
+    void FreezeOrbitState()
+    {
+        UE_LOG(LogMyGame, Warning, TEXT("%s: freeze orbit state"), *GetFullName())
+        UE_LOG(LogMyGame, Warning, TEXT("%s"), *GetParamsString())
+        RP_OrbitState = { GetVecR(), VecVelocity };
+    }
 
     UFUNCTION(BlueprintCallable)
     void ToggleIsChanging() { bIsChanging = !bIsChanging; }
@@ -363,4 +379,8 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	void HandleClick(AActor* Actor, FKey Button);
+
+    void SetReadyFlags(EOrbitReady ReadyFlags);
+    
+    EOrbitReady OrbitReady;
 };

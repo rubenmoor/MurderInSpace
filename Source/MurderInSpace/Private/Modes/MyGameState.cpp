@@ -4,6 +4,7 @@
 #include "Modes/MyGameState.h"
 
 #include "Actors/Orbit.h"
+#include "Lib/FunctionLib.h"
 
 void AMyGameState::PostInitializeComponents()
 {
@@ -23,7 +24,7 @@ void AMyGameState::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prope
 	
 	if(Name == FNameSpaceParams)
 	{
-		for(TObjectIterator<AOrbit> IOrbit; IOrbit; ++IOrbit)
+		for(MyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
 		{
 			(*IOrbit)->Update(Physics, InstanceUIEditorDefault);
 		}

@@ -72,6 +72,7 @@ public:
 		, false
 		, EGameMode::EveryManForHimself
 		};
+
 protected:
 	// event handlers
 
@@ -84,4 +85,6 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	FInstanceUI InstanceUI;
+	
+	// flag enums
 };

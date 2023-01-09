@@ -6,9 +6,20 @@
 #include "MyHUDBase.h"
 #include "HUD/UW_HUD.h"
 #include "HUD/UW_MenuInGame.h"
+#include "Misc/EnumClassFlags.h"
 #include "MyHUD.generated.h"
 
-// TODO enum flags
+UENUM(meta=(Bitflags))
+enum class EHUDReady : uint8
+{
+	None = 0,
+	InternalReady  = 1 << 0,
+	OrbitReady     = 1 << 1,
+	PawnOrbitReady = 1 << 2,
+	
+	All = InternalReady | OrbitReady | PawnOrbitReady
+};
+ENUM_CLASS_FLAGS(EHUDReady)
 
 class AMyCharacter;
 
@@ -29,9 +40,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void InGameMenuHide();
 
-	UFUNCTION(BlueprintCallable)
-	void MarkReplicationDone();
-
+	void SetReadyFlags(EHUDReady ReadyFlags);
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUW_HUD> WidgetHUDClass;
@@ -56,8 +66,7 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 
 	// private members
-	bool bSuccessfulInitialization = false;
-	bool bOrbitNetInitDone = false;
-	
+
+	EHUDReady HUDReady = EHUDReady::None;
 };
 	

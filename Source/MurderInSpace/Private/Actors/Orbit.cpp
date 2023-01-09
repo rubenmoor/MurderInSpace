@@ -138,7 +138,7 @@ void AOrbit::Initialize()
     
     if(RP_Body->GetLocalRole() == ROLE_AutonomousProxy)
     {
-        Cast<AMyCharacter>(RP_Body)->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->MarkReplicationDone();
+        Cast<AMyCharacter>(RP_Body)->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->SetReadyFlags(EHUDReady::OrbitReady);
     }
     
     SetActorTickEnabled(true);
@@ -186,6 +186,10 @@ void AOrbit::BeginPlay()
     if(GetLocalRole() == ROLE_Authority)
     {
         Initialize();
+    }
+    else
+    {
+        SetReadyFlags(EOrbitReady::InternalReady);
     }
 
 }
@@ -645,8 +649,31 @@ void AOrbit::AddVelocity(FVector VecDeltaV, FPhysics Physics, FInstanceUI Instan
     Update(Physics, InstanceUI);
 }
 
+void AOrbit::SetReadyFlags(EOrbitReady ReadyFlags)
+{
+    OrbitReady |= ReadyFlags;
+    if(OrbitReady == EOrbitReady::All)
+    {
+        UE_LOG(LogMyGame, Display, TEXT("%s: Orbit ready"), *GetFullName())
+        Initialize();
+    }
+    else
+    {
+		UE_LOG
+			( LogMyGame
+			, Display
+			, TEXT("%s: Internal %s, Body %s")
+			, *GetFullName()
+			, !(OrbitReady & EOrbitReady::InternalReady  ) ? TEXT("waiting") : TEXT("ready")
+			, !(OrbitReady & EOrbitReady::BodyReady      ) ? TEXT("waiting") : TEXT("ready")
+			)
+    }
+}
+
 void AOrbit::OnRep_OrbitState()
 {
+    UE_LOG(LogMyGame, Warning, TEXT("%s: OnRep_OrbitState"), *GetFullName())
+    UE_LOG(LogMyGame, Warning, TEXT("%s: Params: %s"), *GetFullName(), *GetParamsString())
     VecVelocity    = RP_OrbitState.VecVelocity;
     ScalarVelocity = VecVelocity.Length();
     SplineKey      = Spline->FindInputKeyClosestToWorldLocation(RP_OrbitState.VecR);
@@ -655,9 +682,7 @@ void AOrbit::OnRep_OrbitState()
 
 void AOrbit::OnRep_Body()
 {
-    // somehow, neither 'BeginPlay' nor 'PostNetInit' guarantee that 'RP_Body' has been replicated
-    UE_LOG(LogMyGame, Warning, TEXT("%s: OnRep_Body"), *GetFullName())
-    Initialize();
+    SetReadyFlags(EOrbitReady::BodyReady);
 }
 
 void AOrbit::HandleBeginMouseOver(AActor* Actor)
@@ -895,8 +920,17 @@ void AOrbit::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePr
     DOREPLIFETIME(AOrbit, RP_DistanceZero)
     DOREPLIFETIME(AOrbit, RP_SplinePoints)
     
-    DOREPLIFETIME_CONDITION(AOrbit, RP_Body      , COND_InitialOnly)
-    DOREPLIFETIME_CONDITION(AOrbit, RP_OrbitState, COND_InitialOnly )
+    DOREPLIFETIME_CONDITION(AOrbit, RP_Body, COND_InitialOnly)
+
+    // logically, 'RP_OrbitState' should replicate only once with 'COND_InitialOnly'
+    // however, I call 'FreezeOrbitState' in 'AcknowledgePossession', way after initial replication
+    // thus, the replicated orbit state is the variable default
+    // I can move 'FreezeOrbitState' to some earlier event, but I like the idea that all kind of loading has been
+    // finished when the orbit state is finally replicated - to the effect that lag is minimized
+    // Two consequences:
+    // 1. The HUD of a client is initialized with an orbit state in its default value (not a problem)
+    // 2. When a third player joins, the first client re-initializes his orbit, too. Should be fine.
+    DOREPLIFETIME(AOrbit, RP_OrbitState )
 }
 
 void AOrbit::PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker)

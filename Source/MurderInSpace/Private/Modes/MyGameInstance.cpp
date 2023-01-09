@@ -3,11 +3,13 @@
 
 #include "Modes/MyGameInstance.h"
 
+#include "HUD/MyHUD.h"
 #include "HUD/MyHUDMenu.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Modes/MySessionManager.h"
 #include "Modes/MyLocalPlayer.h"
+#include "Modes/MyPlayerController.h"
 
 
 #define LOCTEXT_NAMESPACE "Menu"
