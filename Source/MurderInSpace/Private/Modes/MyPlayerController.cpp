@@ -218,6 +218,19 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
 
+    AOrbit* MyOrbit = Cast<IHasOrbit>(InPawn)->GetOrbit();
+
+    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+    MyState->WithInstanceUI(this, [this, MyState, MyOrbit] (FInstanceUI InstanceUI)
+    {
+        MyState->WithPhysics(this, [MyOrbit, InstanceUI] (FPhysics Physics)
+        {
+            MyOrbit->SetCircleOrbit(Physics);
+            MyOrbit->SetEnableVisibility(true);
+            MyOrbit->Update(Physics, InstanceUI);
+        });
+    });
+    
     for(MyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
     {
         (*IOrbit)->FreezeOrbitState();

@@ -212,8 +212,6 @@ public:
     UFUNCTION(BlueprintCallable)
     void DestroyTempSplineMeshes();
 
-    virtual void PostInitializeComponents() override;
-    
 protected:
 
 #if WITH_EDITOR

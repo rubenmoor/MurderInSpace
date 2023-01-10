@@ -36,6 +36,7 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
     if(IsValid(GetOrbit()))
     {
         GetOrbit()->SetCircleOrbit(Physics);
+        GetOrbit()->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
         GetOrbit()->Update(Physics, InstanceUI);
     }
     else
@@ -48,9 +49,10 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
 
         UE_LOG(LogMyGame, Warning, TEXT("%s: going to spawn orbit"), *Actor->GetFullName())
         FActorSpawnParameters Params;
-        Params.CustomPreSpawnInitalization = [Actor] (AActor* ActorOrbit)
+        Params.CustomPreSpawnInitalization = [Actor, Physics, InstanceUI] (AActor* ActorOrbit)
         {
-            Cast<AOrbit>(ActorOrbit)->RP_Body = Actor;
+            AOrbit* Orbit = Cast<AOrbit>(ActorOrbit);
+            Orbit->RP_Body = Actor;
         };
         AOrbit* NewOrbit = Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
         SetOrbit(NewOrbit);
@@ -117,7 +119,9 @@ void AOrbit::Initialize()
         return;
     }
     
-    if(RP_Body->Implements<UHasMesh>())
+    if  (  RP_Body->Implements<UHasMesh>()
+        && !(Cast<AMyCharacter>(RP_Body) && Cast<AMyCharacter>(RP_Body)->IsLocallyControlled())
+        )
     {
         RP_Body->OnBeginCursorOver.AddDynamic(this, &AOrbit::HandleBeginMouseOver);
         RP_Body->OnEndCursorOver.AddDynamic(this, &AOrbit::HandleEndMouseOver);
@@ -131,7 +135,6 @@ void AOrbit::Initialize()
             Update(Physics, InstanceUI);
         });
     });
-    
     if(RP_Body->GetLocalRole() == ROLE_AutonomousProxy)
     {
         Cast<AMyCharacter>(RP_Body)->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->SetReadyFlags(EHUDReady::OrbitReady);
@@ -184,31 +187,6 @@ void AOrbit::BeginPlay()
     else
     {
         SetReadyFlags(EOrbitReady::InternalReady);
-    }
-
-}
-
-void AOrbit::PostInitializeComponents()
-{
-    Super::PostInitializeComponents();
-    
-    if(GetLocalRole() < ROLE_Authority)
-    {
-        return;
-    }
-    
-    if(IsValid(RP_Body))
-    {
-        SetEnableVisibility(RP_Body->Implements<UHasOrbitColor>());
-        UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-        const FPhysics Physics = MyState->GetPhysicsAny(this);
-        const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(this);
-        SetCircleOrbit(Physics);
-        Update(Physics, InstanceUI);
-    }
-    else
-    {
-        UE_LOG(LogMyGame, Error, TEXT("%s: body invalid"), *GetFullName())
     }
 
 }
@@ -667,6 +645,7 @@ void AOrbit::OnRep_OrbitState()
 
 void AOrbit::OnRep_Body()
 {
+    SetEnableVisibility(RP_Body->Implements<UHasOrbitColor>());
     SetReadyFlags(EOrbitReady::BodyReady);
 }
 
@@ -722,6 +701,12 @@ void AOrbit::SetCircleOrbit(FPhysics Physics)
 
 void AOrbit::UpdateVisibility(const FInstanceUI& InstanceUI)
 {
+    if(GetLocalRole() < ROLE_Authority)
+    {
+        bool bVisibility = GetVisibility(InstanceUI);
+        UE_LOG(LogMyGame, Warning, TEXT("%s: GetVisibility: %s"), *GetFullName()
+            , bVisibility ? TEXT("true") : TEXT("false"))
+    }
     SplineMeshParent->SetVisibility(GetVisibility(InstanceUI), true);
 }
 
