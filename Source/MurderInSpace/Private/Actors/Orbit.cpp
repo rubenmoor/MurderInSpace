@@ -21,14 +21,12 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
     {
         // this actor has been copied in the editor, to the effect that a new orbit is spawned in a first step
         // but in a second step, the Orbit is overwritten when the old values are copied over
-        for(MyObjectIterator<AOrbit> IOrbit(Actor->GetWorld()); IOrbit; ++IOrbit)
+        FString OrbitLabel = AOrbit::MakeOrbitLabel(Actor);
+        SetOrbit(*MyObjectIterator<AOrbit>([Actor, OrbitLabel] (const AOrbit* Orbit)
         {
-            if(*IOrbit->GetActorLabel() == AOrbit::MakeOrbitLabel(Actor))
-            {
-                SetOrbit(*IOrbit);
-                break;
-            }
-        }
+            return Actor->GetWorld() == Orbit->GetWorld()
+                && OrbitLabel == Orbit->GetActorLabel();
+        }));
     }
 #endif
     
