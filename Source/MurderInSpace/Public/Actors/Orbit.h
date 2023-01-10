@@ -203,8 +203,6 @@ public:
     UFUNCTION(BlueprintCallable)
     void FreezeOrbitState()
     {
-        UE_LOG(LogMyGame, Warning, TEXT("%s: freeze orbit state"), *GetFullName())
-        UE_LOG(LogMyGame, Warning, TEXT("%s"), *GetParamsString())
         RP_OrbitState = { GetVecR(), VecVelocity };
     }
 
@@ -225,7 +223,6 @@ protected:
     // event handlers
     virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
-    virtual void PostNetInit() override;
 
 #if WITH_EDITOR
     virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;

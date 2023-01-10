@@ -18,7 +18,6 @@
 AMyPlayerController::AMyPlayerController()
 {
     PrimaryActorTick.bCanEverTick = true;
-    PrimaryActorTick.bStartWithTickEnabled = false;
 }
 
 void AMyPlayerController::SetupInputComponent()
@@ -167,6 +166,11 @@ void AMyPlayerController::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
 
     UMyLocalPlayer* MyPlayer = Cast<UMyLocalPlayer>(Player);
+    if(!IsValid(MyPlayer))
+    {
+        return;
+    }
+    
     if(!MyPlayer->GetIsInMainMenu())
     {
         // reacting to mouse move
@@ -214,25 +218,6 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
 
-    // FVector Loc = InPawn->GetActorLocation();
-    // UE_LOG(LogMyGame, Warning, TEXT("%s: onpossess: actor location: %f, %f, %f"), *GetFullName(), Loc.X, Loc.Y, Loc.Z)
-    // FActorSpawnParameters Params;
-    // Params.Owner = InPawn;
-    // AOrbit* NewOrbit = InPawn->GetWorld()->SpawnActor<AOrbit>
-    //     ( Cast<IHasOrbit>(InPawn)->GetOrbitClass()
-    //     , Params
-    //     );
-    // NewOrbit->SetEnableVisibility(true);
-
-    // freeze orbit state for all existing orbit components for replication (condition: initial only)
-    auto FilterOrbits = [this, InPawn] (const AOrbit* Orbit) -> bool
-    {
-        return GetWorld() == Orbit->GetWorld()
-            // exclude the orbit of `InPawn`
-            && (Orbit->GetOwner() != InPawn);
-    };
-    // debugging
-    //for(MyObjectIterator<AOrbit> IOrbit(FilterOrbits); IOrbit; ++IOrbit)
     for(MyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
     {
         (*IOrbit)->FreezeOrbitState();
@@ -255,9 +240,7 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 void AMyPlayerController::AcknowledgePossession(APawn* P)
 {
     Super::AcknowledgePossession(P);
-    
-    SetActorTickEnabled(true);
-    
+
     AMyCharacter* MyCharacter = Cast<AMyCharacter>(P);
     MyCharacter->UpdateSpringArm(CameraPosition);
     MyCharacter->ShowEffects();

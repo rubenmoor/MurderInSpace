@@ -12,33 +12,31 @@
 
 void IHasOrbit::OrbitSetup(AActor* Actor)
 {
-    // avoid orbit spawning when dragging an actor with orbit into the viewport at first
-    // The preview actor that is created doesn't have a valid location
-    // Once the actor is placed inside the viewport, it's no longer transient and the orbit is reconstructed properly
-    // according to the actor location
-    if(!Cast<AMyCharacter>(Actor) && Actor->HasAnyFlags(RF_Transient))
-    {
-        UE_LOG
-            ( LogMyGame
-            , Warning
-            , TEXT("%s: Actor is transient and not MyCharacter")
-            , *Actor->GetFullName()
-            )       
-        return;
-    }
-    
     UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
 
 #if WITH_EDITOR
     Actor->SetActorLabel(Actor->GetName());
+    
+    if(IsValid(GetOrbit()) && GetOrbit()->RP_Body != Actor)
+    {
+        // this actor has been copied in the editor, to the effect that a new orbit is spawned in a first step
+        // but in a second step, the Orbit is overwritten when the old values are copied over
+        for(MyObjectIterator<AOrbit> IOrbit(Actor->GetWorld()); IOrbit; ++IOrbit)
+        {
+            if(*IOrbit->GetActorLabel() == AOrbit::MakeOrbitLabel(Actor))
+            {
+                SetOrbit(*IOrbit);
+                break;
+            }
+        }
+    }
 #endif
     
     const FPhysics Physics = MyState->GetPhysicsAny(Actor);
     const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(Actor);
 
-    // TODO: maybe check for nullptr and isvalid seperately
     if(IsValid(GetOrbit()))
-    { 
+    {
         GetOrbit()->SetCircleOrbit(Physics);
         GetOrbit()->Update(Physics, InstanceUI);
     }
@@ -148,8 +146,6 @@ void AOrbit::BeginPlay()
 {
     Super::BeginPlay();
 
-    UE_LOG(LogMyGame, Warning, TEXT("%s: BeginPlay()"), *GetFullName())
-    
     UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
     
     bool bHasProblems = false;
@@ -192,13 +188,6 @@ void AOrbit::BeginPlay()
         SetReadyFlags(EOrbitReady::InternalReady);
     }
 
-}
-
-void AOrbit::PostNetInit()
-{
-    Super::PostNetInit();
-
-    UE_LOG(LogMyGame, Warning, TEXT("%s: PostNetInit()"), *GetFullName())
 }
 
 void AOrbit::PostInitializeComponents()
@@ -672,8 +661,6 @@ void AOrbit::SetReadyFlags(EOrbitReady ReadyFlags)
 
 void AOrbit::OnRep_OrbitState()
 {
-    UE_LOG(LogMyGame, Warning, TEXT("%s: OnRep_OrbitState"), *GetFullName())
-    UE_LOG(LogMyGame, Warning, TEXT("%s: Params: %s"), *GetFullName(), *GetParamsString())
     VecVelocity    = RP_OrbitState.VecVelocity;
     ScalarVelocity = VecVelocity.Length();
     SplineKey      = Spline->FindInputKeyClosestToWorldLocation(RP_OrbitState.VecR);
