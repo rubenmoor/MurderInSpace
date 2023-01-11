@@ -21,8 +21,8 @@ class MURDERINSPACE_API AMyGameState : public AGameState
 protected:
 
 	// game world parameters to be edited in blueprint and to be used in game
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FPhysics Physics = PhysicsEditorDefault;
+	UPROPERTY(ReplicatedUsing=OnRep_Physics, EditAnywhere, BlueprintReadWrite)
+	FPhysics RP_Physics = PhysicsEditorDefault;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AngularVelocityPoissonMean = 1.;
@@ -37,4 +37,9 @@ protected:
 	#if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 	#endif
+
+	// replication
+	
+	UFUNCTION()
+	void OnRep_Physics();
 };

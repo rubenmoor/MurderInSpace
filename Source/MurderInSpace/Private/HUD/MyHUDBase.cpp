@@ -61,7 +61,7 @@ void AMyHUDBase::HideViewportParentWidgets()
 	if(IsValid(this))
 	{
 		TArray<UUserWidget*> ParentWidgets;
-		MyObjectIterator<UUserWidget> IWidget([this] (const UUserWidget* Widget)
+		TMyObjectIterator<UUserWidget> IWidget([this] (const UUserWidget* Widget)
 		{
 			return Widget->GetWorld() == GetWorld()
 				&& Widget->IsInViewport()

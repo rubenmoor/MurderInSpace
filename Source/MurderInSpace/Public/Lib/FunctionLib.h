@@ -19,12 +19,16 @@
  }
  */
 template<class TUObject>
-struct MyObjectIterator : TObjectIterator<TUObject>
+struct TMyObjectIterator : TObjectIterator<TUObject>
 {
-	//typename std::iterator_traits<BaseIterator>::value_type FValue;
 	typedef std::function<bool (const TUObject*) > FFilterFunc;
 
-	MyObjectIterator(const UWorld* World)
+	TMyObjectIterator()
+		: FilterFunc([] (const TUObject*) { return true; })
+	{
+	}
+
+	TMyObjectIterator(const UWorld* World)
 		: FilterFunc([World] (const TUObject* Object)
 			{
 				return Object->GetWorld() == World;
@@ -32,7 +36,7 @@ struct MyObjectIterator : TObjectIterator<TUObject>
 	{
 	}
 	
-	MyObjectIterator(FFilterFunc InFilterFunc)
+	TMyObjectIterator(FFilterFunc InFilterFunc)
 		: FilterFunc(InFilterFunc)
 	{
 		while(*this && !FilterFunc(**this))
@@ -42,7 +46,7 @@ struct MyObjectIterator : TObjectIterator<TUObject>
 	}
 
 	// prefix inc
-	MyObjectIterator& operator++()
+	TMyObjectIterator& operator++()
 	{
 		do
 		{
@@ -52,9 +56,9 @@ struct MyObjectIterator : TObjectIterator<TUObject>
 	}
 	
 	// suffix inc
-	MyObjectIterator operator++(int)
+	TMyObjectIterator operator++(int)
 	{
-		MyObjectIterator Copy = *this;
+		TMyObjectIterator Copy = *this;
 		++*this;
 		return Copy;
 	}
@@ -72,6 +76,9 @@ class MURDERINSPACE_API UFunctionLib : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintPure, Category="Orbit")
+	static FVector Velocity(FVector E, FVector R, FVector VecH, float ALpha);
+	
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static FVector Eccentricity(FVector R, FVector V, float Alpha);
 

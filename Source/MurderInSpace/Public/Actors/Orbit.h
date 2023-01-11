@@ -75,7 +75,11 @@ struct FOrbitParameters
     EOrbitType OrbitType;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly )
-    float Eccentricity;
+    FVector VecE;
+
+    // specific angular momentum
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, DisplayName="H = r x v")
+    FVector VecH;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, DisplayName="P = (H * H)/MU")
     float P;
@@ -125,11 +129,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
     static FString MakeOrbitLabel(const AActor* Actor) { return Actor->GetName().Append(TEXT("_Orbit")); }
-    
-    // initialization
 
+    UFUNCTION(BlueprintCallable)
+    bool GetIsInitialized() const { return bIsInitialized; }
+    
     // requires call to `Update` afterwards
-    // TODO: make editor callable version with default physics
     UFUNCTION(BlueprintCallable)
     void SetCircleOrbit(FPhysics Physics);
 
@@ -142,6 +146,9 @@ public:
     // * `Physics`
     UFUNCTION(BlueprintCallable)
     void Update(FPhysics Physics, FInstanceUI InstanceUI);
+
+    UFUNCTION(BlueprintCallable)
+    void UpdateControllParams(FPhysics Physics);
 
     UFUNCTION(BlueprintCallable)
     void SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector ParentSelector, FInstanceUI InstanceUI);
@@ -267,8 +274,11 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     TObjectPtr<UStaticMesh> StaticMesh;
 
-    UPROPERTY(Replicated, BlueprintReadOnly, Category="Kepler")
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     FOrbitParameters RP_Params;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
+    FOrbitParameters ControllParams;
 
     // for orbit == LINEBOUND, the spline distance is used because the spline key closest to location cannot be reliably
     // determined, i.e. the object jumps between the two directions
@@ -291,6 +301,9 @@ protected:
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     float VelocityVCircle = 0;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
+    float RKepler;
     
     /**
      * @brief constant factor to construct tangents for spline points
@@ -298,14 +311,18 @@ protected:
      * supposedly the above is the exact formula c = 0.5522
      * trying out in UE results in 1.65 being optimal
      */
-    static constexpr float SplineToCircle = 1.65;
+    //static constexpr float SplineToCircle = 1.65;
+    static constexpr float SplineToCircle = 1.6568542494923806; // 4. * (sqrt(2) - 1.);
     
     // private methods
 
     // server calls 'Initialize' in 'BeginPlay'
-    // clients call 'Initialize' in 'PostNetInit'
+    // clients call 'Initialize' when the Orbit is ready
     UFUNCTION(BlueprintCallable)
     void Initialize();
+
+    UPROPERTY(VisibleAnywhere)
+    bool bIsInitialized = false;
     
     UFUNCTION(BlueprintCallable)
     float VelocityEllipse(float R, float Alpha);

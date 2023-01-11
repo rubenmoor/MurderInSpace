@@ -37,7 +37,7 @@ public:
     FQuat RP_Rotation;
 
     UFUNCTION()
-    void OnRep_BodyRotation() { Root->SetWorldRotation(RP_Rotation); }
+    void OnRep_BodyRotation() { SetActorRotation(RP_Rotation); }
 	
 protected:
     // event handlers

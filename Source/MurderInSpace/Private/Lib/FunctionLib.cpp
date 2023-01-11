@@ -3,6 +3,14 @@
 
 #include "Lib/FunctionLib.h"
 
+FVector UFunctionLib::Velocity(FVector E, FVector R, FVector VecH, float Alpha)
+{
+    FVector RNorm = R.GetUnsafeNormal();
+    return VecH.GetUnsafeNormal().Cross(E + RNorm) * sqrt(Alpha / R.Length() / (RNorm.Dot(E) + 1));
+    FVector T = RNorm.Cross(E).GetSafeNormal(1e-8, VecH.GetUnsafeNormal() * copysign(1, R.Dot(E)));
+    return (E + RNorm).Cross(T) * sqrt(Alpha / R.Length() / (RNorm.Dot(E) + 1));
+}
+
 /**
  * @brief eccentricity of elliptic Kepler orbit
  * @param R location vector
@@ -12,7 +20,7 @@
  */
 FVector UFunctionLib::Eccentricity(FVector R, FVector V, float Alpha)
 {
-	   return (V.SquaredLength() / Alpha - 1.0 / R.Length()) * R - R.Dot(V) / Alpha * V;
+    return ((V.SquaredLength() - Alpha / R.Length()) * R - R.Dot(V) * V) / Alpha;
 }
 
 /**
@@ -23,7 +31,7 @@ FVector UFunctionLib::Eccentricity(FVector R, FVector V, float Alpha)
  */
 FVector UFunctionLib::FocusPoint2(float A, FVector E)
 {
-	   return  -2 * A * E;
+    return  -2 * A * E;
 }
 
 /**
@@ -36,7 +44,7 @@ FVector UFunctionLib::FocusPoint2(float A, FVector E)
  */
 float UFunctionLib::SemiMajorAxis(FVector VecR, FVector VecV, float Alpha)
 {
-	   return 1. / (2. / VecR.Length() - VecV.SquaredLength() / Alpha);
+    return 1. / (2. / VecR.Length() - VecV.SquaredLength() / Alpha);
 }
 
 /**
@@ -47,7 +55,7 @@ float UFunctionLib::SemiMajorAxis(FVector VecR, FVector VecV, float Alpha)
  */
 float UFunctionLib::SemiMinorAxis(float A, float ESquared)
 {
-	   return A * sqrt(1 - ESquared);
+    return A * sqrt(1 - ESquared);
 }
 
 /**
@@ -58,7 +66,7 @@ float UFunctionLib::SemiMinorAxis(float A, float ESquared)
  */
 float UFunctionLib::PeriodEllipse(float a, float Alpha)
 {
-	   return 2 * PI * sqrt(pow(a, 3) / Alpha);
+    return 2 * PI * sqrt(pow(a, 3) / Alpha);
 }
 
 /**
@@ -69,11 +77,11 @@ float UFunctionLib::PeriodEllipse(float a, float Alpha)
  */
 float UFunctionLib::Perimeter(float A, float B)
 {
-	   const auto H = pow(A - B, 2) / pow(A + B, 2);
-	   return PI * (A + B) * (1 + 3 * H / (10 + sqrt(4 - 3 * H)));
+    const auto H = pow(A - B, 2) / pow(A + B, 2);
+    return PI * (A + B) * (1 + 3 * H / (10 + sqrt(4 - 3 * H)));
 }
 
 float UFunctionLib::AxialTidalForce(float R, float L, float M, float Alpha)
 {
-	   return Alpha * L * M / (4 * pow(R, 3));
+    return Alpha * L * M / (4 * pow(R, 3));
 }

@@ -35,7 +35,7 @@ void UMyState::Initialize(FSubsystemCollectionBase& Collection)
 
 FPhysics UMyState::GetPhysics(const AMyGameState* GS)
 {
-	return GS->Physics;
+	return GS->RP_Physics;
 }
 
 FPhysics UMyState::GetPhysicsAny(const UObject* Object)
@@ -215,5 +215,5 @@ void UMyState::WithPhysics(const UObject* Object, const std::function<void(FPhys
 		)
 		return;
 	}
-	Func(GS->Physics);
+	Func(GS->RP_Physics);
 }

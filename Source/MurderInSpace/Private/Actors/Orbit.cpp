@@ -8,6 +8,7 @@
 #include "Lib/FunctionLib.h"
 #include "Logging/LogMacros.h"
 #include "Modes/MyPlayerController.h"
+#include "Modes/MyGameState.h"
 #include "Net/UnrealNetwork.h"
 
 void IHasOrbit::OrbitSetup(AActor* Actor)
@@ -22,7 +23,7 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
         // this actor has been copied in the editor, to the effect that a new orbit is spawned in a first step
         // but in a second step, the Orbit is overwritten when the old values are copied over
         FString OrbitLabel = AOrbit::MakeOrbitLabel(Actor);
-        SetOrbit(*MyObjectIterator<AOrbit>([Actor, OrbitLabel] (const AOrbit* Orbit)
+        SetOrbit(*TMyObjectIterator<AOrbit>([Actor, OrbitLabel] (const AOrbit* Orbit)
         {
             return Actor->GetWorld() == Orbit->GetWorld()
                 && OrbitLabel == Orbit->GetActorLabel();
@@ -35,6 +36,7 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
 
     if(IsValid(GetOrbit()))
     {
+        // this only ever gets executed when creating objects in the editor (and dragging them around)
         GetOrbit()->SetCircleOrbit(Physics);
         GetOrbit()->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
         GetOrbit()->Update(Physics, InstanceUI);
@@ -49,10 +51,9 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
 
         UE_LOG(LogMyGame, Warning, TEXT("%s: going to spawn orbit"), *Actor->GetFullName())
         FActorSpawnParameters Params;
-        Params.CustomPreSpawnInitalization = [Actor, Physics, InstanceUI] (AActor* ActorOrbit)
+        Params.CustomPreSpawnInitalization = [Actor] (AActor* ActorOrbit)
         {
-            AOrbit* Orbit = Cast<AOrbit>(ActorOrbit);
-            Orbit->RP_Body = Actor;
+            Cast<AOrbit>(ActorOrbit)->RP_Body = Actor;
         };
         AOrbit* NewOrbit = Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
         SetOrbit(NewOrbit);
@@ -71,19 +72,19 @@ AOrbit::AOrbit()
     bAlwaysRelevant = true;
     AActor::SetReplicateMovement(false);
     
-    Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+    Root = CreateDefaultSubobject<USceneComponent>("Root");
     Root->SetMobility(EComponentMobility::Stationary);
     SetRootComponent(Root);
     
-    Spline = CreateDefaultSubobject<USplineComponent>(TEXT("Orbit"));
+    Spline = CreateDefaultSubobject<USplineComponent>("Orbit");
     Spline->SetMobility(EComponentMobility::Stationary);
     Spline->SetupAttachment(Root);
 
-    SplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("SplineMeshes"));
+    SplineMeshParent = CreateDefaultSubobject<USceneComponent>("SplineMeshes");
     SplineMeshParent->SetupAttachment(Root);
     SplineMeshParent->SetMobility(EComponentMobility::Stationary);
 
-    TemporarySplineMeshParent = CreateDefaultSubobject<USceneComponent>(TEXT("TemporarySplineMeshes"));
+    TemporarySplineMeshParent = CreateDefaultSubobject<USceneComponent>("TemporarySplineMeshes");
     TemporarySplineMeshParent->SetupAttachment(Root);
     TemporarySplineMeshParent->SetMobility(EComponentMobility::Stationary);
 }
@@ -132,6 +133,7 @@ void AOrbit::Initialize()
     {
         MyState->WithPhysics(this, [this, &InstanceUI] (auto& Physics)
         {
+            // make sure the orbit has the game physics, instead of the editor default physics
             Update(Physics, InstanceUI);
         });
     });
@@ -139,7 +141,8 @@ void AOrbit::Initialize()
     {
         Cast<AMyCharacter>(RP_Body)->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->SetReadyFlags(EHUDReady::OrbitReady);
     }
-    
+
+    bIsInitialized = true;
     SetActorTickEnabled(true);
 }
 
@@ -195,32 +198,73 @@ void AOrbit::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    const FPhysics Physics = GEngine->GetEngineSubsystem<UMyState>()->GetPhysicsAny(this);
+    //const FPhysics Physics = GEngine->GetEngineSubsystem<UMyState>()->GetPhysicsAny(this);
+    AMyGameState* GS = GetWorld()->GetGameState<AMyGameState>();
+    const FPhysics Physics = GEngine->GetEngineSubsystem<UMyState>()->GetPhysics(GS);
     const FVector VecRKepler = GetVecRKepler(Physics);
+    RKepler = VecRKepler.Length();
 
-    ScalarVelocity = NextVelocity(VecRKepler.Length(), Physics.Alpha, ScalarVelocity, DeltaTime, VecVelocity.Dot(VecRKepler));
-    VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics);
-    const float DeltaR = ScalarVelocity * DeltaTime;
+    //ScalarVelocity = NextVelocity(VecRKepler.Length(), Physics.Alpha, ScalarVelocity, DeltaTime, VecVelocity.Dot(VecRKepler));
+    //VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics);
 
     // advance on spline
     FVector NewVecR;
-    SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
     if(RP_Params.OrbitType == EOrbitType::LINEBOUND)
     {
+        // TODO: invariants instead of spline
+        ScalarVelocity = VelocityEllipse(RKepler, Physics.Alpha);
+        const float DeltaR = ScalarVelocity * DeltaTime;
+        SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
         VecVelocity = Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * ScalarVelocity;
         NewVecR = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
     }
+    else if(RP_Params.OrbitType == EOrbitType::LINEUNBOUND)
+    {
+        ScalarVelocity = ScalarVelocity - copysign(Physics.Alpha / pow(RKepler, 2) * DeltaTime, VecVelocity.Dot(VecRKepler));
+        VecVelocity = VecVelocity.GetUnsafeNormal() * ScalarVelocity;
+        NewVecR = GetVecR() + VecVelocity * DeltaTime;
+        
+        // TODO: needed?
+        const float DeltaR = ScalarVelocity * DeltaTime;
+        SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
+        SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewVecR);
+    }
     else
     {
+        // calculating VecV via the eccentricity vector
+        // if(RP_Params.OrbitType == EOrbitType::CIRCLE)
+        // {
+        //     VecVelocity = RP_Params.VecH.Cross(VecRKepler) / pow(RKepler, 2);
+        // }
+        // else
+        // {
+        //     VecVelocity = UFunctionLib::Velocity(RP_Params.VecE, VecRKepler, RP_Params.VecH, Physics.Alpha);
+        // }
+        VecVelocity = UFunctionLib::Velocity(RP_Params.VecE, VecRKepler, RP_Params.VecH, Physics.Alpha);
+        ScalarVelocity = VecVelocity.Length();
+        VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics);
         // direction at current position, i.e. at current spline key
-        VecVelocity = Spline->GetTangentAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World).GetSafeNormal() * ScalarVelocity;
+        //VecVelocity = Spline->GetTangentAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World).GetSafeNormal() * ScalarVelocity;
         const FVector NewLocationAtTangent = GetVecR() + VecVelocity * DeltaTime;
-        
+
+        // correction of the length of R, using conservation of energy
+        NewVecR =
+              (NewLocationAtTangent - Physics.VecF1).GetSafeNormal()
+            * Physics.Alpha / (pow(ScalarVelocity, 2) / 2. - RP_Params.Energy)
+            + Physics.VecF1;
+
+        // TODO: needed? -> only for tangent calculation via spline
         // new spline key
-        SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewLocationAtTangent);
-        NewVecR = Spline->GetLocationAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World);
+        SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewVecR);
+
+        // TODO: needed?
+        const float DeltaR = ScalarVelocity * DeltaTime;
+        SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
     }
+    
     RP_Body->SetActorLocation(NewVecR, true, nullptr);
+    
+    UpdateControllParams(Physics);
     
     // TODO: account for acceleration
     // const auto RealDeltaR = (GetVecR() - VecR).Length();
@@ -238,22 +282,22 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
     
     // transform location vector r to Kepler coordinates, where F1 is the origin
     const FVector VecRKepler = GetVecRKepler(Physics);
-    const float RKepler = VecRKepler.Length();
+    RKepler = VecRKepler.Length();
 
     // TODO:
     //const auto VelocityVCircle = Velocity / sqrt(Alpha / R);
 
     // the bigger this value, the earlier an eccentricity close to 1 will be interpreted as parabola orbit
     constexpr float Tolerance = 1E-2;
-    const FVector VecH = VecRKepler.Cross(VecVelocity);
-    RP_Params.P = VecH.SquaredLength() / Physics.Alpha;
+    RP_Params.VecH = VecRKepler.Cross(VecVelocity);
+    RP_Params.P = RP_Params.VecH.SquaredLength() / Physics.Alpha;
     ScalarVelocity = VecVelocity.Length();
     VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics);
     RP_Params.Energy = pow(ScalarVelocity, 2) / 2. - Physics.Alpha / RKepler;
-    const FVector VecE = UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Physics.Alpha);
-    RP_Params.Eccentricity = VecE.Length();
-    const FVector VecENorm = VecE.GetSafeNormal();
-    const FVector VecHNorm = VecH.GetSafeNormal();
+    RP_Params.VecE = UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Physics.Alpha);
+    float Eccentricity = RP_Params.VecE.Length();
+    const FVector VecENorm = RP_Params.VecE.GetSafeNormal();
+    const FVector VecHNorm = RP_Params.VecH.GetSafeNormal();
 
     // the energy of the weakest bound state: a circular orbit at R_MAX
     const float E_BOUND_MIN = -Physics.Alpha / (2 * Physics.WorldRadius);
@@ -356,15 +400,15 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
     // The total energy at R_MAX when orbiting in a circle is the bound state with energy closest to zero.
     // As long the energy is smaller than that, we can safely assume a bound state and thus an ellipse instead of
     // the parabola
-    else if(RP_Params.Eccentricity <= 1. - Tolerance || (RP_Params.Eccentricity <= 1 && RP_Params.Energy < E_BOUND_MIN))
+    else if(Eccentricity <= 1. - Tolerance || (Eccentricity <= 1 && RP_Params.Energy < E_BOUND_MIN))
     {
-        RP_Params.A = RP_Params.P / (1 - VecE.SquaredLength());
-        const float B = RP_Params.A * sqrt(1 - VecE.SquaredLength());
-        const FVector Vertex1 = RP_Params.A * (1 - VecE.Length()) * VecENorm;
-        const FVector Vertex2 = RP_Params.A * (1 + VecE.Length()) * -VecENorm;
-        const FVector Orthogonal = VecH.Cross(VecE).GetSafeNormal();
-        const FVector Covertex1 =  B * Orthogonal - RP_Params.A * VecE;
-        const FVector Covertex2 = -B * Orthogonal - RP_Params.A * VecE;
+        RP_Params.A = RP_Params.P / (1. - pow(Eccentricity, 2));
+        const float B = RP_Params.A * sqrt(1 - pow(Eccentricity, 2));
+        const FVector Vertex1 = RP_Params.A * (1 - Eccentricity) * VecENorm;
+        const FVector Vertex2 = RP_Params.A * (1 + Eccentricity) * -VecENorm;
+        const FVector Orthogonal = RP_Params.VecH.Cross(RP_Params.VecE).GetSafeNormal();
+        const FVector Covertex1 =  B * Orthogonal - RP_Params.A * RP_Params.VecE;
+        const FVector Covertex2 = -B * Orthogonal - RP_Params.A * RP_Params.VecE;
         const FVector T1 = Orthogonal * SplineToCircle * B;
         const FVector T4 = VecENorm * SplineToCircle * RP_Params.A;
         RP_SplinePoints =
@@ -380,7 +424,7 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
     }
     
     // E = 1, Parabola
-    else if(RP_Params.Eccentricity <= 1. + Tolerance)
+    else if(Eccentricity <= 1. + Tolerance)
     {
         std::list<FVector> Points;
         const FVector VecHorizontal = VecHNorm.Cross(VecENorm);
@@ -388,7 +432,7 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
         const float MAX_N = sqrt(2 * (Physics.WorldRadius + Physics.VecF1.Length()) / RP_Params.P);
         const float Delta = 2 * MAX_N / MAX_POINTS;
 
-        Points.emplace_front(VecENorm * RP_Params.P / (1. + RP_Params.Eccentricity) + Physics.VecF1);
+        Points.emplace_front(VecENorm * RP_Params.P / (1. + Eccentricity) + Physics.VecF1);
         for(int i = 1; i < MAX_POINTS / 2; i++)
         {
             const FVector VecX = i * Delta * VecHorizontal * RP_Params.P;
@@ -423,14 +467,15 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
     else
     {
         std::list<FVector> Points;
-        RP_Params.A = RP_Params.P / (1 - VecE.SquaredLength()); // A < 0
-        const float C = RP_Params.P * RP_Params.Eccentricity / (VecE.SquaredLength() - 1);
+        RP_Params.A = RP_Params.P / (1 - pow(Eccentricity, 2)); // A < 0
+        const float C = RP_Params.P * Eccentricity / (pow(Eccentricity, 2) - 1);
         const FVector VecHorizontal = VecHNorm.Cross(VecENorm);
         constexpr int MAX_POINTS = 20;
-        const float MAX = sqrt((pow(Physics.WorldRadius, 2) + (VecE.SquaredLength() - 1.) * pow(RP_Params.A, 2)) / pow(RP_Params.Eccentricity, 2));
+        const float MAX =
+            sqrt((pow(Physics.WorldRadius, 2) + (pow(Eccentricity, 2) - 1.) * pow(RP_Params.A, 2)) / pow(Eccentricity, 2));
         const float Delta = 2. * MAX / (pow(MAX_POINTS / 2 - 1, 3) / 3.);
 
-        Points.emplace_front(VecENorm * RP_Params.P / (1. + RP_Params.Eccentricity) + Physics.VecF1);
+        Points.emplace_front(VecENorm * RP_Params.P / (1. + Eccentricity) + Physics.VecF1);
         //Points.emplace_front(VecE * A + VecF1);
         for(int i = 1; i < MAX_POINTS / 2; i++)
         {
@@ -438,7 +483,7 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
             const FVector VecX = (C - X) * VecENorm;
             //(P - sqrt(VecE.SquaredLength() - 1) * RMAX) * VecENorm + VecF1;	
             //const auto VecY = VecHorizontal * sqrt((VecE.SquaredLength() - 1.) * pow(X, 2) - 1.);
-            const FVector VecY = VecHorizontal * sqrt((VecE.SquaredLength() - 1.) * (pow(X, 2) - pow(RP_Params.A, 2)));
+            const FVector VecY = VecHorizontal * sqrt((pow(Eccentricity, 2) - 1.) * (pow(X, 2) - pow(RP_Params.A, 2)));
             Points.emplace_back(VecX + VecY + Physics.VecF1);
             Points.emplace_front(VecX - VecY + Physics.VecF1);
         }
@@ -493,6 +538,15 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
             , InstanceUI
             );
     }
+}
+
+void AOrbit::UpdateControllParams(FPhysics Physics)
+{
+    const FVector VecRKepler = GetVecRKepler(Physics);
+    ControllParams.VecH = VecRKepler.Cross(VecVelocity);
+    ControllParams.P = ControllParams.VecH.SquaredLength() / Physics.Alpha;
+    ControllParams.Energy = pow(ScalarVelocity, 2) / 2. - Physics.Alpha / RKepler;
+    ControllParams.VecE = UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Physics.Alpha);
 }
 
 void AOrbit::UpdateSplineMeshScale(float InScaleFactor)
@@ -600,7 +654,19 @@ FString AOrbit::GetParamsString()
         StrOrbitType = TEXT("LineUnbound");
         break;
     }
-    return StrOrbitType + FString::Printf(TEXT(", E = %.2f, P = %.1f, Energy = %.1f, Period = %.1f, A = %.1f"), RP_Params.Eccentricity, RP_Params.P, RP_Params.Energy, RP_Params.Period, RP_Params.A);
+    return StrOrbitType + FString::Printf
+        (TEXT(", E = (%.2f, %.2f, %.2f), H = (%.1f, %.1f, %.1f), P = %.1f, Energy = %.1f, Period = %.1f, A = %.1f")
+        , RP_Params.VecE.X
+        , RP_Params.VecE.Y
+        , RP_Params.VecE.Z
+        , RP_Params.VecH.X
+        , RP_Params.VecH.Y
+        , RP_Params.VecH.Z
+        , RP_Params.P
+        , RP_Params.Energy
+        , RP_Params.Period
+        , RP_Params.A
+        );
 }
 
 float AOrbit::GetCircleVelocity(FPhysics Physics) const
@@ -610,7 +676,7 @@ float AOrbit::GetCircleVelocity(FPhysics Physics) const
 
 void AOrbit::AddVelocity(FVector VecDeltaV, FPhysics Physics, FInstanceUI InstanceUI)
 {
-    VecVelocity += VecDeltaV;
+    //VecVelocity += VecDeltaV;
     Update(Physics, InstanceUI);
 }
 
@@ -624,14 +690,14 @@ void AOrbit::SetReadyFlags(EOrbitReady ReadyFlags)
     }
     else
     {
-		UE_LOG
-			( LogMyGame
-			, Display
-			, TEXT("%s: Internal %s, Body %s")
-			, *GetFullName()
-			, !(OrbitReady & EOrbitReady::InternalReady  ) ? TEXT("waiting") : TEXT("ready")
-			, !(OrbitReady & EOrbitReady::BodyReady      ) ? TEXT("waiting") : TEXT("ready")
-			)
+        UE_LOG
+            ( LogMyGame
+            , Display
+            , TEXT("%s: Internal %s, Body %s")
+            , *GetFullName()
+            , !(OrbitReady & EOrbitReady::InternalReady  ) ? TEXT("waiting") : TEXT("ready")
+            , !(OrbitReady & EOrbitReady::BodyReady      ) ? TEXT("waiting") : TEXT("ready")
+            )
     }
 }
 
@@ -701,12 +767,6 @@ void AOrbit::SetCircleOrbit(FPhysics Physics)
 
 void AOrbit::UpdateVisibility(const FInstanceUI& InstanceUI)
 {
-    if(GetLocalRole() < ROLE_Authority)
-    {
-        bool bVisibility = GetVisibility(InstanceUI);
-        UE_LOG(LogMyGame, Warning, TEXT("%s: GetVisibility: %s"), *GetFullName()
-            , bVisibility ? TEXT("true") : TEXT("false"))
-    }
     SplineMeshParent->SetVisibility(GetVisibility(InstanceUI), true);
 }
 
@@ -907,6 +967,7 @@ void AOrbit::PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker)
 {
     Super::PreReplication(ChangedPropertyTracker);
 
+    // TODO: test performance impact, ideally this isn't necessary
     DOREPLIFETIME_ACTIVE_OVERRIDE(AOrbit, RP_Params      , !bIsChanging)
     DOREPLIFETIME_ACTIVE_OVERRIDE(AOrbit, RP_DistanceZero, !bIsChanging)
     DOREPLIFETIME_ACTIVE_OVERRIDE(AOrbit, RP_SplinePoints, !bIsChanging)

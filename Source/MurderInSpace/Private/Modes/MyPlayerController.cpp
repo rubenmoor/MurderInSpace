@@ -8,6 +8,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Actors/MyCharacter.h"
 #include "Actors/GyrationComponent.h"
+#include "GameFramework/PawnMovementComponent.h"
 #include "HUD/MyHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
@@ -146,7 +147,7 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
             
         case EInputAction::AllTrajectoriesShowHide:
             InstanceUI.bShowAllTrajectories = !InstanceUI.bShowAllTrajectories;
-            for(MyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
+            for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
             {
                 (*IOrbit)->UpdateVisibility(InstanceUI);
             }
@@ -231,7 +232,7 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
         });
     });
     
-    for(MyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
+    for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
     {
         (*IOrbit)->FreezeOrbitState();
     }
@@ -244,7 +245,7 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
             // exclude the gyration of `InPawn`
             && (Owner != InPawn);
     };
-    for(MyObjectIterator<UGyrationComponent> IGyration(FilterGyrations); IGyration; ++IGyration)
+    for(TMyObjectIterator<UGyrationComponent> IGyration(FilterGyrations); IGyration; ++IGyration)
     {
         (*IGyration)->FreezeState();
     }

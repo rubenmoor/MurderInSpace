@@ -12,7 +12,7 @@ AMyCharacter::AMyCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>("SpringArm");
 	SpringArm->SetupAttachment(Root);
 	SpringArm->TargetArmLength = 1000;
 	SpringArm->bEnableCameraLag = true;
@@ -21,10 +21,10 @@ AMyCharacter::AMyCharacter()
 	SpringArm->SetUsingAbsoluteRotation(true);
 	SpringArm->SetWorldRotation(FRotator(300,0,0));
 
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(SpringArm);
 
-	Visor = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Visor"));
+	Visor = CreateDefaultSubobject<UStaticMeshComponent>("Visor");
 	Visor->SetupAttachment(Camera);
 	Visor->SetRelativeLocation(FVector(10, 0, 0));
 	Visor->SetRelativeScale3D(FVector(0.8, 1.3, 1.3));
@@ -32,7 +32,7 @@ AMyCharacter::AMyCharacter()
 	Visor->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Visor->SetVisibility(false);
 
-	VisorFrame = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisorFrame"));
+	VisorFrame = CreateDefaultSubobject<UStaticMeshComponent>("VisorFrame");
 	VisorFrame->SetupAttachment(Visor);
 	VisorFrame->SetRelativeLocation(FVector(25.0, 0, 0));
 	VisorFrame->SetRelativeRotation(FRotator(90, 0, 0));
@@ -40,15 +40,15 @@ AMyCharacter::AMyCharacter()
 	VisorFrame->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	VisorFrame->SetVisibility(false);
 
-	StarAnchor = CreateDefaultSubobject<USceneComponent>(TEXT("StarAnchor"));
+	StarAnchor = CreateDefaultSubobject<USceneComponent>("StarAnchor");
 	StarAnchor->SetupAttachment(SpringArm);
 	StarAnchor->SetRelativeLocation(FVector(11000, 0, 0));
 
-	StarsClose = CreateDefaultSubobject<UNiagaraComponent>(TEXT("StarsClose"));
+	StarsClose = CreateDefaultSubobject<UNiagaraComponent>("StarsClose");
 	StarsClose->SetupAttachment(StarAnchor);
 	StarsClose->SetVisibility(false);
 	
-	StarsDistant = CreateDefaultSubobject<UNiagaraComponent>(TEXT("StarsDistant"));
+	StarsDistant = CreateDefaultSubobject<UNiagaraComponent>("StarsDistant");
 	StarsDistant->SetupAttachment(StarAnchor);
 	StarsDistant->SetRelativeLocation(FVector(10000, 0, 0));
 	StarsDistant->SetVisibility(false);
@@ -65,7 +65,7 @@ void AMyCharacter::UpdateSpringArm(uint8 CameraPosition)
 		));
 	StarAnchor->SetRelativeLocation(FVector(10000 + Length, 0, 0));
 	// TODO: maybe missing an orbit component?
-	for(MyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
+	for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
 	{
 		(*IOrbit)->UpdateSplineMeshScale(Length / 1000.);
 	}

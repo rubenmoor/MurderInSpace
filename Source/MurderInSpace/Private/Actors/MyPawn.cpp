@@ -14,7 +14,7 @@ AMyPawn::AMyPawn()
     bAlwaysRelevant = true;
 	AActor::SetReplicateMovement(false);
 
-    Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+    Root = CreateDefaultSubobject<USceneComponent>("Root");
     SetRootComponent(Root);
 }
 
@@ -29,19 +29,23 @@ void AMyPawn::Tick(float DeltaSeconds)
 
 	DrawDebugDirectionalArrow
 		( GetWorld()
-		, Root->GetComponentLocation()
-		, Root->GetComponentLocation() + 1000. * Root->GetForwardVector()
+		, GetActorLocation()
+		, GetActorLocation() + 1000. * GetActorForwardVector()
 		, 20
 		, FColor::Yellow
 		);
 	
-	if(RP_bIsAccelerating)
+	if(RP_bIsAccelerating && IsValid(RP_Orbit))
 	{
 		UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-		const FPhysics Physics = MyState->GetPhysicsAny(this);
-		const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(this);
-		const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
-		RP_Orbit->AddVelocity(Root->GetForwardVector() * DeltaV, Physics, InstanceUI);
+		MyState->WithInstanceUI(this, [this, MyState, DeltaSeconds] (FInstanceUI& InstanceUI)
+		{
+			MyState->WithPhysics(this, [this, DeltaSeconds, InstanceUI] (FPhysics& Physics)
+			{
+				const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
+				RP_Orbit->AddVelocity(GetActorForwardVector() * DeltaV, Physics, InstanceUI);
+			});
+		});
 	}
 }
 

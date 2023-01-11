@@ -13,13 +13,13 @@ AMyActor_StaticMesh::AMyActor_StaticMesh()
     bAlwaysRelevant = true;
 	AActor::SetReplicateMovement(false);
 	
-    Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+    Root = CreateDefaultSubobject<USceneComponent>("Root");
     SetRootComponent(Root);
     
-    StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
+    StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
     StaticMesh->SetupAttachment(Root);
     
-    Gyration = CreateDefaultSubobject<UGyrationComponent>(TEXT("Gyration"));
+    Gyration = CreateDefaultSubobject<UGyrationComponent>("Gyration");
 }
 
 void AMyActor_StaticMesh::Destroyed()

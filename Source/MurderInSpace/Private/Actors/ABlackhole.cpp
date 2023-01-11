@@ -9,11 +9,11 @@ AABlackhole::AABlackhole()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	Root = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
+	Root = CreateDefaultSubobject<USceneComponent>("SceneRoot");
 	SetRootComponent(Root);
 
-	EventHorizon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EventHorizon"));
-	GravitationalLens = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GravitationalLens"));
+	EventHorizon = CreateDefaultSubobject<UStaticMeshComponent>("EventHorizon");
+	GravitationalLens = CreateDefaultSubobject<UStaticMeshComponent>("GravitationalLens");
 
 	EventHorizon->SetupAttachment(Root);
 	GravitationalLens->SetupAttachment(Root);
