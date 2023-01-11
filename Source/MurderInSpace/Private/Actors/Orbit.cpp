@@ -36,10 +36,13 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
 
     if(IsValid(GetOrbit()))
     {
-        // this only ever gets executed when creating objects in the editor (and dragging them around)
-        GetOrbit()->SetCircleOrbit(Physics);
-        GetOrbit()->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
-        GetOrbit()->Update(Physics, InstanceUI);
+        if(GetOrbit()->GetVecVelocity().IsZero())
+        {
+            // this only ever gets executed when creating objects in the editor (and dragging them around)
+            GetOrbit()->SetCircleOrbit(Physics);
+            GetOrbit()->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
+            GetOrbit()->Update(Physics, InstanceUI);
+        }
     }
     else
     {
@@ -202,13 +205,12 @@ void AOrbit::Tick(float DeltaTime)
     AMyGameState* GS = GetWorld()->GetGameState<AMyGameState>();
     const FPhysics Physics = GEngine->GetEngineSubsystem<UMyState>()->GetPhysics(GS);
     const FVector VecRKepler = GetVecRKepler(Physics);
-    RKepler = VecRKepler.Length();
 
     //ScalarVelocity = NextVelocity(VecRKepler.Length(), Physics.Alpha, ScalarVelocity, DeltaTime, VecVelocity.Dot(VecRKepler));
     //VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics);
 
     // advance on spline
-    FVector NewVecR;
+    FVector NewVecRKepler;
     if(RP_Params.OrbitType == EOrbitType::LINEBOUND)
     {
         // TODO: invariants instead of spline
@@ -216,64 +218,50 @@ void AOrbit::Tick(float DeltaTime)
         const float DeltaR = ScalarVelocity * DeltaTime;
         SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
         VecVelocity = Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal() * ScalarVelocity;
-        NewVecR = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
+        NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World) - Physics.VecF1;
     }
     else if(RP_Params.OrbitType == EOrbitType::LINEUNBOUND)
     {
         ScalarVelocity = ScalarVelocity - copysign(Physics.Alpha / pow(RKepler, 2) * DeltaTime, VecVelocity.Dot(VecRKepler));
         VecVelocity = VecVelocity.GetUnsafeNormal() * ScalarVelocity;
-        NewVecR = GetVecR() + VecVelocity * DeltaTime;
+        NewVecRKepler = VecRKepler + VecVelocity * DeltaTime;
         
         // TODO: needed?
         const float DeltaR = ScalarVelocity * DeltaTime;
         SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
-        SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewVecR);
+        SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewVecRKepler + Physics.VecF1);
     }
     else
     {
-        // calculating VecV via the eccentricity vector
-        // if(RP_Params.OrbitType == EOrbitType::CIRCLE)
-        // {
-        //     VecVelocity = RP_Params.VecH.Cross(VecRKepler) / pow(RKepler, 2);
-        // }
-        // else
-        // {
-        //     VecVelocity = UFunctionLib::Velocity(RP_Params.VecE, VecRKepler, RP_Params.VecH, Physics.Alpha);
-        // }
         VecVelocity = UFunctionLib::Velocity(RP_Params.VecE, VecRKepler, RP_Params.VecH, Physics.Alpha);
         ScalarVelocity = VecVelocity.Length();
         VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics);
         // direction at current position, i.e. at current spline key
         //VecVelocity = Spline->GetTangentAtSplineInputKey(SplineKey, ESplineCoordinateSpace::World).GetSafeNormal() * ScalarVelocity;
-        const FVector NewLocationAtTangent = GetVecR() + VecVelocity * DeltaTime;
+        const FVector NewLocationAtTangent = VecRKepler + VecVelocity * DeltaTime;
 
         // correction of the length of R, using conservation of energy
-        NewVecR =
-              (NewLocationAtTangent - Physics.VecF1).GetSafeNormal()
-            * Physics.Alpha / (pow(ScalarVelocity, 2) / 2. - RP_Params.Energy)
-            + Physics.VecF1;
+        // NewVecR =
+        //       (NewLocationAtTangent - Physics.VecF1).GetSafeNormal()
+        //     * Physics.Alpha / (NextVelocitySquared / 2. - RP_Params.Energy)
+        //     + Physics.VecF1;
+        NewVecRKepler =
+              NewLocationAtTangent.GetSafeNormal()
+            * Physics.Alpha / (pow(ScalarVelocity, 2) / 2. - RP_Params.Energy);
 
         // TODO: needed? -> only for tangent calculation via spline
         // new spline key
-        SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewVecR);
+        SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewVecRKepler + Physics.VecF1);
 
         // TODO: needed?
         const float DeltaR = ScalarVelocity * DeltaTime;
         SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
     }
-    
-    RP_Body->SetActorLocation(NewVecR, true, nullptr);
+
+    RKepler = NewVecRKepler.Length();
+    RP_Body->SetActorLocation(NewVecRKepler + Physics.VecF1);
     
     UpdateControllParams(Physics);
-    
-    // TODO: account for acceleration
-    // const auto RealDeltaR = (GetVecR() - VecR).Length();
-    // const auto RelativeError = DeltaR / RealDeltaR - 1.;
-    // if(abs(RelativeError) > 0.02)
-    // {
-    // 	UE_LOG(LogTemp, Warning, TEXT("%s: Expected: %f; really: %f; relative error: %.1f%"), *GetFName().ToString(), DeltaR, RealDeltaR, RelativeError * 100.);
-    // }
-
 }
 
 void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
@@ -576,7 +564,7 @@ float AOrbit::VelocityParabola(float R, float Alpha)
     return sqrt(Alpha * 2.0 / R);
 }
 
-float AOrbit::NextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign)
+float AOrbit::CalcNextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign)
 {
     switch(RP_Params.OrbitType)
     {

@@ -181,8 +181,8 @@ public:
     UFUNCTION(BlueprintCallable)
     FString GetParamsString();
 
-    //UFUNCTION(BlueprintCallable)
-    float GetScalarVelocity() { return ScalarVelocity; }
+    UFUNCTION(BlueprintPure)
+    float GetScalarVelocity() const { return ScalarVelocity; }
     
     UFUNCTION(BlueprintCallable)
     float GetCircleVelocity(FPhysics Physics) const;
@@ -331,7 +331,7 @@ protected:
     float VelocityParabola(float R, float Alpha);
     
     UFUNCTION(BlueprintCallable)
-    float NextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign);
+    float CalcNextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign);
 
     UFUNCTION(BlueprintCallable)
     FOrbitParameters GetParams() const { return RP_Params; };
