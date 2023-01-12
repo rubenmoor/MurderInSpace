@@ -151,6 +151,9 @@ public:
     UFUNCTION(BlueprintCallable)
     void UpdateSplineMeshScale(float InScaleFactor);
 
+    UFUNCTION(BlueprintPure)
+    FVector GetVecRZero() const { return VecRZero; }
+    
     UPROPERTY(BlueprintReadWrite)
     bool bIsVisibleAccelerating = false;
 
@@ -285,6 +288,9 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     float RKepler;
+
+    UPROPERTY()
+    FVector VecRZero = FVector::Zero();
     
     /**
      * @brief constant factor to construct tangents for spline points

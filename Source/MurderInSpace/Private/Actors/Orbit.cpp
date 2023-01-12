@@ -2,7 +2,6 @@
 
 #include <numeric>
 
-#include "AssetTypeCategories.h"
 #include "Actors/MyCharacter.h"
 #include "Components/SplineMeshComponent.h"
 #include "HUD/MyHUD.h"
@@ -37,7 +36,7 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
 
     if(IsValid(GetOrbit()))
     {
-        if(GetOrbit()->GetVecVelocity().IsZero())
+        if(GetOrbit()->GetVecR() != GetOrbit()->GetVecRZero())
         {
             // this only ever gets executed when creating objects in the editor (and dragging them around)
             GetOrbit()->SetInitialParams(GetOrbit()->GetCircleVelocity(Physics), Physics);
@@ -233,7 +232,8 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
     // transform location vector r to Kepler coordinates, where F1 is the origin
     const FVector VecRKepler = GetVecRKepler(Physics);
 
-    // the bigger this value, the earlier an eccentricity close to 1 will be interpreted as parabola orbit
+    // the bigger this value, the earlier an eccentricity approaching 1 will be interpreted as parabola orbit
+    // which results in smoother orbits
     constexpr float Tolerance = 1E-2;
     
     //RP_Params.VecH = VecRKepler.Cross(VecVelocity);
@@ -384,7 +384,8 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
     }
     
     // E = 1, Parabola
-    else if(Eccentricity <= 1. + Tolerance)
+    // small tolerance, nothing wrong with hyperbolas
+    else if(Eccentricity <= 1.001)
     {
         std::list<FVector> Points;
         const FVector VecHorizontal = VecHNorm.Cross(VecENorm);
@@ -458,12 +459,6 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         }
         AddPointsToSpline();
 
-        // ClearSplinePoints();
-        // for(const FVector Point : Points)
-        // {
-        // 	AddSplineWorldPoint(Point);
-        // }
-        
         Spline->SetClosedLoop(false, false);
         RP_Params.OrbitType = EOrbitType::HYPERBOLA;
         RP_Params.Period = 0;
@@ -679,6 +674,9 @@ void AOrbit::HandleClick(AActor*, FKey Button)
 
 void AOrbit::SetInitialParams(FVector VecV, FPhysics Physics)
 {
+    // store initial position of orbit body
+    VecRZero = GetVecR();
+    
     RP_Params.VecH = GetVecRKepler(Physics).Cross(VecV);
     RP_Params.VecE = VecV.Cross(RP_Params.VecH) / Physics.Alpha - GetVecRKepler(Physics).GetSafeNormal();
 }
