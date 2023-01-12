@@ -211,98 +211,14 @@ void AOrbit::Tick(float DeltaTime)
     //VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics);
 
     // calculate velocity and get new location, ...
-    FVector NewVecRKepler;
-    switch(RP_Params.OrbitType)
-    {
-        // ... based on
-        // * old location
-        // * SplineKey
-        // * Energy
-    case EOrbitType::LINEBOUND:
-    case EOrbitType::LINEUNBOUND:
-        {
-            ScalarVelocity = sqrt(UFunctionLib::ScalarVelocitySquared(VecRKepler.Length(), RP_Params.A, Physics.Alpha));
-            VecVelocity =
-                  Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal()
-                * ScalarVelocity;
-            const float DeltaR = ScalarVelocity * DeltaTime;
-            SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
-            NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World) - Physics.VecF1;
-            break;
-            //ScalarVelocity = ScalarVelocity - copysign(Physics.Alpha / pow(RKepler, 2) * DeltaTime, VecVelocity.Dot(VecRKepler));
-        }
-        
-        // ... based on
-        // * old location
-        // * Energy
-        // * eccentricity vector
-        // * angular momentum 'VecH'
-    case EOrbitType::CIRCLE:
-    case EOrbitType::ELLIPSE:
-    case EOrbitType::PARABOLA:
-    case EOrbitType::HYPERBOLA:
-        {
-            //VecVelocity = UFunctionLib::VecVelocity(RP_Params.VecE, VecRKepler, RP_Params.VecH, Physics.Alpha);
-            //ScalarVelocity = VecVelocity.Length();
-            ScalarVelocity = sqrt(UFunctionLib::ScalarVelocitySquared(VecRKepler.Length(), RP_Params.A, Physics.Alpha));
-            VecVelocity =
-                  Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal()
-                * ScalarVelocity;
-
-            const FVector VecDeltaR = VecVelocity * DeltaTime;
-            // direction at current position, i.e. at current spline key
-            const FVector NewLocationAtTangent = VecRKepler + VecDeltaR;
-
-            // energy correction:
-            // correction of the length of R, using conservation of energy
-            // NewVecRKepler =
-            //       NewLocationAtTangent.GetSafeNormal()
-            //     * Physics.Alpha
-            // //  / ( UFunctionLib::ScalarVelocitySquared(NewLocationAtTangent.Length(), RP_Params.A, Physics.Alpha) / 2.
-            //     / ( UFunctionLib::VecVelocity(RP_Params.VecE, NewLocationAtTangent, RP_Params.VecH, Physics.Alpha).SquaredLength() / 2.
-            //         - RP_Params.Energy
-            //       );
-            const float R = NewLocationAtTangent.Length();
-            const float VSquared = UFunctionLib::ScalarVelocitySquared(R, RP_Params.A, Physics.Alpha);
-            //const float VSquared = UFunctionLib::VecVelocity(RP_Params.VecE, NewLocationAtTangent, RP_Params.VecH, Physics.Alpha).SquaredLength();
-            const FVector VecO = VecVelocity.Cross(RP_Params.VecH).GetSafeNormal();
-            const FVector VecS = -NewLocationAtTangent.GetSafeNormal();
-            const FVector Correction = (R - Physics.Alpha / (VSquared / 2. - RP_Params.Energy)) * VecO / VecO.Dot(VecS);
-            NewVecRKepler = NewLocationAtTangent + Correction;
-            //NewVecRKepler = NewLocationAtTangent;
-            DrawDebugDirectionalArrow(GetWorld(), VecRKepler, VecRKepler + Correction * 1000, 20, FColor::White);
-            DrawDebugDirectionalArrow(GetWorld(), VecRKepler, VecRKepler + VecO / VecO.Dot(VecS) * 1000, 20, FColor::Red);
-            //if(const float Error = (NewVecRKepler - VecRKepler).Length() / VecDeltaR.Length() - 1.; abs(Error) >= 0.001)
-            if(const float Error = 0; false)
-            {
-                // use inaccurate spline distance for movement
-                SplineDistance = fmod(SplineDistance + VecDeltaR.Length(), Spline->GetSplineLength());
-                NewVecRKepler =
-                      Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)
-                    - Physics.VecF1;
-                UE_LOG
-                    ( LogMyGame
-                    , Warning
-                    , TEXT("%s: error > 0.1%%: %.3f, new error: %.3f, delta v^2: %.1f")
-                    , *GetFullName()
-                    , Error
-                    , (NewVecRKepler - VecRKepler).Length() /  VecDeltaR.Length() - 1.
-                    , UFunctionLib::VecVelocity(RP_Params.VecE, NewLocationAtTangent, RP_Params.VecH, Physics.Alpha).SquaredLength()
-                    - UFunctionLib::ScalarVelocitySquared(NewLocationAtTangent.Length(), RP_Params.A, Physics.Alpha)
-                    )
-            }
-            else
-            {
-                SplineDistance =
-                    Spline->GetDistanceAlongSplineAtSplineInputKey
-                        ( Spline->FindInputKeyClosestToWorldLocation(NewVecRKepler + Physics.VecF1)
-                        );
-            }
-            break;
-        }
-    }
-
+    ScalarVelocity = sqrt(UFunctionLib::ScalarVelocitySquared(VecRKepler.Length(), RP_Params.A, Physics.Alpha));
     VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics).Length();
+    VecVelocity =
+          Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal()
+        * ScalarVelocity;
+    const float DeltaR = ScalarVelocity * DeltaTime;
+    SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
+    const FVector NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World) - Physics.VecF1;
     RKepler = NewVecRKepler.Length();
     
     RP_Body->SetActorLocation(NewVecRKepler + Physics.VecF1);
