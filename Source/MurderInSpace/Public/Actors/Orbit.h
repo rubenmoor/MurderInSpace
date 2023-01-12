@@ -107,12 +107,13 @@ struct FOrbitState
 
     FOrbitState() {}
 
-    FOrbitState(FVector InVecR, FVector InVecVelocity)
-        : VecR(InVecR), VecVelocity(InVecVelocity)
+    FOrbitState(FVector InVecVelocity)
+        : VecVelocity(InVecVelocity)
     {}
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    FVector VecR = FVector::Zero();
+    // TODO:
+    // check if we need to replicate VecR
+    // if not: SplineKey (Line-bound orbit)
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     FVector VecVelocity = FVector::Zero();
@@ -145,7 +146,7 @@ public:
     // * `VecVelocity`
     // * `Physics`
     UFUNCTION(BlueprintCallable)
-    void Update(FPhysics Physics, FInstanceUI InstanceUI);
+    void Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI);
 
     UFUNCTION(BlueprintCallable)
     void UpdateControllParams(FPhysics Physics);
@@ -280,18 +281,10 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     FOrbitParameters ControllParams;
 
-    // for orbit == LINEBOUND, the spline distance is used because the spline key closest to location cannot be reliably
-    // determined, i.e. the object jumps between the two directions
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-    float SplineDistance;
-    
-    // a spline key: the position on the spline; in favor of spline distance which results in inaccuracies
+    // a spline key: the position on the spline;
+    // only used for orbit of type line-bound
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     float SplineKey;
-
-    // spline distance at last orbit update
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
-    float RP_DistanceZero;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     FVector VecVelocity = FVector::Zero();

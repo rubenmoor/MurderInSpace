@@ -3,12 +3,14 @@
 
 #include "Lib/FunctionLib.h"
 
+/*
+ * calculate velocity vector given eccentricity vector, R, H
+ * H is only used for its direction, can't be zero
+ */
 FVector UFunctionLib::Velocity(FVector E, FVector R, FVector VecH, float Alpha)
 {
     FVector RNorm = R.GetUnsafeNormal();
     return VecH.GetUnsafeNormal().Cross(E + RNorm) * sqrt(Alpha / R.Length() / (RNorm.Dot(E) + 1));
-    FVector T = RNorm.Cross(E).GetSafeNormal(1e-8, VecH.GetUnsafeNormal() * copysign(1, R.Dot(E)));
-    return (E + RNorm).Cross(T) * sqrt(Alpha / R.Length() / (RNorm.Dot(E) + 1));
 }
 
 /**
