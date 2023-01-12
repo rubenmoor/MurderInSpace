@@ -72,7 +72,7 @@ void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent
 	{
 		if(IsValid(RP_Orbit))
 		{
-			RP_Orbit->Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+			RP_Orbit->Update(FVector::Zero(), PhysicsEditorDefault, InstanceUIEditorDefault);
 		}
 	}
 }

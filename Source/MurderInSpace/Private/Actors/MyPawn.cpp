@@ -43,7 +43,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 			MyState->WithPhysics(this, [this, DeltaSeconds, InstanceUI] (FPhysics& Physics)
 			{
 				const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
-				RP_Orbit->AddVelocity(GetActorForwardVector() * DeltaV, Physics, InstanceUI);
+				RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics, InstanceUI);
 			});
 		});
 	}
@@ -83,7 +83,7 @@ void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCh
 	{
 		if(IsValid(RP_Orbit))
 		{
-			RP_Orbit->Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+			RP_Orbit->Update(FVector::Zero(), PhysicsEditorDefault, InstanceUIEditorDefault);
 		}
 	}
 }

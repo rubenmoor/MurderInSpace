@@ -138,7 +138,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 
 	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FormattingOptions));
 	WidgetHUD->TextVelocityVCircle->SetText(
-		FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics), &FormattingOptions));
+		FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics).Length(), &FormattingOptions));
 
 	const float Angle =
 		FQuat::FindBetween

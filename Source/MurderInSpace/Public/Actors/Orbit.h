@@ -105,18 +105,10 @@ struct FOrbitState
 {
     GENERATED_BODY()
 
-    FOrbitState() {}
-
-    FOrbitState(FVector InVecVelocity)
-        : VecVelocity(InVecVelocity)
-    {}
-
-    // TODO:
-    // check if we need to replicate VecR
-    // if not: SplineKey (Line-bound orbit)
+    // TODO: check if we need to replicate VecR
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    FVector VecVelocity = FVector::Zero();
+    float SplineDistance;
 };
 
 UCLASS()
@@ -136,7 +128,7 @@ public:
     
     // requires call to `Update` afterwards
     UFUNCTION(BlueprintCallable)
-    void SetCircleOrbit(FPhysics Physics);
+    void SetInitialParams(FVector VecV, FPhysics Physics);
 
     UFUNCTION(BlueprintCallable)
     void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
@@ -186,7 +178,7 @@ public:
     float GetScalarVelocity() const { return ScalarVelocity; }
     
     UFUNCTION(BlueprintCallable)
-    float GetCircleVelocity(FPhysics Physics) const;
+    FVector GetCircleVelocity(FPhysics Physics);
 
     UFUNCTION(BlueprintCallable)
     FVector GetVecVelocity() { return VecVelocity; }
@@ -203,15 +195,13 @@ public:
 
     // object interaction
     
-    UFUNCTION(BlueprintCallable)
-    void AddVelocity(FVector VecDeltaV, FPhysics Physics, FInstanceUI InstanceUI);
-
     // replication
 
+    // TODO: rename 'FreezeSplineKey'
     UFUNCTION(BlueprintCallable)
     void FreezeOrbitState()
     {
-        RP_OrbitState = { GetVecR(), VecVelocity };
+        RP_OrbitState = { SplineDistance };
     }
 
     UFUNCTION(BlueprintCallable)
@@ -281,10 +271,8 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     FOrbitParameters ControllParams;
 
-    // a spline key: the position on the spline;
-    // only used for orbit of type line-bound
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-    float SplineKey;
+    float SplineDistance;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     FVector VecVelocity = FVector::Zero();
@@ -310,22 +298,14 @@ protected:
     // private methods
 
     // server calls 'Initialize' in 'BeginPlay'
-    // clients call 'Initialize' when the Orbit is ready
+    // clients call 'Initialize' when the Orbit is ready,
+    // i.e. when both, 'BeginPlay' and 'OnRep_Body' have happened
     UFUNCTION(BlueprintCallable)
     void Initialize();
 
     UPROPERTY(VisibleAnywhere)
     bool bIsInitialized = false;
     
-    UFUNCTION(BlueprintCallable)
-    float VelocityEllipse(float R, float Alpha);
-
-    UFUNCTION(BlueprintCallable)
-    float VelocityParabola(float R, float Alpha);
-    
-    UFUNCTION(BlueprintCallable)
-    float CalcNextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign);
-
     UFUNCTION(BlueprintCallable)
     FOrbitParameters GetParams() const { return RP_Params; };
     
@@ -341,6 +321,7 @@ protected:
 
     // replication
 
+    // TODO: rename FrozenSplineKey
     UPROPERTY(ReplicatedUsing=OnRep_OrbitState, VisibleAnywhere, BlueprintReadWrite)
     FOrbitState RP_OrbitState;
 

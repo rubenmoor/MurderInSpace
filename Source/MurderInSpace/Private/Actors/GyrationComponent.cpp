@@ -20,7 +20,7 @@ void UGyrationComponent::FreezeState()
 		UE_LOG(LogTemp, Error, TEXT("GetOwner<IHasMesh>(): %s"), *GetOwner()->GetFullName())
 	}
 	else
-	RP_GyrationState = { GetOwner<IHasMesh>()->GetMesh()->GetComponentRotation(), VecL };
+	RP_GyrationState = { GetOwner<IHasMesh>()->GetMesh()->GetComponentRotation() };
 }
 
 void UGyrationComponent::BeginPlay()
@@ -32,20 +32,20 @@ void UGyrationComponent::BeginPlay()
 
 	if(GetOwnerRole() == ROLE_Authority)
 	{
-		if(VecL.IsZero())
+		if(RP_VecL.IsZero())
 		{
 			UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
 			const FRnd Rnd = MyState->GetRndAny(this);
 			const float LRandom = MyState->GetInitialAngularVelocity(Rnd);
-			VecL = Rnd.Stream.VRand() * LRandom * VecInertia.Length();
+			RP_VecL = Rnd.Stream.VRand() * LRandom * VecInertia.Length();
 			UE_LOG
 				( LogMyGame
 				, Display
 				, TEXT("%s: Initializing angular momentum: (%.0f, %.0f, %.0f)")
 				, *GetFullName()
-				, VecL.X
-				, VecL.Y
-				, VecL.Z
+				, RP_VecL.X
+				, RP_VecL.Y
+				, RP_VecL.Z
 				)
 		}
 		else
@@ -55,9 +55,9 @@ void UGyrationComponent::BeginPlay()
 				, Error
 				, TEXT("%s: Angular momentum set already: (%.0f, %.0f, %.0f), Owner role: %d")
 				, *GetFullName()
-				, VecL.X
-				, VecL.Y
-				, VecL.Z
+				, RP_VecL.X
+				, RP_VecL.Y
+				, RP_VecL.Z
 				, GetOwnerRole()
 				)
 		}
@@ -67,7 +67,6 @@ void UGyrationComponent::BeginPlay()
 void UGyrationComponent::OnRep_GyrationState()
 {
 	GetOwner<IHasMesh>()->GetMesh()->SetWorldRotation(RP_GyrationState.Rot);
-	VecL = RP_GyrationState.VecL;
 }
 
 // Called every frame
@@ -83,7 +82,7 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 			, FVector(0, 0, 1./ VecInertia.Z)
 			, FVector(0, 0, 0)
 			);
-	VecOmega = (MatROld * MatInertiaReverse * MatROld.GetTransposed()).TransformFVector4(VecL);
+	VecOmega = (MatROld * MatInertiaReverse * MatROld.GetTransposed()).TransformFVector4(RP_VecL);
 	if(VecOmega.IsNearlyZero())
 	{
 		if(VecOmega.IsZero())
@@ -104,8 +103,8 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	const FMatrix MatRNew = MatExp * MatROld;
 	
 	Body->SetWorldRotation(MatRNew.ToQuat());
-	L = VecL.Length();
-	E = VecOmega.Dot(VecL) * 0.5;
+	L = RP_VecL.Length();
+	E = VecOmega.Dot(RP_VecL) * 0.5;
 }
 
 #if WITH_EDITOR
@@ -120,11 +119,11 @@ void UGyrationComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent&
 
 	if(Name == FNameL)
 	{
-		VecL *= L / VecL.Length();
+		RP_VecL *= L / RP_VecL.Length();
 	}
 	else if(Name == FNameE)
 	{
-		VecL *= sqrt(2 * E * VecInertia.Length()) / L;
+		RP_VecL *= sqrt(2 * E * VecInertia.Length()) / L;
 	}
 }
 #endif
@@ -132,6 +131,7 @@ void UGyrationComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent&
 void UGyrationComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME_CONDITION(UGyrationComponent, RP_GyrationState, COND_InitialOnly)
+
+	DOREPLIFETIME(UGyrationComponent, RP_VecL)
+	DOREPLIFETIME(UGyrationComponent, RP_GyrationState)
 }

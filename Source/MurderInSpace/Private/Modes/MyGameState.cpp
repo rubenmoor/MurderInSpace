@@ -26,7 +26,7 @@ void AMyGameState::OnRep_Physics()
 	{
 		MyState->WithInstanceUI(this, [this, MyState, IOrbit] (FInstanceUI& InstanceUI)
 		{
-			(*IOrbit)->Update(MyState->GetPhysics(this), InstanceUI);
+			(*IOrbit)->Update(FVector::Zero(), MyState->GetPhysics(this), InstanceUI);
 		});
 	}
 }
@@ -39,14 +39,14 @@ void AMyGameState::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prope
 	const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
 	// TODO: confirm that this is how it actually works
-	static const FName FNameSpaceParams = GET_MEMBER_NAME_CHECKED(AMyGameState, RP_Physics);
+	static const FName FNamePhysics = GET_MEMBER_NAME_CHECKED(AMyGameState, RP_Physics);
 	
-	if(Name == FNameSpaceParams)
+	if(Name == FNamePhysics)
 	{
 		for(TMyObjectIterator<AOrbit> IOrbit; IOrbit; ++IOrbit)
 		{
-			(*IOrbit)->SetCircleOrbit(RP_Physics);
-			(*IOrbit)->Update(RP_Physics, InstanceUIEditorDefault);
+			//(*IOrbit)->SetInitialParams(RP_Physics);
+			(*IOrbit)->Update(FVector::Zero(), RP_Physics, InstanceUIEditorDefault);
 		}
 	}
 }

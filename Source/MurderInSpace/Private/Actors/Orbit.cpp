@@ -2,6 +2,7 @@
 
 #include <numeric>
 
+#include "AssetTypeCategories.h"
 #include "Actors/MyCharacter.h"
 #include "Components/SplineMeshComponent.h"
 #include "HUD/MyHUD.h"
@@ -39,7 +40,7 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
         if(GetOrbit()->GetVecVelocity().IsZero())
         {
             // this only ever gets executed when creating objects in the editor (and dragging them around)
-            GetOrbit()->SetCircleOrbit(Physics);
+            GetOrbit()->SetInitialParams(GetOrbit()->GetCircleVelocity(Physics), Physics);
             GetOrbit()->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
             GetOrbit()->Update(FVector::Zero(), Physics, InstanceUI);
         }
@@ -137,7 +138,7 @@ void AOrbit::Initialize()
         MyState->WithPhysics(this, [this, &InstanceUI] (auto& Physics)
         {
             // make sure the orbit has the game physics, instead of the editor default physics
-            Update(Physics, InstanceUI);
+            Update(FVector::Zero(), Physics, InstanceUI);
         });
     });
     if(RP_Body->GetLocalRole() == ROLE_AutonomousProxy)
@@ -219,18 +220,17 @@ void AOrbit::Tick(float DeltaTime)
         // * Energy
     case EOrbitType::LINEBOUND:
     case EOrbitType::LINEUNBOUND:
-        const float OldDistance = Spline->GetDistanceAlongSplineAtSplineInputKey(SplineKey);
-        // get velocity by ellipse formular, works only for bound orbits
-        //ScalarVelocity = VelocityEllipse(VecRKepler.Length(), Physics.Alpha);
-        // get velocity by energy and r
-        ScalarVelocity = sqrt(2. * (RP_Params.Energy + Physics.Alpha / VecRKepler.Length()));
-        VecVelocity = Spline->GetTangentAtDistanceAlongSpline(OldDistance, ESplineCoordinateSpace::World).GetSafeNormal() * ScalarVelocity;
-        const float DeltaR = ScalarVelocity * DeltaTime;
-        const float NewDistance = fmod(OldDistance + DeltaR, Spline->GetSplineLength());
-        NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(NewDistance, ESplineCoordinateSpace::World) - Physics.VecF1;
-        SplineKey = Spline->FindInputKeyClosestToWorldLocation(NewVecRKepler + Physics.VecF1);
-        break;
-        //ScalarVelocity = ScalarVelocity - copysign(Physics.Alpha / pow(RKepler, 2) * DeltaTime, VecVelocity.Dot(VecRKepler));
+        {
+            ScalarVelocity = sqrt(UFunctionLib::ScalarVelocitySquared(VecRKepler.Length(), RP_Params.A, Physics.Alpha));
+            VecVelocity =
+                  Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal()
+                * ScalarVelocity;
+            const float DeltaR = ScalarVelocity * DeltaTime;
+            SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
+            NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World) - Physics.VecF1;
+            break;
+            //ScalarVelocity = ScalarVelocity - copysign(Physics.Alpha / pow(RKepler, 2) * DeltaTime, VecVelocity.Dot(VecRKepler));
+        }
         
         // ... based on
         // * old location
@@ -241,25 +241,68 @@ void AOrbit::Tick(float DeltaTime)
     case EOrbitType::ELLIPSE:
     case EOrbitType::PARABOLA:
     case EOrbitType::HYPERBOLA:
-        VecVelocity = UFunctionLib::Velocity(RP_Params.VecE, VecRKepler, RP_Params.VecH, Physics.Alpha);
-        ScalarVelocity = VecVelocity.Length();
-        
-        // direction at current position, i.e. at current spline key
-        const FVector NewLocationAtTangent = VecRKepler + VecVelocity * DeltaTime;
+        {
+            //VecVelocity = UFunctionLib::VecVelocity(RP_Params.VecE, VecRKepler, RP_Params.VecH, Physics.Alpha);
+            //ScalarVelocity = VecVelocity.Length();
+            ScalarVelocity = sqrt(UFunctionLib::ScalarVelocitySquared(VecRKepler.Length(), RP_Params.A, Physics.Alpha));
+            VecVelocity =
+                  Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal()
+                * ScalarVelocity;
 
-        // energy correction:
-        // correction of the length of R, using conservation of energy
-        // NewVecR =
-        //       (NewLocationAtTangent - Physics.VecF1).GetSafeNormal()
-        //     * Physics.Alpha / (NextVelocitySquared / 2. - RP_Params.Energy)
-        //     + Physics.VecF1;
-        NewVecRKepler =
-              NewLocationAtTangent.GetSafeNormal()
-            * Physics.Alpha / (pow(ScalarVelocity, 2) / 2. - RP_Params.Energy);
-        break;
+            const FVector VecDeltaR = VecVelocity * DeltaTime;
+            // direction at current position, i.e. at current spline key
+            const FVector NewLocationAtTangent = VecRKepler + VecDeltaR;
+
+            // energy correction:
+            // correction of the length of R, using conservation of energy
+            // NewVecRKepler =
+            //       NewLocationAtTangent.GetSafeNormal()
+            //     * Physics.Alpha
+            // //  / ( UFunctionLib::ScalarVelocitySquared(NewLocationAtTangent.Length(), RP_Params.A, Physics.Alpha) / 2.
+            //     / ( UFunctionLib::VecVelocity(RP_Params.VecE, NewLocationAtTangent, RP_Params.VecH, Physics.Alpha).SquaredLength() / 2.
+            //         - RP_Params.Energy
+            //       );
+            const float R = NewLocationAtTangent.Length();
+            const float VSquared = UFunctionLib::ScalarVelocitySquared(R, RP_Params.A, Physics.Alpha);
+            //const float VSquared = UFunctionLib::VecVelocity(RP_Params.VecE, NewLocationAtTangent, RP_Params.VecH, Physics.Alpha).SquaredLength();
+            const FVector VecO = VecVelocity.Cross(RP_Params.VecH).GetSafeNormal();
+            const FVector VecS = -NewLocationAtTangent.GetSafeNormal();
+            const FVector Correction = (R - Physics.Alpha / (VSquared / 2. - RP_Params.Energy)) * VecO / VecO.Dot(VecS);
+            NewVecRKepler = NewLocationAtTangent + Correction;
+            //NewVecRKepler = NewLocationAtTangent;
+            DrawDebugDirectionalArrow(GetWorld(), VecRKepler, VecRKepler + Correction * 1000, 20, FColor::White);
+            DrawDebugDirectionalArrow(GetWorld(), VecRKepler, VecRKepler + VecO / VecO.Dot(VecS) * 1000, 20, FColor::Red);
+            //if(const float Error = (NewVecRKepler - VecRKepler).Length() / VecDeltaR.Length() - 1.; abs(Error) >= 0.001)
+            if(const float Error = 0; false)
+            {
+                // use inaccurate spline distance for movement
+                SplineDistance = fmod(SplineDistance + VecDeltaR.Length(), Spline->GetSplineLength());
+                NewVecRKepler =
+                      Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)
+                    - Physics.VecF1;
+                UE_LOG
+                    ( LogMyGame
+                    , Warning
+                    , TEXT("%s: error > 0.1%%: %.3f, new error: %.3f, delta v^2: %.1f")
+                    , *GetFullName()
+                    , Error
+                    , (NewVecRKepler - VecRKepler).Length() /  VecDeltaR.Length() - 1.
+                    , UFunctionLib::VecVelocity(RP_Params.VecE, NewLocationAtTangent, RP_Params.VecH, Physics.Alpha).SquaredLength()
+                    - UFunctionLib::ScalarVelocitySquared(NewLocationAtTangent.Length(), RP_Params.A, Physics.Alpha)
+                    )
+            }
+            else
+            {
+                SplineDistance =
+                    Spline->GetDistanceAlongSplineAtSplineInputKey
+                        ( Spline->FindInputKeyClosestToWorldLocation(NewVecRKepler + Physics.VecF1)
+                        );
+            }
+            break;
+        }
     }
-    
-    VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics);
+
+    VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics).Length();
     RKepler = NewVecRKepler.Length();
     
     RP_Body->SetActorLocation(NewVecRKepler + Physics.VecF1);
@@ -274,27 +317,28 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
     // transform location vector r to Kepler coordinates, where F1 is the origin
     const FVector VecRKepler = GetVecRKepler(Physics);
 
-    // TODO:
-    //const auto VelocityVCircle = Velocity / sqrt(Alpha / R);
-
     // the bigger this value, the earlier an eccentricity close to 1 will be interpreted as parabola orbit
     constexpr float Tolerance = 1E-2;
+    
     //RP_Params.VecH = VecRKepler.Cross(VecVelocity);
-    //RP_Params.P = RP_Params.VecH.SquaredLength() / Physics.Alpha;
     const FVector DeltaVecH = VecRKepler.Cross(DeltaVecV);
-    const FVector VecH0 = RP_Params.VecH;
+    
+    // the velocity needs recalculation to accurately reflect the current angular momentum ...
+    const FVector VecV0 = UFunctionLib::VecVelocity(RP_Params.VecE, VecRKepler, RP_Params.VecH, Physics.Alpha);
     RP_Params.VecH += DeltaVecH;
-    // the velocity needs recalculation to accurately reflect the current angular momentum
-    const FVector VecV0 = UFunctionLib::Velocity(RP_Params.VecE, VecRKepler, VecH0, Physics.Alpha);
+    // ... and it is needed to update the eccentricity vector, given Delta H
     RP_Params.VecE += ( DeltaVecV.Cross(RP_Params.VecH) + VecV0.Cross(DeltaVecH)) / Physics.Alpha;
+    RP_Params.P = RP_Params.VecH.SquaredLength() / Physics.Alpha;
 
+    // not necessary, as the velocity variables are set by the Tick
+    // but if not set here, the editor doesn't show the current velocity
     VecVelocity = VecV0;
     ScalarVelocity = VecVelocity.Length();
-    VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics);
+    VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics).Length();
+    RKepler = VecRKepler.Length();
     
     RP_Params.Energy = pow(ScalarVelocity, 2) / 2. - Physics.Alpha / RKepler;
     
-    //RP_Params.VecE = UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Physics.Alpha);
     float Eccentricity = RP_Params.VecE.Length();
     const FVector VecENorm = RP_Params.VecE.GetSafeNormal();
     const FVector VecHNorm = RP_Params.VecH.GetSafeNormal();
@@ -331,7 +375,9 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
                 Spline->SetClosedLoop(false, false);
                 Spline->UpdateSpline();
             }
-            SplineKey = Spline->FindInputKeyClosestToWorldLocation(VecR);
+            
+            // the 'SplineKey' is used for both line-type orbits
+            SplineDistance = Spline->GetDistanceAlongSplineAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(VecR));
             Spline->SetClosedLoop(true, false);
             
             RP_Params.OrbitType = EOrbitType::LINEBOUND;
@@ -358,9 +404,10 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
                     )
                 };
             AddPointsToSpline();
+
             Spline->SetClosedLoop(false, false);
             RP_Params.OrbitType = EOrbitType::LINEUNBOUND;
-            RP_Params.A = 0;
+            RP_Params.A = -Physics.Alpha / 2 / RP_Params.Energy;
             RP_Params.Period = 0;
         }
     }
@@ -373,7 +420,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         const FVector VecT4 = VecRKepler * SplineToCircle;
         
         RP_SplinePoints =
-          { FSplinePoint(0,  VecR,  VecT1,  VecT1)
+            { FSplinePoint(0,  VecR,  VecT1,  VecT1)
             , FSplinePoint(1, VecP2 + Physics.VecF1, -VecT4, -VecT4)
             , FSplinePoint(2, -VecRKepler + Physics.VecF1 , -VecT1, -VecT1)
             , FSplinePoint(3, -VecP2 + Physics.VecF1,  VecT4,  VecT4)
@@ -509,7 +556,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
 
     if(RP_Params.OrbitType != EOrbitType::LINEBOUND)
     {
-        SplineKey = Spline->FindInputKeyClosestToWorldLocation(VecR);
+        SplineDistance = Spline->GetDistanceAlongSplineAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(VecR));
     }
     // else
     // `SplineKey` is not needed,
@@ -558,38 +605,6 @@ void AOrbit::UpdateSplineMeshScale(float InScaleFactor)
         Mesh->SetStartScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
         Mesh->SetEndScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
         Mesh->UpdateMesh();
-    }
-}
-
-float AOrbit::VelocityEllipse(float R, float Alpha)
-{
-    return std::max(sqrt(Alpha * (2.0 / R - 1.0 / RP_Params.A)), 1.);
-}
-
-float AOrbit::VelocityParabola(float R, float Alpha)
-{
-    return sqrt(Alpha * 2.0 / R);
-}
-
-float AOrbit::CalcNextVelocity(float R, float Alpha, float OldVelocity, float DeltaTime, float Sign)
-{
-    switch(RP_Params.OrbitType)
-    {
-    case EOrbitType::CIRCLE:
-        return OldVelocity;
-    case EOrbitType::ELLIPSE:
-        return VelocityEllipse(R, Alpha);
-    case EOrbitType::LINEBOUND:
-        return VelocityEllipse(R, Alpha);
-    case EOrbitType::LINEUNBOUND:
-        return OldVelocity - copysign(Alpha / pow(R, 2) * DeltaTime, Sign);
-    case EOrbitType::PARABOLA:
-        return VelocityParabola(R, Alpha);
-    case EOrbitType::HYPERBOLA:
-        return VelocityEllipse(R, Alpha);
-    default:
-        UE_LOG(LogTemp, Error, TEXT("AOrbit::NextVelocity: Impossible"))
-        return 0;
     }
 }
 
@@ -664,15 +679,11 @@ FString AOrbit::GetParamsString()
         );
 }
 
-float AOrbit::GetCircleVelocity(FPhysics Physics) const
+FVector AOrbit::GetCircleVelocity(FPhysics Physics)
 {
-    return sqrt(Physics.Alpha / GetVecRKepler(Physics).Length());
-}
-
-void AOrbit::AddVelocity(FVector VecDeltaV, FPhysics Physics, FInstanceUI InstanceUI)
-{
-    //VecVelocity += VecDeltaV;
-    Update(Physics, InstanceUI);
+    const FVector VecRKepler = GetVecRKepler(Physics);
+    RKepler = VecRKepler.Length();
+    return FVector(0., 0., sqrt(Physics.Alpha / RKepler) / RKepler).Cross(VecRKepler);
 }
 
 void AOrbit::SetReadyFlags(EOrbitReady ReadyFlags)
@@ -698,9 +709,7 @@ void AOrbit::SetReadyFlags(EOrbitReady ReadyFlags)
 
 void AOrbit::OnRep_OrbitState()
 {
-    VecVelocity    = RP_OrbitState.VecVelocity;
-    ScalarVelocity = VecVelocity.Length();
-    SplineKey      = Spline->FindInputKeyClosestToWorldLocation(GetVecR());
+    SplineDistance = RP_OrbitState.SplineDistance;
 }
 
 void AOrbit::OnRep_Body()
@@ -752,13 +761,10 @@ void AOrbit::HandleClick(AActor*, FKey Button)
     }
 }
 
-void AOrbit::SetCircleOrbit(FPhysics Physics)
+void AOrbit::SetInitialParams(FVector VecV, FPhysics Physics)
 {
-    // TODO:
-    // set VecE, VecH
-    const FVector VecRKepler = GetVecR() - Physics.VecF1;
-    const FVector VelocityNormal = FVector(0., 0., 1.).Cross(VecRKepler).GetSafeNormal(1e-8, FVector(0., 1., 0.));
-    VecVelocity = VelocityNormal * sqrt(Physics.Alpha / VecRKepler.Length());
+    RP_Params.VecH = GetVecRKepler(Physics).Cross(VecV);
+    RP_Params.VecE = VecV.Cross(RP_Params.VecH) / Physics.Alpha - GetVecRKepler(Physics).GetSafeNormal();
 }
 
 void AOrbit::UpdateVisibility(const FInstanceUI& InstanceUI)
@@ -910,19 +916,20 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
 
         if(Name == FNameVelocity)
         {
-            VecVelocity = ScalarVelocity * VelocityNormal;
+            SetInitialParams(ScalarVelocity * VelocityNormal, PhysicsEditorDefault);
         }
         else if(Name == FNameVelocityVCircle)
         {
-            VecVelocity = GetCircleVelocity(PhysicsEditorDefault) * VelocityVCircle * VelocityNormal;
+            SetInitialParams(GetCircleVelocity(PhysicsEditorDefault).Length() * VelocityVCircle * VelocityNormal, PhysicsEditorDefault);
         }
         else if(Name == FNameVecVelocity)
         {
+            SetInitialParams(VecVelocity, PhysicsEditorDefault);
         }
     }
     if(IsValid(RP_Body))
     {
-        Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+        Update(FVector::Zero(), PhysicsEditorDefault, InstanceUIEditorDefault);
     }
     else
     {
@@ -947,6 +954,7 @@ void AOrbit::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePr
     
     DOREPLIFETIME_CONDITION(AOrbit, RP_Body, COND_InitialOnly)
 
+    // TODO: if actor location replicates once in the beginning, only line orbits need to freeze the spline key
     // logically, 'RP_OrbitState' should replicate only once with 'COND_InitialOnly'
     // however, I call 'FreezeOrbitState' in 'AcknowledgePossession', way after initial replication
     // thus, the replicated orbit state is the variable default

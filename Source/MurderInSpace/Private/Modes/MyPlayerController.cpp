@@ -226,9 +226,9 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     {
         MyState->WithPhysics(this, [MyOrbit, InstanceUI] (FPhysics Physics)
         {
-            MyOrbit->SetCircleOrbit(Physics);
+            MyOrbit->SetInitialParams(MyOrbit->GetCircleVelocity(Physics), Physics);
             MyOrbit->SetEnableVisibility(true);
-            MyOrbit->Update(Physics, InstanceUI);
+            MyOrbit->Update(FVector::Zero(), Physics, InstanceUI);
         });
     });
     

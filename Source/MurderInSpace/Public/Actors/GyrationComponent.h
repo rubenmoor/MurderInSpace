@@ -16,9 +16,6 @@ struct FGyrationState
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FRotator Rot = FRotator::ZeroRotator;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FVector VecL = FVector::ZeroVector;
 };
 
 /*
@@ -53,8 +50,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gyration")
 	FVector VecInertia = FVector::Zero();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gyration")
-	FVector VecL = FVector::Zero();
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category="Gyration")
+	FVector RP_VecL = FVector::Zero();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gyration")
 	float L = 0.;

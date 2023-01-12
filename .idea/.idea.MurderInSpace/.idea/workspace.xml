@@ -9,10 +9,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyProfiling/MyProfiling.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/GyrationComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/GyrationComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor_StaticMesh.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor_StaticMesh.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPawn.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPawn.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Lib/FunctionLib.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Lib/FunctionLib.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameState.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameState.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/GyrationComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/GyrationComponent.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/Orbit.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/Orbit.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Lib/FunctionLib.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Lib/FunctionLib.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -394,6 +405,7 @@
       <workItem from="1673302266547" duration="9385000" />
       <workItem from="1673355349427" duration="32464000" />
       <workItem from="1673442609439" duration="24958000" />
+      <workItem from="1673546828236" duration="27883000" />
     </task>
     <servers />
   </component>

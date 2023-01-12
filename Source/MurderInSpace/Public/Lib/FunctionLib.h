@@ -77,7 +77,10 @@ class MURDERINSPACE_API UFunctionLib : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static FVector Velocity(FVector E, FVector R, FVector VecH, float ALpha);
+	static FVector VecVelocity(FVector E, FVector R, FVector VecH, float Alpha);
+	
+	UFUNCTION(BlueprintPure, Category="Orbit")
+	static float ScalarVelocitySquared(float R, float A, float Alpha);
 	
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static FVector Eccentricity(FVector R, FVector V, float Alpha);
