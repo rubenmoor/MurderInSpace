@@ -427,26 +427,117 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
     // E > 1, Hyperbola
     else
     {
-        std::list<FVector> Points;
-        RP_Params.A = RP_Params.P / (1 - pow(Eccentricity, 2)); // A < 0
-        const float C = RP_Params.P * Eccentricity / (pow(Eccentricity, 2) - 1);
-        const FVector VecHorizontal = VecHNorm.Cross(VecENorm);
-        constexpr int MAX_POINTS = 20;
-        const float MAX =
-            sqrt((pow(Physics.WorldRadius, 2) + (pow(Eccentricity, 2) - 1.) * pow(RP_Params.A, 2)) / pow(Eccentricity, 2));
-        const float Delta = 2. * MAX / (pow(MAX_POINTS / 2 - 1, 3) / 3.);
-
-        Points.emplace_front(VecENorm * RP_Params.P / (1. + Eccentricity) + Physics.VecF1);
-        //Points.emplace_front(VecE * A + VecF1);
-        for(int i = 1; i < MAX_POINTS / 2; i++)
+        struct MySplinePoint
         {
-            const float X = pow(i, 2) * Delta - RP_Params.A;
-            const FVector VecX = (C - X) * VecENorm;
-            //(P - sqrt(VecE.SquaredLength() - 1) * RMAX) * VecENorm + VecF1;	
-            //const auto VecY = VecHorizontal * sqrt((VecE.SquaredLength() - 1.) * pow(X, 2) - 1.);
-            const FVector VecY = VecHorizontal * sqrt((pow(Eccentricity, 2) - 1.) * (pow(X, 2) - pow(RP_Params.A, 2)));
-            Points.emplace_back(VecX + VecY + Physics.VecF1);
-            Points.emplace_front(VecX - VecY + Physics.VecF1);
+            MySplinePoint() {}
+            MySplinePoint(FVector InPosition) : Position(InPosition) {}
+            MySplinePoint(FVector InPosition, FVector InTangent) : Position(InPosition), Tangent(InTangent) {}
+            FVector Position = FVector::Zero();
+            FVector Tangent = FVector::Zero();
+        };
+        
+        std::list<MySplinePoint> Points;
+        const float ESquared = pow(Eccentricity, 2);
+        const float EReduced = sqrt(ESquared - 1);
+        RP_Params.A = RP_Params.P / (1 - ESquared); // Params.A < 0
+        const float A = -RP_Params.A; // A > 0
+        const float Periapsis = RP_Params.P / (Eccentricity + 1);
+        const FVector VecVertical = VecHNorm.Cross(VecENorm);
+        const FVector VecHorizontal = -VecENorm;
+        constexpr int MAX_POINTS = 20;
+        //const float MAX = sqrt((pow(Physics.WorldRadius, 2) + (pow(Eccentricity, 2) - 1.) * pow(RP_Params.A, 2)) / pow(Eccentricity, 2));
+        //const float Delta = 2. * MAX / (pow(MAX_POINTS / 2 - 1, 3) / 3.);
+        // DeltaX value based on a steep hyperbola
+        const float DeltaX = Physics.WorldRadius / pow(2, MAX_POINTS / 2);
+        const float DeltaY =
+              sqrt((pow(Physics.WorldRadius, 2) + pow(RP_Params.P, 2)) / (ESquared - 1))
+            / pow(2, MAX_POINTS / 2);
+        const float Delta = std::min(DeltaX, DeltaY);
+
+        Points.emplace_front(-Periapsis * VecHorizontal + Physics.VecF1);
+        for(int i = 0; i < MAX_POINTS / 2; i++)
+        {
+            const float X = pow(2, i) * Delta;
+            const FVector VecX = X * VecHorizontal;
+
+            const float Y = EReduced * sqrt(pow(X + A, 2) - pow(A, 2));
+            const FVector VecY = VecVertical * Y;
+
+            if(i == 0)
+            {
+                // tangent slope is EReduces/-EReduced, respectively
+                const FVector VecF1Norm = (VecVertical *  EReduced + VecHorizontal) / Eccentricity;
+                const FVector VecF2Norm = (VecVertical * -EReduced + VecHorizontal) / Eccentricity;
+                const FVector VecOrigin = VecHorizontal * (-Periapsis - A) + Physics.VecF1;
+
+                auto BaseChange = [VecF1Norm, VecF2Norm] (float X1, float X2) -> FVector2f
+                {
+                    const float F2 =
+                          (X1 * VecF1Norm.Y - X2 * VecF1Norm.X)
+                        / (VecF2Norm.X * VecF1Norm.Y - VecF2Norm.Y * VecF1Norm.X);
+                    const float F1 = X2 / VecF1Norm.Y - F2 * VecF2Norm.Y / VecF1Norm.Y;
+                    return FVector2f(F1, F2);
+                };
+
+                const FVector2f FA = BaseChange(A + X, Y);
+                const FVector VecF1A = VecF1Norm * FA.X;
+                DrawDebugDirectionalArrow
+                    ( GetWorld()
+                    , VecOrigin
+                    , VecOrigin + VecF1A
+                    , 20
+                    , FColor::White
+                    );
+                const FVector VecF2A = VecF2Norm * FA.Y;
+                DrawDebugDirectionalArrow
+                    ( GetWorld()
+                    , VecOrigin
+                    , VecOrigin + VecF2A
+                    , 20
+                    , FColor::Yellow
+                    );
+                DrawDebugDirectionalArrow
+                    ( GetWorld()
+                    , VecOrigin
+                    , VecOrigin + VecF1A + VecF2A
+                    , 20
+                    , FColor::Orange
+                    );
+                const FVector TangentA = VecF1A - VecF2A;
+                Points.emplace_back (VecX - Periapsis * VecHorizontal + VecY + Physics.VecF1,  TangentA);
+
+                const FVector2f FB = BaseChange(A + X, -Y);
+                const FVector VecF1B = VecF1Norm * FB.X;
+                DrawDebugDirectionalArrow
+                    ( GetWorld()
+                    , VecOrigin
+                    , VecOrigin + VecF1B
+                    , 20
+                    , FColor::Blue
+                    );
+                const FVector VecF2B = VecF2Norm * FB.Y;
+                DrawDebugDirectionalArrow
+                    ( GetWorld()
+                    , VecOrigin
+                    , VecOrigin + VecF2B
+                    , 20
+                    , FColor::Turquoise
+                    );
+                DrawDebugDirectionalArrow
+                    ( GetWorld()
+                    , VecOrigin
+                    , VecOrigin + VecF1B + VecF2B
+                    , 20
+                    , FColor::Green
+                    );
+                const FVector TangentB = VecF1B - VecF2B;
+                Points.emplace_front(VecX - Periapsis * VecHorizontal - VecY + Physics.VecF1, TangentB);
+            }
+            else
+            {
+                Points.emplace_back(VecX - Periapsis * VecHorizontal + VecY + Physics.VecF1);
+                Points.emplace_front(VecX - Periapsis * VecHorizontal - VecY + Physics.VecF1);
+            }
         }
 
         RP_SplinePoints.Empty();
@@ -454,7 +545,15 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         const int32 NumPoints = Points.size();
         for(int i = 0; i < NumPoints; i++)
         {
-            RP_SplinePoints.Emplace(i, Points.front());
+            MySplinePoint Point = Points.front();
+            if(Point.Tangent.IsZero())
+            {
+                RP_SplinePoints.Emplace(i, Point.Position);
+            }
+            else
+            {
+                RP_SplinePoints.Emplace(i, Point.Position, Point.Tangent, Point.Tangent);
+            }
             Points.pop_front();
         }
         AddPointsToSpline();
