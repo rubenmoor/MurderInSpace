@@ -466,21 +466,26 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             if(i == 0)
             {
                 // tangent slope is EReduces/-EReduced, respectively
-                const FVector VecF1Norm = (VecVertical *  EReduced + VecHorizontal) / Eccentricity;
-                const FVector VecF2Norm = (VecVertical * -EReduced + VecHorizontal) / Eccentricity;
+                const FVector2f VecF1Norm = FVector2f(1.,  EReduced) / Eccentricity;
+                const FVector2f VecF2Norm = FVector2f(1., -EReduced) / Eccentricity;
+                
                 const FVector VecOrigin = VecHorizontal * (-Periapsis - A) + Physics.VecF1;
 
-                auto BaseChange = [VecF1Norm, VecF2Norm] (float X1, float X2) -> FVector2f
+                auto ToVec3 = [VecHorizontal, VecVertical] (FVector2f Vec2) -> FVector
+                {
+                    return Vec2.X * VecHorizontal + Vec2.Y * VecVertical;
+                };
+                auto BaseChange = [VecF1Norm, VecF2Norm] (FVector2f P) -> FVector2f
                 {
                     const float F2 =
-                          (X1 * VecF1Norm.Y - X2 * VecF1Norm.X)
+                          (P.X * VecF1Norm.Y - P.Y * VecF1Norm.X)
                         / (VecF2Norm.X * VecF1Norm.Y - VecF2Norm.Y * VecF1Norm.X);
-                    const float F1 = X2 / VecF1Norm.Y - F2 * VecF2Norm.Y / VecF1Norm.Y;
+                    const float F1 = P.X / VecF1Norm.X - F2 * VecF2Norm.X / VecF1Norm.X;
                     return FVector2f(F1, F2);
                 };
 
-                const FVector2f FA = BaseChange(A + X, Y);
-                const FVector VecF1A = VecF1Norm * FA.X;
+                const FVector2f FA = BaseChange(FVector2f(A + X, Y));
+                const FVector VecF1A = ToVec3(VecF1Norm) * FA.X;
                 DrawDebugDirectionalArrow
                     ( GetWorld()
                     , VecOrigin
@@ -488,7 +493,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
                     , 20
                     , FColor::White
                     );
-                const FVector VecF2A = VecF2Norm * FA.Y;
+                const FVector VecF2A = ToVec3(VecF2Norm) * FA.Y;
                 DrawDebugDirectionalArrow
                     ( GetWorld()
                     , VecOrigin
@@ -506,8 +511,8 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
                 const FVector TangentA = VecF1A - VecF2A;
                 Points.emplace_back (VecX - Periapsis * VecHorizontal + VecY + Physics.VecF1,  TangentA);
 
-                const FVector2f FB = BaseChange(A + X, -Y);
-                const FVector VecF1B = VecF1Norm * FB.X;
+                const FVector2f FB = BaseChange(FVector2f(A + X, -Y));
+                const FVector VecF1B = ToVec3(VecF1Norm) * FB.X;
                 DrawDebugDirectionalArrow
                     ( GetWorld()
                     , VecOrigin
@@ -515,7 +520,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
                     , 20
                     , FColor::Blue
                     );
-                const FVector VecF2B = VecF2Norm * FB.Y;
+                const FVector VecF2B = ToVec3(VecF2Norm) * FB.Y;
                 DrawDebugDirectionalArrow
                     ( GetWorld()
                     , VecOrigin
