@@ -466,77 +466,21 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             if(i == 0)
             {
                 // tangent slope is EReduces/-EReduced, respectively
-                const FVector2f VecF1Norm = FVector2f(1.,  EReduced) / Eccentricity;
-                const FVector2f VecF2Norm = FVector2f(1., -EReduced) / Eccentricity;
+                const FVector VecF1Norm = (VecHorizontal + EReduced * VecVertical) / Eccentricity;
+                const FVector VecF2Norm = (VecHorizontal - EReduced * VecVertical) / Eccentricity;
                 
-                const FVector VecOrigin = VecHorizontal * (-Periapsis - A) + Physics.VecF1;
+                // base change matrix from (VecHorizontal, VecVertical) to (F1, F2)
+                const FMatrix2x2 BaseChange = FMatrix2x2
+                    ( Eccentricity / 2., Eccentricity / 2.
+                    , Eccentricity / 2. / EReduced, -Eccentricity / 2. / EReduced);
+                
+                const FVector2f FA = BaseChange.TransformVector(FVector2f(A + X, Y));
+                const FVector TangentA = VecF1Norm * FA.X - VecF2Norm * FA.Y;
+                Points.emplace_back (VecX - Periapsis * VecHorizontal + VecY + Physics.VecF1, TangentA / 2.);
 
-                auto ToVec3 = [VecHorizontal, VecVertical] (FVector2f Vec2) -> FVector
-                {
-                    return Vec2.X * VecHorizontal + Vec2.Y * VecVertical;
-                };
-                auto BaseChange = [VecF1Norm, VecF2Norm] (FVector2f P) -> FVector2f
-                {
-                    const float F2 =
-                          (P.X * VecF1Norm.Y - P.Y * VecF1Norm.X)
-                        / (VecF2Norm.X * VecF1Norm.Y - VecF2Norm.Y * VecF1Norm.X);
-                    const float F1 = P.X / VecF1Norm.X - F2 * VecF2Norm.X / VecF1Norm.X;
-                    return FVector2f(F1, F2);
-                };
-
-                const FVector2f FA = BaseChange(FVector2f(A + X, Y));
-                const FVector VecF1A = ToVec3(VecF1Norm) * FA.X;
-                DrawDebugDirectionalArrow
-                    ( GetWorld()
-                    , VecOrigin
-                    , VecOrigin + VecF1A
-                    , 20
-                    , FColor::White
-                    );
-                const FVector VecF2A = ToVec3(VecF2Norm) * FA.Y;
-                DrawDebugDirectionalArrow
-                    ( GetWorld()
-                    , VecOrigin
-                    , VecOrigin + VecF2A
-                    , 20
-                    , FColor::Yellow
-                    );
-                DrawDebugDirectionalArrow
-                    ( GetWorld()
-                    , VecOrigin
-                    , VecOrigin + VecF1A + VecF2A
-                    , 20
-                    , FColor::Orange
-                    );
-                const FVector TangentA = VecF1A - VecF2A;
-                Points.emplace_back (VecX - Periapsis * VecHorizontal + VecY + Physics.VecF1,  TangentA);
-
-                const FVector2f FB = BaseChange(FVector2f(A + X, -Y));
-                const FVector VecF1B = ToVec3(VecF1Norm) * FB.X;
-                DrawDebugDirectionalArrow
-                    ( GetWorld()
-                    , VecOrigin
-                    , VecOrigin + VecF1B
-                    , 20
-                    , FColor::Blue
-                    );
-                const FVector VecF2B = ToVec3(VecF2Norm) * FB.Y;
-                DrawDebugDirectionalArrow
-                    ( GetWorld()
-                    , VecOrigin
-                    , VecOrigin + VecF2B
-                    , 20
-                    , FColor::Turquoise
-                    );
-                DrawDebugDirectionalArrow
-                    ( GetWorld()
-                    , VecOrigin
-                    , VecOrigin + VecF1B + VecF2B
-                    , 20
-                    , FColor::Green
-                    );
-                const FVector TangentB = VecF1B - VecF2B;
-                Points.emplace_front(VecX - Periapsis * VecHorizontal - VecY + Physics.VecF1, TangentB);
+                const FVector2f FB = BaseChange.TransformVector(FVector2f(A + X, -Y));
+                const FVector TangentB = VecF1Norm * FB.X - VecF2Norm * FB.Y;
+                Points.emplace_front(VecX - Periapsis * VecHorizontal - VecY + Physics.VecF1, TangentB / 2.);
             }
             else
             {
