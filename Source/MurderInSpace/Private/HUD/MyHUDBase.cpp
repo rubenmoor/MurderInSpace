@@ -15,9 +15,12 @@ AMyHUDBase::AMyHUDBase()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
-	FormattingOptions.SetUseGrouping(false);
-	FormattingOptions.SetMinimumFractionalDigits(1);
-	FormattingOptions.SetMaximumFractionalDigits(1);
+	FOVelocity.SetUseGrouping(false);
+	FOVelocity.SetMinimumFractionalDigits(1);
+	FOVelocity.SetMaximumFractionalDigits(1);
+
+	FOFPS.SetUseGrouping(false);
+	FOFPS.SetMaximumFractionalDigits(0);
 
 	// TODO: find a way to set HUD default style
 }

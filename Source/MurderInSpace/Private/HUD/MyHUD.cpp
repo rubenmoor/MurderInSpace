@@ -136,9 +136,11 @@ void AMyHUD::Tick(float DeltaSeconds)
 	AOrbit* Orbit = MyCharacter->GetOrbit();
 	const float Velocity = Orbit->GetScalarVelocity();
 
-	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FormattingOptions));
+	extern ENGINE_API float GAverageFPS;
+	WidgetHUD->TextFPS->SetText(FText::AsNumber(GAverageFPS, &FOFPS));
+	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FOVelocity));
 	WidgetHUD->TextVelocityVCircle->SetText(
-		FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics).Length(), &FormattingOptions));
+		FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics).Length(), &FOVelocity));
 
 	const float Angle =
 		FQuat::FindBetween

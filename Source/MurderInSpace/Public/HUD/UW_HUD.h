@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CommonNumericTextBlock.h"
 #include "Blueprint/UserWidget.h"
 #include "UW_HUD.generated.h"
 
@@ -39,9 +40,12 @@ public:
 	void SetF1Marker(FVector2D InCoords);
 	
 	UFUNCTION(BlueprintCallable)
-	void  F1MarkerHide() { F1Marker.bShow = false; }
+	void F1MarkerHide() { F1Marker.bShow = false; }
 
 protected:
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UCommonNumericTextBlock> TextFPS;
+	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> TextVelocitySI;
 	

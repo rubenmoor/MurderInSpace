@@ -67,5 +67,6 @@ protected:
 
 	FLocalPlayerContext LocalPlayerContext;
 
-	FNumberFormattingOptions FormattingOptions;
+	FNumberFormattingOptions FOVelocity;
+	FNumberFormattingOptions FOFPS;
 };

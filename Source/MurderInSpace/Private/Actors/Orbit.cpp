@@ -236,19 +236,17 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
     // which results in smoother orbits
     constexpr float Tolerance = 1E-2;
     
-    //RP_Params.VecH = VecRKepler.Cross(VecVelocity);
-    const FVector DeltaVecH = VecRKepler.Cross(DeltaVecV);
-    
-    // the velocity needs recalculation to accurately reflect the current angular momentum ...
-    const FVector VecV0 = UFunctionLib::VecVelocity(RP_Params.VecE, VecRKepler, RP_Params.VecH, Physics.Alpha);
-    RP_Params.VecH += DeltaVecH;
-    // ... and it is needed to update the eccentricity vector, given Delta H
-    RP_Params.VecE += ( DeltaVecV.Cross(RP_Params.VecH) + VecV0.Cross(DeltaVecH)) / Physics.Alpha;
+    // the velocity needs recalculation to accurately reflect the current angular momentum
+    const FVector VecVNew =
+          UFunctionLib::VecVelocity(RP_Params.VecE, VecRKepler, RP_Params.VecH, Physics.Alpha, VecVelocity)
+        + DeltaVecV;
+    RP_Params.VecH = VecRKepler.Cross(VecVNew);
+    RP_Params.VecE = UFunctionLib::Eccentricity(VecRKepler, VecVNew, Physics.Alpha);
     RP_Params.P = RP_Params.VecH.SquaredLength() / Physics.Alpha;
 
     // not necessary, as the velocity variables are set by the Tick
     // but if not set here, the editor doesn't show the current velocity
-    VecVelocity = VecV0;
+    VecVelocity = VecVNew;
     ScalarVelocity = VecVelocity.Length();
     VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics).Length();
     RKepler = VecRKepler.Length();
@@ -390,8 +388,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         std::list<FVector> Points;
         const FVector VecHorizontal = VecHNorm.Cross(VecENorm);
         constexpr int MAX_POINTS = 20;
-        const float MAX_N = sqrt(2 * (Physics.WorldRadius + Physics.VecF1.Length()) / RP_Params.P);
-        const float Delta = 2 * MAX_N / MAX_POINTS;
+        const float Delta = sqrt(2 * Physics.WorldRadius / RP_Params.P) / ((MAX_POINTS - 1) / 2);
 
         Points.emplace_front(VecENorm * RP_Params.P / (1. + Eccentricity) + Physics.VecF1);
         for(int i = 1; i < MAX_POINTS / 2; i++)
@@ -431,9 +428,14 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         {
             MySplinePoint() {}
             MySplinePoint(FVector InPosition) : Position(InPosition) {}
-            MySplinePoint(FVector InPosition, FVector InTangent) : Position(InPosition), Tangent(InTangent) {}
+            MySplinePoint(FVector InPosition, FVector InArriveTangent, FVector InLeaveTangent)
+                : Position(InPosition)
+                , ArriveTangent(InArriveTangent)
+                , LeaveTangent(InLeaveTangent) 
+            {}
             FVector Position = FVector::Zero();
-            FVector Tangent = FVector::Zero();
+            FVector ArriveTangent = FVector::Zero();
+            FVector LeaveTangent = FVector::Zero();
         };
         
         std::list<MySplinePoint> Points;
@@ -448,20 +450,23 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         //const float MAX = sqrt((pow(Physics.WorldRadius, 2) + (pow(Eccentricity, 2) - 1.) * pow(RP_Params.A, 2)) / pow(Eccentricity, 2));
         //const float Delta = 2. * MAX / (pow(MAX_POINTS / 2 - 1, 3) / 3.);
         // DeltaX value based on a steep hyperbola
-        const float DeltaX = Physics.WorldRadius / pow(2, MAX_POINTS / 2);
-        const float DeltaY =
-              sqrt((pow(Physics.WorldRadius, 2) + pow(RP_Params.P, 2)) / (ESquared - 1))
-            / pow(2, MAX_POINTS / 2);
-        const float Delta = std::min(DeltaX, DeltaY);
+        const float DeltaX = Physics.WorldRadius / pow(2, MAX_POINTS / 2 - 2);
+        //const float DeltaY =
+        //      sqrt((pow(Physics.WorldRadius, 2) + pow(RP_Params.P, 2)) / (ESquared - 1))
+        //    / pow(2, MAX_POINTS / 2);
+        //const float Delta = std::min(DeltaX, DeltaY);
 
         Points.emplace_front(-Periapsis * VecHorizontal + Physics.VecF1);
         for(int i = 0; i < MAX_POINTS / 2; i++)
         {
-            const float X = pow(2, i) * Delta;
+            const float X = pow(2, i) * DeltaX;
             const FVector VecX = X * VecHorizontal;
 
             const float Y = EReduced * sqrt(pow(X + A, 2) - pow(A, 2));
             const FVector VecY = VecVertical * Y;
+
+            const FVector P1 = VecX - Periapsis * VecHorizontal + VecY + Physics.VecF1;
+            const FVector P2 = VecX - Periapsis * VecHorizontal - VecY + Physics.VecF1;
 
             if(i == 0)
             {
@@ -475,17 +480,21 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
                     , Eccentricity / 2. / EReduced, -Eccentricity / 2. / EReduced);
                 
                 const FVector2f FA = BaseChange.TransformVector(FVector2f(A + X, Y));
-                const FVector TangentA = VecF1Norm * FA.X - VecF2Norm * FA.Y;
-                Points.emplace_back (VecX - Periapsis * VecHorizontal + VecY + Physics.VecF1, TangentA / 2.);
+                const FVector TangentA = (VecF1Norm * FA.X - VecF2Norm * FA.Y).GetSafeNormal() * RP_Params.P;
+                Points.emplace_back (P1, TangentA * 2., TangentA);
 
                 const FVector2f FB = BaseChange.TransformVector(FVector2f(A + X, -Y));
-                const FVector TangentB = VecF1Norm * FB.X - VecF2Norm * FB.Y;
-                Points.emplace_front(VecX - Periapsis * VecHorizontal - VecY + Physics.VecF1, TangentB / 2.);
+                const FVector TangentB = (VecF1Norm * FB.X - VecF2Norm * FB.Y).GetSafeNormal() * RP_Params.P;
+                Points.emplace_front(P2, TangentB * 2., TangentB);
             }
             else
             {
-                Points.emplace_back(VecX - Periapsis * VecHorizontal + VecY + Physics.VecF1);
-                Points.emplace_front(VecX - Periapsis * VecHorizontal - VecY + Physics.VecF1);
+                Points.emplace_back(P1);
+                Points.emplace_front(P2);
+            }
+            if(P1.Length() > Physics.WorldRadius)
+            {
+                break;
             }
         }
 
@@ -495,13 +504,13 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         for(int i = 0; i < NumPoints; i++)
         {
             MySplinePoint Point = Points.front();
-            if(Point.Tangent.IsZero())
+            if(Point.ArriveTangent.IsZero())
             {
                 RP_SplinePoints.Emplace(i, Point.Position);
             }
             else
             {
-                RP_SplinePoints.Emplace(i, Point.Position, Point.Tangent, Point.Tangent);
+                RP_SplinePoints.Emplace(i, Point.Position, Point.ArriveTangent, Point.LeaveTangent);
             }
             Points.pop_front();
         }
@@ -888,7 +897,9 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         {
             SetInitialParams(VecVelocity, PhysicsEditorDefault);
         }
+        bIsVisibleInEditor = false;
     }
+    
     if(IsValid(RP_Body))
     {
         Update(FVector::Zero(), PhysicsEditorDefault, InstanceUIEditorDefault);

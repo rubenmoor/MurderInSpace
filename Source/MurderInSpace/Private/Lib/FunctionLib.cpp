@@ -7,10 +7,15 @@
  * calculate velocity vector given eccentricity vector, R, H
  * H is only used for its direction, can't be zero
  */
-FVector UFunctionLib::VecVelocity(FVector E, FVector R, FVector VecH, float Alpha)
+FVector UFunctionLib::VecVelocity(FVector E, FVector R, FVector VecH, float Alpha, FVector Default)
 {
-    FVector RNorm = R.GetUnsafeNormal();
-    return VecH.GetSafeNormal().Cross(E + RNorm) * sqrt(Alpha / R.Length() / (RNorm.Dot(E) + 1));
+    const FVector RNorm = R.GetSafeNormal();
+    const FVector VecHNorm = VecH.GetSafeNormal();
+    if(RNorm.IsZero() || VecHNorm.IsZero())
+    {
+        return Default;
+    }
+    return VecHNorm.Cross(E + RNorm) * sqrt(Alpha / R.Length() / (RNorm.Dot(E) + 1));
 }
 
 float UFunctionLib::ScalarVelocitySquared(float R, float A, float Alpha)
