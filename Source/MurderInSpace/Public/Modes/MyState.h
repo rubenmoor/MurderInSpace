@@ -38,6 +38,7 @@ struct FPhysics
 {
 	GENERATED_BODY()
 
+	// ScaleFactor = 1 UU / 1 m
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float ScaleFactor = 0.f;
 	
@@ -109,7 +110,7 @@ struct FRnd
 /**
  * @brief the standard gravitational parameter ALPHA [m^3/s^2] = G * M for different bodies
  */
-constexpr float ALPHA_Game_SI = 800;
+constexpr float ALPHA_Game_SI = 8e2;
 
 constexpr float ALPHA_Ceres_SI = 7e10;
 constexpr float ALPHA_Moon_SI = 4.8e12;
@@ -119,7 +120,7 @@ constexpr float ALPHA_Sun_SI = 1.3e20;
 // for actors, unreal guaranties sanity for values of x and y within [-1048535, 1048535]
 constexpr float MAX_WORLDRADIUS_UU = 1.048535e6;
 
-// length [m] = length [UU] * scale factor
+// scale factor = 1 UU/1 m
 constexpr float DEFAULT_SCALEFACTOR = .01;
 
 const FPhysics PhysicsEditorDefault =
@@ -173,7 +174,7 @@ public:
 	void WithPlayerUI(const UObject* Object, const FLocalPlayerContext& LPC, const std::function<void(FPlayerUI&)> Func);
 
 	void WithInstanceUI(const UObject* Object, const std::function<void(FInstanceUI&)> Func);
-	
+
 	UFUNCTION(BlueprintPure)
 	float GetInitialAngularVelocity(FRnd Rnd);
 

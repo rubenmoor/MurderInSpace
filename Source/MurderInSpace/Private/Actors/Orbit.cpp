@@ -41,7 +41,7 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
             // this only ever gets executed when creating objects in the editor (and dragging them around)
             GetOrbit()->SetInitialParams(GetOrbit()->GetCircleVelocity(Physics), Physics);
             GetOrbit()->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
-            GetOrbit()->Update(FVector::Zero(), Physics, InstanceUI);
+            GetOrbit()->Update(Physics, InstanceUI);
         }
     }
     else
@@ -76,20 +76,20 @@ AOrbit::AOrbit()
     AActor::SetReplicateMovement(false);
     
     Root = CreateDefaultSubobject<USceneComponent>("Root");
-    Root->SetMobility(EComponentMobility::Stationary);
+    //Root->SetMobility(EComponentMobility::Stationary);
     SetRootComponent(Root);
     
     Spline = CreateDefaultSubobject<USplineComponent>("Orbit");
-    Spline->SetMobility(EComponentMobility::Stationary);
+    //Spline->SetMobility(EComponentMobility::Stationary);
     Spline->SetupAttachment(Root);
 
     SplineMeshParent = CreateDefaultSubobject<USceneComponent>("SplineMeshes");
     SplineMeshParent->SetupAttachment(Root);
-    SplineMeshParent->SetMobility(EComponentMobility::Stationary);
+    //SplineMeshParent->SetMobility(EComponentMobility::Stationary);
 
     TemporarySplineMeshParent = CreateDefaultSubobject<USceneComponent>("TemporarySplineMeshes");
     TemporarySplineMeshParent->SetupAttachment(Root);
-    TemporarySplineMeshParent->SetMobility(EComponentMobility::Stationary);
+    //TemporarySplineMeshParent->SetMobility(EComponentMobility::Stationary);
 }
 
 void AOrbit::DestroyTempSplineMeshes()
@@ -136,8 +136,8 @@ void AOrbit::Initialize()
     {
         MyState->WithPhysics(this, [this, &InstanceUI] (auto& Physics)
         {
-            // make sure the orbit has the game physics, instead of the editor default physics
-            Update(FVector::Zero(), Physics, InstanceUI);
+            // make sure the orbit has the game physics, instead of the editor default physics from construction
+            Update(Physics, InstanceUI);
         });
     });
     if(RP_Body->GetLocalRole() == ROLE_AutonomousProxy)
@@ -209,15 +209,22 @@ void AOrbit::Tick(float DeltaTime)
     //ScalarVelocity = NextVelocity(VecRKepler.Length(), Physics.Alpha, ScalarVelocity, DeltaTime, VecVelocity.Dot(VecRKepler));
     //VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics);
 
-    // calculate velocity and get new location, ...
-    ScalarVelocity = sqrt(UFunctionLib::ScalarVelocitySquared(VecRKepler.Length(), RP_Params.A, Physics.Alpha));
+    // // calculate velocity and get new location, ...
+    // ScalarVelocity = sqrt(UFunctionLib::ScalarVelocitySquared(VecRKepler.Length(), RP_Params.A, Physics.Alpha));
+    // VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics).Length();
+    // VecVelocity =
+    //       Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal()
+    //     * ScalarVelocity;
+
+    const FVector NewVecRKepler = VecRKepler + VecVelocity * DeltaTime
+        + pow(DeltaTime, 2) * Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetSafeNormal();
+    VecVelocity = (NewVecRKepler - VecRKepler) / DeltaTime;
+    ScalarVelocity = VecVelocity.Length();
     VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics).Length();
-    VecVelocity =
-          Spline->GetTangentAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World).GetSafeNormal()
-        * ScalarVelocity;
+    
     const float DeltaR = ScalarVelocity * DeltaTime;
     SplineDistance = fmod(SplineDistance + DeltaR, Spline->GetSplineLength());
-    const FVector NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World) - Physics.VecF1;
+    //const FVector NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World) - Physics.VecF1;
     RKepler = NewVecRKepler.Length();
     
     RP_Body->SetActorLocation(NewVecRKepler + Physics.VecF1);
@@ -225,7 +232,7 @@ void AOrbit::Tick(float DeltaTime)
     UpdateControllParams(Physics);
 }
 
-void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
+void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI, bool bReducedSplineMesh)
 {
     const FVector VecR = GetVecR();
     
@@ -480,11 +487,11 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
                     , Eccentricity / 2. / EReduced, -Eccentricity / 2. / EReduced);
                 
                 const FVector2f FA = BaseChange.TransformVector(FVector2f(A + X, Y));
-                const FVector TangentA = (VecF1Norm * FA.X - VecF2Norm * FA.Y).GetSafeNormal() * RP_Params.P;
-                Points.emplace_back (P1, TangentA * 2., TangentA);
+                const FVector TangentA = (VecF1Norm * FA.X - VecF2Norm * FA.Y).GetSafeNormal() * (VecX + VecY).Length() / 2.;
+                Points.emplace_back (P1, TangentA, TangentA);
 
                 const FVector2f FB = BaseChange.TransformVector(FVector2f(A + X, -Y));
-                const FVector TangentB = (VecF1Norm * FB.X - VecF2Norm * FB.Y).GetSafeNormal() * RP_Params.P;
+                const FVector TangentB = (VecF1Norm * FB.X - VecF2Norm * FB.Y).GetSafeNormal() * (VecX + VecY).Length() / 2.;
                 Points.emplace_front(P2, TangentB * 2., TangentB);
             }
             else
@@ -526,9 +533,17 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
     {
         SplineDistance = Spline->GetDistanceAlongSplineAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(VecR));
     }
-    // else
-    // `SplineKey` is not needed,
-    // `SplineDistance` and `DistanceZero` are set already
+
+    // error correction
+    // the resulting orbit tends to be off by 10 to 70 UU, i.e. the body location and the closest point on its orbit
+    // ideally, I could correct this by increasing the accuracy of the calculation above
+    // until then, I just move the entire orbit to bring that number down to zero
+    //SetActorLocation(
+    //    GetVecR() - Spline->GetLocationAtDistanceAlongSpline(
+    //        Spline->GetDistanceAlongSplineAtSplineInputKey(
+    //            Spline->FindInputKeyClosestToWorldLocation(GetVecR())
+    //        ), ESplineCoordinateSpace::World)
+    //    );
 
     TArray<USceneComponent*> Meshes;
     SplineMeshParent->GetChildrenComponents(false, Meshes);
@@ -546,8 +561,14 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             ( Cast<IHasOrbitColor>(RP_Body)->GetOrbitColor()
             , ESplineMeshParentSelector::Permanent
             , InstanceUI
+            , bReducedSplineMesh
             );
     }
+}
+
+void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
+{
+    Update(FVector::Zero(), Physics, InstanceUI);
 }
 
 void AOrbit::UpdateControllParams(FPhysics Physics)
@@ -743,7 +764,12 @@ void AOrbit::UpdateVisibility(const FInstanceUI& InstanceUI)
     SplineMeshParent->SetVisibility(GetVisibility(InstanceUI), true);
 }
 
-void AOrbit::SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector ParentSelector, FInstanceUI InstanceUI)
+void AOrbit::SpawnSplineMesh
+    ( FLinearColor Color
+    , ESplineMeshParentSelector ParentSelector
+    , FInstanceUI InstanceUI
+    , bool bReducedSplineMesh
+    )
 {
     const int nIndices = static_cast<int>(round(Spline->GetSplineLength() / SplineMeshLength));
 
@@ -779,6 +805,15 @@ void AOrbit::SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector Paren
         }
         for(int i = 0; i < Indices.size() - 1; i++)
         {
+            const FVector VecStartPos =
+                Spline->GetLocationAtDistanceAlongSpline(Indices[i] * SplineMeshLength, ESplineCoordinateSpace::World);
+            const FVector VecEndPos =
+                Spline->GetLocationAtDistanceAlongSpline(Indices[i + 1] * SplineMeshLength, ESplineCoordinateSpace::World);
+            if(bReducedSplineMesh && ((VecStartPos + VecEndPos) / 2. - GetVecR()).Length() > 10000.)
+            {
+                continue;
+            }
+            
             USceneComponent* Parent = nullptr;
             switch(ParentSelector)
             {
@@ -811,15 +846,11 @@ void AOrbit::SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector Paren
                 SplineMesh->CreateDynamicMaterialInstance(0, SplineMeshMaterial);
             DynamicMaterial->SetVectorParameterValue("StripesColor", Color);
 
-            const FVector VecStartPos =
-                Spline->GetLocationAtDistanceAlongSpline(Indices[i] * SplineMeshLength, ESplineCoordinateSpace::World);
             const FVector VecStartDirection =
                 Spline->GetTangentAtDistanceAlongSpline
                     ( Indices[i] * SplineMeshLength
                     , ESplineCoordinateSpace::World
                     ).GetUnsafeNormal() * SplineMeshLength;
-            const FVector VecEndPos =
-                Spline->GetLocationAtDistanceAlongSpline(Indices[i + 1] * SplineMeshLength, ESplineCoordinateSpace::World);
             const FVector VecEndDirection =
                 Spline->GetTangentAtDistanceAlongSpline
                     ( Indices[i + 1] * SplineMeshLength
@@ -883,6 +914,12 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         || Name == FNameVecVelocity
         )
     {
+        DistanceToOrbit =
+            ( Spline->GetLocationAtDistanceAlongSpline(
+                Spline->GetDistanceAlongSplineAtSplineInputKey(
+                    Spline->FindInputKeyClosestToWorldLocation( GetVecR() )
+                ), ESplineCoordinateSpace::World
+            ) - GetVecR()).Length();
         const FVector VelocityNormal = VecVelocity.GetSafeNormal(1e-8, FVector(0., 1., 0.));
 
         if(Name == FNameVelocity)
@@ -902,7 +939,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     
     if(IsValid(RP_Body))
     {
-        Update(FVector::Zero(), PhysicsEditorDefault, InstanceUIEditorDefault);
+        Update(PhysicsEditorDefault, InstanceUIEditorDefault);
     }
     else
     {

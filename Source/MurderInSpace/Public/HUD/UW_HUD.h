@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "CommonNumericTextBlock.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/HorizontalBox.h"
 #include "UW_HUD.generated.h"
 
 class UTextBlock;
@@ -45,6 +46,12 @@ public:
 protected:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UCommonNumericTextBlock> TextFPS;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UHorizontalBox> HoriDistanceF1;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UCommonNumericTextBlock> TextDistanceF1;
 	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> TextVelocitySI;

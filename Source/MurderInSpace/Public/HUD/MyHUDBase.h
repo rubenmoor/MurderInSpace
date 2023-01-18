@@ -69,4 +69,5 @@ protected:
 
 	FNumberFormattingOptions FOVelocity;
 	FNumberFormattingOptions FOFPS;
+	FNumberFormattingOptions FODistance;
 };

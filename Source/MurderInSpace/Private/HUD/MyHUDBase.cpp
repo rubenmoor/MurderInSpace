@@ -22,6 +22,9 @@ AMyHUDBase::AMyHUDBase()
 	FOFPS.SetUseGrouping(false);
 	FOFPS.SetMaximumFractionalDigits(0);
 
+	FODistance.SetUseGrouping(false);
+	FODistance.SetMaximumFractionalDigits(0);
+
 	// TODO: find a way to set HUD default style
 }
 

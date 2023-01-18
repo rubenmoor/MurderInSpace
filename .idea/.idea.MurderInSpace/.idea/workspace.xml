@@ -10,16 +10,30 @@
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Actors/BP_MyCharacter.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/BP_MyCharacter.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Actors/Orbit/CylinderTrajectory4.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Orbit/CylinderTrajectory4.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Actors/Orbit/M_NaniteStripes.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Orbit/M_NaniteStripes.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/HUD/UMG_PlayerHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/HUD/UMG_PlayerHUD.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Menu/MyCommonButton/StyleText.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Menu/UMG_HostGame.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/UMG_HostGame.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Menu/UMG_LoadingScreen.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/UMG_LoadingScreen.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Menu/UMG_MenuMultiPlayer.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/UMG_MenuMultiPlayer.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Menu/UMG_MenuServerList.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/UMG_MenuServerList.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Menu/UMG_Message.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/UMG_Message.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Menu/UMG_ServerRow.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Menu/UMG_ServerRow.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor_StaticMesh.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor_StaticMesh.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPawn.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyPawn.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUD.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDBase.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/HUD/MyHUDBase.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Lib/FunctionLib.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Lib/FunctionLib.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameState.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyGameState.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyPawn.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyPawn.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/Orbit.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/Orbit.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDBase.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/MyHUDBase.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/UW_HUD.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/HUD/UW_HUD.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Lib/FunctionLib.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Lib/FunctionLib.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyState.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Modes/MyState.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,6 +41,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/ucrt/corecrt_math.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.33.31629/include/atomic" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.33.31629/include/cmath" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.33.31629/include/functional" root0="SKIP_HIGHLIGHTING" />
@@ -405,7 +420,8 @@
       <workItem from="1673651846340" duration="12368000" />
       <workItem from="1673900711593" duration="21013000" />
       <workItem from="1673959927840" duration="14024000" />
-      <workItem from="1673986476381" duration="4377000" />
+      <workItem from="1673986476381" duration="4402000" />
+      <workItem from="1674048519054" duration="23608000" />
     </task>
     <servers />
   </component>

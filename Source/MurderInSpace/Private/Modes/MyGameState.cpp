@@ -26,7 +26,7 @@ void AMyGameState::OnRep_Physics()
 	{
 		MyState->WithInstanceUI(this, [this, MyState, IOrbit] (FInstanceUI& InstanceUI)
 		{
-			(*IOrbit)->Update(FVector::Zero(), MyState->GetPhysics(this), InstanceUI);
+			(*IOrbit)->Update(MyState->GetPhysics(this), InstanceUI);
 		});
 	}
 }
@@ -46,7 +46,7 @@ void AMyGameState::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prope
 		for(TMyObjectIterator<AOrbit> IOrbit; IOrbit; ++IOrbit)
 		{
 			//(*IOrbit)->SetInitialParams(RP_Physics);
-			(*IOrbit)->Update(FVector::Zero(), RP_Physics, InstanceUIEditorDefault);
+			(*IOrbit)->Update(RP_Physics, InstanceUIEditorDefault);
 		}
 	}
 }

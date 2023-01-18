@@ -22,10 +22,14 @@ public:
 
     // Acceleration in m / s^2
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float AccelerationSI = 1.;
+    float AccelerationSI = 0.1;
 
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
-    float RP_bIsAccelerating = false;
+    bool RP_bIsAccelerating = false;
+
+	// RP_bIsAccelerating from the last frame
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bWasAccelerating = false;
 
     // IOrbit interface
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }

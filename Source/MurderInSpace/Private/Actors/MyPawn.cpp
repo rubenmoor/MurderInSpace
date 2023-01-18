@@ -1,6 +1,7 @@
 #include "Actors/MyPawn.h"
 
 #include "HUD/MyHUD.h"
+#include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
 #include "Modes/MyPlayerController.h"
 #include "Net/UnrealNetwork.h"
@@ -34,18 +35,27 @@ void AMyPawn::Tick(float DeltaSeconds)
 		, 20
 		, FColor::Yellow
 		);
+
+	UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+	const UWorld* World = GetWorld();
+	const auto* GS = World->GetGameState<AMyGameState>();
+	const FPhysics Physics = MyState->GetPhysics(GS);
+	const auto* GI = GetGameInstance<UMyGameInstance>();
+	const FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
 	
 	if(RP_bIsAccelerating && IsValid(RP_Orbit))
 	{
-		UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-		MyState->WithInstanceUI(this, [this, MyState, DeltaSeconds] (FInstanceUI& InstanceUI)
+		const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
+		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics, InstanceUI, true);
+		bWasAccelerating = true;
+	}
+	else
+	{
+		if(bWasAccelerating)
 		{
-			MyState->WithPhysics(this, [this, DeltaSeconds, InstanceUI] (FPhysics& Physics)
-			{
-				const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
-				RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics, InstanceUI);
-			});
-		});
+			RP_Orbit->Update(Physics, InstanceUI);
+		}
+		bWasAccelerating = false;
 	}
 }
 
@@ -83,7 +93,7 @@ void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCh
 	{
 		if(IsValid(RP_Orbit))
 		{
-			RP_Orbit->Update(FVector::Zero(), PhysicsEditorDefault, InstanceUIEditorDefault);
+			RP_Orbit->Update(PhysicsEditorDefault, InstanceUIEditorDefault);
 		}
 	}
 }

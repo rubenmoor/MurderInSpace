@@ -138,13 +138,25 @@ public:
     // * `VecVelocity`
     // * `Physics`
     UFUNCTION(BlueprintCallable)
-    void Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI);
+    void Update
+        ( FVector DeltaVecV
+        , FPhysics Physics
+        , FInstanceUI InstanceUI
+        , bool bReducedSplineMesh = false
+        );
+
+    void Update(FPhysics Physics, FInstanceUI InstanceUI);
 
     UFUNCTION(BlueprintCallable)
     void UpdateControllParams(FPhysics Physics);
 
     UFUNCTION(BlueprintCallable)
-    void SpawnSplineMesh(FLinearColor Color, ESplineMeshParentSelector ParentSelector, FInstanceUI InstanceUI);
+    void SpawnSplineMesh
+        ( FLinearColor Color
+        , ESplineMeshParentSelector ParentSelector
+        , FInstanceUI InstanceUI
+        , bool bReducedSplineMesh
+        );
     
     // user interface
     
@@ -288,6 +300,10 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     float RKepler;
+
+    // debugging: monitor the closest distance of the body to its orbit, while updating
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
+    float DistanceToOrbit = 0.;
 
     UPROPERTY()
     FVector VecRZero = FVector::Zero();

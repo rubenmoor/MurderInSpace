@@ -141,13 +141,15 @@ void AMyHUD::Tick(float DeltaSeconds)
 	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FOVelocity));
 	WidgetHUD->TextVelocityVCircle->SetText(
 		FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics).Length(), &FOVelocity));
+	WidgetHUD->TextDistanceF1->SetText(
+		FText::AsNumber(Orbit->GetVecRKepler(Physics).Length() * Physics.ScaleFactor, &FODistance));
 
-	const float Angle =
+	const float AngleVelocityArrow =
 		FQuat::FindBetween
 			( FVector(1, 0, 0)
 			, Orbit->GetVecVelocity()).GetNormalized().GetTwistAngle(FVector(0, 0, 1)
 			);
-	WidgetHUD->TextVelocityDirection->SetRenderTransformAngle(Angle * 180. / PI);
+	WidgetHUD->TextVelocityDirection->SetRenderTransformAngle(AngleVelocityArrow * 180. / PI);
 
 	FVector2D ScreenLocation;
 	
@@ -211,7 +213,9 @@ void AMyHUD::Tick(float DeltaSeconds)
 		
 		float OverlayX, OverlayY;
 
-		const auto Slot = UWidgetLayoutLibrary::SlotAsCanvasSlot(WidgetHUD->CanvasCenterOfMass);
+		const auto SlotCenterOfMass =
+			UWidgetLayoutLibrary::SlotAsCanvasSlot(WidgetHUD->CanvasCenterOfMass);
+		FVector2D Vec2Alignment;
 
 		if(abs(Pos.Y) > abs(Pos.X) / (1. - 2 * XArc(-0.5)))
 		{
@@ -221,13 +225,13 @@ void AMyHUD::Tick(float DeltaSeconds)
 			{
 				// above the viewport
 				OverlayY = -0.5;
-				Slot->SetAlignment(FVector2D(OverlayX / (1. - 2. * XArc(-0.5)) + .5, 0.));
+				Vec2Alignment = { OverlayX / (1. - 2. * XArc(-0.5)) + .5, 0. };
 			}
 			else
 			{
 				// below the viewport
 				OverlayY = 0.5;
-				Slot->SetAlignment(FVector2D(OverlayX / (1. - 2. * XArc(-0.5)) + .5, 1.));
+				Vec2Alignment = { OverlayX / (1. - 2. * XArc(-0.5)) + .5, 1. };
 			}
 		}
 		else
@@ -238,21 +242,27 @@ void AMyHUD::Tick(float DeltaSeconds)
 			{
 				// to the left of the viewport
 				OverlayX = -0.5 + XArc(OverlayY);
-				Slot->SetAlignment(FVector2D(0., OverlayY + .5));
+				Vec2Alignment = {0., OverlayY + .5 };
 			}
 			else
 			{
 				// to the right of the viewport
 				OverlayX = 0.5 - XArc(OverlayY);
-				Slot->SetAlignment(FVector2D(1., OverlayY + .5));
+				Vec2Alignment = {1., OverlayY + .5 };
 			}
 		}
-		
-		UWidgetLayoutLibrary::SlotAsCanvasSlot
-			(WidgetHUD->CanvasCenterOfMass)->SetPosition
-				( CenterToScreenScaled(this, FVector2D(OverlayX, OverlayY) )
+
+		SlotCenterOfMass->SetAlignment(Vec2Alignment);
+		SlotCenterOfMass->SetPosition
+				( CenterToScreenScaled(this, { OverlayX, OverlayY } )
 			);
-		WidgetHUD->ImgPointer->SetRenderTransformAngle(atan2(Pos.Y, Pos.X) * 180. / PI + 135);
+		//WidgetHUD->ImgPointer->SetRenderTransformAngle(atan2(Pos.Y, Pos.X) * 180. / PI + 135);
+		const float AngleF1Marker = atan2(Pos.Y, Pos.X) + PI;
+		WidgetHUD->ImgPointer->SetRenderTransformAngle(AngleF1Marker * 180. / PI - 45);
+		const auto SlotDistanceF1 = UWidgetLayoutLibrary::SlotAsCanvasSlot(WidgetHUD->HoriDistanceF1);
+		const float DistanceF1Radius = 30.;
+		SlotDistanceF1->SetPosition(FVector2D(cos(AngleF1Marker), sin(AngleF1Marker)) * DistanceF1Radius);
+		SlotDistanceF1->SetAlignment(Vec2Alignment);
 	}
 	// on-screen
 	else

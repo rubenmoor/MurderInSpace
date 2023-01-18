@@ -120,6 +120,7 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
                     ( MyCharacter->GetTempSplineMeshColor()
                     , ESplineMeshParentSelector::Temporary
                     , InstanceUI
+                    , true
                     );
                 Orbit->bIsVisibleAccelerating = true;
                 Orbit->UpdateVisibility(InstanceUI);
@@ -228,7 +229,7 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
         {
             MyOrbit->SetInitialParams(MyOrbit->GetCircleVelocity(Physics), Physics);
             MyOrbit->SetEnableVisibility(true);
-            MyOrbit->Update(FVector::Zero(), Physics, InstanceUI);
+            MyOrbit->Update(Physics, InstanceUI);
         });
     });
     
