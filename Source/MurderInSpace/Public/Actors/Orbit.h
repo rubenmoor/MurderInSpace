@@ -77,6 +77,9 @@ struct FOrbitParameters
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly )
     FVector VecE;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    float Eccentricity;
+
     // specific angular momentum
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, DisplayName="H = r x v")
     FVector VecH;
@@ -316,6 +319,11 @@ protected:
      */
     //static constexpr float SplineToCircle = 1.65;
     static constexpr float SplineToCircle = 1.6568542494923806; // 4. * (sqrt(2) - 1.);
+    
+    // the bigger this value, the earlier an eccentricity approaching 1 will be interpreted as parabola orbit
+    // which results in smoother orbits
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+    float ParabolaTolerance = 1e-6;
     
     // private methods
 
