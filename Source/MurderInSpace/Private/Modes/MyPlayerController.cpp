@@ -182,9 +182,9 @@ void AMyPlayerController::Tick(float DeltaSeconds)
         if(abs(Direction.Z) > 1e-8)
         {
             // TODO: only works for Position.Z == 0
-            const float X = Position.X - Direction.X * Position.Z / Direction.Z;
-            const float Y = Position.Y - Direction.Y * Position.Z / Direction.Z;
-            const float Z = MyCharacter->GetActorLocation().Z;
+            const double X = Position.X - Direction.X * Position.Z / Direction.Z;
+            const double Y = Position.Y - Direction.Y * Position.Z / Direction.Z;
+            const double Z = MyCharacter->GetActorLocation().Z;
             // TODO: physical rotation/animation instead
 
             //MyCharacter->LookAt(FVector(X, Y, Z));
@@ -193,7 +193,7 @@ void AMyPlayerController::Tick(float DeltaSeconds)
             const FVector VecMe = MyCharacter->GetActorLocation();
             const FVector VecDirection = VecP - VecMe;
             const FQuat Quat = FQuat::FindBetween(FVector(1, 0, 0), VecDirection);
-            const float AngleDelta = Quat.GetTwistAngle
+            const double AngleDelta = Quat.GetTwistAngle
                 ( FVector(0, 0, 1)) -
                     MyCharacter->GetActorQuat().GetTwistAngle(FVector(0, 0, 1)
                 );

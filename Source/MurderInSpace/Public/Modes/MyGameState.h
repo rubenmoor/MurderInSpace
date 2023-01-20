@@ -25,7 +25,7 @@ protected:
 	FPhysics RP_Physics = PhysicsEditorDefault;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float AngularVelocityPoissonMean = 1.;
+	double AngularVelocityPoissonMean = 1.;
 
 	std::default_random_engine RndGen;
 	std::poisson_distribution<int> Poisson;

@@ -78,25 +78,25 @@ struct FOrbitParameters
     FVector VecE;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    float Eccentricity;
+    double Eccentricity;
 
     // specific angular momentum
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, DisplayName="H = r x v")
     FVector VecH;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, DisplayName="P = (H * H)/MU")
-    float P;
+    double P;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly )
-    float Energy;
+    double Energy;
     
     // period in s
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    float Period;
+    double Period;
 
     // semi-major axis of elliptic orbit
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    float A = 0;
+    double A = 0;
 };
 
 /*
@@ -111,7 +111,7 @@ struct FOrbitState
     // TODO: check if we need to replicate VecR
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    float SplineDistance;
+    double SplineDistance;
 };
 
 UCLASS()
@@ -164,7 +164,7 @@ public:
     // user interface
     
     UFUNCTION(BlueprintCallable)
-    void UpdateSplineMeshScale(float InScaleFactor);
+    void UpdateSplineMeshScale(double InScaleFactor);
 
     UFUNCTION(BlueprintPure)
     FVector GetVecRZero() const { return VecRZero; }
@@ -193,7 +193,7 @@ public:
     FString GetParamsString();
 
     UFUNCTION(BlueprintPure)
-    float GetScalarVelocity() const { return ScalarVelocity; }
+    double GetScalarVelocity() const { return ScalarVelocity; }
     
     UFUNCTION(BlueprintCallable)
     FVector GetCircleVelocity(FPhysics Physics);
@@ -228,6 +228,11 @@ public:
     UFUNCTION(BlueprintCallable)
     void DestroyTempSplineMeshes();
 
+    /**
+     * @brief constant factor to construct tangents for spline points
+     */
+    static constexpr double SplineToCircle = 1.6568542494923806; // 4. * (sqrt(2) - 1.);
+    
 protected:
 
 #if WITH_EDITOR
@@ -275,10 +280,10 @@ protected:
     TObjectPtr<UMaterial> SplineMeshMaterial;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    float SplineMeshScaleFactor = 1.;
+    double SplineMeshScaleFactor = 1.;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    float SplineMeshLength = 1000.0;
+    double SplineMeshLength = 1000.0;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     TObjectPtr<UStaticMesh> StaticMesh;
@@ -290,40 +295,31 @@ protected:
     FOrbitParameters ControllParams;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-    float SplineDistance;
+    double SplineDistance;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     FVector VecVelocity = FVector::Zero();
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    float ScalarVelocity = 0;
+    double ScalarVelocity = 0;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    float VelocityVCircle = 0;
+    double VelocityVCircle = 0;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-    float RKepler;
+    double RKepler;
 
     // debugging: monitor the closest distance of the body to its orbit, while updating
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-    float DistanceToOrbit = 0.;
+    double DistanceToOrbit = 0.;
 
     UPROPERTY()
     FVector VecRZero = FVector::Zero();
     
-    /**
-     * @brief constant factor to construct tangents for spline points
-     * //const float CBezierToCircle = 4.0 / 3 * (sqrt(2) - 1);
-     * supposedly the above is the exact formula c = 0.5522
-     * trying out in UE results in 1.65 being optimal
-     */
-    //static constexpr float SplineToCircle = 1.65;
-    static constexpr float SplineToCircle = 1.6568542494923806; // 4. * (sqrt(2) - 1.);
-    
     // the bigger this value, the earlier an eccentricity approaching 1 will be interpreted as parabola orbit
     // which results in smoother orbits
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    float ParabolaTolerance = 1e-6;
+    double ParabolaTolerance = 1e-6;
     
     // private methods
 
@@ -335,6 +331,13 @@ protected:
 
     UPROPERTY(VisibleAnywhere)
     bool bIsInitialized = false;
+
+    // error correction
+    // the resulting orbit tends to be off by up to 300 UU, i.e. the body location and the closest point on its orbit
+    // ideally, I could correct this by increasing the accuracy of the orbit calculation
+    // until then, I just move the entire orbit to bring that number down to zero
+    UFUNCTION(BlueprintCallable)
+    void CorrectSplineLocation();
     
     UFUNCTION(BlueprintCallable)
     FOrbitParameters GetParams() const { return RP_Params; };

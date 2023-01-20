@@ -22,7 +22,7 @@ public:
 
     // Acceleration in m / s^2
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float AccelerationSI = 0.1;
+    double AccelerationSI = 0.1;
 
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
     bool RP_bIsAccelerating = false;

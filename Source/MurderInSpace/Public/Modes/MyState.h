@@ -40,19 +40,19 @@ struct FPhysics
 
 	// ScaleFactor = 1 UU / 1 m
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float ScaleFactor = 0.f;
+	double ScaleFactor = 0.f;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float WorldRadius = 0.f;
+	double WorldRadius = 0.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float WorldRadiusMeters = 0.f;
+	double WorldRadiusMeters = 0.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FVector VecF1 = FVector::ZeroVector;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadwrite)
-	float Alpha = 0.f;
+	double Alpha = 0.f;
 };
 
 /*
@@ -74,13 +74,13 @@ struct FHighlight
 	GENERATED_BODY()
 
 	FHighlight(): Orbit(nullptr), Size(0) {}
-	FHighlight(class AOrbit* InOrbit, float InSize) : Orbit(InOrbit), Size(InSize) {}
+	FHighlight(class AOrbit* InOrbit, double InSize) : Orbit(InOrbit), Size(InSize) {}
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	AOrbit* Orbit;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Size;
+	double Size;
 };
 
 USTRUCT(BlueprintType)
@@ -110,18 +110,18 @@ struct FRnd
 /**
  * @brief the standard gravitational parameter ALPHA [m^3/s^2] = G * M for different bodies
  */
-constexpr float ALPHA_Game_SI = 8e2;
+constexpr double ALPHA_Game_SI = 8e2;
 
-constexpr float ALPHA_Ceres_SI = 7e10;
-constexpr float ALPHA_Moon_SI = 4.8e12;
-constexpr float ALPHA_Earth_SI = 4e14;
-constexpr float ALPHA_Sun_SI = 1.3e20;
+constexpr double ALPHA_Ceres_SI = 7e10;
+constexpr double ALPHA_Moon_SI = 4.8e12;
+constexpr double ALPHA_Earth_SI = 4e14;
+constexpr double ALPHA_Sun_SI = 1.3e20;
 
 // for actors, unreal guaranties sanity for values of x and y within [-1048535, 1048535]
-constexpr float MAX_WORLDRADIUS_UU = 1.048535e6;
+constexpr double MAX_WORLDRADIUS_UU = 1.048535e6;
 
 // scale factor = 1 UU/1 m
-constexpr float DEFAULT_SCALEFACTOR = .01;
+constexpr double DEFAULT_SCALEFACTOR = .01;
 
 const FPhysics PhysicsEditorDefault =
 	{ DEFAULT_SCALEFACTOR
@@ -176,7 +176,7 @@ public:
 	void WithInstanceUI(const UObject* Object, const std::function<void(FInstanceUI&)> Func);
 
 	UFUNCTION(BlueprintPure)
-	float GetInitialAngularVelocity(FRnd Rnd);
+	double GetInitialAngularVelocity(FRnd Rnd);
 
 	TArray<FGameplayTag> GetInputTags() const { return InputTags; }
 

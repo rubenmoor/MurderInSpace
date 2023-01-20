@@ -7,7 +7,7 @@
  * calculate velocity vector given eccentricity vector, R, H
  * H is only used for its direction, can't be zero
  */
-FVector UFunctionLib::VecVelocity(FVector E, FVector R, FVector VecH, float Alpha, FVector Default)
+FVector UFunctionLib::VecVelocity(FVector E, FVector R, FVector VecH, double Alpha, FVector Default)
 {
     const FVector RNorm = R.GetSafeNormal();
     const FVector VecHNorm = VecH.GetSafeNormal();
@@ -18,9 +18,9 @@ FVector UFunctionLib::VecVelocity(FVector E, FVector R, FVector VecH, float Alph
     return VecHNorm.Cross(E + RNorm) * sqrt(Alpha / R.Length() / (RNorm.Dot(E) + 1));
 }
 
-float UFunctionLib::ScalarVelocitySquared(float R, float A, float Alpha)
+double UFunctionLib::ScalarVelocitySquared(double R, double A, double Alpha)
 {
-    const float AInv = A == 0. ? 0. : 1. / A;
+    const double AInv = A == 0. ? 0. : 1. / A;
     return Alpha * (2. / R - AInv);
 }
 
@@ -31,7 +31,7 @@ float UFunctionLib::ScalarVelocitySquared(float R, float A, float Alpha)
  * @param Alpha gravitational parameter
  * @return E
  */
-FVector UFunctionLib::Eccentricity(FVector R, FVector V, float Alpha)
+FVector UFunctionLib::Eccentricity(FVector R, FVector V, double Alpha)
 {
     return ((V.SquaredLength() - Alpha / R.Length()) * R - R.Dot(V) * V) / Alpha;
 }
@@ -42,7 +42,7 @@ FVector UFunctionLib::Eccentricity(FVector R, FVector V, float Alpha)
  * @param E eccentricity vector
  * @return F2
  */
-FVector UFunctionLib::FocusPoint2(float A, FVector E)
+FVector UFunctionLib::FocusPoint2(double A, FVector E)
 {
     return  -2 * A * E;
 }
@@ -55,7 +55,7 @@ FVector UFunctionLib::FocusPoint2(float A, FVector E)
  * @param Alpha gravitational parameter
  * @return a
  */
-float UFunctionLib::SemiMajorAxis(FVector VecR, FVector VecV, float Alpha)
+double UFunctionLib::SemiMajorAxis(FVector VecR, FVector VecV, double Alpha)
 {
     return 1. / (2. / VecR.Length() - VecV.SquaredLength() / Alpha);
 }
@@ -66,7 +66,7 @@ float UFunctionLib::SemiMajorAxis(FVector VecR, FVector VecV, float Alpha)
  * @param ESquared 
  * @return B
  */
-float UFunctionLib::SemiMinorAxis(float A, float ESquared)
+double UFunctionLib::SemiMinorAxis(double A, double ESquared)
 {
     return A * sqrt(1 - ESquared);
 }
@@ -77,7 +77,7 @@ float UFunctionLib::SemiMinorAxis(float A, float ESquared)
  * @param Alpha gravitational parameter
  * @return T/s
  */
-float UFunctionLib::PeriodEllipse(float a, float Alpha)
+double UFunctionLib::PeriodEllipse(double a, double Alpha)
 {
     return 2 * PI * sqrt(pow(a, 3) / Alpha);
 }
@@ -88,13 +88,13 @@ float UFunctionLib::PeriodEllipse(float a, float Alpha)
  * @param B 
  * @return Perimeter
  */
-float UFunctionLib::Perimeter(float A, float B)
+double UFunctionLib::Perimeter(double A, double B)
 {
     const auto H = pow(A - B, 2) / pow(A + B, 2);
     return PI * (A + B) * (1 + 3 * H / (10 + sqrt(4 - 3 * H)));
 }
 
-float UFunctionLib::AxialTidalForce(float R, float L, float M, float Alpha)
+double UFunctionLib::AxialTidalForce(double R, double L, double M, double Alpha)
 {
     return Alpha * L * M / (4 * pow(R, 3));
 }

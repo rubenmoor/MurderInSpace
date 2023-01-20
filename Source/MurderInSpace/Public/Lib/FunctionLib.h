@@ -77,31 +77,31 @@ class MURDERINSPACE_API UFunctionLib : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static FVector VecVelocity(FVector E, FVector R, FVector VecH, float Alpha, FVector Default);
+	static FVector VecVelocity(FVector E, FVector R, FVector VecH, double Alpha, FVector Default);
 	
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float ScalarVelocitySquared(float R, float A, float Alpha);
+	static double ScalarVelocitySquared(double R, double A, double Alpha);
 	
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static FVector Eccentricity(FVector R, FVector V, float Alpha);
+	static FVector Eccentricity(FVector R, FVector V, double Alpha);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static FVector FocusPoint2(float A, FVector E);
+	static FVector FocusPoint2(double A, FVector E);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float SemiMajorAxis(FVector VecR, FVector VecV, float Alpha);
+	static double SemiMajorAxis(FVector VecR, FVector VecV, double Alpha);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float SemiMinorAxis(float A, float ESquared);
+	static double SemiMinorAxis(double A, double ESquared);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float PeriodEllipse(float A, float Alpha);
+	static double PeriodEllipse(double A, double Alpha);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float Perimeter(float A, float B);
+	static double Perimeter(double A, double B);
 
 	UFUNCTION(BlueprintPure, Category="Orbit")
-	static float AxialTidalForce(float R, float L, float M, float Alpha);
+	static double AxialTidalForce(double R, double L, double M, double Alpha);
 
 	static constexpr int LengthSatellites = 854;
 	static inline FString Satellites[LengthSatellites] =

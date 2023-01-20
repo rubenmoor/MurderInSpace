@@ -45,7 +45,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 	
 	if(RP_bIsAccelerating && IsValid(RP_Orbit))
 	{
-		const float DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
+		const double DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
 		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics, InstanceUI, true);
 		bWasAccelerating = true;
 	}

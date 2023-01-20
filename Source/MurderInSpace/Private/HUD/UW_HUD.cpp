@@ -17,7 +17,7 @@ int32 UUW_HUD::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
                            const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
     const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry();
-    //const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
+    //const double ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
     //const FVector2D Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
 
     if(F1Marker.bShow)
@@ -89,13 +89,13 @@ void UUW_HUD::MakeCircle
     , uint32 LayerId
     , const FPaintGeometry& PG
     , const FVector2D& Center
-    , float Radius
+    , double Radius
     , float Thickness
     , ESlateDrawEffect DrawEffect
     , const FLinearColor& Tint
     )
 {
-    constexpr float C = 1.65;
+    constexpr double C = AOrbit::SplineToCircle;
     const FVector2D P1 = Center + FVector2D(-Radius, 0);
     const FVector2D T1 = FVector2D(0, -Radius) * C;
     const FVector2D P2 = Center + FVector2D(0, -Radius);
@@ -112,13 +112,13 @@ void UUW_HUD::MakeCircle
 }
 
 void UUW_HUD::MakeCircularFrame(FSlateWindowElementList& ElementList, uint32 LayerId, const FPaintGeometry& PG,
-    const FVector2D& Center, float Radius, float AngularWidth, float Thickness, ESlateDrawEffect DrawEffect, const FLinearColor& Tint)
+    const FVector2D& Center, double Radius, double AngularWidth, float Thickness, ESlateDrawEffect DrawEffect, const FLinearColor& Tint)
 {
-    constexpr float C = 1.65;
-    for(float Alpha = 45; Alpha < 360; Alpha += 90)
+    constexpr double C = AOrbit::SplineToCircle;
+    for(double Alpha = 45; Alpha < 360; Alpha += 90)
     {
-        const float AlphaStart = Alpha - AngularWidth / 2.;
-        const float AlphaEnd   = Alpha + AngularWidth / 2.;
+        const double AlphaStart = Alpha - AngularWidth / 2.;
+        const double AlphaEnd   = Alpha + AngularWidth / 2.;
         const FVector2D Start  = Center + FVector2D(Radius, 0).GetRotated(AlphaStart);
         const FVector2D End    = Center + FVector2D(Radius, 0).GetRotated(AlphaEnd);
         const FVector2D StartT = FVector2D(0, Radius).GetRotated(AlphaStart) * C * AngularWidth / 90.;

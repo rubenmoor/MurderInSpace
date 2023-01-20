@@ -80,7 +80,7 @@ protected:
 		, uint32 LayerId
 		, const FPaintGeometry& PG
 		, const FVector2D& Center
-		, float Radius
+		, double Radius
 		, float Thickness = 0
 		, ESlateDrawEffect DrawEffect = ESlateDrawEffect::None
 		, const FLinearColor& Tint = FLinearColor::White
@@ -91,8 +91,8 @@ protected:
 		, uint32 LayerId
 		, const FPaintGeometry& PG
 		, const FVector2D& Center
-		, float Radius
-		, float AngularWidth
+		, double Radius
+		, double AngularWidth
 		, float Thickness = 0
 		, ESlateDrawEffect DrawEffect = ESlateDrawEffect::None
 		, const FLinearColor& Tint = FLinearColor::White
