@@ -9,6 +9,7 @@
 #include "Logging/LogMacros.h"
 #include "Modes/MyPlayerController.h"
 #include "Modes/MyGameState.h"
+#include "Modes/MyGameInstance.h"
 #include "Net/UnrealNetwork.h"
 
 void IHasOrbit::OrbitSetup(AActor* Actor)
@@ -211,8 +212,11 @@ void AOrbit::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
     //const FPhysics Physics = GEngine->GetEngineSubsystem<UMyState>()->GetPhysicsAny(this);
-    AMyGameState* GS = GetWorld()->GetGameState<AMyGameState>();
-    const FPhysics Physics = GEngine->GetEngineSubsystem<UMyState>()->GetPhysics(GS);
+    const auto* GS = GetWorld()->GetGameState<AMyGameState>();
+    const auto* GI = GetGameInstance<UMyGameInstance>();
+    auto* MyState = GEngine->GetEngineSubsystem<UMyState>();
+    const auto Physics = MyState->GetPhysics(GS);
+    const auto InstanceUI = MyState->GetInstanceUI(GI);
     const FVector VecRKepler = GetVecRKepler(Physics);
 
     //ScalarVelocity = NextVelocity(VecRKepler.Length(), Physics.Alpha, ScalarVelocity, DeltaTime, VecVelocity.Dot(VecRKepler));
@@ -239,26 +243,35 @@ void AOrbit::Tick(float DeltaTime)
     RP_Body->SetActorLocation(NewVecRKepler + Physics.VecF1);
     
     UpdateControllParams(Physics);
+
+    if(bSplineMeshReduced)
+    {
+        // spline mesh marked for update
+        bSplineMeshNeedsUpdate = true;
+    }
+    else if(bSplineMeshNeedsUpdate)
+    {
+        Update(Physics, InstanceUI);
+    }
+    bSplineMeshReduced = false;
 }
 
 void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI, bool bReducedSplineMesh)
 {
+    bSplineMeshReduced = bReducedSplineMesh;
+    
     const FVector VecR = GetVecR();
     
     // transform location vector r to Kepler coordinates, where F1 is the origin
     const FVector VecRKepler = GetVecRKepler(Physics);
 
-    // the velocity needs recalculation to accurately reflect the current angular momentum
-    const FVector VecVNew =
-          UFunctionLib::VecVelocity(RP_Params.VecE, VecRKepler, RP_Params.VecH, Physics.Alpha, VecVelocity)
-        + DeltaVecV;
-    RP_Params.VecH = VecRKepler.Cross(VecVNew);
-    RP_Params.VecE = UFunctionLib::Eccentricity(VecRKepler, VecVNew, Physics.Alpha);
+    VecVelocity += DeltaVecV;
+    RP_Params.VecH = VecRKepler.Cross(VecVelocity);
+    RP_Params.VecE = UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Physics.Alpha);
     RP_Params.P = RP_Params.VecH.SquaredLength() / Physics.Alpha;
 
     // not necessary, as the velocity variables are set by the Tick
     // but if not set here, the editor doesn't show the current velocity
-    VecVelocity = VecVNew;
     ScalarVelocity = VecVelocity.Length();
     VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics).Length();
     RKepler = VecRKepler.Length();
@@ -273,8 +286,10 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI,
     const double E_BOUND_MIN = -Physics.Alpha / (2 * Physics.WorldRadius);
 
     // TODO testing
-    // ~~H = 0 (implies E = 1, too): falling in a straight line~~
-    if(RP_Params.Eccentricity == 1.0 && RP_Params.VecH.Length() / RKepler < 1.)
+    if  (  RP_Params.VecH.Length() / RKepler < 1.
+        && RP_Params.Eccentricity > 1.0 - EccentricityTolerance
+        && RP_Params.Eccentricity < 1.0 + EccentricityTolerance
+        )
     {
         const double EMIN = -Physics.Alpha / Physics.WorldRadius;
         const double E = VecVelocity.SquaredLength() / 2. - Physics.Alpha / RKepler;
@@ -372,7 +387,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI,
     // The total energy at R_MAX when orbiting in a circle is the bound state with energy closest to zero.
     // As long the energy is smaller than that, we can safely assume a bound state and thus an ellipse instead of
     // the parabola
-    else if(RP_Params.Eccentricity <= 1. - ParabolaTolerance || (RP_Params.Eccentricity <= 1 && RP_Params.Energy < E_BOUND_MIN))
+    else if(RP_Params.Eccentricity <= 1. - EccentricityTolerance || (RP_Params.Eccentricity <= 1 && RP_Params.Energy < E_BOUND_MIN))
     {
         std::list<FVector> Points;
         RP_Params.A = RP_Params.P / (1. - pow(RP_Params.Eccentricity, 2));
@@ -398,7 +413,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI,
             Spline->SetClosedLoop(true, false);
         }
 
-        const int IMax = 16;
+        const int IMax = 32;
         const double DeltaT = TMax / (IMax / 2);
         for(int i = 1; i < IMax / 2; i++)
         {
@@ -435,7 +450,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI,
     }
     
     // E = 1, Parabola
-    else if(RP_Params.Eccentricity <= 1. + ParabolaTolerance)
+    else if(RP_Params.Eccentricity <= 1. + EccentricityTolerance)
     {
         std::list<FVector> Points;
         const FVector VecHorizontal = VecHNorm.Cross(VecENorm);
@@ -479,18 +494,16 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI,
         std::list<FVector> Points;
         const FVector VecVertical = VecHNorm.Cross(VecENorm);
         
-        constexpr int MAX_POINTS = 16;
-        // true anomaly
-        //const double TMax = 
+        constexpr int MAX_POINTS = 32;
         
         // Periapsis
         const double Periapsis = RP_Params.P / (RP_Params.Eccentricity + 1);
-        const double DeltaR = (Physics.WorldRadius - Periapsis) / (MAX_POINTS / 2);
+        const double DeltaR = (Physics.WorldRadius - Periapsis) / (pow(MAX_POINTS / 2, 2));
         Points.emplace_front(Periapsis * VecENorm + Physics.VecF1);
         
         for(int i = 1; i <= MAX_POINTS / 2; i++)
         {
-            const double R = Periapsis + i * DeltaR;
+            const double R = Periapsis + pow(i, 2) * DeltaR;
             const double T = acos((RP_Params.P / R - 1.) / RP_Params.Eccentricity);
             const FVector VecX = R * cos(T) * VecENorm;
             const FVector VecY = R * sin(T) * VecVertical;
@@ -509,7 +522,8 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI,
                 const auto VecT = -UFunctionLib::VecVelocity(RP_Params.VecE, *IPoint, RP_Params.VecH, Physics.Alpha, FVector::Zero()).GetSafeNormal();
                 double ArriveTangentLength = (*std::prev(IPoint) - *IPoint).Length();
                 double LeaveTangentLength  = (*std::next(IPoint) - *IPoint).Length();
-                RP_SplinePoints.Emplace(InputKey, *IPoint, VecT * ArriveTangentLength, VecT * LeaveTangentLength);
+                //RP_SplinePoints.Emplace(InputKey, *IPoint, VecT * ArriveTangentLength, VecT * LeaveTangentLength);
+                RP_SplinePoints.Emplace(InputKey, *IPoint);
             }
             else
             {
@@ -560,10 +574,11 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
 void AOrbit::UpdateControllParams(FPhysics Physics)
 {
     const FVector VecRKepler = GetVecRKepler(Physics);
-    ControllParams.VecH = VecRKepler.Cross(VecVelocity);
-    ControllParams.P = ControllParams.VecH.SquaredLength() / Physics.Alpha;
-    ControllParams.Energy = pow(ScalarVelocity, 2) / 2. - Physics.Alpha / RKepler;
-    ControllParams.VecE = UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Physics.Alpha);
+    ControllParams =
+        { UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Physics.Alpha).Length()
+        , VecRKepler.Cross(VecVelocity).SquaredLength() / Physics.Alpha
+        ,pow(ScalarVelocity, 2) / 2. - Physics.Alpha / RKepler
+        };
 }
 
 void AOrbit::UpdateSplineMeshScale(double InScaleFactor)
@@ -801,7 +816,7 @@ void AOrbit::SpawnSplineMesh
                 Spline->GetLocationAtDistanceAlongSpline(Indices[i] * SplineMeshLength, ESplineCoordinateSpace::World);
             const FVector VecEndPos =
                 Spline->GetLocationAtDistanceAlongSpline(Indices[i + 1] * SplineMeshLength, ESplineCoordinateSpace::World);
-            if(bReducedSplineMesh && ((VecStartPos + VecEndPos) / 2. - GetVecR()).Length() > 10000.)
+            if(bReducedSplineMesh && ((VecStartPos + VecEndPos) / 2. - GetVecR()).Length() > 1000.)
             {
                 continue;
             }

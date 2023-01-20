@@ -9,6 +9,7 @@
 AMyPawn::AMyPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 	bNetLoadOnClient = false;
 	bReplicates = true;
 	// TODO: not sure if necessary, but not harmful either
@@ -35,7 +36,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 		, 20
 		, FColor::Yellow
 		);
-
+	
 	UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
 	const UWorld* World = GetWorld();
 	const auto* GS = World->GetGameState<AMyGameState>();
@@ -43,19 +44,23 @@ void AMyPawn::Tick(float DeltaSeconds)
 	const auto* GI = GetGameInstance<UMyGameInstance>();
 	const FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
 	
-	if(RP_bIsAccelerating && IsValid(RP_Orbit))
+	if(RP_bIsAccelerating)
 	{
 		const double DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
 		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics, InstanceUI, true);
-		bWasAccelerating = true;
 	}
-	else
+	else if(RP_bTowardsCircle)
 	{
-		if(bWasAccelerating)
+		const auto VecVCircle = RP_Orbit->GetCircleVelocity(Physics);
+		const auto VecTarget = std::copysign(1., RP_Orbit->GetVecVelocity().Dot(VecVCircle)) * VecVCircle;
+		RP_Rotation = FQuat::FindBetween(FVector(1., 0., 0.), VecTarget);
+		SetActorRotation(RP_Rotation);
+		const FVector VecDelta = VecTarget - RP_Orbit->GetVecVelocity();
+		const double DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
+		if(VecDelta.Length() > DeltaV)
 		{
-			RP_Orbit->Update(Physics, InstanceUI);
+			RP_Orbit->Update(VecDelta.GetSafeNormal() * DeltaV, Physics, InstanceUI, true);
 		}
-		bWasAccelerating = false;
 	}
 }
 
@@ -77,6 +82,20 @@ void AMyPawn::OnConstruction(const FTransform& Transform)
 		)
     {
 		OrbitSetup(this);
+    }
+}
+
+void AMyPawn::BeginPlay()
+{
+	Super::BeginPlay();
+	
+    if(GetLocalRole() == ROLE_Authority)
+    {
+        SetActorTickEnabled(true);
+    }
+    else
+    {
+        SetReadyFlags(EMyPawnReady::InternalReady);
     }
 }
 
@@ -113,6 +132,16 @@ void AMyPawn::OnRep_Orbit()
 	if(GetLocalRole() == ROLE_AutonomousProxy)
 	{
 		GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->SetReadyFlags(EHUDReady::PawnOrbitReady);
+		SetReadyFlags(EMyPawnReady::OrbitReady);
+	}
+}
+
+void AMyPawn::SetReadyFlags(EMyPawnReady ReadyFlags)
+{
+	MyPawnReady |= ReadyFlags;
+	if(MyPawnReady == EMyPawnReady::All)
+	{
+		SetActorTickEnabled(true);
 	}
 }
 
@@ -133,4 +162,5 @@ void AMyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	// in case of acceleration: full server-control: the client won't react to the key press until the action has
 	// round-tripped, i.e. there is no movement prediction
 	DOREPLIFETIME(AMyPawn, RP_bIsAccelerating)
+	DOREPLIFETIME(AMyPawn, RP_bTowardsCircle)
 }

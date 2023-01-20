@@ -5,6 +5,17 @@
 #include "GameFramework/Pawn.h"
 #include "MyPawn.generated.h"
 
+UENUM(meta=(Bitflags))
+enum class EMyPawnReady : uint8
+{
+	None          = 0,
+	InternalReady = 1 << 0,
+	OrbitReady    = 1 << 1,
+
+	All = InternalReady | OrbitReady
+};
+ENUM_CLASS_FLAGS(EMyPawnReady)
+
 UCLASS()
 class MURDERINSPACE_API AMyPawn
 	: public APawn
@@ -27,9 +38,8 @@ public:
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
     bool RP_bIsAccelerating = false;
 
-	// RP_bIsAccelerating from the last frame
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool bWasAccelerating = false;
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+    bool RP_bTowardsCircle = false;
 
     // IOrbit interface
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
@@ -37,17 +47,18 @@ public:
 	virtual AOrbit*				GetOrbit() const override { return RP_Orbit; };
 	virtual void 				SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
 	
-    UPROPERTY(ReplicatedUsing=OnRep_BodyRotation, VisibleAnywhere, BlueprintReadOnly)
+    UPROPERTY(ReplicatedUsing=OnRep_Rotation, VisibleAnywhere, BlueprintReadOnly)
     FQuat RP_Rotation;
 
     UFUNCTION()
-    void OnRep_BodyRotation() { SetActorRotation(RP_Rotation); }
+    void OnRep_Rotation() { SetActorRotation(RP_Rotation); }
 	
 protected:
     // event handlers
     
     virtual void Tick(float DeltaSeconds) override;
     virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void BeginPlay() override;
     
 #if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
@@ -71,8 +82,12 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
     FLinearColor OrbitColor;
 
+	EMyPawnReady MyPawnReady = EMyPawnReady::None;
+
 	// private methods
 
 	UFUNCTION()
 	void OnRep_Orbit();
+
+	void SetReadyFlags(EMyPawnReady ReadyFlags);
 };

@@ -99,6 +99,21 @@ struct FOrbitParameters
     double A = 0;
 };
 
+USTRUCT(BlueprintType)
+struct FControllParameters
+{
+    GENERATED_BODY()
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    double Eccentricity;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, DisplayName="P = (H * H)/MU")
+    double P;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly )
+    double Energy;
+};
+
 /*
  * all the data that makes up the orbit
  * needed for network replication
@@ -283,7 +298,7 @@ protected:
     double SplineMeshScaleFactor = 1.;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    double SplineMeshLength = 1000.0;
+    double SplineMeshLength = 100000.0;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     TObjectPtr<UStaticMesh> StaticMesh;
@@ -292,7 +307,7 @@ protected:
     FOrbitParameters RP_Params;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-    FOrbitParameters ControllParams;
+    FControllParameters ControllParams;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     double SplineDistance;
@@ -319,7 +334,11 @@ protected:
     // the bigger this value, the earlier an eccentricity approaching 1 will be interpreted as parabola orbit
     // which results in smoother orbits
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    double ParabolaTolerance = 1e-6;
+    double EccentricityTolerance = 1e-8;
+
+    //
+    bool bSplineMeshReduced     = false;
+    bool bSplineMeshNeedsUpdate = false;
     
     // private methods
 
@@ -401,5 +420,5 @@ protected:
 
     void SetReadyFlags(EOrbitReady ReadyFlags);
     
-    EOrbitReady OrbitReady;
+    EOrbitReady OrbitReady = EOrbitReady::None;
 };

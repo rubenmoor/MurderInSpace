@@ -44,7 +44,8 @@ void AMyPlayerController::SetupInputComponent()
     BindAction<EInputAction::MyTrajectoryToggle     >();
     
     // gameplay actions
-    BindAction<EInputAction::AccelerateBeginEnd>();
+    BindAction<EInputAction::TowardsCircleBeginEnd>();
+    BindAction<EInputAction::AccelerateBeginEnd   >();
 }
 
 void AMyPlayerController::Zoom(float Delta)
@@ -71,7 +72,7 @@ void AMyPlayerController::ServerRPC_LookAt_Implementation(FQuat Quat)
 {
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
     MyCharacter->RP_Rotation = Quat;
-    MyCharacter->OnRep_BodyRotation(); // replicatedUsing
+    MyCharacter->OnRep_Rotation();
 }
 
 void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Action)
@@ -83,6 +84,10 @@ void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Act
     case EInputAction::AccelerateBeginEnd:
         Orbit->ToggleIsChanging();
         MyCharacter->RP_bIsAccelerating = !MyCharacter->RP_bIsAccelerating;
+        break;
+    case EInputAction::TowardsCircleBeginEnd:
+        Orbit->ToggleIsChanging();
+        MyCharacter->RP_bTowardsCircle = !MyCharacter->RP_bTowardsCircle;
         break;
     default:
         UE_LOG
@@ -108,6 +113,7 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
         switch (Action)
         {
         case EInputAction::AccelerateBeginEnd:
+        case EInputAction::TowardsCircleBeginEnd:
             if(Orbit->bIsVisibleAccelerating)
             {
                 Orbit->bIsVisibleAccelerating = false;
@@ -187,7 +193,6 @@ void AMyPlayerController::Tick(float DeltaSeconds)
             const double Z = MyCharacter->GetActorLocation().Z;
             // TODO: physical rotation/animation instead
 
-            //MyCharacter->LookAt(FVector(X, Y, Z));
             const FVector VecP(X, Y, Z);
             
             const FVector VecMe = MyCharacter->GetActorLocation();
@@ -206,7 +211,7 @@ void AMyPlayerController::Tick(float DeltaSeconds)
                 {
                     // "movement prediction"
                     MyCharacter->RP_Rotation = Quat;
-                    MyCharacter->OnRep_BodyRotation();
+                    MyCharacter->OnRep_Rotation();
                 }
             }
             // debugging direction

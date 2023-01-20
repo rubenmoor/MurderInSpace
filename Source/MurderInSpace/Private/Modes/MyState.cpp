@@ -23,12 +23,13 @@ void UMyState::Initialize(FSubsystemCollectionBase& Collection)
 
 	InputTags.SetNumZeroed(static_cast<uint8>(EInputAction::Last) + 1);
 	
-    InputTags[static_cast<uint8>(EInputAction::AccelerateBeginEnd     )] = GTM.AddNativeGameplayTag(FName(TEXT("InputAction.AccelerateBeginEnd")));
+    InputTags[static_cast<uint8>(EInputAction::AccelerateBeginEnd     )] = GTM.AddNativeGameplayTag("InputAction.AccelerateBeginEnd");
+	InputTags[static_cast<uint8>(EInputAction::TowardsCircleBeginEnd  )] = GTM.AddNativeGameplayTag("InputAction.TowardsCircleBeginEnd");
     
-    InputTags[static_cast<uint8>(EInputAction::IngameMenuToggle       )] = GTM.AddNativeGameplayTag(FName(TEXT("InputAction.IngameMenuToggle")));
-    InputTags[static_cast<uint8>(EInputAction::MyTrajectoryShowHide   )] = GTM.AddNativeGameplayTag(FName(TEXT("InputAction.MyTrajectoryShowHide")));
-    InputTags[static_cast<uint8>(EInputAction::AllTrajectoriesShowHide)] = GTM.AddNativeGameplayTag(FName(TEXT("InputAction.AllTrajectoriesShowHide")));
-    InputTags[static_cast<uint8>(EInputAction::MyTrajectoryToggle     )] = GTM.AddNativeGameplayTag(FName(TEXT("InputAction.MyTrajectoryToggle")));
+    InputTags[static_cast<uint8>(EInputAction::IngameMenuToggle       )] = GTM.AddNativeGameplayTag("InputAction.IngameMenuToggle");
+    InputTags[static_cast<uint8>(EInputAction::MyTrajectoryShowHide   )] = GTM.AddNativeGameplayTag("InputAction.MyTrajectoryShowHide");
+    InputTags[static_cast<uint8>(EInputAction::AllTrajectoriesShowHide)] = GTM.AddNativeGameplayTag("InputAction.AllTrajectoriesShowHide");
+    InputTags[static_cast<uint8>(EInputAction::MyTrajectoryToggle     )] = GTM.AddNativeGameplayTag("InputAction.MyTrajectoryToggle");
     
     GTM.DoneAddingNativeTags();
 }
