@@ -384,10 +384,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI,
         Points.emplace_front(Vertex1);
 
         bool bEllipseIsCut;
-        // eccentric anomaly t
-        double TMax;
-        // TODO
-        // 110% instead of 100% of the world radius to avoid weird issue
+        double TMax; // eccentric anomaly t
         if(RP_Params.A * (1. + RP_Params.Eccentricity) > Physics.WorldRadius)
         {
             bEllipseIsCut = true;
@@ -425,40 +422,12 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI,
         
         RP_SplinePoints.Empty();
         RP_SplinePoints.Reserve(Points.size());
+        int InputKey = 0;
         for(std::list<FVector>::const_iterator IPoint = Points.begin(); IPoint != Points.end(); ++IPoint)
         {
-            //IPrevious = std::prev(Points.end())
-            double ArriveTangentLength = 0.;
-            if(IPoint != Points.begin())
-            {
-                ArriveTangentLength = (*std::prev(IPoint) - *IPoint).Length();
-            }
-            else if(!bEllipseIsCut)
-            {
-                //ArriveTangentLength = std::min<double>(SplineToCircle * B, (*std::prev(Points.end()) - *IPoint).Length());
-                ArriveTangentLength = (*std::prev(Points.end()) - *IPoint).Length();
-            }
-
-            double LeaveTangentLength = 0.;
-            //if(IPoint == Points.begin() && !bEllipseIsCut)
-            //{
-            //    //LeaveTangentLength = std::min<double>(SplineToCircle * B, (*std::next(IPoint) - *IPoint).Length());
-            //    LeaveTangentLength = (*std::next(IPoint) - *IPoint).Length());
-            //}
-            //else
-            if(std::next(IPoint) != Points.end())
-            {
-                LeaveTangentLength = (*std::next(IPoint) - *IPoint).Length();
-            }
-            else if(!bEllipseIsCut)
-            {
-                LeaveTangentLength = (*Points.begin() - *IPoint).Length();
-            }
-            
             const FVector P = *IPoint;
-            auto VecT = UFunctionLib::VecVelocity(RP_Params.VecE, P - Physics.VecF1, RP_Params.VecH, Physics.Alpha, FVector::Zero()).GetSafeNormal();
-            float InputKey = std::distance<std::list<FVector>::const_iterator>(Points.begin(), IPoint);
-            RP_SplinePoints.Emplace (InputKey, P, -VecT * ArriveTangentLength, -VecT * LeaveTangentLength);
+            RP_SplinePoints.Emplace (InputKey, P);
+            InputKey++;
         }
         AddPointsToSpline();
         RP_Params.OrbitType = EOrbitType::ELLIPSE;
@@ -507,99 +476,51 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI,
     // E > 1, Hyperbola
     else
     {
-        struct FMySplinePoint
-        {
-            FMySplinePoint() {}
-            FMySplinePoint(FVector InPosition) : Position(InPosition) {}
-            FMySplinePoint(FVector InPosition, FVector InArriveTangent, FVector InLeaveTangent)
-                : Position(InPosition)
-                , ArriveTangent(InArriveTangent)
-                , LeaveTangent(InLeaveTangent) 
-            {}
-            FVector Position = FVector::Zero();
-            FVector ArriveTangent = FVector::Zero();
-            FVector LeaveTangent = FVector::Zero();
-        };
-        
-        std::list<FMySplinePoint> Points;
-        const double ESquared = pow(RP_Params.Eccentricity, 2);
-        const double EReduced = sqrt(ESquared - 1);
-        RP_Params.A = RP_Params.P / (1 - ESquared); // Params.A < 0
-        const double A = -RP_Params.A; // A > 0
-        const double Periapsis = RP_Params.P / (RP_Params.Eccentricity + 1);
+        std::list<FVector> Points;
         const FVector VecVertical = VecHNorm.Cross(VecENorm);
-        const FVector VecHorizontal = -VecENorm;
-        constexpr int MAX_POINTS = 20;
-        //const double MAX = sqrt((pow(Physics.WorldRadius, 2) + (pow(Eccentricity, 2) - 1.) * pow(RP_Params.A, 2)) / pow(Eccentricity, 2));
-        //const double Delta = 2. * MAX / (pow(MAX_POINTS / 2 - 1, 3) / 3.);
-        // DeltaX value based on a steep hyperbola
-        const double DeltaX = Physics.WorldRadius / pow(2, MAX_POINTS / 2 - 2);
-        //const double DeltaY =
-        //      sqrt((pow(Physics.WorldRadius, 2) + pow(RP_Params.P, 2)) / (ESquared - 1))
-        //    / pow(2, MAX_POINTS / 2);
-        //const double Delta = std::min(DeltaX, DeltaY);
-
-        Points.emplace_front(-Periapsis * VecHorizontal + Physics.VecF1);
-        for(int i = 0; i < MAX_POINTS / 2; i++)
+        
+        constexpr int MAX_POINTS = 16;
+        // true anomaly
+        //const double TMax = 
+        
+        // Periapsis
+        const double Periapsis = RP_Params.P / (RP_Params.Eccentricity + 1);
+        const double DeltaR = (Physics.WorldRadius - Periapsis) / (MAX_POINTS / 2);
+        Points.emplace_front(Periapsis * VecENorm + Physics.VecF1);
+        
+        for(int i = 1; i <= MAX_POINTS / 2; i++)
         {
-            const double X = pow(2, i) * DeltaX;
-            const FVector VecX = X * VecHorizontal;
+            const double R = Periapsis + i * DeltaR;
+            const double T = acos((RP_Params.P / R - 1.) / RP_Params.Eccentricity);
+            const FVector VecX = R * cos(T) * VecENorm;
+            const FVector VecY = R * sin(T) * VecVertical;
 
-            const double Y = EReduced * sqrt(pow(X + A, 2) - pow(A, 2));
-            const FVector VecY = VecVertical * Y;
-
-            const FVector P1 = VecX - Periapsis * VecHorizontal + VecY + Physics.VecF1;
-            const FVector P2 = VecX - Periapsis * VecHorizontal - VecY + Physics.VecF1;
-
-            if(i == 0)
-            {
-                // tangent slope is EReduces/-EReduced, respectively
-                const FVector VecF1Norm = (VecHorizontal + EReduced * VecVertical) / RP_Params.Eccentricity;
-                const FVector VecF2Norm = (VecHorizontal - EReduced * VecVertical) / RP_Params.Eccentricity;
-                
-                // base change matrix from (VecHorizontal, VecVertical) to (F1, F2)
-                const FMatrix2x2 BaseChange = FMatrix2x2
-                    ( RP_Params.Eccentricity / 2., RP_Params.Eccentricity / 2.
-                    , RP_Params.Eccentricity / 2. / EReduced, -RP_Params.Eccentricity / 2. / EReduced);
-                
-                const FVector2D FA = BaseChange.TransformVector(FVector2D(A + X, Y));
-                const FVector TangentA = (VecF1Norm * FA.X - VecF2Norm * FA.Y).GetSafeNormal() * (VecX + VecY).Length() / 2.;
-                Points.emplace_back (P1, TangentA, TangentA);
-
-                const FVector2D FB = BaseChange.TransformVector(FVector2D(A + X, -Y));
-                const FVector TangentB = (VecF1Norm * FB.X - VecF2Norm * FB.Y).GetSafeNormal() * (VecX + VecY).Length() / 2.;
-                Points.emplace_front(P2, TangentB * 2., TangentB);
-            }
-            else
-            {
-                Points.emplace_back(P1);
-                Points.emplace_front(P2);
-            }
-            if(P1.Length() > Physics.WorldRadius)
-            {
-                break;
-            }
+            Points.emplace_front(VecX + VecY + Physics.VecF1);
+            Points.emplace_back(VecX - VecY + Physics.VecF1);
         }
 
         RP_SplinePoints.Empty();
         RP_SplinePoints.Reserve(Points.size());
-        const int32 NumPoints = Points.size();
-        for(int i = 0; i < NumPoints; i++)
+        int InputKey = 0;
+        for(std::list<FVector>::const_iterator IPoint = Points.begin(); IPoint != Points.end(); ++IPoint)
         {
-            FMySplinePoint Point = Points.front();
-            if(Point.ArriveTangent.IsZero())
+            if(abs(InputKey - MAX_POINTS / 2) == 1)
             {
-                RP_SplinePoints.Emplace(i, Point.Position);
+                const auto VecT = -UFunctionLib::VecVelocity(RP_Params.VecE, *IPoint, RP_Params.VecH, Physics.Alpha, FVector::Zero()).GetSafeNormal();
+                double ArriveTangentLength = (*std::prev(IPoint) - *IPoint).Length();
+                double LeaveTangentLength  = (*std::next(IPoint) - *IPoint).Length();
+                RP_SplinePoints.Emplace(InputKey, *IPoint, VecT * ArriveTangentLength, VecT * LeaveTangentLength);
             }
             else
             {
-                RP_SplinePoints.Emplace(i, Point.Position, Point.ArriveTangent, Point.LeaveTangent);
+                RP_SplinePoints.Emplace(InputKey, *IPoint);
             }
-            Points.pop_front();
+            InputKey++;
         }
         AddPointsToSpline();
 
         Spline->SetClosedLoop(false, false);
+        RP_Params.A = RP_Params.P / (1 - pow(RP_Params.Eccentricity, 2)); // Params.A < 0
         RP_Params.OrbitType = EOrbitType::HYPERBOLA;
         RP_Params.Period = 0;
     }
