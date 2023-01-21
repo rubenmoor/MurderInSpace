@@ -778,8 +778,6 @@ void AOrbit::SpawnSplineMesh
     , bool bReducedSplineMesh
     )
 {
-    const int nIndices = static_cast<int>(round(Spline->GetSplineLength() / SplineMeshLength));
-
     if(!StaticMesh)
     {
         UE_LOG
@@ -800,80 +798,69 @@ void AOrbit::SpawnSplineMesh
         )
         return;
     }
-    
-    if(nIndices >= 2)
+
+    std::vector<int32> Indices(Spline->GetNumberOfSplinePoints());
+    std::iota(Indices.begin(), Indices.end(), 0);
+    if(Spline->IsClosedLoop() && RP_Params.OrbitType != EOrbitType::LINEBOUND)
     {
-        std::vector<int> Indices(nIndices);
-        std::iota(Indices.begin(), Indices.end(), 0);
+        Indices.push_back(0);
+    }
 
-        if(Spline->IsClosedLoop() && RP_Params.OrbitType != EOrbitType::LINEBOUND)
+    for(int32 i = 0; i < Indices.size() - 1; i++)
+    {
+        const FVector VecStartPos = Spline->GetLocationAtSplinePoint(Indices[i], ESplineCoordinateSpace::World);
+        const FVector VecEndPos = Spline->GetLocationAtSplinePoint(Indices[i + 1], ESplineCoordinateSpace::World);
+        if(bReducedSplineMesh && ((VecStartPos + VecEndPos) / 2. - GetVecR()).Length() > 1000.)
         {
-            Indices.push_back(0);
+            continue;
         }
-        for(int i = 0; i < Indices.size() - 1; i++)
+        
+        USceneComponent* Parent = nullptr;
+        switch(ParentSelector)
         {
-            const FVector VecStartPos =
-                Spline->GetLocationAtDistanceAlongSpline(Indices[i] * SplineMeshLength, ESplineCoordinateSpace::World);
-            const FVector VecEndPos =
-                Spline->GetLocationAtDistanceAlongSpline(Indices[i + 1] * SplineMeshLength, ESplineCoordinateSpace::World);
-            if(bReducedSplineMesh && ((VecStartPos + VecEndPos) / 2. - GetVecR()).Length() > 1000.)
-            {
-                continue;
-            }
-            
-            USceneComponent* Parent = nullptr;
-            switch(ParentSelector)
-            {
-            case ESplineMeshParentSelector::Temporary:
-                Parent = TemporarySplineMeshParent;
-                break;
-            case ESplineMeshParentSelector::Permanent:
-                Parent = SplineMeshParent;
-                break;
-            }
-            
-            USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(this);
-            
-            SplineMesh->SetMobility(EComponentMobility::Stationary);
-            SplineMesh->SetVisibility(GetVisibility(InstanceUI));
-            
-            // if I dont register here, the spline mesh doesn't render
-            SplineMesh->RegisterComponent();
-            // in theory, I could use `SetupAttachment` and then `RegisterComponent`
-            // in practice, that messes up the location (i.e. it moves the spline mesh)
-            // and the spline meshes do not show up with their correct names in the editor
-            SplineMesh->AttachToComponent(Parent, FAttachmentTransformRules::KeepWorldTransform);
-            // if I don't add instance here, the spline meshes don't show in the component list in the editor
-            AddInstanceComponent(SplineMesh);
-
-            SplineMesh->CastShadow = false;
-            SplineMesh->SetStaticMesh(StaticMesh);
-
-            UMaterialInstanceDynamic* DynamicMaterial =
-                SplineMesh->CreateDynamicMaterialInstance(0, SplineMeshMaterial);
-            DynamicMaterial->SetVectorParameterValue("StripesColor", Color);
-
-            const FVector VecStartDirection =
-                Spline->GetTangentAtDistanceAlongSpline
-                    ( Indices[i] * SplineMeshLength
-                    , ESplineCoordinateSpace::World
-                    ).GetUnsafeNormal() * SplineMeshLength;
-            const FVector VecEndDirection =
-                Spline->GetTangentAtDistanceAlongSpline
-                    ( Indices[i + 1] * SplineMeshLength
-                    , ESplineCoordinateSpace::World
-                    ).GetUnsafeNormal() * SplineMeshLength;
-            SplineMesh->SetStartAndEnd
-                ( VecStartPos
-                , VecStartDirection
-                , VecEndPos
-                , VecEndDirection
-                , false
-                );
-            SplineMesh->SetStartScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
-            SplineMesh->SetEndScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
-            SplineMesh->UpdateMesh();
+        case ESplineMeshParentSelector::Temporary:
+            Parent = TemporarySplineMeshParent;
+            break;
+        case ESplineMeshParentSelector::Permanent:
+            Parent = SplineMeshParent;
+            break;
         }
+        
+        USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(this);
+        
+        SplineMesh->SetMobility(EComponentMobility::Stationary);
+        SplineMesh->SetVisibility(GetVisibility(InstanceUI));
+        
+        // if I dont register here, the spline mesh doesn't render
+        SplineMesh->RegisterComponent();
+        // in theory, I could use `SetupAttachment` and then `RegisterComponent`
+        // in practice, that messes up the location (i.e. it moves the spline mesh)
+        // and the spline meshes do not show up with their correct names in the editor
+        SplineMesh->AttachToComponent(Parent, FAttachmentTransformRules::KeepWorldTransform);
+        // if I don't add instance here, the spline meshes don't show in the component list in the editor
+        AddInstanceComponent(SplineMesh);
+
+        SplineMesh->CastShadow = false;
+        SplineMesh->SetStaticMesh(StaticMesh);
+
+        UMaterialInstanceDynamic* DynamicMaterial =
+            SplineMesh->CreateDynamicMaterialInstance(0, SplineMeshMaterial);
+        DynamicMaterial->SetVectorParameterValue("StripesColor", Color);
+
+        const FVector VecStartDirection =
+            Spline->GetTangentAtSplinePoint(Indices[i], ESplineCoordinateSpace::World);
+        const FVector VecEndDirection =
+            Spline->GetTangentAtSplinePoint(Indices[i + 1], ESplineCoordinateSpace::World);
+        SplineMesh->SetStartAndEnd
+            ( VecStartPos
+            , VecStartDirection
+            , VecEndPos
+            , VecEndDirection
+            , false
+            );
+        SplineMesh->SetStartScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
+        SplineMesh->SetEndScale(SplineMeshScaleFactor * FVector2D::UnitVector, false);
+        SplineMesh->UpdateMesh();
     }
 }
 
