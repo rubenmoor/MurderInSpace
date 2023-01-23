@@ -846,6 +846,7 @@ void AOrbit::SpawnSplineMesh
         UMaterialInstanceDynamic* DynamicMaterial =
             SplineMesh->CreateDynamicMaterialInstance(0, SplineMeshMaterial);
         DynamicMaterial->SetVectorParameterValue("StripesColor", Color);
+        DynamicMaterial->SetScalarParameterValue("StripesLength", 500. + UFunctionLib::VelocityInfinity(RP_Params.Energy));
 
         const FVector VecStartDirection =
             Spline->GetTangentAtSplinePoint(Indices[i], ESplineCoordinateSpace::World);

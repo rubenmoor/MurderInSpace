@@ -291,7 +291,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     bool bTrajectoryShowSpline = false;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Kepler")
     TObjectPtr<UMaterial> SplineMeshMaterial;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
@@ -300,7 +300,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     double SplineMeshLength = 100000.0;
     
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Kepler")
     TObjectPtr<UStaticMesh> StaticMesh;
 
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Kepler")

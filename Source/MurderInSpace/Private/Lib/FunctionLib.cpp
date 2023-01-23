@@ -24,6 +24,11 @@ double UFunctionLib::ScalarVelocitySquared(double R, double A, double Alpha)
     return Alpha * (2. / R - AInv);
 }
 
+double UFunctionLib::VelocityInfinity(double E)
+{
+    return E > 0. ? sqrt(2 * E) : 0.;
+}
+
 /**
  * @brief eccentricity of elliptic Kepler orbit
  * @param R location vector

@@ -126,7 +126,7 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
                     ( MyCharacter->GetTempSplineMeshColor()
                     , ESplineMeshParentSelector::Temporary
                     , InstanceUI
-                    , true
+                    , false
                     );
                 Orbit->bIsVisibleAccelerating = true;
                 Orbit->UpdateVisibility(InstanceUI);

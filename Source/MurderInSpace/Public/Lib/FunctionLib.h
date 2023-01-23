@@ -81,6 +81,11 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static double ScalarVelocitySquared(double R, double A, double Alpha);
+
+	// the velocity at r=inf, or "excess velocity"
+	// when the trajectory is bound, the excess velocity is undefined
+	UFUNCTION(BlueprintPure, Category="Orbit")
+	static double VelocityInfinity(double E);
 	
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static FVector Eccentricity(FVector R, FVector V, double Alpha);
