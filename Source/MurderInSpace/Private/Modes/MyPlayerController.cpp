@@ -8,11 +8,11 @@
 #include "EnhancedInputSubsystems.h"
 #include "Actors/MyCharacter.h"
 #include "Actors/GyrationComponent.h"
-#include "GameFramework/PawnMovementComponent.h"
 #include "HUD/MyHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
 #include "Modes/MyGameInstance.h"
+#include "Modes/MyGameState.h"
 #include "Modes/MyLocalPlayer.h"
 #include "Modes/MySessionManager.h"
 
@@ -225,18 +225,16 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
 
+    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
+    const auto* GI = GetGameInstance<UMyGameInstance>();
+    const auto* GS = GetWorld()->GetGameState<AMyGameState>();
+    const auto InstanceUI = MyState->GetInstanceUI(GI);
+    const auto Physics = MyState->GetPhysics(GS);
     AOrbit* MyOrbit = Cast<IHasOrbit>(InPawn)->GetOrbit();
 
-    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-    MyState->WithInstanceUI(this, [this, MyState, MyOrbit] (FInstanceUI InstanceUI)
-    {
-        MyState->WithPhysics(this, [MyOrbit, InstanceUI] (FPhysics Physics)
-        {
-            MyOrbit->SetInitialParams(MyOrbit->GetCircleVelocity(Physics), Physics);
-            MyOrbit->SetEnableVisibility(true);
-            MyOrbit->Update(Physics, InstanceUI);
-        });
-    });
+    MyOrbit->SetInitialParams(MyOrbit->GetCircleVelocity(Physics), Physics);
+    MyOrbit->SetEnableVisibility(true);
+    MyOrbit->Update(Physics, InstanceUI);
     
     for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
     {
