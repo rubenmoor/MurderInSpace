@@ -27,16 +27,16 @@ struct FHostSessionConfig
 	FString CustomName;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 NumMaxPlayers;
+	int32 NumMaxPlayers = 0;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bPrivate;
+	bool bPrivate = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool bEnableLAN;
+	bool bEnableLAN = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	EGameMode GameMode;
+	EGameMode GameMode = EGameMode::Coop;
 };
 
 /**

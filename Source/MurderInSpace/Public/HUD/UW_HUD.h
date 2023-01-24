@@ -23,7 +23,7 @@ struct FF1Marker
 
 	// screen coordinates
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FVector2D Coords;
+	FVector2D Coords = FVector2D::Zero();
 };
 
 /**

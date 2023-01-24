@@ -18,6 +18,11 @@ class MURDERINSPACE_API AMyGameState : public AGameState
 	GENERATED_BODY()
 
 	friend class UMyState;
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bEnableGyration = true;
+	
 protected:
 
 	// game world parameters to be edited in blueprint and to be used in game

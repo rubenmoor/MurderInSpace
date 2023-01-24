@@ -72,31 +72,31 @@ struct FOrbitParameters
     GENERATED_BODY()
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    EOrbitType OrbitType;
+    EOrbitType OrbitType = EOrbitType::CIRCLE;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly )
-    FVector VecE;
+    FVector VecE = FVector::Zero();
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    double Eccentricity;
+    double Eccentricity = 0.;
 
     // specific angular momentum
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, DisplayName="H = r x v")
-    FVector VecH;
+    FVector VecH = FVector::Zero();
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, DisplayName="P = (H * H)/MU")
-    double P;
+    double P = 0.;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly )
-    double Energy;
+    double Energy = 0.;
     
     // period in s
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    double Period;
+    double Period = 0.;
 
     // semi-major axis of elliptic orbit
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    double A = 0;
+    double A = 0.;
 };
 
 USTRUCT(BlueprintType)
@@ -105,13 +105,13 @@ struct FControllParameters
     GENERATED_BODY()
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    double Eccentricity;
+    double Eccentricity = 0.;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, DisplayName="P = (H * H)/MU")
-    double P;
+    double P = 0.;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly )
-    double Energy;
+    double Energy = 0.;
 };
 
 /*
@@ -126,7 +126,7 @@ struct FOrbitState
     // TODO: check if we need to replicate VecR
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    double SplineDistance;
+    double SplineDistance = 0.;
 };
 
 UCLASS()

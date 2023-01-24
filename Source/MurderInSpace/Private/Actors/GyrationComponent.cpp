@@ -4,6 +4,7 @@
 #include "Actors/GyrationComponent.h"
 
 #include "Actors/IHasMesh.h"
+#include "Modes/MyGameState.h"
 #include "Modes/MyState.h"
 #include "Net/UnrealNetwork.h"
 
@@ -11,6 +12,7 @@ UGyrationComponent::UGyrationComponent()
 {
 	SetIsReplicatedByDefault(true);
 	PrimaryComponentTick.bCanEverTick = true;
+	UActorComponent::SetComponentTickEnabled(false);
 }
 
 void UGyrationComponent::FreezeState()
@@ -26,6 +28,9 @@ void UGyrationComponent::FreezeState()
 void UGyrationComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	const auto* GS = GetWorld()->GetGameState<AMyGameState>();
+	SetComponentTickEnabled(GS->bEnableGyration);
 
 	// TODO: meshes connected with sockets
 	VecInertia = GetOwner<IHasMesh>()->GetMesh()->GetInertiaTensor();
