@@ -124,9 +124,6 @@ struct FOrbitState
     GENERATED_BODY()
 
     // TODO: check if we need to replicate VecR
-    
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    double SplineDistance = 0.;
 };
 
 UCLASS()
@@ -234,7 +231,7 @@ public:
     UFUNCTION(BlueprintCallable)
     void FreezeOrbitState()
     {
-        RP_OrbitState = { SplineDistance };
+        // TODO: testing
     }
 
     UFUNCTION(BlueprintCallable)
@@ -308,9 +305,6 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     FControllParameters ControllParams;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-    double SplineDistance;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     FVector VecVelocity = FVector::Zero();
