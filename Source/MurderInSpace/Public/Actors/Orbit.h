@@ -157,7 +157,6 @@ public:
         ( FVector DeltaVecV
         , FPhysics Physics
         , FInstanceUI InstanceUI
-        , bool bReducedSplineMesh = false
         );
 
     void Update(FPhysics Physics, FInstanceUI InstanceUI);
@@ -170,7 +169,6 @@ public:
         ( FLinearColor Color
         , ESplineMeshParentSelector ParentSelector
         , FInstanceUI InstanceUI
-        , bool bReducedSplineMesh
         );
     
     // user interface
@@ -330,10 +328,6 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     double EccentricityTolerance = 1e-8;
 
-    //
-    bool bSplineMeshReduced     = false;
-    bool bSplineMeshNeedsUpdate = false;
-    
     // private methods
 
     // server calls 'Initialize' in 'BeginPlay'

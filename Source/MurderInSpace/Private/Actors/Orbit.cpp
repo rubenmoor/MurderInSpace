@@ -211,42 +211,51 @@ void AOrbit::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    //const FPhysics Physics = GEngine->GetEngineSubsystem<UMyState>()->GetPhysicsAny(this);
     const auto* GS = GetWorld()->GetGameState<AMyGameState>();
     const auto* GI = GetGameInstance<UMyGameInstance>();
     auto* MyState = GEngine->GetEngineSubsystem<UMyState>();
     const auto Physics = MyState->GetPhysics(GS);
-    const auto InstanceUI = MyState->GetInstanceUI(GI);
     const FVector VecRKepler = GetVecRKepler(Physics);
 
-    const FVector NewVecRKepler = VecRKepler + VecVelocity * DeltaTime
-        + pow(DeltaTime, 2) * Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetSafeNormal();
-    VecVelocity = (NewVecRKepler - VecRKepler) / DeltaTime;
+    FVector NewVecRKepler;
+    if(RKepler < 100.)
+    {
+        // newtonian motion isn't stable here because of the 1/r potential
+        NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(
+            Spline->GetDistanceAlongSplineAtSplineInputKey(
+                Spline->FindInputKeyClosestToWorldLocation(
+                    VecRKepler           
+                    )
+                ) + ScalarVelocity * DeltaTime
+            , ESplineCoordinateSpace::World
+            );
+        VecVelocity =UFunctionLib::VecVelocity
+            ( RP_Params.VecE
+            , NewVecRKepler
+            , RP_Params.VecH
+            , Physics.Alpha
+            , (NewVecRKepler - VecRKepler) / DeltaTime // not accurate
+            );
+    }
+    else
+    {
+        // newtonian motion
+        NewVecRKepler = VecRKepler + VecVelocity * DeltaTime
+            + pow(DeltaTime, 2) * Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetSafeNormal();
+        VecVelocity = (NewVecRKepler - VecRKepler) / DeltaTime;
+    }
+    
     ScalarVelocity = VecVelocity.Length();
     VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics).Length();
-    
     RKepler = NewVecRKepler.Length();
     
     RP_Body->SetActorLocation(NewVecRKepler + Physics.VecF1);
     
     UpdateControllParams(Physics);
-
-    if(bSplineMeshReduced)
-    {
-        // spline mesh marked for update
-        bSplineMeshNeedsUpdate = true;
-    }
-    else if(bSplineMeshNeedsUpdate)
-    {
-        Update(Physics, InstanceUI);
-    }
-    bSplineMeshReduced = false;
 }
 
-void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI, bool bReducedSplineMesh)
+void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
 {
-    bSplineMeshReduced = bReducedSplineMesh;
-    
     const FVector VecR = GetVecR();
     
     // transform location vector r to Kepler coordinates, where F1 is the origin
@@ -539,7 +548,6 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI,
             ( Cast<IHasOrbitColor>(RP_Body)->GetOrbitColor()
             , ESplineMeshParentSelector::Permanent
             , InstanceUI
-            , bReducedSplineMesh
             );
     }
 }
@@ -753,7 +761,6 @@ void AOrbit::SpawnSplineMesh
     ( FLinearColor Color
     , ESplineMeshParentSelector ParentSelector
     , FInstanceUI InstanceUI
-    , bool bReducedSplineMesh
     )
 {
     if(!StaticMesh)
@@ -788,10 +795,6 @@ void AOrbit::SpawnSplineMesh
     {
         const FVector VecStartPos = Spline->GetLocationAtSplinePoint(Indices[i], ESplineCoordinateSpace::World);
         const FVector VecEndPos = Spline->GetLocationAtSplinePoint(Indices[i + 1], ESplineCoordinateSpace::World);
-        if(bReducedSplineMesh && ((VecStartPos + VecEndPos) / 2. - GetVecR()).Length() > 1000.)
-        {
-            continue;
-        }
         
         USceneComponent* Parent = nullptr;
         switch(ParentSelector)

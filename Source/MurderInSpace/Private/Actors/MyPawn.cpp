@@ -47,7 +47,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 	if(RP_bIsAccelerating)
 	{
 		const double DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
-		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics, InstanceUI, false);
+		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics, InstanceUI);
 	}
 	else if(RP_bTowardsCircle)
 	{
@@ -59,7 +59,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 		const double DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
 		if(VecDelta.Length() > DeltaV)
 		{
-			RP_Orbit->Update(VecDelta.GetSafeNormal() * DeltaV, Physics, InstanceUI, false);
+			RP_Orbit->Update(VecDelta.GetSafeNormal() * DeltaV, Physics, InstanceUI);
 		}
 	}
 }
