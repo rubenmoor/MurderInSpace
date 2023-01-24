@@ -229,30 +229,32 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     const auto* GS = GetWorld()->GetGameState<AMyGameState>();
     const auto InstanceUI = MyState->GetInstanceUI(GI);
     const auto Physics = MyState->GetPhysics(GS);
-    AOrbit* MyOrbit = Cast<IHasOrbit>(InPawn)->GetOrbit();
+    AOrbit* Orbit = Cast<IHasOrbit>(InPawn)->GetOrbit();
 
-    const FVector VecR = MyOrbit->GetVecR();
-    const FVector VecV = MyOrbit->GetCircleVelocity(Physics);
-    MyOrbit->SetInitialParams(VecV, Physics);
-    MyOrbit->SetEnableVisibility(true);
-    MyOrbit->Update(Physics, InstanceUI);
-    
-    for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
+    const FVector VecV = Orbit->GetCircleVelocity(Physics);
+    Orbit->SetInitialParams(VecV, Physics);
+    Orbit->SetEnableVisibility(true);
+    Orbit->Update(Physics, InstanceUI);
+
+    if(InPawn->GetRemoteRole() == ROLE_AutonomousProxy)
     {
-        (*IOrbit)->FreezeOrbitState();
-    }
-    
-    // freeze gyration state for all existing gyration components for replication (condition: initial only)
-    auto FilterGyrations = [this, InPawn] (const UGyrationComponent* Gyration) -> bool
-    {
-        const AMyPawn* Owner = Gyration->GetOwner<AMyPawn>();
-        return GetWorld() == Gyration->GetWorld()
-            // exclude the gyration of `InPawn`
-            && (Owner != InPawn);
-    };
-    for(TMyObjectIterator<UGyrationComponent> IGyration(FilterGyrations); IGyration; ++IGyration)
-    {
-        (*IGyration)->FreezeState();
+        for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
+        {
+            (*IOrbit)->FreezeOrbitState();
+        }
+        
+        // freeze gyration state for all existing gyration components for replication (condition: initial only)
+        auto FilterGyrations = [this, InPawn] (const UGyrationComponent* Gyration) -> bool
+        {
+            const AMyPawn* Owner = Gyration->GetOwner<AMyPawn>();
+            return GetWorld() == Gyration->GetWorld()
+                // exclude the gyration of `InPawn`
+                && (Owner != InPawn);
+        };
+        for(TMyObjectIterator<UGyrationComponent> IGyration(FilterGyrations); IGyration; ++IGyration)
+        {
+            (*IGyration)->FreezeState();
+        }
     }
 }
 

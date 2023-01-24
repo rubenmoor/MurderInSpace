@@ -123,7 +123,11 @@ struct FOrbitState
 {
     GENERATED_BODY()
 
-    // TODO: check if we need to replicate VecR
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    FVector VecR = FVector::Zero();
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    FVector VecVelocity = FVector::Zero();
 };
 
 UCLASS()
@@ -229,7 +233,7 @@ public:
     UFUNCTION(BlueprintCallable)
     void FreezeOrbitState()
     {
-        // TODO: testing
+        RP_OrbitState = { VecVelocity, GetVecR() };
     }
 
     UFUNCTION(BlueprintCallable)
@@ -257,8 +261,6 @@ protected:
     virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 #endif
 
-    virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
-    
 	// components
 
     // TODO
@@ -298,8 +300,8 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Kepler")
     TObjectPtr<UStaticMesh> StaticMesh;
 
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-    FOrbitParameters RP_Params;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
+    FOrbitParameters Params;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     FControllParameters ControllParams;
@@ -347,10 +349,10 @@ protected:
     void CorrectSplineLocation();
     
     UFUNCTION(BlueprintCallable)
-    FOrbitParameters GetParams() const { return RP_Params; };
+    FOrbitParameters GetParams() const { return Params; };
     
     // add spline points, in world coordinates, to the spline
-    // and to the array `RP_SplinePoints`, for replication
+    // and to the array `SplinePoints`, for replication
     // however: this one only corrects for the translation, not for rotation and scale
     // as long as we don't scale or rotate the spline, this is fine
     UFUNCTION(BlueprintCallable)
@@ -373,9 +375,11 @@ protected:
     UFUNCTION()
     void OnRep_Body();
 
-    UPROPERTY(ReplicatedUsing=OnRep_SplinePoints)
-    TArray<FSplinePoint> RP_SplinePoints;
+    // TODO delete
+    UPROPERTY()
+    TArray<FSplinePoint> SplinePoints;
 
+    // TODO delete
     UFUNCTION()
     void OnRep_SplinePoints()
     {
@@ -383,13 +387,14 @@ protected:
         Spline->UpdateSpline();
     }
 
-    UPROPERTY(ReplicatedUsing=OnRep_bClosedLoop)
-    bool RP_bClosedLoop;
+    // TODO: delete
+    UPROPERTY(VisibleAnywhere)
+    bool bClosedLoop;
 
     UFUNCTION()
     void OnRep_bClosedLoop()
     {
-        Spline->SetClosedLoop(RP_bClosedLoop, true);
+        Spline->SetClosedLoop(bClosedLoop, true);
     }
 
     // server only
