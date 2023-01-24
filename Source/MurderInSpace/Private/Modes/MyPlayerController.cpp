@@ -233,15 +233,6 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 
     const FVector VecR = MyOrbit->GetVecR();
     const FVector VecV = MyOrbit->GetCircleVelocity(Physics);
-    UE_LOG
-        ( LogMyGame
-        , Error
-        , TEXT("%s: OnPossess, Physics.ScaleFactor: %f, GetVecR: (%f, %f, %f), CircleVelocity: (%f, %f, %f)")
-        , *GetFullName()
-        , Physics.ScaleFactor
-        , VecR.X, VecR.Y, VecR.Z
-        , VecV.X, VecV.Y, VecV.Z
-        )
     MyOrbit->SetInitialParams(VecV, Physics);
     MyOrbit->SetEnableVisibility(true);
     MyOrbit->Update(Physics, InstanceUI);

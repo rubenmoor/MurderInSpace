@@ -79,10 +79,11 @@ AOrbit::AOrbit()
     Root = CreateDefaultSubobject<USceneComponent>("Root");
     //Root->SetMobility(EComponentMobility::Stationary);
     SetRootComponent(Root);
-    
+
     Spline = CreateDefaultSubobject<USplineComponent>("Orbit");
     //Spline->SetMobility(EComponentMobility::Stationary);
     Spline->SetupAttachment(Root);
+    Spline->SetIsReplicated(true);
 
     SplineMeshParent = CreateDefaultSubobject<USceneComponent>("SplineMeshes");
     SplineMeshParent->SetupAttachment(Root);
@@ -742,18 +743,12 @@ void AOrbit::SetInitialParams(FVector VecV, FPhysics Physics)
 {
     // store initial position of orbit body
     VecRZero = GetVecR();
-    
-    RP_Params.VecH = GetVecRKepler(Physics).Cross(VecV);
-    RP_Params.VecE = VecV.Cross(RP_Params.VecH) / Physics.Alpha - GetVecRKepler(Physics).GetSafeNormal();
+    VecVelocity = VecV;   
 }
 
 void AOrbit::UpdateVisibility(const FInstanceUI& InstanceUI)
 {
     const bool bVisibility = GetVisibility(InstanceUI);
-    if(bVisibility)
-    {
-        CorrectSplineLocation();
-    }
     SplineMeshParent->SetVisibility(bVisibility, true);
 }
 
