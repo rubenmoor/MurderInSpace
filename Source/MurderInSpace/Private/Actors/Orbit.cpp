@@ -10,6 +10,7 @@
 #include "Modes/MyPlayerController.h"
 #include "Modes/MyGameState.h"
 #include "Modes/MyGameInstance.h"
+#include "MyComponents/MyCollisionComponent.h"
 #include "Net/UnrealNetwork.h"
 
 void IHasOrbit::OrbitSetup(AActor* Actor)
@@ -77,21 +78,21 @@ AOrbit::AOrbit()
     AActor::SetReplicateMovement(false);
     
     Root = CreateDefaultSubobject<USceneComponent>("Root");
-    //Root->SetMobility(EComponentMobility::Stationary);
+    Root->SetMobility(EComponentMobility::Stationary);
     SetRootComponent(Root);
 
     Spline = CreateDefaultSubobject<USplineComponent>("Orbit");
-    //Spline->SetMobility(EComponentMobility::Stationary);
+    Spline->SetMobility(EComponentMobility::Stationary);
     Spline->SetupAttachment(Root);
     Spline->SetIsReplicated(true);
 
     SplineMeshParent = CreateDefaultSubobject<USceneComponent>("SplineMeshes");
     SplineMeshParent->SetupAttachment(Root);
-    //SplineMeshParent->SetMobility(EComponentMobility::Stationary);
+    SplineMeshParent->SetMobility(EComponentMobility::Stationary);
 
     TemporarySplineMeshParent = CreateDefaultSubobject<USceneComponent>("TemporarySplineMeshes");
     TemporarySplineMeshParent->SetupAttachment(Root);
-    //TemporarySplineMeshParent->SetMobility(EComponentMobility::Stationary);
+    TemporarySplineMeshParent->SetMobility(EComponentMobility::Stationary);
 }
 
 void AOrbit::DestroyTempSplineMeshes()
@@ -252,8 +253,20 @@ void AOrbit::Tick(float DeltaTime)
     ScalarVelocity = VecVelocity.Length();
     VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics).Length();
     RKepler = NewVecRKepler.Length();
-    
-    RP_Body->SetActorLocation(NewVecRKepler + Physics.VecF1);
+    FVector NewVecR = NewVecRKepler + Physics.VecF1;
+
+    if(RP_Body->Implements<UHasMesh>() && RP_Body->Implements<UHasCollision>())
+    {
+        FHitResult HitResult;
+        auto* PrimitiveComponent = Cast<IHasMesh>(RP_Body)->GetMesh();
+        PrimitiveComponent->SetWorldLocation(NewVecR, true, &HitResult);
+        if(HitResult.bBlockingHit)
+        {
+            Cast<IHasCollision>(RP_Body)->GetCollisionComponent()->HandleHit(HitResult);
+        }
+        PrimitiveComponent->SetRelativeLocation(FVector::Zero());
+    }
+    RP_Body->SetActorLocation(NewVecR);
     
     UpdateControllParams(Physics);
 }

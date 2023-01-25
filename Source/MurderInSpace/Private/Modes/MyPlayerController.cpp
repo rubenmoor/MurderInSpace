@@ -7,7 +7,7 @@
 
 #include "EnhancedInputSubsystems.h"
 #include "Actors/MyCharacter.h"
-#include "Actors/GyrationComponent.h"
+#include "MyComponents/GyrationComponent.h"
 #include "HUD/MyHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"

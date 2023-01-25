@@ -5,8 +5,10 @@
 #include "CoreMinimal.h"
 #include "IHasMesh.h"
 #include "Orbit.h"
+#include "MyComponents/MyCollisionComponent.h"
 #include "MyActor_StaticMesh.generated.h"
 
+class UGyrationComponent;
 /**
  * 
  */
@@ -16,6 +18,7 @@ class MURDERINSPACE_API AMyActor_StaticMesh final
 	, public IHasMesh
 	, public IHasOrbit
 	, public IHasOrbitColor
+	, public IHasCollision
 {
 	GENERATED_BODY()
 
@@ -27,9 +30,11 @@ public:
 	virtual FLinearColor         GetOrbitColor()  override { return OrbitColor;   }
 	virtual AOrbit*				 GetOrbit() const override { return RP_Orbit; };
 	virtual void 				 SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
+	virtual UMyCollisionComponent* GetCollisionComponent() override { return Collision; }
 	
 protected:
 	// event handlers
+	//virtual void BeginPlay() override;
 	virtual void Destroyed() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 #if WITH_EDITOR
@@ -45,7 +50,10 @@ protected:
 	TObjectPtr<UStaticMeshComponent> StaticMesh;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    TObjectPtr<class UGyrationComponent> Gyration;
+    TObjectPtr<UGyrationComponent> Gyration;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UMyCollisionComponent> Collision;
 
 	// members
 	

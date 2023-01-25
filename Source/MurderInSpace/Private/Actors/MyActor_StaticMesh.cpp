@@ -1,9 +1,6 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Actors/MyActor_StaticMesh.h"
 
-#include "Actors/GyrationComponent.h"
+#include "MyComponents/GyrationComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AMyActor_StaticMesh::AMyActor_StaticMesh()

@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Actors/GyrationComponent.h"
+#include "MyComponents/GyrationComponent.h"
 
 #include "Actors/IHasMesh.h"
 #include "Modes/MyGameState.h"
