@@ -260,7 +260,7 @@ void AOrbit::Tick(float DeltaTime)
         FHitResult HitResult;
         auto* PrimitiveComponent = Cast<IHasMesh>(RP_Body)->GetMesh();
         PrimitiveComponent->SetWorldLocation(NewVecR, true, &HitResult);
-        if(HitResult.bBlockingHit)
+        if(HitResult.bBlockingHit && HitResult.GetActor()->Implements<UHasCollision>())
         {
             Cast<IHasCollision>(RP_Body)->GetCollisionComponent()->HandleHit(HitResult);
         }

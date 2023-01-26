@@ -26,10 +26,10 @@ class MURDERINSPACE_API AMyActor_StaticMesh final
 
 public:
 	virtual UPrimitiveComponent* GetMesh()  const override { return StaticMesh; }
-	virtual TSubclassOf<AOrbit>  GetOrbitClass()  override { return OrbitClass;   }
-	virtual FLinearColor         GetOrbitColor()  override { return OrbitColor;   }
-	virtual AOrbit*				 GetOrbit() const override { return RP_Orbit; };
-	virtual void 				 SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
+	virtual TSubclassOf<AOrbit>  GetOrbitClass()  override { return OrbitClass; }
+	virtual FLinearColor         GetOrbitColor()  override { return OrbitColor; }
+	virtual AOrbit*				 GetOrbit() const override { return RP_Orbit; }
+	virtual void 				 SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; }
 	virtual UMyCollisionComponent* GetCollisionComponent() override { return Collision; }
 	
 protected:

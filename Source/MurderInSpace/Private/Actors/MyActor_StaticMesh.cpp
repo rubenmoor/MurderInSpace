@@ -1,6 +1,7 @@
 #include "Actors/MyActor_StaticMesh.h"
 
 #include "MyComponents/GyrationComponent.h"
+#include "MyComponents/MyCollisionComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AMyActor_StaticMesh::AMyActor_StaticMesh()
@@ -17,6 +18,7 @@ AMyActor_StaticMesh::AMyActor_StaticMesh()
     StaticMesh->SetupAttachment(Root);
     
     Gyration = CreateDefaultSubobject<UGyrationComponent>("Gyration");
+    Collision = CreateDefaultSubobject<UMyCollisionComponent>("Collision");
 }
 
 void AMyActor_StaticMesh::Destroyed()

@@ -10,19 +10,11 @@
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_MyActor_StaticMesh.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_MyActor_StaticMesh.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_Rock.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_Rock.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockCylindric.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_RockCylindric.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/SM_Rock.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/SM_Rock.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/SM_RockCylindric.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/SM_RockCylindric.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/SM_RockFlat.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/SM_RockFlat.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/GyrationComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyComponents/GyrationComponent.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor_StaticMesh.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor_StaticMesh.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/GyrationComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/MyComponents/GyrationComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyComponents/MyCollisionComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyComponents/MyCollisionComponent.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyActor_StaticMesh.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyActor_StaticMesh.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -425,6 +417,7 @@
       <workItem from="1674569412016" duration="9182000" />
       <workItem from="1674592939044" duration="7815000" />
       <workItem from="1674655426827" duration="13854000" />
+      <workItem from="1674746628507" duration="13605000" />
     </task>
     <servers />
   </component>
