@@ -54,7 +54,6 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
             return;
         }
 
-        UE_LOG(LogMyGame, Warning, TEXT("%s: going to spawn orbit"), *Actor->GetFullName())
         FActorSpawnParameters Params;
         Params.CustomPreSpawnInitalization = [Actor] (AActor* ActorOrbit)
         {
@@ -62,7 +61,6 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
         };
         AOrbit* NewOrbit = Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
         SetOrbit(NewOrbit);
-        UE_LOG(LogMyGame, Warning, TEXT("%s: orbit spawned: %s"), *Actor->GetFullName(), *NewOrbit->GetFullName())
     }
 }
 
@@ -142,12 +140,15 @@ void AOrbit::Initialize()
     if(RP_Body->GetLocalRole() == ROLE_AutonomousProxy)
     {
         Cast<AMyCharacter>(RP_Body)->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->SetReadyFlags(EHUDReady::OrbitReady);
-        if(!RP_OrbitState.VecR.IsZero())
-        {
-            VecVelocity = RP_OrbitState.VecVelocity;
-            RP_Body->SetActorLocation(RP_OrbitState.VecR);
-        }
     }
+    if(GetLocalRole() < ROLE_Authority)
+    {
+        // by the time of initialization, the 'RP_OrbitState' has been replicated
+        // even if this weren't the case, this code doesn't do any harm
+        VecVelocity = RP_OrbitState.VecVelocity;
+        RP_Body->SetActorLocation(RP_OrbitState.VecR);
+    }
+    
     // make sure the orbit has the game physics, instead of the editor default physics from construction
     Update(Physics, InstanceUI);
 
@@ -703,11 +704,17 @@ void AOrbit::SetReadyFlags(EOrbitReady ReadyFlags)
 
 void AOrbit::OnRep_OrbitState()
 {
+    // if this orbit hasn't been initialized yet, we leave everything to 'Initialize' which always happens
+    // after the first round of replication
     if(bIsInitialized)
     {
         VecVelocity = RP_OrbitState.VecVelocity;
         RP_Body->SetActorLocation(RP_OrbitState.VecR);
 
+        UE_LOG(LogMyGame, Warning
+            , TEXT("%s: OnRep_OrbitState, bIsInitialized true: OrbitState.VecVelocity (%f, %f, %f), OrbitState.VecR (%f, %f, %f)")
+            , *GetFullName(), RP_OrbitState.VecVelocity.X, RP_OrbitState.VecVelocity.Y, RP_OrbitState.VecVelocity.Z
+            , RP_OrbitState.VecR.X, RP_OrbitState.VecR.Y, RP_OrbitState.VecR.Y)
         UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
         const auto* GI = GetGameInstance<UMyGameInstance>();
         const auto* GS = GetWorld()->GetGameState<AMyGameState>();

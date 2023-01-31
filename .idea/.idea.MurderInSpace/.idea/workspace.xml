@@ -10,12 +10,11 @@
   <component name="ChangeListManager">
     <list default="true" id="56300ee5-d319-477c-8951-cf31c3e99435" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MurderInSpace/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_Rock.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Actors/Asteroids/BP_Rock.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/Spacefootball.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor_StaticMesh.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/MyActor_StaticMesh.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyComponents/MyCollisionComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Private/MyComponents/MyCollisionComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyActor_StaticMesh.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/MyActor_StaticMesh.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/Orbit.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MurderInSpace/Public/Actors/Orbit.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -417,7 +416,9 @@
       <workItem from="1674569412016" duration="9182000" />
       <workItem from="1674592939044" duration="7815000" />
       <workItem from="1674655426827" duration="13854000" />
-      <workItem from="1674746628507" duration="13605000" />
+      <workItem from="1674746628507" duration="15624000" />
+      <workItem from="1675097932786" duration="1286000" />
+      <workItem from="1675171397999" duration="5444000" />
     </task>
     <servers />
   </component>
@@ -455,23 +456,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp</url>
-          <line>262</line>
+          <line>263</line>
           <option name="timeStamp" value="14" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp</url>
-          <line>707</line>
-          <option name="timeStamp" value="15" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Actors/Orbit.cpp</url>
-          <line>146</line>
-          <option name="timeStamp" value="16" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/MurderInSpace/Private/Modes/MyPlayerController.cpp</url>
-          <line>231</line>
-          <option name="timeStamp" value="17" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

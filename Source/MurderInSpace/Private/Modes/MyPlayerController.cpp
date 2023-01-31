@@ -236,7 +236,8 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     Orbit->SetEnableVisibility(true);
     Orbit->Update(Physics, InstanceUI);
 
-    if(InPawn->GetRemoteRole() == ROLE_AutonomousProxy)
+    // exclude the case of the server-player possessing their pawn
+    if(!InPawn->IsLocallyControlled())
     {
         for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
         {

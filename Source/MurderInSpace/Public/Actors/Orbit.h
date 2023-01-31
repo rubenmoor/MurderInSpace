@@ -233,7 +233,7 @@ public:
     UFUNCTION(BlueprintCallable)
     void FreezeOrbitState()
     {
-        RP_OrbitState = { VecVelocity, GetVecR() };
+        RP_OrbitState = { GetVecR(), VecVelocity};
     }
 
     UFUNCTION(BlueprintCallable)

@@ -25,30 +25,25 @@ void UMyCollisionComponent::HandleHit(const FHitResult& HitResult)
 	auto* Orbit2 = Cast<IHasOrbit>(Other)->GetOrbit();
 	const FVector VecV1 = Orbit1->GetVecVelocity();
 	const FVector VecV2 = Orbit2->GetVecVelocity();
-	// TODO: mass of asteroids
-	// 'GetMass' requires simulate physics
+	// TODO: use PhysicsMaterial for mass density
 	const double M1 = pow(GetOwner<IHasMesh>()->GetMesh()->GetLocalBounds().SphereRadius, 3);
 	const double M2 = pow(Cast<IHasMesh>(HitResult.GetActor())->GetMesh()->GetLocalBounds().SphereRadius, 3);
-	// velocity of the center of mass
-	const FVector VecVCoM = (M1 * VecV1 + M2 * VecV2) / (M1 + M2);
 	// the idea is to subtract the CoM velocity to make sure that u1 and u2 are on plane with the normal,
 	// I am not sure about that, however
-	const FVector VecU1 = VecV1 - VecVCoM;
-	const FVector VecU2 = VecV2 - VecVCoM;
-
 	// new base vectors: VecN, VecO
 	const FVector VecN = HitResult.Normal;
 	// U1 = Alpha1 * VecN + Beta1 * VecO
-	const double Alpha1 = VecU1.Dot(VecN);
-	const FVector VecU1O = VecU1 - Alpha1 * VecN;
-	const double Alpha2 = VecU2.Dot(VecN);
-	const FVector VecU2O = VecU2 - Alpha2 * VecN;
+	const double Alpha1 = VecV1.Dot(VecN);
+	const FVector VecU1O = VecV1 - Alpha1 * VecN;
+	const double Alpha2 = VecV2.Dot(VecN);
+	const FVector VecU2O = VecV2 - Alpha2 * VecN;
 
 	const double UBar = (M1 * Alpha1 + M2 * Alpha2) / (M1 + M2);
+	// TODO: use PhysicsMaterial for k value, e.g. k = std::min(1., k1 + k2)
 	double K = 0.5;
 	// partially elastic collision, k in [0, 1] where k = 0 is plastic and k = 1 elastic collision, respectively
-	const FVector VecW1 = (UBar - M2 * (Alpha1 - Alpha2) / (M1 + M2) * K) * VecN + VecU1O + VecVCoM;
-	const FVector VecW2 = (UBar - M1 * (Alpha2 - Alpha1) / (M1 + M2) * K) * VecN + VecU2O + VecVCoM;
+	const FVector VecW1 = (UBar - M2 * (Alpha1 - Alpha2) / (M1 + M2) * K) * VecN + VecU1O;
+	const FVector VecW2 = (UBar - M1 * (Alpha2 - Alpha1) / (M1 + M2) * K) * VecN + VecU2O;
 
 	auto* MyState = GEngine->GetEngineSubsystem<UMyState>();
 	auto* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
