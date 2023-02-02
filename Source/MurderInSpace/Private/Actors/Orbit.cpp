@@ -705,16 +705,12 @@ void AOrbit::SetReadyFlags(EOrbitReady ReadyFlags)
 void AOrbit::OnRep_OrbitState()
 {
     // if this orbit hasn't been initialized yet, we leave everything to 'Initialize' which always happens
-    // after the first round of replication
+    // after the first round of replication, because 'Initialize' waits for 'OnRep_Body' via 'SetReady'
     if(bIsInitialized)
     {
         VecVelocity = RP_OrbitState.VecVelocity;
         RP_Body->SetActorLocation(RP_OrbitState.VecR);
 
-        UE_LOG(LogMyGame, Warning
-            , TEXT("%s: OnRep_OrbitState, bIsInitialized true: OrbitState.VecVelocity (%f, %f, %f), OrbitState.VecR (%f, %f, %f)")
-            , *GetFullName(), RP_OrbitState.VecVelocity.X, RP_OrbitState.VecVelocity.Y, RP_OrbitState.VecVelocity.Z
-            , RP_OrbitState.VecR.X, RP_OrbitState.VecR.Y, RP_OrbitState.VecR.Y)
         UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
         const auto* GI = GetGameInstance<UMyGameInstance>();
         const auto* GS = GetWorld()->GetGameState<AMyGameState>();

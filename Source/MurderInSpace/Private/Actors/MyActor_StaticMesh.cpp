@@ -1,5 +1,10 @@
 #include "Actors/MyActor_StaticMesh.h"
 
+#include "GeometryCollection/GeometryCollectionComponent.h"
+#include "GeometryCollection/GeometryCollectionEngineConversion.h"
+#include "GeometryCollection/GeometryCollectionProximityUtility.h"
+#include "GeometryCollection/GeometryCollectionUtility.h"
+#include "GeometryCollection/GeometryCollectionObject.h"
 #include "MyComponents/GyrationComponent.h"
 #include "MyComponents/MyCollisionComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -16,6 +21,10 @@ AMyActor_StaticMesh::AMyActor_StaticMesh()
     
     StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
     StaticMesh->SetupAttachment(Root);
+
+	GeometryCollection = CreateDefaultSubobject<UGeometryCollectionComponent>("GeometryCollection");
+	GeometryCollection->SetupAttachment(Root);
+	GeometryCollection->SetSimulatePhysics(false);
     
     Gyration = CreateDefaultSubobject<UGyrationComponent>("Gyration");
     Collision = CreateDefaultSubobject<UMyCollisionComponent>("Collision");
@@ -33,13 +42,11 @@ void AMyActor_StaticMesh::Destroyed()
 void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
+
+	ensureMsgf(GetLocalRole() < ROLE_Authority, TEXT("%s: OnConstruction while Role < Authority"), *GetFullName());
 	
     if  (
-		// Only the server spawns orbits
-    	   GetLocalRole()        == ROLE_Authority
-    	   
-		// avoid orbit spawning when editing and compiling blueprint
-		&& GetWorld()->WorldType != EWorldType::EditorPreview
+		GetWorld()->WorldType != EWorldType::EditorPreview
 		
 		// avoid orbit spawning when dragging an actor with orbit into the viewport at first
 		// The preview actor that is created doesn't have a valid location
@@ -50,6 +57,39 @@ void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
     {
 		OrbitSetup(this);
     }
+	
+	// setup geometry collection component
+	// TODO: check if world check is necessary
+	//if(GetWorld()->WorldType != EWorldType::EditorPreview)
+	
+	FSoftObjectPath SourcePath(StaticMesh->GetStaticMesh());
+	decltype(FGeometryCollectionSource::SourceMaterial) SourceMaterials(StaticMesh->GetMaterials());
+	// TODO: what is `RestCollection`?
+	UGeometryCollection* FracturedGeometryCollection = GeometryCollection->EditRestCollection().GetRestCollection();
+	const FTransform ComponentTransform(StaticMesh->GetComponentTransform());
+	FracturedGeometryCollection->GeometrySource.Add(
+		{ SourcePath
+		, ComponentTransform
+		, SourceMaterials
+		});
+	FGeometryCollectionEngineConversion::AppendStaticMesh
+		( StaticMesh->GetStaticMesh()
+		, SourceMaterials
+		, ComponentTransform
+		, FracturedGeometryCollection
+		, false
+		, false
+		, false
+		);
+	FracturedGeometryCollection->InitializeMaterials();
+	// TODO: check if necessary
+	//UFractureActionTool::AddSingleRootNodeIfRequired
+	GeometryCollection->MarkRenderStateDirty();
+	//::GeometryCollection::GenerateTemporaryGuids
+	//	( FracturedGeometryCollection->GetGeometryCollection().Get()
+	//	, 0, true);
+	//FGeometryCollectionProximityUtility ProximityUtility(FracturedGeometryCollection->GetGeometryCollection().Get());
+	//ProximityUtility.UpdateProximity();
 }
 
 void AMyActor_StaticMesh::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

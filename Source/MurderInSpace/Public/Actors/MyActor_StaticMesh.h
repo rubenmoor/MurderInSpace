@@ -8,6 +8,7 @@
 #include "MyComponents/MyCollisionComponent.h"
 #include "MyActor_StaticMesh.generated.h"
 
+class UGeometryCollectionComponent;
 class UGyrationComponent;
 /**
  * 
@@ -49,6 +50,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> StaticMesh;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UGeometryCollectionComponent> GeometryCollection;
+	
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UGyrationComponent> Gyration;
 
