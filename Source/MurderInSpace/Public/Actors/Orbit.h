@@ -130,6 +130,24 @@ struct FOrbitState
     FVector VecVelocity = FVector::Zero();
 };
 
+/*
+ * 
+ */
+USTRUCT(BlueprintType)
+struct FInitialParams
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    EOrbitType OrbitType;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool bHPositive = true;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    FVector VecEccentricity;
+};
+
 UCLASS()
 class MURDERINSPACE_API AOrbit final : public AActor
 {

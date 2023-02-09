@@ -832,7 +832,7 @@ void AOrbit::SpawnSplineMesh
             break;
         }
         
-        USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(this);
+        TWeakObjectPtr<USplineMeshComponent> SplineMesh = NewObject<USplineMeshComponent>(this);
         
         SplineMesh->SetMobility(EComponentMobility::Stationary);
         SplineMesh->SetVisibility(GetVisibility(InstanceUI));
@@ -844,7 +844,7 @@ void AOrbit::SpawnSplineMesh
         // and the spline meshes do not show up with their correct names in the editor
         SplineMesh->AttachToComponent(Parent, FAttachmentTransformRules::KeepWorldTransform);
         // if I don't add instance here, the spline meshes don't show in the component list in the editor
-        AddInstanceComponent(SplineMesh);
+        AddInstanceComponent(SplineMesh.Get());
 
         SplineMesh->CastShadow = false;
         SplineMesh->SetStaticMesh(StaticMesh);

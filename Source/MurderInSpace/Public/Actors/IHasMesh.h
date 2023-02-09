@@ -14,4 +14,5 @@ class IHasMesh
     
 public:
     virtual UPrimitiveComponent* GetMesh() const = 0;
+    virtual float GetMyMass() const = 0;
 };

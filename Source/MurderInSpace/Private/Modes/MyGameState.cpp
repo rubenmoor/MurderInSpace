@@ -45,8 +45,9 @@ void AMyGameState::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prope
 	{
 		for(TMyObjectIterator<AOrbit> IOrbit; IOrbit; ++IOrbit)
 		{
-			//(*IOrbit)->SetInitialParams(RP_Physics);
-			(*IOrbit)->Update(RP_Physics, InstanceUIEditorDefault);
+			auto* Orbit = *IOrbit;
+            Orbit->SetInitialParams(Orbit->GetCircleVelocity(RP_Physics), RP_Physics);
+			Orbit->Update(RP_Physics, InstanceUIEditorDefault);
 		}
 	}
 }

@@ -106,8 +106,9 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 			) * (1. / Theta);
 	const FMatrix MatExp = FMatrix::Identity + BNorm * sin(Theta * DeltaTime) + BNorm * BNorm * (1. - cos(Theta * DeltaTime));
 	const FMatrix MatRNew = MatExp * MatROld;
-	
-	Body->SetWorldRotation(MatRNew.ToQuat());
+
+	FHitResult HitResult;
+	Body->SetWorldRotation(MatRNew.ToQuat(), true, &HitResult);
 	L = RP_VecL.Length();
 	E = VecOmega.Dot(RP_VecL) * 0.5;
 }

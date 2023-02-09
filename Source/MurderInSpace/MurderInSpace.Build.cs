@@ -20,11 +20,14 @@ public class MurderInSpace : ModuleRules
 			});
 
 		PrivateDependencyModuleNames.AddRange(new []
-			{ "EnhancedInput"
+			{ "Chaos"
+			, "EnhancedInput"
 			, "GameplayTags"
 			, "OnlineSubsystem"
 			, "OnlineSubsystemNull"
 			, "OnlineSubsystemUtils"
+			, "PlanarCut"
+			, "Voronoi"
 			, "Slate"
 			, "SlateCore"
 			, "GeometryCollectionEngine"

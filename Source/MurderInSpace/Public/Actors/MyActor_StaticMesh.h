@@ -26,10 +26,11 @@ class MURDERINSPACE_API AMyActor_StaticMesh final
 	AMyActor_StaticMesh();
 
 public:
-	virtual UPrimitiveComponent* GetMesh()  const override { return StaticMesh; }
-	virtual TSubclassOf<AOrbit>  GetOrbitClass()  override { return OrbitClass; }
-	virtual FLinearColor         GetOrbitColor()  override { return OrbitColor; }
-	virtual AOrbit*				 GetOrbit() const override { return RP_Orbit; }
+	virtual UPrimitiveComponent* GetMesh()   const override { return StaticMesh; }
+	virtual float                GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
+	virtual TSubclassOf<AOrbit>  GetOrbitClass()   override { return OrbitClass;   }
+	virtual FLinearColor         GetOrbitColor()   override { return OrbitColor;   }
+	virtual AOrbit*				 GetOrbit() const  override { return RP_Orbit;     }
 	virtual void 				 SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; }
 	virtual UMyCollisionComponent* GetCollisionComponent() override { return Collision; }
 	
@@ -69,4 +70,13 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
     FLinearColor OrbitColor;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bGeometryCollectionSetupDone = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	float MyMass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	float MyMassOverride = 0.;
 };

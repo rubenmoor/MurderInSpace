@@ -16,6 +16,12 @@ UMyCollisionComponent::UMyCollisionComponent()
 
 void UMyCollisionComponent::HandleHit(const FHitResult& HitResult)
 {
+	if(HitResult.bStartPenetrating)
+	{
+		UE_LOG(LogMyGame, Warning, TEXT("%s: bStartPenetrating, correcting position"), *GetFullName())
+		GetOwner()->SetActorLocation(GetOwner()->GetActorLocation() + HitResult.Normal * HitResult.PenetrationDepth * 1.1);
+		return;
+	}
 	// Normal is based on the object that was swept, 'ImpactNormal' is based on the object that was hit
 	// Still, both are the same unless the object that was hit has a collision shape that isn't sphere or plane
 	// In case two non-capsule shapes collide, I don't know what the value of 'Normal' would be
@@ -26,8 +32,8 @@ void UMyCollisionComponent::HandleHit(const FHitResult& HitResult)
 	const FVector VecV1 = Orbit1->GetVecVelocity();
 	const FVector VecV2 = Orbit2->GetVecVelocity();
 	// TODO: use PhysicsMaterial for mass density
-	const double M1 = pow(GetOwner<IHasMesh>()->GetMesh()->GetLocalBounds().SphereRadius, 3);
-	const double M2 = pow(Cast<IHasMesh>(HitResult.GetActor())->GetMesh()->GetLocalBounds().SphereRadius, 3);
+	const double M1 = GetOwner<IHasMesh>()->GetMyMass();
+	const double M2 = Cast<IHasMesh>(HitResult.GetActor())->GetMyMass();
 	// the idea is to subtract the CoM velocity to make sure that u1 and u2 are on plane with the normal,
 	// I am not sure about that, however
 	// new base vectors: VecN, VecO
@@ -40,7 +46,8 @@ void UMyCollisionComponent::HandleHit(const FHitResult& HitResult)
 
 	const double UBar = (M1 * Alpha1 + M2 * Alpha2) / (M1 + M2);
 	// TODO: use PhysicsMaterial for k value, e.g. k = std::min(1., k1 + k2)
-	double K = 0.5;
+	//double K = 0.5;
+	double K = 1.;
 	// partially elastic collision, k in [0, 1] where k = 0 is plastic and k = 1 elastic collision, respectively
 	const FVector VecW1 = (UBar - M2 * (Alpha1 - Alpha2) / (M1 + M2) * K) * VecN + VecU1O;
 	const FVector VecW2 = (UBar - M1 * (Alpha2 - Alpha1) / (M1 + M2) * K) * VecN + VecU2O;

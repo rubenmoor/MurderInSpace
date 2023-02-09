@@ -67,7 +67,7 @@ void AMyCharacter::UpdateSpringArm(uint8 CameraPosition)
 	// TODO: maybe missing an orbit component?
 	for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
 	{
-		(*IOrbit)->UpdateSplineMeshScale(Length / 1000.);
+		(*IOrbit)->UpdateSplineMeshScale(sqrt(Length) / 100.);
 	}
 }
 

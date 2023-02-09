@@ -18,6 +18,7 @@ public:
 	AMyPawn_SkeletalMesh();
 
 	virtual UPrimitiveComponent* GetMesh() const override final { return SkeletalMesh; }
+	virtual float GetMyMass() const override { return pow(SkeletalMesh->Bounds.SphereRadius, 3); }
 	
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
