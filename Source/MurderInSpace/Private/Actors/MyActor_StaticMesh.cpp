@@ -32,6 +32,12 @@ AMyActor_StaticMesh::AMyActor_StaticMesh()
     Collision = CreateDefaultSubobject<UMyCollisionComponent>("Collision");
 }
 
+void AMyActor_StaticMesh::BeginPlay()
+{
+    Super::BeginPlay();
+    GeometryCollection->SetVisibility(false);
+}
+
 void AMyActor_StaticMesh::Destroyed()
 {
     Super::Destroyed();

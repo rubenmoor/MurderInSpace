@@ -145,17 +145,23 @@ void AOrbit::Initialize()
     {
         Cast<AMyCharacter>(RP_Body)->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->SetReadyFlags(EHUDReady::OrbitReady);
     }
-    if(GetLocalRole() < ROLE_Authority)
+    if(GetLocalRole() == ROLE_Authority)
+    {
+        // for the server, the initial params are valid
+        UpdateByInitialParams(Physics, InstanceUI);
+    }
+    else
     {
         // by the time of initialization, the 'RP_OrbitState' has been replicated
         // even if this weren't the case, this code doesn't do any harm
         VecVelocity = RP_OrbitState.VecVelocity;
         RP_Body->SetActorLocation(RP_OrbitState.VecR);
+        
+        // make sure the orbit has the game physics, instead of the editor default physics from construction
+        // the initial params aren't valid anymore, when there have been interaction before this client joined
+        Update(Physics, InstanceUI);
     }
     
-    // make sure the orbit has the game physics, instead of the editor default physics from construction
-    Update(Physics, InstanceUI);
-
     bIsInitialized = true;
     SetActorTickEnabled(true);
 }

@@ -27,7 +27,7 @@ class UMyCollisionComponent : public UActorComponent
 public:	
 	UMyCollisionComponent();
 
-	void HandleHit(const FHitResult& HitResult);
+	void HandleHit(FHitResult& HitResult);
 protected:
 	// event handlers
 

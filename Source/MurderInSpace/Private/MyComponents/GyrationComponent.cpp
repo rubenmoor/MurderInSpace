@@ -107,8 +107,11 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	const FMatrix MatExp = FMatrix::Identity + BNorm * sin(Theta * DeltaTime) + BNorm * BNorm * (1. - cos(Theta * DeltaTime));
 	const FMatrix MatRNew = MatExp * MatROld;
 
-	FHitResult HitResult;
-	Body->SetWorldRotation(MatRNew.ToQuat(), true, &HitResult);
+	//FHitResult HitResult;
+	// sweeping isn't implemented for rotation
+	// instead I deal with hits in AOrbit::Tick, where translation happens
+	//Body->SetWorldRotation(MatRNew.ToQuat(), true, HitResult);
+	Body->SetWorldRotation(MatRNew.ToQuat());
 	L = RP_VecL.Length();
 	E = VecOmega.Dot(RP_VecL) * 0.5;
 }

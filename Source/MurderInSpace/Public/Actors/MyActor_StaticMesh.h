@@ -36,7 +36,7 @@ public:
 	
 protected:
 	// event handlers
-	//virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
 	virtual void Destroyed() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 #if WITH_EDITOR

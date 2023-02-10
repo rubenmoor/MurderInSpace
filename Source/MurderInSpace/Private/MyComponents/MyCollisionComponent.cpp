@@ -14,13 +14,26 @@ UMyCollisionComponent::UMyCollisionComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UMyCollisionComponent::HandleHit(const FHitResult& HitResult)
+void UMyCollisionComponent::HandleHit(FHitResult& HitResult)
 {
 	if(HitResult.bStartPenetrating)
 	{
-		UE_LOG(LogMyGame, Warning, TEXT("%s: bStartPenetrating, correcting position"), *GetFullName())
-		GetOwner()->SetActorLocation(GetOwner()->GetActorLocation() + HitResult.Normal * HitResult.PenetrationDepth * 1.1);
-		return;
+		// TODO: deal with hit results due to rotation here
+		UE_LOG(LogMyGame, Warning, TEXT("%s: bStartPenetrating, correcting position and hitting again"), *GetFullName())
+		auto* PrimitiveComponent = Cast<IHasMesh>(GetOwner())->GetMesh();
+		PrimitiveComponent->SetRelativeLocation(-HitResult.Normal * HitResult.PenetrationDepth * 1.1);
+		PrimitiveComponent->SetRelativeLocation(FVector::Zero(), true, &HitResult);
+		// I don't know why, yet: treating the bStartPenetrating case like a hit, doesn't seem to work
+		if(!HitResult.bBlockingHit)
+		{
+			UE_LOG(LogMyGame, Error, TEXT("%s: bStartPenetrating, no hit after correction"), *GetFullName())
+			return;
+		}
+		else if(HitResult.bStartPenetrating)
+		{
+			UE_LOG(LogMyGame, Error, TEXT("%s: bStartPenetrating, start penetrating after correction"), *GetFullName())
+			return;
+		}
 	}
 	// Normal is based on the object that was swept, 'ImpactNormal' is based on the object that was hit
 	// Still, both are the same unless the object that was hit has a collision shape that isn't sphere or plane
@@ -53,10 +66,10 @@ void UMyCollisionComponent::HandleHit(const FHitResult& HitResult)
 	const FVector VecW2 = (UBar - M1 * (Alpha2 - Alpha1) / (M1 + M2) * K) * VecN + VecU2O;
 
 	auto* MyState = GEngine->GetEngineSubsystem<UMyState>();
-	auto* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
-	auto* GS = GetWorld()->GetGameState<AMyGameState>();
-	FPhysics Physics = MyState->GetPhysics(GS);
-	FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
+	const auto* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
+	const auto* GS = GetWorld()->GetGameState<AMyGameState>();
+	const FPhysics Physics = MyState->GetPhysics(GS);
+	const FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
 	Orbit1->Update(VecW1 - VecV1, Physics, InstanceUI);
 	Orbit2->Update(VecW2 - VecV2, Physics, InstanceUI);
 }

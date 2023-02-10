@@ -231,10 +231,8 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     const auto Physics = MyState->GetPhysics(GS);
     AOrbit* Orbit = Cast<IHasOrbit>(InPawn)->GetOrbit();
 
-    const FVector VecV = Orbit->GetCircleVelocity(Physics);
-    Orbit->SetVelocity(VecV, Physics);
     Orbit->SetEnableVisibility(true);
-    Orbit->Update(Physics, InstanceUI);
+    Orbit->SetInitialParams(FVector::Zero(), FVector(0., 0., 1.));
 
     // exclude the case of the server-player possessing their pawn
     if(!InPawn->IsLocallyControlled())
