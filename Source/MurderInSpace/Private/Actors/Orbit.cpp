@@ -38,13 +38,17 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
 
     if(IsValid(GetOrbit()))
     {
-        if(GetOrbit()->GetVecR() != GetOrbit()->GetVecRZero())
+        // this only ever gets executed when creating objects in the editor (and dragging them around)
+        if(!GetOrbit()->bInitialParamsSet)
         {
-            // this only ever gets executed when creating objects in the editor (and dragging them around)
-            GetOrbit()->SetInitialParams(GetOrbit()->GetCircleVelocity(Physics), Physics);
+            // initialize circle
+            GetOrbit()->SetInitialParams
+                ( FVector::Zero()
+                , FVector(0., 0., 1.)
+                );
             GetOrbit()->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
-            GetOrbit()->Update(Physics, InstanceUI);
         }
+        GetOrbit()->UpdateByInitialParams(Physics, InstanceUI);
     }
     else
     {
@@ -269,7 +273,7 @@ void AOrbit::Tick(float DeltaTime)
     }
     RP_Body->SetActorLocation(NewVecR);
     
-    UpdateControllParams(Physics);
+    UpdateControlParams(Physics);
 }
 
 void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
@@ -299,6 +303,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
     // the energy of the weakest bound state: a circular orbit at R_MAX
     const double E_BOUND_MIN = -Physics.Alpha / (2 * Physics.WorldRadius);
 
+    // e = 1, orbit: line bound and line unbound
     // TODO testing
     if  (  Params.VecH.Length() / RKepler < 1.
         && Params.Eccentricity > 1.0 - EccentricityTolerance
@@ -397,7 +402,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
     // The total energy at R_MAX when orbiting in a circle is the bound state with energy closest to zero.
     // As long the energy is smaller than that, we can safely assume a bound state and thus an ellipse instead of
     // the parabola
-    else if(Params.Eccentricity <= 1. - EccentricityTolerance || (Params.Eccentricity <= 1 && Params.Energy < E_BOUND_MIN))
+    else if(Params.Eccentricity <= 1. - EccentricityTolerance || (Params.Eccentricity <= 1. && Params.Energy < E_BOUND_MIN))
     {
         std::list<FVector> Points;
         Params.A = Params.P / (1. - pow(Params.Eccentricity, 2));
@@ -575,10 +580,10 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
     Update(FVector::Zero(), Physics, InstanceUI);
 }
 
-void AOrbit::UpdateControllParams(FPhysics Physics)
+void AOrbit::UpdateControlParams(FPhysics Physics)
 {
     const FVector VecRKepler = GetVecRKepler(Physics);
-    ControllParams =
+    ControlParams =
         { UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Physics.Alpha).Length()
         , VecRKepler.Cross(VecVelocity).SquaredLength() / Physics.Alpha
         ,pow(ScalarVelocity, 2) / 2. - Physics.Alpha / RKepler
@@ -769,11 +774,50 @@ void AOrbit::HandleClick(AActor*, FKey Button)
     }
 }
 
-void AOrbit::SetInitialParams(FVector VecV, FPhysics Physics)
+void AOrbit::SetInitialParams(FVector VecEccentricity, FVector VecHNorm)
 {
-    // store initial position of orbit body
-    VecRZero = GetVecR();
-    VecVelocity = VecV;   
+    EOrbitType OrbitType;
+    const double E = VecEccentricity.Length();
+    if(VecEccentricity.GetSafeNormal().IsZero())
+    {
+        OrbitType = EOrbitType::CIRCLE;
+    }
+    else if(VecHNorm.IsZero())
+    {
+        OrbitType = EOrbitType::LINEBOUND;
+    }
+    else if(E <= 1. - EccentricityTolerance)
+    {
+        OrbitType = EOrbitType::ELLIPSE;
+    }
+    else if(E <= 1. + EccentricityTolerance)
+    {
+        OrbitType = EOrbitType::PARABOLA;
+    }
+    else
+    {
+        OrbitType = EOrbitType::HYPERBOLA;
+    }
+    SetInitialParams(VecEccentricity, VecHNorm, OrbitType);
+}
+
+void AOrbit::SetInitialParams(FVector VecEccentricity, FVector VecHNorm, EOrbitType OrbitType)
+{
+    InitialParams = { OrbitType, VecHNorm, VecEccentricity };
+    bInitialParamsSet = true;
+}
+
+void AOrbit::UpdateByInitialParams(FPhysics Physics, FInstanceUI InstanceUI)
+{
+    SetVelocity
+        ( UFunctionLib::VecVelocity
+            ( InitialParams.VecEccentricity
+            , GetVecR()
+            , InitialParams.VecHNorm
+            , Physics.Alpha
+            , FVector::Zero()
+        ) , Physics);
+    Update(Physics, InstanceUI);
 }
 
 void AOrbit::UpdateVisibility(const FInstanceUI& InstanceUI)
@@ -884,9 +928,10 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     static const FName FNameBVisibleShowMy        = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleShowMyTrajectory);
     static const FName FNameBVisibleToggleMy      = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleToggleMyTrajectory);
     static const FName FNameSplineMeshLength      = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshLength     );
-    static const FName FNameVelocity              = GET_MEMBER_NAME_CHECKED(AOrbit, ScalarVelocity       );
+    static const FName FNameScalarVelocity        = GET_MEMBER_NAME_CHECKED(AOrbit, ScalarVelocity       );
     static const FName FNameVelocityVCircle       = GET_MEMBER_NAME_CHECKED(AOrbit, VelocityVCircle      );
     static const FName FNameVecVelocity           = GET_MEMBER_NAME_CHECKED(AOrbit, VecVelocity          );
+    static const FName FNameInitialParams         = GET_MEMBER_NAME_CHECKED(AOrbit, InitialParams        );
     static const FName FNameSMTrajectory          = GET_MEMBER_NAME_CHECKED(AOrbit, StaticMesh           );
     static const FName FNameSplineMeshMaterial    = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshMaterial   );
     static const FName FNameSplineMeshScaleFactor = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshScaleFactor);
@@ -910,7 +955,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     {
     }
     else if
-        (  Name == FNameVelocity
+        (  Name == FNameScalarVelocity
         || Name == FNameVelocityVCircle
         || Name == FNameVecVelocity
         )
@@ -923,24 +968,32 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
             ) - GetVecR()).Length();
         const FVector VelocityNormal = VecVelocity.GetSafeNormal(1e-8, FVector(0., 1., 0.));
 
-        if(Name == FNameVelocity)
+        if(Name == FNameScalarVelocity)
         {
-            SetInitialParams(ScalarVelocity * VelocityNormal, PhysicsEditorDefault);
+            SetVelocity(ScalarVelocity * VelocityNormal, PhysicsEditorDefault);
         }
         else if(Name == FNameVelocityVCircle)
         {
-            SetInitialParams(GetCircleVelocity(PhysicsEditorDefault).Length() * VelocityVCircle * VelocityNormal, PhysicsEditorDefault);
+            SetVelocity(GetCircleVelocity(PhysicsEditorDefault).Length() * VelocityVCircle * VelocityNormal, PhysicsEditorDefault);
         }
         else if(Name == FNameVecVelocity)
         {
-            SetInitialParams(VecVelocity, PhysicsEditorDefault);
+            SetVelocity(VecVelocity, PhysicsEditorDefault);
         }
         bIsVisibleInEditor = false;
     }
     
     if(IsValid(RP_Body))
     {
-        Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+        if(Name == FNameInitialParams)
+        {
+            UpdateByInitialParams(PhysicsEditorDefault, InstanceUIEditorDefault);
+        }
+        else
+        {
+            Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+            SetInitialParams(Params.VecE, Params.VecH.GetSafeNormal(), Params.OrbitType);
+        }
     }
     else
     {

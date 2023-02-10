@@ -232,7 +232,7 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     AOrbit* Orbit = Cast<IHasOrbit>(InPawn)->GetOrbit();
 
     const FVector VecV = Orbit->GetCircleVelocity(Physics);
-    Orbit->SetInitialParams(VecV, Physics);
+    Orbit->SetVelocity(VecV, Physics);
     Orbit->SetEnableVisibility(true);
     Orbit->Update(Physics, InstanceUI);
 

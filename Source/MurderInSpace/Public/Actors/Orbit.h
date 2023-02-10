@@ -100,7 +100,7 @@ struct FOrbitParameters
 };
 
 USTRUCT(BlueprintType)
-struct FControllParameters
+struct FControlParameters
 {
     GENERATED_BODY()
     
@@ -138,13 +138,13 @@ struct FInitialParams
 {
     GENERATED_BODY()
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
     EOrbitType OrbitType;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    bool bHPositive = true;
+    FVector VecHNorm;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FVector VecEccentricity;
 };
 
@@ -162,10 +162,18 @@ public:
 
     UFUNCTION(BlueprintCallable)
     bool GetIsInitialized() const { return bIsInitialized; }
-    
+
+    UFUNCTION(BlueprintCallable)
+    void SetInitialParams(FVector VecEccentricity, FVector VecHNorm);
+
+    void SetInitialParams(FVector VecEccentricity, FVector VecHNorm, EOrbitType OrbitType);
+
+    UFUNCTION(BlueprintCallable)
+    void UpdateByInitialParams(FPhysics Physics, FInstanceUI InstanceUI);
+
     // requires call to `Update` afterwards
     UFUNCTION(BlueprintCallable)
-    void SetInitialParams(FVector VecV, FPhysics Physics);
+    void SetVelocity(FVector VecV, FPhysics Physics) { VecVelocity = VecV; }
 
     UFUNCTION(BlueprintCallable)
     void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
@@ -184,7 +192,7 @@ public:
     void Update(FPhysics Physics, FInstanceUI InstanceUI);
 
     UFUNCTION(BlueprintCallable)
-    void UpdateControllParams(FPhysics Physics);
+    void UpdateControlParams(FPhysics Physics);
 
     UFUNCTION(BlueprintCallable)
     void SpawnSplineMesh
@@ -197,9 +205,9 @@ public:
     
     UFUNCTION(BlueprintCallable)
     void UpdateSplineMeshScale(double InScaleFactor);
-
-    UFUNCTION(BlueprintPure)
-    FVector GetVecRZero() const { return VecRZero; }
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    bool bInitialParamsSet = false;
     
     UPROPERTY(BlueprintReadWrite)
     bool bIsVisibleAccelerating = false;
@@ -321,8 +329,11 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     FOrbitParameters Params;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Kepler")
+    FInitialParams InitialParams;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-    FControllParameters ControllParams;
+    FControlParameters ControlParams;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     FVector VecVelocity = FVector::Zero();
@@ -339,9 +350,6 @@ protected:
     // debugging: monitor the closest distance of the body to its orbit, while updating
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     double DistanceToOrbit = 0.;
-
-    UPROPERTY()
-    FVector VecRZero = FVector::Zero();
     
     // the bigger this value, the earlier an eccentricity approaching 1 will be interpreted as parabola orbit
     // which results in smoother orbits

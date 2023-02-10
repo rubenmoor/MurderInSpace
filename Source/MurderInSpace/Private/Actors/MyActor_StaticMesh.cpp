@@ -163,6 +163,8 @@ void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
         FTransform CollectionToWorld(ComponentTransform * FTransform(-Origin));
         //const TArrayView<const int32>& TransformIndices;
         //UE::PlanarCut::FDynamicMeshCollection DynamicMeshCollection(CollectionCopy, TransformIndices, CollectionToWorld);
+
+        GeometryCollection->SetVisibility(false);
         
         bGeometryCollectionSetupDone = true;
     }
