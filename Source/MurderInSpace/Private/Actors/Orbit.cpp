@@ -275,9 +275,16 @@ void AOrbit::Tick(float DeltaTime)
         {
             Cast<IHasCollision>(RP_Body)->GetCollisionComponent()->HandleHit(HitResult);
         }
+        else
+        {
+            RP_Body->SetActorLocation(NewVecR);
+        }
         PrimitiveComponent->SetRelativeLocation(FVector::Zero());
     }
-    RP_Body->SetActorLocation(NewVecR);
+    else
+    {
+        RP_Body->SetActorLocation(NewVecR);
+    }
     
     UpdateControlParams(Physics);
 }

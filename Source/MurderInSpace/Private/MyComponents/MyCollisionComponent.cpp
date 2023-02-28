@@ -16,12 +16,32 @@ UMyCollisionComponent::UMyCollisionComponent()
 
 void UMyCollisionComponent::HandleHit(FHitResult& HitResult)
 {
+	auto* Other = HitResult.GetActor();
+	
 	if(HitResult.bStartPenetrating)
 	{
 		// TODO: deal with hit results due to rotation here
-		UE_LOG(LogMyGame, Warning, TEXT("%s: bStartPenetrating, correcting position and hitting again"), *GetFullName())
-		auto* PrimitiveComponent = Cast<IHasMesh>(GetOwner())->GetMesh();
-		PrimitiveComponent->SetRelativeLocation(-HitResult.Normal * HitResult.PenetrationDepth * 1.1);
+		UE_LOG(LogMyGame, Warning, TEXT("%s: bStartPenetrating, correcting position and hitting again; PenetrationDepth: %.1f, Normal: %.1f %.1f %.1f")
+			, *GetFullName()
+			, HitResult.PenetrationDepth
+			, HitResult.Normal.X
+			, HitResult.Normal.Y
+			, HitResult.Normal.Z
+			)
+		auto* PrimitiveComponent = GetOwner<IHasMesh>()->GetMesh();
+		const double MyPenetrationDepth = std::max<double>(HitResult.PenetrationDepth, 20.);
+		PrimitiveComponent->SetRelativeLocation(HitResult.Normal * MyPenetrationDepth * 1.1);
+		if(HitResult.PenetrationDepth == 0. || HitResult.Normal.IsZero())
+		{
+			UE_LOG(LogMyGame, Error, TEXT("%s: zero case: trying to correct, anyway."), *GetFullName())
+			const FVector VecCenterLine = Other->GetActorLocation() - GetOwner()->GetActorLocation();
+			FVector VecDepenetration =
+				(  Cast<IHasMesh>(Other)->GetMesh()->GetLocalBounds().SphereRadius
+				 + GetOwner<IHasMesh>()->GetMesh()->GetLocalBounds().SphereRadius
+				 - VecCenterLine.Length()
+				) * VecCenterLine.GetSafeNormal();
+			PrimitiveComponent->SetRelativeLocation(VecDepenetration * 1.1);
+		}
 		PrimitiveComponent->SetRelativeLocation(FVector::Zero(), true, &HitResult);
 		// I don't know why, yet: treating the bStartPenetrating case like a hit, doesn't seem to work
 		if(!HitResult.bBlockingHit)
@@ -39,7 +59,11 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult)
 	// Still, both are the same unless the object that was hit has a collision shape that isn't sphere or plane
 	// In case two non-capsule shapes collide, I don't know what the value of 'Normal' would be
 
-	auto* Other = HitResult.GetActor();
+	UE_LOG(LogMyGame, Warning, TEXT("%s: Blocking hit with %s")
+		, *GetFullName()
+		, *Other->GetName()
+		)
+	
 	auto* Orbit1 = GetOwner<IHasOrbit>()->GetOrbit();
 	auto* Orbit2 = Cast<IHasOrbit>(Other)->GetOrbit();
 	const FVector VecV1 = Orbit1->GetVecVelocity();
@@ -50,7 +74,7 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult)
 	// the idea is to subtract the CoM velocity to make sure that u1 and u2 are on plane with the normal,
 	// I am not sure about that, however
 	// new base vectors: VecN, VecO
-	const FVector VecN = HitResult.Normal;
+	const FVector VecN = HitResult.ImpactNormal;
 	// U1 = Alpha1 * VecN + Beta1 * VecO
 	const double Alpha1 = VecV1.Dot(VecN);
 	const FVector VecU1O = VecV1 - Alpha1 * VecN;
