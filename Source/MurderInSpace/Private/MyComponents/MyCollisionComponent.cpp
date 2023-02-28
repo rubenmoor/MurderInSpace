@@ -17,33 +17,24 @@ UMyCollisionComponent::UMyCollisionComponent()
 void UMyCollisionComponent::HandleHit(FHitResult& HitResult)
 {
 	auto* Other = HitResult.GetActor();
-	
+
+	if(Other->GetName() > GetOwner()->GetName())
+	{
+		UE_LOG(LogMyGame, Display, TEXT("%s: Ignoring blocking hit with %s")
+			, *GetFullName()
+			, *Other->GetName()
+			)
+		return;
+	}
 	if(HitResult.bStartPenetrating)
 	{
-		// TODO: deal with hit results due to rotation here
-		UE_LOG(LogMyGame, Warning, TEXT("%s: bStartPenetrating, correcting position and hitting again; PenetrationDepth: %.1f, Normal: %.1f %.1f %.1f")
+		UE_LOG(LogMyGame, Warning, TEXT("%s: bStartPenetrating, hit due to rotation")
 			, *GetFullName()
-			, HitResult.PenetrationDepth
-			, HitResult.Normal.X
-			, HitResult.Normal.Y
-			, HitResult.Normal.Z
 			)
+		// TODO: deal with hit results due to rotation here
 		auto* PrimitiveComponent = GetOwner<IHasMesh>()->GetMesh();
-		const double MyPenetrationDepth = std::max<double>(HitResult.PenetrationDepth, 20.);
-		PrimitiveComponent->SetRelativeLocation(HitResult.Normal * MyPenetrationDepth * 1.1);
-		if(HitResult.PenetrationDepth == 0. || HitResult.Normal.IsZero())
-		{
-			UE_LOG(LogMyGame, Error, TEXT("%s: zero case: trying to correct, anyway."), *GetFullName())
-			const FVector VecCenterLine = Other->GetActorLocation() - GetOwner()->GetActorLocation();
-			FVector VecDepenetration =
-				(  Cast<IHasMesh>(Other)->GetMesh()->GetLocalBounds().SphereRadius
-				 + GetOwner<IHasMesh>()->GetMesh()->GetLocalBounds().SphereRadius
-				 - VecCenterLine.Length()
-				) * VecCenterLine.GetSafeNormal();
-			PrimitiveComponent->SetRelativeLocation(VecDepenetration * 1.1);
-		}
+		PrimitiveComponent->SetRelativeLocation(HitResult.Normal * HitResult.PenetrationDepth * 1.1);
 		PrimitiveComponent->SetRelativeLocation(FVector::Zero(), true, &HitResult);
-		// I don't know why, yet: treating the bStartPenetrating case like a hit, doesn't seem to work
 		if(!HitResult.bBlockingHit)
 		{
 			UE_LOG(LogMyGame, Error, TEXT("%s: bStartPenetrating, no hit after correction"), *GetFullName())

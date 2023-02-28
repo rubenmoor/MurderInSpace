@@ -177,7 +177,7 @@ public:
 	void WithInstanceUI(const UObject* Object, const std::function<void(FInstanceUI&)> Func);
 
 	UFUNCTION(BlueprintPure)
-	double GetInitialAngularVelocity(FRnd Rnd);
+	double GetGyrationOmegaInitial(FRnd Rnd);
 
 	TArray<FGameplayTag> GetInputTags() const { return InputTags; }
 

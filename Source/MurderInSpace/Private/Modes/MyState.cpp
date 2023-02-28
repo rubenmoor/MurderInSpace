@@ -4,15 +4,16 @@
 #include "Modes/MyState.h"
 
 #include "GameplayTagsManager.h"
+#include "Chaos/Math/Poisson.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
 #include "Modes/MyPlayerState.h"
 
 DEFINE_LOG_CATEGORY(LogMyGame);
 
-double UMyState::GetInitialAngularVelocity(FRnd Rnd)
+double UMyState::GetGyrationOmegaInitial(FRnd Rnd)
 {
-	return Rnd.Poisson(Rnd.RndGen) / 1.e3;
+	return Rnd.Poisson(Rnd.RndGen) / 1e4;
 }
 
 void UMyState::Initialize(FSubsystemCollectionBase& Collection)
@@ -121,8 +122,8 @@ FRnd UMyState::GetRnd(const AMyGameState* GS, const UMyGameInstance* GI)
 {
 	return FRnd
 	{ GS->RndGen
-		, GS->Poisson
-		, GI->Random
+	, GS->Poisson
+	, GI->Random
 	};
 }
 

@@ -10,7 +10,7 @@
 void AMyGameState::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	Poisson = std::poisson_distribution(AngularVelocityPoissonMean * 1e3);
+	Poisson = std::poisson_distribution(GyrationOmegaInitial * 1e4);
 }
 
 void AMyGameState::OnRep_Physics()

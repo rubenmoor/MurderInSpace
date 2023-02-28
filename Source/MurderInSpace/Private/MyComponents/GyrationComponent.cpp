@@ -7,6 +7,7 @@
 #include "Modes/MyGameState.h"
 #include "Modes/MyState.h"
 #include "Net/UnrealNetwork.h"
+#include "Modes/MyGameInstance.h"
 
 UGyrationComponent::UGyrationComponent()
 {
@@ -30,6 +31,7 @@ void UGyrationComponent::BeginPlay()
 	Super::BeginPlay();
 
 	const auto* GS = GetWorld()->GetGameState<AMyGameState>();
+	const auto* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
 	SetComponentTickEnabled(GS->bEnableGyration);
 
 	// TODO: meshes connected with sockets
@@ -40,8 +42,8 @@ void UGyrationComponent::BeginPlay()
 		if(RP_VecL.IsZero())
 		{
 			UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-			const FRnd Rnd = MyState->GetRndAny(this);
-			const float LRandom = MyState->GetInitialAngularVelocity(Rnd);
+			const FRnd Rnd = MyState->GetRnd(GS, GI);
+			const float LRandom = MyState->GetGyrationOmegaInitial(Rnd);
 			RP_VecL = Rnd.Stream.VRand() * LRandom * VecInertia.Length();
 			UE_LOG
 				( LogMyGame
