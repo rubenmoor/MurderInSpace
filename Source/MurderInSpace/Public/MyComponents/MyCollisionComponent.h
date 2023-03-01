@@ -6,6 +6,13 @@
 #include "Components/ActorComponent.h"
 #include "MyCollisionComponent.generated.h"
 
+UENUM()
+enum class EMyCollisionDimensions : uint8
+{
+	  CollisionXYPlane
+	, CollisionXYZ
+};
+
 UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
 class UHasCollision : public UInterface
 {
@@ -18,7 +25,6 @@ public:
 	virtual UMyCollisionComponent* GetCollisionComponent() = 0;
 };
 
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UMyCollisionComponent : public UActorComponent
 {
@@ -27,8 +33,15 @@ class UMyCollisionComponent : public UActorComponent
 public:	
 	UMyCollisionComponent();
 
+	void SetCollisionDimensions(EMyCollisionDimensions InMyCollisionDimensions)
+	{
+		MyCollisionDimensions = InMyCollisionDimensions;
+	}
+	
 	void HandleHit(FHitResult& HitResult);
+	
 protected:
+	EMyCollisionDimensions MyCollisionDimensions = EMyCollisionDimensions::CollisionXYPlane;
 	// event handlers
 
 public:	

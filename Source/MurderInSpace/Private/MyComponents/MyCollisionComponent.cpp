@@ -77,8 +77,20 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult)
 	//double K = 0.5;
 	double K = 1.;
 	// partially elastic collision, k in [0, 1] where k = 0 is plastic and k = 1 elastic collision, respectively
-	const FVector VecW1 = (UBar - M2 * (Alpha1 - Alpha2) / (M1 + M2) * K) * VecN + VecU1O;
-	const FVector VecW2 = (UBar - M1 * (Alpha2 - Alpha1) / (M1 + M2) * K) * VecN + VecU2O;
+	FVector VecW1 = (UBar - M2 * (Alpha1 - Alpha2) / (M1 + M2) * K) * VecN + VecU1O;
+	FVector VecW2 = (UBar - M1 * (Alpha2 - Alpha1) / (M1 + M2) * K) * VecN + VecU2O;
+
+	switch(MyCollisionDimensions)
+	{
+	case EMyCollisionDimensions::CollisionXYPlane:
+		// eliminate z-component
+		// TODO: apply damage according to the lost kinetic energy
+		VecW1.Z = 0.;
+		VecW2.Z = 0.;
+		break;
+	case EMyCollisionDimensions::CollisionXYZ:
+		break;
+	}
 
 	auto* MyState = GEngine->GetEngineSubsystem<UMyState>();
 	const auto* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
