@@ -544,10 +544,6 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         {
             if(abs(InputKey - MAX_POINTS / 2) == 1)
             {
-                const auto VecT = -UFunctionLib::VecVelocity(Params.VecE, *IPoint, Params.VecH, Physics.Alpha, FVector::Zero()).GetSafeNormal();
-                double ArriveTangentLength = (*std::prev(IPoint) - *IPoint).Length();
-                double LeaveTangentLength  = (*std::next(IPoint) - *IPoint).Length();
-                //RP_SplinePoints.Emplace(InputKey, *IPoint, VecT * ArriveTangentLength, VecT * LeaveTangentLength);
                 SplinePoints.Emplace(InputKey, *IPoint);
             }
             else
