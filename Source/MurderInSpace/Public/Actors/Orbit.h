@@ -39,6 +39,9 @@ public:
     virtual void OrbitSetup(AActor* Actor);
     virtual AOrbit* GetOrbit() const = 0;
     virtual void SetOrbit(AOrbit* Orbit) = 0;
+    virtual FInitialOrbitParams GetInitialOrbitParams() const = 0;
+    virtual void SetInitialOrbitParams(FInitialOrbitParams InParams) = 0;
+    virtual bool GetBInitialOrbitParamsSet() = 0;
 };
 
 UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
@@ -131,21 +134,19 @@ struct FOrbitState
 };
 
 /*
- * 
+ * The initial params to define the starting orbit
+ * Any actor that implements 'IHasOrbit' needs to provide this
  */
 USTRUCT(BlueprintType)
-struct FInitialParams
+struct FInitialOrbitParams
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-    EOrbitType OrbitType;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    FVector VecHNorm;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FVector VecEccentricity = FVector::Zero();
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FVector VecEccentricity;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FVector VecHNorm = FVector(0., 0., 1.);
 };
 
 UCLASS()
@@ -162,11 +163,6 @@ public:
 
     UFUNCTION(BlueprintCallable)
     bool GetIsInitialized() const { return bIsInitialized; }
-
-    UFUNCTION(BlueprintCallable)
-    void SetInitialParams(FVector VecEccentricity, FVector VecHNorm);
-
-    void SetInitialParams(FVector VecEccentricity, FVector VecHNorm, EOrbitType OrbitType);
 
     UFUNCTION(BlueprintCallable)
     void UpdateByInitialParams(FPhysics Physics, FInstanceUI InstanceUI);
@@ -205,9 +201,6 @@ public:
     
     UFUNCTION(BlueprintCallable)
     void UpdateSplineMeshScale(double InScaleFactor);
-    
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    bool bInitialParamsSet = false;
     
     UPROPERTY(BlueprintReadWrite)
     bool bIsVisibleAccelerating = false;
@@ -328,9 +321,6 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     FOrbitParameters Params;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Kepler")
-    FInitialParams InitialParams;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     FControlParameters ControlParams;

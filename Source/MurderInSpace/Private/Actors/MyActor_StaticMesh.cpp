@@ -65,7 +65,8 @@ void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent
 
     const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
-    static const FName FNameOrbitColor = GET_MEMBER_NAME_CHECKED(AMyActor_StaticMesh, OrbitColor);
+    static const FName FNameOrbitColor    = GET_MEMBER_NAME_CHECKED(AMyActor_StaticMesh, OrbitColor        );
+    static const FName FNameInitialParams = GET_MEMBER_NAME_CHECKED(AMyActor_StaticMesh, InitialOrbitParams);
 
     if(Name == FNameOrbitColor)
     {
@@ -73,6 +74,10 @@ void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent
         {
             RP_Orbit->Update(PhysicsEditorDefault, InstanceUIEditorDefault);
         }
+    }
+    else if(Name == FNameInitialParams)
+    {
+        RP_Orbit->UpdateByInitialParams(PhysicsEditorDefault, InstanceUIEditorDefault);
     }
 }
 #endif

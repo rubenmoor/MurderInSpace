@@ -1,8 +1,6 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Modes/MyGameState.h"
 
+#include "Actors/DynamicAsteroid.h"
 #include "Actors/Orbit.h"
 #include "Lib/FunctionLib.h"
 #include "Modes/MyGameInstance.h"
@@ -14,6 +12,12 @@ void AMyGameState::PostInitializeComponents()
 	Poisson = std::poisson_distribution(GyrationOmegaInitial * 1e4);
 	RndGen.seed();
 	GetGameInstance<UMyGameInstance>()->InitializeRandom();
+}
+
+void AMyGameState::BeginPlay()
+{
+	Super::BeginPlay();
+	GetWorld()->SpawnActor<ADynamicAsteroid>();
 }
 
 void AMyGameState::OnRep_Physics()

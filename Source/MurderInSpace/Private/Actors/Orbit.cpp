@@ -38,14 +38,12 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
 
     if(IsValid(GetOrbit()))
     {
+        auto* ActorWithOrbit = Cast<IHasOrbit>(Actor);
         // this only ever gets executed when creating objects in the editor (and dragging them around)
-        if(!GetOrbit()->bInitialParamsSet)
+        if(!ActorWithOrbit->GetBInitialOrbitParamsSet())
         {
             // initialize circle
-            GetOrbit()->SetInitialParams
-                ( FVector::Zero()
-                , FVector(0., 0., 1.)
-                );
+            ActorWithOrbit->SetInitialOrbitParams({FVector::Zero(), FVector(0., 0., 1.)});
             GetOrbit()->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
         }
         GetOrbit()->UpdateByInitialParams(Physics, InstanceUI);
@@ -228,7 +226,6 @@ void AOrbit::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
     const auto* GS = GetWorld()->GetGameState<AMyGameState>();
-    const auto* GI = GetGameInstance<UMyGameInstance>();
     auto* MyState = GEngine->GetEngineSubsystem<UMyState>();
     const auto Physics = MyState->GetPhysics(GS);
     const FVector VecRKepler = GetVecRKepler(Physics);
@@ -792,46 +789,14 @@ void AOrbit::HandleClick(AActor*, FKey Button)
     }
 }
 
-void AOrbit::SetInitialParams(FVector VecEccentricity, FVector VecHNorm)
-{
-    EOrbitType OrbitType;
-    const double E = VecEccentricity.Length();
-    if(VecEccentricity.GetSafeNormal().IsZero())
-    {
-        OrbitType = EOrbitType::CIRCLE;
-    }
-    else if(VecHNorm.IsZero())
-    {
-        OrbitType = EOrbitType::LINEBOUND;
-    }
-    else if(E <= 1. - EccentricityTolerance)
-    {
-        OrbitType = EOrbitType::ELLIPSE;
-    }
-    else if(E <= 1. + EccentricityTolerance)
-    {
-        OrbitType = EOrbitType::PARABOLA;
-    }
-    else
-    {
-        OrbitType = EOrbitType::HYPERBOLA;
-    }
-    SetInitialParams(VecEccentricity, VecHNorm, OrbitType);
-}
-
-void AOrbit::SetInitialParams(FVector VecEccentricity, FVector VecHNorm, EOrbitType OrbitType)
-{
-    InitialParams = { OrbitType, VecHNorm, VecEccentricity };
-    bInitialParamsSet = true;
-}
-
 void AOrbit::UpdateByInitialParams(FPhysics Physics, FInstanceUI InstanceUI)
 {
+    const FInitialOrbitParams Initial = Cast<IHasOrbit>(RP_Body)->GetInitialOrbitParams();
     SetVelocity
         ( UFunctionLib::VecVelocity
-            ( InitialParams.VecEccentricity
+            ( Initial.VecEccentricity
             , GetVecR()
-            , InitialParams.VecHNorm
+            , Initial.VecHNorm
             , Physics.Alpha
             , FVector::Zero()
         ) , Physics);
@@ -949,7 +914,6 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     static const FName FNameScalarVelocity        = GET_MEMBER_NAME_CHECKED(AOrbit, ScalarVelocity       );
     static const FName FNameVelocityVCircle       = GET_MEMBER_NAME_CHECKED(AOrbit, VelocityVCircle      );
     static const FName FNameVecVelocity           = GET_MEMBER_NAME_CHECKED(AOrbit, VecVelocity          );
-    static const FName FNameInitialParams         = GET_MEMBER_NAME_CHECKED(AOrbit, InitialParams        );
     static const FName FNameSMTrajectory          = GET_MEMBER_NAME_CHECKED(AOrbit, StaticMesh           );
     static const FName FNameSplineMeshMaterial    = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshMaterial   );
     static const FName FNameSplineMeshScaleFactor = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshScaleFactor);
@@ -1003,15 +967,8 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     
     if(IsValid(RP_Body))
     {
-        if(Name == FNameInitialParams)
-        {
-            UpdateByInitialParams(PhysicsEditorDefault, InstanceUIEditorDefault);
-        }
-        else
-        {
-            Update(PhysicsEditorDefault, InstanceUIEditorDefault);
-            SetInitialParams(Params.VecE, Params.VecH.GetSafeNormal(), Params.OrbitType);
-        }
+        Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+        Cast<IHasOrbit>(RP_Body)->SetInitialOrbitParams({Params.VecE, Params.VecH.GetSafeNormal()});
     }
     else
     {

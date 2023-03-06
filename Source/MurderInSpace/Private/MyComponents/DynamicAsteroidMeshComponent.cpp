@@ -17,6 +17,11 @@ UStaticMesh* UDynamicAsteroidMeshComponent::MakeStaticMesh()
         , GeometryScriptPrimitiveOptions
         , Transform
         );
+
+    // TODO: texture/material
+    // TODO: mass?
+    // TODO: apply distortions based on asteroid type
+    // probably layers of perlin noise
     
     UStaticMesh* StaticMesh = NewObject<UStaticMesh>(GetWorld());
 

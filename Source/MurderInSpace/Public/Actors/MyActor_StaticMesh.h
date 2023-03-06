@@ -33,6 +33,13 @@ public:
 	virtual AOrbit*				 GetOrbit() const  override { return RP_Orbit;     }
 	virtual void 				 SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; }
 	virtual UMyCollisionComponent* GetCollisionComponent() override { return Collision; }
+    virtual void SetInitialOrbitParams(FInitialOrbitParams InParams) override
+	{
+		InitialOrbitParams = InParams;
+		bInitialOrbitParamsSet = true;	
+	}
+	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
+	virtual bool GetBInitialOrbitParamsSet() override { return bInitialOrbitParamsSet; }
 	
 protected:
 	// event handlers
@@ -72,4 +79,11 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
 	float MyMassOverride = 0.;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Orbit")
+	FInitialOrbitParams InitialOrbitParams;
+	
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    bool bInitialOrbitParamsSet = false;
+    
 };

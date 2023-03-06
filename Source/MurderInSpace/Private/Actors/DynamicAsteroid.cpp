@@ -10,6 +10,7 @@ ADynamicAsteroid::ADynamicAsteroid()
 
 void ADynamicAsteroid::OnConstruction(const FTransform& Transform)
 {
-    Super::OnConstruction(Transform);
     StaticMesh->SetStaticMesh(DynamicAsteroidMesh->MakeStaticMesh());
+    
+    Super::OnConstruction(Transform);
 }

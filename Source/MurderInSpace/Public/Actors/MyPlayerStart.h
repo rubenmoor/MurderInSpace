@@ -20,6 +20,13 @@ public:
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
 	virtual AOrbit*				GetOrbit() const override { return RP_Orbit; };
 	virtual void 				SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
+    virtual void SetInitialOrbitParams(FInitialOrbitParams InParams) override
+	{
+		InitialOrbitParams = InParams;
+		bInitialOrbitParamsSet = true;	
+	}
+	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
+	virtual bool GetBInitialOrbitParamsSet() override { return bInitialOrbitParamsSet; }
 	
 protected:
 	// event handlers
@@ -33,4 +40,10 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category="Orbit")
 	TSubclassOf<AOrbit> OrbitClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Orbit")
+	FInitialOrbitParams InitialOrbitParams;
+	
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    bool bInitialOrbitParamsSet = false;
 };

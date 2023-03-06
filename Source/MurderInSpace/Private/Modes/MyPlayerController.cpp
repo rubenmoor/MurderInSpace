@@ -229,10 +229,11 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     const auto* GS = GetWorld()->GetGameState<AMyGameState>();
     const auto InstanceUI = MyState->GetInstanceUI(GI);
     const auto Physics = MyState->GetPhysics(GS);
-    AOrbit* Orbit = Cast<IHasOrbit>(InPawn)->GetOrbit();
+    auto* PawnWithOrbit = Cast<IHasOrbit>(InPawn);
+    AOrbit* Orbit = PawnWithOrbit->GetOrbit();
 
     Orbit->SetEnableVisibility(true);
-    Orbit->SetInitialParams(FVector::Zero(), FVector(0., 0., 1.));
+    PawnWithOrbit->SetInitialOrbitParams({FVector::Zero(), FVector(0., 0., 1.)});
 
     // exclude the case of the server-player possessing their pawn
     if(!InPawn->IsLocallyControlled())

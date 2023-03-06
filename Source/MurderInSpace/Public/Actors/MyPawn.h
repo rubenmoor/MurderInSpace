@@ -46,6 +46,13 @@ public:
 	virtual FLinearColor        GetOrbitColor()  override { return OrbitColor; }
 	virtual AOrbit*				GetOrbit() const override { return RP_Orbit; };
 	virtual void 				SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
+    virtual void SetInitialOrbitParams(FInitialOrbitParams InParams) override
+	{
+		InitialOrbitParams = InParams;
+		bInitialOrbitParamsSet = true;	
+	}
+	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
+	virtual bool GetBInitialOrbitParamsSet() override { return bInitialOrbitParamsSet; }
 	
     UPROPERTY(ReplicatedUsing=OnRep_Rotation, VisibleAnywhere, BlueprintReadOnly)
     FQuat RP_Rotation;
@@ -83,6 +90,12 @@ protected:
     FLinearColor OrbitColor;
 
 	EMyPawnReady MyPawnReady = EMyPawnReady::None;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Orbit")
+	FInitialOrbitParams InitialOrbitParams;
+	
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    bool bInitialOrbitParamsSet = false;
 
 	// private methods
 
