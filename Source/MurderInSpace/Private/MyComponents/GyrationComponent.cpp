@@ -43,16 +43,21 @@ void UGyrationComponent::BeginPlay()
 		{
 			UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
 			const FRnd Rnd = MyState->GetRnd(GS, GI);
-			const float LRandom = MyState->GetGyrationOmegaInitial(Rnd);
-			RP_VecL = Rnd.Stream.VRand() * LRandom * VecInertia.Length();
+			const float OmegaInitial = MyState->GetGyrationOmegaInitial(Rnd);
+			const FVector VRand = Rnd.Stream.VRand();
+			RP_VecL = VRand * OmegaInitial * VecInertia.Length();
 			UE_LOG
 				( LogMyGame
 				, Display
-				, TEXT("%s: Initializing angular momentum: (%.0f, %.0f, %.0f)")
+				, TEXT("%s: Initializing angular momentum: (%.0f, %.0f, %.0f), OmegaInitial: %f, Vrand: (%.0f, %.0f, %.0f)")
 				, *GetFullName()
 				, RP_VecL.X
 				, RP_VecL.Y
 				, RP_VecL.Z
+				, OmegaInitial
+				, VRand.X
+				, VRand.Y
+				, VRand.Z
 				)
 		}
 		else

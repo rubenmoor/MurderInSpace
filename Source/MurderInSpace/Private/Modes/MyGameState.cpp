@@ -5,12 +5,15 @@
 
 #include "Actors/Orbit.h"
 #include "Lib/FunctionLib.h"
+#include "Modes/MyGameInstance.h"
 #include "Net/UnrealNetwork.h"
 
 void AMyGameState::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	Poisson = std::poisson_distribution(GyrationOmegaInitial * 1e4);
+	RndGen.seed();
+	GetGameInstance<UMyGameInstance>()->InitializeRandom();
 }
 
 void AMyGameState::OnRep_Physics()

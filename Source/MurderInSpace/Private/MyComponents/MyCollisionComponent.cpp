@@ -17,6 +17,12 @@ UMyCollisionComponent::UMyCollisionComponent()
 void UMyCollisionComponent::HandleHit(FHitResult& HitResult)
 {
 	auto* Other = HitResult.GetActor();
+	if(!IsValid(Other))
+	{
+		UE_LOG(LogMyGame, Error, TEXT("%s: Other actor invalid")
+			, *GetFullName())
+		return;
+	}
 
 	if(Other->GetName() > GetOwner()->GetName())
 	{
@@ -61,7 +67,7 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult)
 	const FVector VecV2 = Orbit2->GetVecVelocity();
 	// TODO: use PhysicsMaterial for mass density
 	const double M1 = GetOwner<IHasMesh>()->GetMyMass();
-	const double M2 = Cast<IHasMesh>(HitResult.GetActor())->GetMyMass();
+	const double M2 = Cast<IHasMesh>(Other)->GetMyMass();
 	// the idea is to subtract the CoM velocity to make sure that u1 and u2 are on plane with the normal,
 	// I am not sure about that, however
 	// new base vectors: VecN, VecO

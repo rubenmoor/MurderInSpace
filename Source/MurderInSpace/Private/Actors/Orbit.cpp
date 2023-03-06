@@ -629,6 +629,11 @@ void AOrbit::AddPointsToSpline()
     {
         p.Position -= Loc;
     }
+    auto* GI = GetGameInstance<UMyGameInstance>();
+    if(IsValid(GI))
+    {
+        GI->IncGlobalNumSplinePoints(SplinePoints.Num());
+    }
     Spline->AddPoints(SplinePoints, false);
 }
 

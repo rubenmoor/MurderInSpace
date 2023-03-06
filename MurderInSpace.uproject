@@ -12,7 +12,8 @@
 				"Engine",
 				"UMG",
 				"CommonUI",
-				"EnhancedInput"
+				"EnhancedInput",
+				"GeometryFramework"
 			]
 		}
 	],
@@ -106,6 +107,10 @@
 		},
 		{
 			"Name": "CodeView",
+			"Enabled": true
+		},
+		{
+			"Name": "GeometryScripting",
 			"Enabled": true
 		}
 	],

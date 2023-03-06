@@ -52,6 +52,11 @@ class MURDERINSPACE_API UMyGameInstance : public UGameInstance
 public:
 	UMyGameInstance();
 
+	void InitializeRandom()
+	{
+		Random.Initialize(TEXT("RandomStream"));
+	}
+
 	void HostGame(const FLocalPlayerContext& LPC);
 
 	//void LeaveGame(const FLocalPlayerContext& LPC);
@@ -73,12 +78,19 @@ public:
 		, EGameMode::EveryManForHimself
 		};
 
+	void IncGlobalNumSplinePoints(int Amount)
+	{
+		GlobalNumSplinePoints += Amount;
+		UE_LOG(LogMyGame, Display, TEXT("Global number of spline points: %d"), GlobalNumSplinePoints)
+	}
+
 protected:
 	// event handlers
 
 	virtual int32 AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUserId UserId) override;
 	
 	// private properties
+	int GlobalNumSplinePoints = 0;
 	
 	UPROPERTY(BlueprintReadWrite)
 	FRandomStream Random;
