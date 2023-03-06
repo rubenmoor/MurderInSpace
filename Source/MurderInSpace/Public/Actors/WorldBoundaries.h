@@ -5,16 +5,16 @@
 #include "CoreMinimal.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
-#include "AWorldBoundaries.generated.h"
+#include "WorldBoundaries.generated.h"
 
 UCLASS()
-class MURDERINSPACE_API AAWorldBoundaries : public AActor
+class MURDERINSPACE_API AWorldBoundaries : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AAWorldBoundaries();
+	AWorldBoundaries();
 
 protected:
 	// Called when the game starts or when spawned

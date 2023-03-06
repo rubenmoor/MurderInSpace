@@ -14,7 +14,7 @@ class UGyrationComponent;
  * 
  */
 UCLASS()
-class MURDERINSPACE_API AMyActor_StaticMesh final
+class MURDERINSPACE_API AMyActor_StaticMesh
 	: public AActor
 	, public IHasMesh
 	, public IHasOrbit
@@ -23,9 +23,9 @@ class MURDERINSPACE_API AMyActor_StaticMesh final
 {
 	GENERATED_BODY()
 
+public:
 	AMyActor_StaticMesh();
 
-public:
 	virtual UPrimitiveComponent* GetMesh()   const override { return StaticMesh; }
 	virtual float                GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
 	virtual TSubclassOf<AOrbit>  GetOrbitClass()   override { return OrbitClass;   }
@@ -36,7 +36,6 @@ public:
 	
 protected:
 	// event handlers
-	virtual void BeginPlay() override;
 	virtual void Destroyed() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 #if WITH_EDITOR
@@ -51,9 +50,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> StaticMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UGeometryCollectionComponent> GeometryCollection;
-	
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UGyrationComponent> Gyration;
 
@@ -70,9 +66,6 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
     FLinearColor OrbitColor;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool bGeometryCollectionSetupDone = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
 	float MyMass;

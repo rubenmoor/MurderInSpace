@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Actors/ABlackhole.h"
+#include "Actors/Blackhole.h"
 
 // Sets default values
-AABlackhole::AABlackhole()
+ABlackhole::ABlackhole()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;

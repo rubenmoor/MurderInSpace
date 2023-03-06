@@ -3,16 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ABlackhole.generated.h"
+#include "Blackhole.generated.h"
 
 UCLASS()
-class MURDERINSPACE_API AABlackhole : public AActor
+class MURDERINSPACE_API ABlackhole : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AABlackhole();
+	ABlackhole();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly);

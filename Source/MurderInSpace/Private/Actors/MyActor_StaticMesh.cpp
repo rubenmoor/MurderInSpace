@@ -1,14 +1,8 @@
 #include "Actors/MyActor_StaticMesh.h"
 
-#include "PlanarCut.h"
-#include "GeometryCollection/GeometryCollectionComponent.h"
-#include "GeometryCollection/GeometryCollectionEngineConversion.h"
-#include "GeometryCollection/GeometryCollectionObject.h"
 #include "MyComponents/GyrationComponent.h"
 #include "MyComponents/MyCollisionComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "PlanarCut/Private/GeometryMeshConversion.h"
-#include "Voronoi/Voronoi.h"
 
 AMyActor_StaticMesh::AMyActor_StaticMesh()
 {
@@ -23,19 +17,8 @@ AMyActor_StaticMesh::AMyActor_StaticMesh()
     StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
     StaticMesh->SetupAttachment(Root);
 
-    GeometryCollection = CreateDefaultSubobject<UGeometryCollectionComponent>("GeometryCollection");
-    GeometryCollection->SetupAttachment(Root);
-    GeometryCollection->SetSimulatePhysics(false);
-    GeometryCollection->SetVisibility(false);
-    
     Gyration = CreateDefaultSubobject<UGyrationComponent>("Gyration");
     Collision = CreateDefaultSubobject<UMyCollisionComponent>("Collision");
-}
-
-void AMyActor_StaticMesh::BeginPlay()
-{
-    Super::BeginPlay();
-    GeometryCollection->SetVisibility(false);
 }
 
 void AMyActor_StaticMesh::Destroyed()
@@ -67,119 +50,12 @@ void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
     }
 
     MyMass = pow(StaticMesh->Bounds.SphereRadius, 3);
-    
-    // setup geometry collection component
-    // TODO: check if world check is necessary
-    //if(GetWorld()->WorldType != EWorldType::EditorPreview)
-
-    if(!bGeometryCollectionSetupDone)
-    {
-        const FSoftObjectPath SourcePath(StaticMesh->GetStaticMesh());
-        TArray<TObjectPtr<UMaterialInterface>> SourceMaterials(StaticMesh->GetMaterials());
-        TWeakObjectPtr<UGeometryCollection> RestCollection =
-            NewObject<UGeometryCollection>(GetWorld(), UGeometryCollection::StaticClass());
-        RestCollection->SetFlags(RF_Transactional | RF_Public | RF_Standalone);
-        if(RestCollection->SizeSpecificData.IsEmpty())
-        {
-            RestCollection->SizeSpecificData.Add(FGeometryCollectionSizeSpecificData());
-        }
-        GeometryCollection->SetRestCollection(RestCollection.Get());
-        FTransform ComponentTransform(StaticMesh->GetComponentTransform());
-        ComponentTransform.SetTranslation(ComponentTransform.GetTranslation() - GetTransform().GetTranslation());
-        RestCollection->GeometrySource.Add(
-            { SourcePath
-            , ComponentTransform
-            , SourceMaterials
-            , true
-            , false 
-            });
-        FGeometryCollectionEngineConversion::AppendStaticMesh
-            ( StaticMesh->GetStaticMesh()
-            , SourceMaterials
-            , ComponentTransform
-            , RestCollection.Get()
-            , false
-            , true
-            , false
-            );
-        RestCollection->InitializeMaterials();
-        // TODO: check if necessary
-        //UFractureActionTool::AddSingleRootNodeIfRequired
-        GeometryCollection->MarkPackageDirty();
-        GeometryCollection->MarkRenderStateDirty();
-        //::GeometryCollection::GenerateTemporaryGuids
-        //	( FracturedGeometryCollection->GetGeometryCollection().Get()
-        //	, 0, true);
-        //FGeometryCollectionProximityUtility ProximityUtility(FracturedGeometryCollection->GetGeometryCollection().Get());
-        //ProximityUtility.UpdateProximity();
-
-        
-        TArray<FVector> Sites;
-
-        int32 NumberVoronoiSitesMin = 20;
-        int32 NumberVoronoiSitesMax = 20;
-        FRandomStream RandStream(-1);
-
-        //FBox Bounds = Context.GetWorldBounds();
-        FVector BoundsMin, BoundsMax;
-        StaticMesh->GetLocalBounds(BoundsMin, BoundsMax);
-        const FVector Extent(BoundsMax - BoundsMin);
-
-        const int32 SiteCount = RandStream.RandRange(NumberVoronoiSitesMin, NumberVoronoiSitesMax);
-
-        Sites.Reserve(Sites.Num() + SiteCount);
-        for (int32 ii = 0; ii < SiteCount; ++ii)
-        {
-            Sites.Emplace(BoundsMin + FVector(RandStream.FRand(), RandStream.FRand(), RandStream.FRand()) * Extent );
-        }
-        
-        // FBox VoronoiBounds = FractureContext.GetWorldBounds(); 
-        // if (Sites.Num() > 0)
-        // {
-        // 	VoronoiBounds += FBox(Sites);
-        // }
-        // 
-        // return VoronoiBounds.ExpandBy(CutterSettings->GetMaxVertexMovement() + KINDA_SMALL_NUMBER);
-        FBox VoronoiBounds = FBox(Sites).ExpandBy(1e-3);
-        
-        //VoronoiOp->Selection = FractureContext.GetSelection();
-        //VoronoiOp->Grout = CutterSettings->Grout;
-        //VoronoiOp->PointSpacing = CollisionSettings->GetPointSpacing();
-        //VoronoiOp->Sites = Sites;
-        //if (CutterSettings->Amplitude > 0.0f)
-        //{
-        //	FNoiseSettings Settings;
-        //	CutterSettings->TransferNoiseSettings(Settings);
-        //	VoronoiOp->NoiseSettings = Settings;
-        //}
-        //VoronoiOp->Seed = FractureContext.GetSeed();
-        //VoronoiOp->Transform = FractureContext.GetTransform();
-
-        FVoronoiDiagram Voronoi(Sites, VoronoiBounds, .1f);
-        FPlanarCells VoronoiPlanarCells = FPlanarCells(Sites, Voronoi);
-        FNoiseSettings NoiseSettings;
-        // TODO: NoiseSettings
-        VoronoiPlanarCells.InternalSurfaceMaterials.NoiseSettings = NoiseSettings;
-
-        TUniquePtr<FGeometryCollection> CollectionCopy = MakeUnique<FGeometryCollection>();
-        CollectionCopy->CopyMatchingAttributesFrom(*RestCollection->GetGeometryCollection(), nullptr);
-        VoronoiPlanarCells.InternalSurfaceMaterials.SetUVScaleFromCollection(*CollectionCopy);
-
-        FVector Origin = ComponentTransform.GetTranslation();
-        FTransform CollectionToWorld(ComponentTransform * FTransform(-Origin));
-        //const TArrayView<const int32>& TransformIndices;
-        //UE::PlanarCut::FDynamicMeshCollection DynamicMeshCollection(CollectionCopy, TransformIndices, CollectionToWorld);
-
-        GeometryCollection->SetVisibility(false);
-        
-        bGeometryCollectionSetupDone = true;
-    }
 }
 
 void AMyActor_StaticMesh::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    DOREPLIFETIME_CONDITION(AMyActor_StaticMesh, RP_Orbit      , COND_InitialOnly)
+    DOREPLIFETIME_CONDITION(AMyActor_StaticMesh, RP_Orbit, COND_InitialOnly)
 }
 
 #if WITH_EDITOR

@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Actors/AWorldBoundaries.h"
+#include "Actors/WorldBoundaries.h"
 
 #include "Modes/MyState.h"
 
 // Sets default values
-AAWorldBoundaries::AAWorldBoundaries()
+AWorldBoundaries::AWorldBoundaries()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	AActor::SetActorHiddenInGame(true);
@@ -16,14 +16,14 @@ AAWorldBoundaries::AAWorldBoundaries()
 	SetRootComponent(Sphere);
 }
 
-void AAWorldBoundaries::OnConstruction(const FTransform& Transform)
+void AWorldBoundaries::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 	Sphere->SetSphereRadius(PhysicsEditorDefault.WorldRadius);
 }
 
 // Called when the game starts or when spawned
-void AAWorldBoundaries::BeginPlay()
+void AWorldBoundaries::BeginPlay()
 {
 	Super::BeginPlay();
 	UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
@@ -34,7 +34,7 @@ void AAWorldBoundaries::BeginPlay()
 }
 
 // Called every frame
-void AAWorldBoundaries::Tick(float DeltaTime)
+void AWorldBoundaries::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
