@@ -6,6 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "MyState.h"
+#include "Actors/DynamicAsteroid.h"
 #include "GameFramework/GameState.h"
 #include "MyGameState.generated.h"
 
@@ -22,6 +23,9 @@ class MURDERINSPACE_API AMyGameState : public AGameState
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bEnableGyration = true;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<ADynamicAsteroid> DynamicAsteroidClass;
 	
 protected:
 

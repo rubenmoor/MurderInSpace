@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -51,11 +49,6 @@ class MURDERINSPACE_API UMyGameInstance : public UGameInstance
 
 public:
 	UMyGameInstance();
-
-	void InitializeRandom()
-	{
-		Random.Initialize(TEXT("RandomStream"));
-	}
 
 	void HostGame(const FLocalPlayerContext& LPC);
 

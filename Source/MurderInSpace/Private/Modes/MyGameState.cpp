@@ -11,13 +11,35 @@ void AMyGameState::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	Poisson = std::poisson_distribution(GyrationOmegaInitial * 1e4);
 	RndGen.seed();
-	GetGameInstance<UMyGameInstance>()->InitializeRandom();
 }
 
 void AMyGameState::BeginPlay()
 {
 	Super::BeginPlay();
-	GetWorld()->SpawnActor<ADynamicAsteroid>();
+
+	check(IsValid(DynamicAsteroidClass))
+
+	const FVector VecLocation(1000., 1000., 0);
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.CustomPreSpawnInitalization = [] (AActor* Actor)
+	{
+		auto* AsteroidWithOrbit = Cast<IHasOrbit>(Actor);
+		if(!AsteroidWithOrbit->GetBInitialOrbitParamsSet())
+		{
+			// TODO: replace by some random distribution
+			AsteroidWithOrbit->SetInitialOrbitParams
+				( { FVector(0.2, 0.2, 0.)
+				, FVector(0., 0., 1.)
+				});
+		}
+	};
+	GetWorld()->SpawnActor<ADynamicAsteroid>
+		(DynamicAsteroidClass
+		, VecLocation
+		, FRotator::ZeroRotator
+		, SpawnParameters
+		);
+	
 }
 
 void AMyGameState::OnRep_Physics()

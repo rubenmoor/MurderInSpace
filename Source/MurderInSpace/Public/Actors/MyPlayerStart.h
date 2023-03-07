@@ -44,6 +44,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Orbit")
 	FInitialOrbitParams InitialOrbitParams;
 	
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
     bool bInitialOrbitParamsSet = false;
 };

@@ -16,6 +16,9 @@ public:
 
 protected:
     virtual void OnConstruction(const FTransform& Transform) override;
+#if WITH_EDITOR
+    virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+#endif
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UDynamicAsteroidMeshComponent> DynamicAsteroidMesh;

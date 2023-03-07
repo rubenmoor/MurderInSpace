@@ -38,28 +38,19 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
 
     if(IsValid(GetOrbit()))
     {
-        auto* ActorWithOrbit = Cast<IHasOrbit>(Actor);
         // this only ever gets executed when creating objects in the editor (and dragging them around)
-        if(!ActorWithOrbit->GetBInitialOrbitParamsSet())
-        {
-            // initialize circle
-            ActorWithOrbit->SetInitialOrbitParams({FVector::Zero(), FVector(0., 0., 1.)});
-            GetOrbit()->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
-        }
         GetOrbit()->UpdateByInitialParams(Physics, InstanceUI);
     }
     else
     {
-        if(!IsValid(GetOrbitClass()))
-        {
-            UE_LOG(LogMyGame, Error, TEXT("%s: OnConstruction: OrbitClass null"), *Actor->GetFullName())
-            return;
-        }
+        check(IsValid(GetOrbitClass()))
 
         FActorSpawnParameters Params;
         Params.CustomPreSpawnInitalization = [Actor] (AActor* ActorOrbit)
         {
-            Cast<AOrbit>(ActorOrbit)->RP_Body = Actor;
+            auto* Orbit = Cast<AOrbit>(ActorOrbit);
+            Orbit->RP_Body = Actor;
+            Orbit->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
         };
         AOrbit* NewOrbit = Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
         SetOrbit(NewOrbit);

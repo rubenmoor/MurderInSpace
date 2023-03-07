@@ -12,6 +12,7 @@ UStaticMesh* UDynamicAsteroidMeshComponent::MakeStaticMesh()
     GetDynamicMesh()->Reset();
     FGeometryScriptPrimitiveOptions GeometryScriptPrimitiveOptions;
     FTransform Transform;
+    // TODO: proper pivot
     UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendCapsule
         ( GetDynamicMesh()
         , GeometryScriptPrimitiveOptions
