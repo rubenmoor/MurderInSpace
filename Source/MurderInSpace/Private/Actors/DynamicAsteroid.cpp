@@ -10,8 +10,14 @@ ADynamicAsteroid::ADynamicAsteroid()
 
 void ADynamicAsteroid::OnConstruction(const FTransform& Transform)
 {
-    StaticMesh->SetStaticMesh(DynamicAsteroidMesh->MakeStaticMesh());
-    DynamicAsteroidMesh->DestroyComponent();
+    const float SizeParam = Transform.GetScale3D().X;
+    SetActorScale3D(FVector::One());
+    StaticMesh->SetStaticMesh(DynamicAsteroidMesh->MakeStaticMesh(SizeParam));
+    // probably rather hide the dynamic mesh and use later for collision/destruction
+    if(GetWorld()->WorldType != EWorldType::EditorPreview)
+    {
+        DynamicAsteroidMesh->DestroyComponent();
+    }
     
     Super::OnConstruction(Transform);
 }

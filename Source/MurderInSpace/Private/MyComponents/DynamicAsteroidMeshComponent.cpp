@@ -6,17 +6,42 @@
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "DynamicMeshToMeshDescription.h"
 #include "MeshDescription.h"
+#include "Modes/MyState.h"
 
-UStaticMesh* UDynamicAsteroidMeshComponent::MakeStaticMesh()
+UDynamicAsteroidMeshComponent::UDynamicAsteroidMeshComponent()
+{
+    // DistributionNormal = CreateDefaultSubobject<UDistributionFloatConstantCurve>("NormalDistribution");
+    // DistributionNormal->bCanBeBaked = true;
+    // //DistributionNormal->ConstantCurve = FInterpCurve<float>();
+    // DistributionNormal->ConstantCurve.Points = MakePoints<float>
+    //     ( { 0. , 0.5, 0.9  , 1.     }
+    //     , { 10., 50., 9900., 10000. }
+    //     );
+}
+
+UStaticMesh* UDynamicAsteroidMeshComponent::MakeStaticMesh(float SizeParam)
 {
     GetDynamicMesh()->Reset();
-    FGeometryScriptPrimitiveOptions GeometryScriptPrimitiveOptions;
-    FTransform Transform;
-    // TODO: proper pivot
+    const FGeometryScriptPrimitiveOptions GeometryScriptPrimitiveOptions;
+    const FTransform Transform;
+    const float Radius = SizeParam;
+    const float LineLength = SizeParam;
+    const int32 HemisphereSteps = 5;
+    const int32 CircleSteps = 8;
+    UE_LOG(LogMyGame, Display
+        , TEXT("%s: Generating capsule: Radius %.0f, LineLength %.0f, HemisphereSteps %d, CircleSteps %d")
+        , *GetFullName()
+        , Radius, LineLength, HemisphereSteps, CircleSteps
+        )
     UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendCapsule
         ( GetDynamicMesh()
         , GeometryScriptPrimitiveOptions
         , Transform
+        , Radius
+        , LineLength
+        , HemisphereSteps
+        , CircleSteps
+        , EGeometryScriptPrimitiveOriginMode::Center
         );
 
     // TODO: texture/material
@@ -40,6 +65,8 @@ UStaticMesh* UDynamicAsteroidMeshComponent::MakeStaticMesh()
     
     // Build the static mesh render data, one FMeshDescription* per LOD.
     StaticMesh->BuildFromMeshDescriptions({&MeshDescription});
-    
+
+    // TODO: capsule collision
     return StaticMesh;
 }
+

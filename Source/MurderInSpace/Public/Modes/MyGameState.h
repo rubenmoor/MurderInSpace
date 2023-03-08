@@ -24,9 +24,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bEnableGyration = true;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<ADynamicAsteroid> DynamicAsteroidClass;
-	
+	static AMyGameState* Get(const UWorld* World) { return World->GetGameState<AMyGameState>(); }
 protected:
 
 	// game world parameters to be edited in blueprint and to be used in game
@@ -42,7 +40,6 @@ protected:
 	// event handlers
 
 	virtual void PostInitializeComponents() override;
-	virtual void BeginPlay() override;
 
 	#if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;

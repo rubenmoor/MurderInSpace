@@ -13,7 +13,7 @@ UGyrationComponent::UGyrationComponent()
 {
 	SetIsReplicatedByDefault(true);
 	PrimaryComponentTick.bCanEverTick = true;
-	UActorComponent::SetComponentTickEnabled(false);
+	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
 void UGyrationComponent::FreezeState()

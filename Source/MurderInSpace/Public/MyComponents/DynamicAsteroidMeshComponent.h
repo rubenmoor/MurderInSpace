@@ -15,7 +15,7 @@ class MURDERINSPACE_API UDynamicAsteroidMeshComponent : public UDynamicMeshCompo
 	GENERATED_BODY()
 
 public:
-    UStaticMesh* MakeStaticMesh();
-
-    // TODO: parameters for dynamic mesh generation
+    UDynamicAsteroidMeshComponent();
+    
+    UStaticMesh* MakeStaticMesh(float SizeParam);
 };

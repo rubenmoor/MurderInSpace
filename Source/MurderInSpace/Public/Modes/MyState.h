@@ -147,6 +147,8 @@ class MURDERINSPACE_API UMyState : public UEngineSubsystem
 	GENERATED_BODY()
 
 public:
+	static UMyState* Get() { return GEngine->GetEngineSubsystem<UMyState>(); }
+	
 	UFUNCTION(BlueprintPure)
 	FPhysics GetPhysics(const AMyGameState* GS);
 

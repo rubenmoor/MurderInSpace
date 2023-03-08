@@ -35,7 +35,8 @@ void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
     Super::OnConstruction(Transform);
 
     ensureMsgf(GetLocalRole() == ROLE_Authority, TEXT("%s: OnConstruction while Role < Authority"), *GetFullName());
-    
+
+    // TODO: if this actor is restored from a save game: no orbit setup
     if  (
         GetWorld()->WorldType != EWorldType::EditorPreview
         

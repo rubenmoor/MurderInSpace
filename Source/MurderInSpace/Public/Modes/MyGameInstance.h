@@ -50,6 +50,8 @@ class MURDERINSPACE_API UMyGameInstance : public UGameInstance
 public:
 	UMyGameInstance();
 
+	static UMyGameInstance* Get(const UWorld* World) { return World->GetGameInstance<UMyGameInstance>(); }
+
 	void HostGame(const FLocalPlayerContext& LPC);
 
 	//void LeaveGame(const FLocalPlayerContext& LPC);
