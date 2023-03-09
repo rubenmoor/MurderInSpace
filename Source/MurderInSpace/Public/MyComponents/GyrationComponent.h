@@ -43,6 +43,8 @@ protected:
 
 	#if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+	virtual void OnComponentCreated() override;
+	virtual void PostLoad() override;
 	#endif
 	
 	// private members
@@ -66,10 +68,17 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_GyrationState, VisibleAnywhere, BlueprintReadOnly)
 	FGyrationState RP_GyrationState;
 
-	UFUNCTION()
-	void OnRep_GyrationState();
+	FRandomStream RandomStream;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bGyrationSetupDone = false;
 	
 	// private methods
+	UFUNCTION()
+	void GyrationSetup();
+	
+	UFUNCTION()
+	void OnRep_GyrationState();
 	
 public:	
 	// Called every frame

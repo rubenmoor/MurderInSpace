@@ -1,7 +1,6 @@
 #include "Modes/MyGameState.h"
 
-#include "Actors/DynamicAsteroid.h"
-#include "Actors/Orbit.h"
+#include "Orbit/Orbit.h"
 #include "Lib/FunctionLib.h"
 #include "Modes/MyGameInstance.h"
 #include "Net/UnrealNetwork.h"
@@ -9,8 +8,6 @@
 void AMyGameState::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	Poisson = std::poisson_distribution(GyrationOmegaInitial * 1e4);
-	RndGen.seed();
 }
 
 void AMyGameState::OnRep_Physics()

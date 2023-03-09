@@ -26,6 +26,9 @@ class MURDERINSPACE_API AMyHUDMenu : public AMyHUDBase
 	GENERATED_BODY()
 
 	friend class UMyGameInstance;
+public:
+	AMyHUDMenu();
+	
 protected:
 
 	// main menu
@@ -80,6 +83,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUW_Message> WidgetMessage;
+
+	FRandomStream RandomStream;
 	
 	// event handlers
 

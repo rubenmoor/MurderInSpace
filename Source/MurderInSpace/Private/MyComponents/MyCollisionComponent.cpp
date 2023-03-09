@@ -1,10 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "MyComponents/MyCollisionComponent.h"
 
 #include "Actors/IHasMesh.h"
-#include "Actors/Orbit.h"
+#include "Orbit/Orbit.h"
 #include "Modes/MyState.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"

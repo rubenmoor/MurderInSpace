@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Actors/DynamicAsteroid.h"
+#include "Components/SphereComponent.h"
 
 #include "AsteroidBelt.generated.h"
 
@@ -22,20 +23,30 @@ protected:
     UPROPERTY(EditAnywhere, Category="Generation")
     TObjectPtr<UCurveFloat> CurveAsteroidSize;
 
-    UPROPERTY(EditAnywhere, Category="Generation")
-    int32 NumAsteroids = 10;
+    UPROPERTY(EditInstanceOnly, Category="Generation")
+    int32 NumAsteroids = 0;
 
     UPROPERTY(EditAnywhere, Category="Generation")
-    float MinAsteroidSize = 1.;
+    float MinAsteroidSize = 45.;
+
+    UPROPERTY(EditAnywhere, Category="Generation")
+    float MaxAsteroidSize = 2000.;
 
     UPROPERTY(EditAnywhere, Category="Generation")
     int32 FractalNumber = 3;
 
+    UPROPERTY(VisibleAnywhere)
+    TObjectPtr<USceneComponent> Root;
+    
+    // create boundaries that correspond the extend of the asteroid belt
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USphereComponent> Sphere;
+
     // event handlers
-    virtual void OnConstruction(const FTransform& Transform) override;
     virtual void Destroyed() override;
 #if WITH_EDITOR
     virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+    virtual void OnConstruction(const FTransform& Transform) override;
 #endif
 
 private:
@@ -46,6 +57,5 @@ private:
     static float FractalNoise(int32 N, float Seed);
     
     UFUNCTION(BlueprintPure)
-    float MakeAsteroidSize(float Seed) const;
-
+    float MakeAsteroidSize(const FRandomStream& RandomStream) const;
 };

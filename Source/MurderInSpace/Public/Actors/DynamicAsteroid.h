@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "MyActor_StaticMesh.h"
-#include "MyComponents/DynamicAsteroidMeshComponent.h"
+#include "Components/DynamicMeshComponent.h"
 
 #include "DynamicAsteroid.generated.h"
 
@@ -14,12 +14,14 @@ class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_StaticMesh
 public:
     ADynamicAsteroid();
 
+    UFUNCTION()
+    void GenerateMesh(float SizeParam);
+
 protected:
-    virtual void OnConstruction(const FTransform& Transform) override;
-#if WITH_EDITOR
-    virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-#endif
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    TObjectPtr<UDynamicAsteroidMeshComponent> DynamicAsteroidMesh;
+    TObjectPtr<UDynamicMeshComponent> DynamicMeshComponent;
+
+    // event handlers
+    virtual void OnConstruction(const FTransform& Transform) override;
 };

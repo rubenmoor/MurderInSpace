@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "IHasMesh.h"
-#include "Orbit.h"
+#include "Orbit/Orbit.h"
 #include "MyComponents/MyCollisionComponent.h"
 #include "MyActor_StaticMesh.generated.h"
 
@@ -26,20 +26,15 @@ class MURDERINSPACE_API AMyActor_StaticMesh
 public:
 	AMyActor_StaticMesh();
 
-	virtual UPrimitiveComponent* GetMesh()   const override { return StaticMesh; }
+	virtual UPrimitiveComponent* GetMesh()   const override { return StaticMeshComponent; }
 	virtual float                GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
 	virtual TSubclassOf<AOrbit>  GetOrbitClass()   override { return OrbitClass;   }
 	virtual FLinearColor         GetOrbitColor()   override { return OrbitColor;   }
 	virtual AOrbit*				 GetOrbit() const  override { return RP_Orbit;     }
 	virtual void 				 SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; }
 	virtual UMyCollisionComponent* GetCollisionComponent() override { return Collision; }
-    virtual void SetInitialOrbitParams(FInitialOrbitParams InParams) override
-	{
-		InitialOrbitParams = InParams;
-		bInitialOrbitParamsSet = true;	
-	}
 	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
-	virtual bool GetBInitialOrbitParamsSet() override { return bInitialOrbitParamsSet; }
+	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
 	
 protected:
 	// event handlers
@@ -55,7 +50,7 @@ protected:
 	TObjectPtr<USceneComponent> Root;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UStaticMeshComponent> StaticMesh;
+	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UGyrationComponent> Gyration;
@@ -68,7 +63,7 @@ protected:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
 	AOrbit* RP_Orbit = nullptr;
 	
-	UPROPERTY(EditDefaultsOnly, Category="Orbit")
+	UPROPERTY(EditAnywhere, Category="Orbit")
 	TSubclassOf<AOrbit> OrbitClass;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
@@ -80,10 +75,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
 	float MyMassOverride = 0.;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Orbit")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Orbit")
 	FInitialOrbitParams InitialOrbitParams;
-	
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
-    bool bInitialOrbitParamsSet = false;
-    
 };

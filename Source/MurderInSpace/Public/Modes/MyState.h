@@ -166,20 +166,11 @@ public:
 	UFUNCTION(BlueprintPure)
 	FInstanceUI GetInstanceUIAny(const UObject* Object);
 
-	UFUNCTION(BlueprintPure)
-	FRnd GetRnd(const AMyGameState* GS, const UMyGameInstance* GI);
-
-	UFUNCTION(BlueprintPure)
-	FRnd GetRndAny(const UObject* Object);
-
 	void WithPhysics(const UObject* Object, const std::function<void(FPhysics&)> Func);
 	
 	void WithPlayerUI(const UObject* Object, const FLocalPlayerContext& LPC, const std::function<void(FPlayerUI&)> Func);
 
 	void WithInstanceUI(const UObject* Object, const std::function<void(FInstanceUI&)> Func);
-
-	UFUNCTION(BlueprintPure)
-	double GetGyrationOmegaInitial(FRnd Rnd);
 
 	TArray<FGameplayTag> GetInputTags() const { return InputTags; }
 

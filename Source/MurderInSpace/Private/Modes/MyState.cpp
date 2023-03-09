@@ -4,17 +4,11 @@
 #include "Modes/MyState.h"
 
 #include "GameplayTagsManager.h"
-#include "Chaos/Math/Poisson.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
 #include "Modes/MyPlayerState.h"
 
 DEFINE_LOG_CATEGORY(LogMyGame);
-
-double UMyState::GetGyrationOmegaInitial(FRnd Rnd)
-{
-	return Rnd.Poisson(Rnd.RndGen) / 1e4;
-}
 
 void UMyState::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -42,8 +36,8 @@ FPhysics UMyState::GetPhysics(const AMyGameState* GS)
 
 FPhysics UMyState::GetPhysicsAny(const UObject* Object)
 {
-	const UWorld* World = Object->GetWorld();
-	const AGameState* GSGeneric = World->GetGameState<AGameState>();
+	const auto* World = Object->GetWorld();
+	const auto* GSGeneric = World->GetGameState<AGameState>();
 	if(!IsValid(GSGeneric))
 	{
 		return PhysicsEditorDefault;
@@ -97,8 +91,8 @@ FInstanceUI UMyState::GetInstanceUI(const UMyGameInstance* GI)
 
 FInstanceUI UMyState::GetInstanceUIAny(const UObject* Object)
 {
-	const UWorld* World = Object->GetWorld();
-	const UGameInstance* GIGeneric = World->GetGameInstance();
+	const auto* World = Object->GetWorld();
+	const auto* GIGeneric = World->GetGameInstance();
 	if(!IsValid(GIGeneric))
 	{
 		return InstanceUIEditorDefault;
@@ -116,52 +110,6 @@ FInstanceUI UMyState::GetInstanceUIAny(const UObject* Object)
 		return InstanceUIEditorDefault;
 	}
 	return GetInstanceUI(GI);
-}
-
-FRnd UMyState::GetRnd(const AMyGameState* GS, const UMyGameInstance* GI)
-{
-	return FRnd
-	{ GS->RndGen
-	, GS->Poisson
-	, GI->Random
-	};
-}
-
-FRnd UMyState::GetRndAny(const UObject* Object)
-{
-	const UWorld* World = Object->GetWorld();
-	const UGameInstance* GIGeneric = World->GetGameInstance();
-	const AGameState* GSGeneric = World->GetGameState<AGameState>();
-	if(!IsValid(GIGeneric) || !IsValid(GSGeneric))
-	{
-		return FRnd();
-	}
-	const UMyGameInstance* GI = World->GetGameInstance<UMyGameInstance>();
-	if(!GI)
-	{
-		UE_LOG
-			( LogGameState
-			, Error
-			, TEXT("UStateLib::GetRndUnsafe: %s: UMyGameInstance null; UGameInstance: %s")
-			, *Object->GetFullName()
-			, *GIGeneric->GetFullName()
-			)
-		return FRnd();
-	}
-	
-	const AMyGameState* GS = World->GetGameState<AMyGameState>();
-	if(!GS)
-	{
-		UE_LOG
-			( LogGameState
-			, Error
-			, TEXT("UStateLib::GetRndUnsafe: %s: AMyGameState null; AGameState: %s")
-			, *Object->GetFullName()
-			, *GSGeneric->GetFullName()
-			)
-		return FRnd();
-	}
-	return GetRnd(GS, GI);
 }
 
 void UMyState::WithPlayerUI(const UObject* Object, const FLocalPlayerContext& LPC, const std::function<void(FPlayerUI&)> Func)

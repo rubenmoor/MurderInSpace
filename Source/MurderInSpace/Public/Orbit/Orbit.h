@@ -6,6 +6,8 @@
 #include "Modes/MyState.h"
 #include "Orbit.generated.h"
 
+struct FInitialOrbitParams;
+
 UENUM(meta=(Bitflags))
 enum class EOrbitReady : uint8
 {
@@ -40,8 +42,7 @@ public:
     virtual AOrbit* GetOrbit() const = 0;
     virtual void SetOrbit(AOrbit* Orbit) = 0;
     virtual FInitialOrbitParams GetInitialOrbitParams() const = 0;
-    virtual void SetInitialOrbitParams(FInitialOrbitParams InParams) = 0;
-    virtual bool GetBInitialOrbitParamsSet() = 0;
+    virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) = 0;
 };
 
 UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))

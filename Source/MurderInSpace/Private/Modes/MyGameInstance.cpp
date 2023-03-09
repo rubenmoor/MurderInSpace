@@ -13,9 +13,6 @@
 
 UMyGameInstance::UMyGameInstance()
 {
-	// I want random numbers to be the same across multiplayer clients
-	// So the game instance can't create a seed --> maybe generate rnd elsewhere entirely
-	Random.Initialize(TEXT("RandomStream"));
 }
 
 void UMyGameInstance::HostGame(const FLocalPlayerContext& LPC)

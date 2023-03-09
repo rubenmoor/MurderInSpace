@@ -12,7 +12,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
 #include "Modes/MyGameInstance.h"
-#include "Modes/MyGameState.h"
 #include "Modes/MyLocalPlayer.h"
 #include "Modes/MySessionManager.h"
 
@@ -224,16 +223,11 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
 
-    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-    const auto* GI = GetGameInstance<UMyGameInstance>();
-    const auto* GS = GetWorld()->GetGameState<AMyGameState>();
-    const auto InstanceUI = MyState->GetInstanceUI(GI);
-    const auto Physics = MyState->GetPhysics(GS);
     auto* PawnWithOrbit = Cast<IHasOrbit>(InPawn);
     AOrbit* Orbit = PawnWithOrbit->GetOrbit();
 
     Orbit->SetEnableVisibility(true);
-    PawnWithOrbit->SetInitialOrbitParams({FVector::Zero(), FVector(0., 0., 1.)});
+    //PawnWithOrbit->SetInitialOrbitParams({FVector::Zero(), FVector(0., 0., 1.)});
 
     // exclude the case of the server-player possessing their pawn
     if(!InPawn->IsLocallyControlled())

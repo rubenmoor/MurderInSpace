@@ -20,6 +20,11 @@
 
 #define LOCTEXT_NAMESPACE "Menu"
 
+AMyHUDMenu::AMyHUDMenu()
+{
+	RandomStream.Initialize(GetFName());
+}
+
 void AMyHUDMenu::BeginPlay()
 {
 	Super::BeginPlay();
@@ -152,8 +157,7 @@ void AMyHUDMenu::HostGameShow()
 	WidgetHostGame->SetVisibility(ESlateVisibility::Visible);
 
 	const TObjectPtr<UMyGameInstance> GI = GetGameInstance<UMyGameInstance>();
-	auto [_RndGen, _Poisson, Random] = GEngine->GetEngineSubsystem<UMyState>()->GetRndAny(this);
-	GI->SessionConfig.CustomName = UFunctionLib::Satellites[static_cast<int>(Random.FRand() * UFunctionLib::LengthSatellites)];
+	GI->SessionConfig.CustomName = UFunctionLib::Satellites[static_cast<int>(RandomStream.FRand() * UFunctionLib::LengthSatellites)];
 	const IOnlineSubsystem* SS = IOnlineSubsystem::Get
 		( GI->SessionConfig.bEnableLAN ? "NULL" : "EOS"
 		);

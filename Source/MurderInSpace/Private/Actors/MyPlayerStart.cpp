@@ -3,7 +3,7 @@
 
 #include "Actors/MyPlayerStart.h"
 
-#include "Actors/Orbit.h"
+#include "Orbit/Orbit.h"
 #include "Net/UnrealNetwork.h"
 
 AMyPlayerStart::AMyPlayerStart()
@@ -28,11 +28,8 @@ void AMyPlayerStart::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
     if  (
-		// Only the server spawns orbits
-    	   GetLocalRole()        == ROLE_Authority
-    	   
 		// avoid orbit spawning when editing and compiling blueprint
-		&& GetWorld()->WorldType != EWorldType::EditorPreview
+		   GetWorld()->WorldType != EWorldType::EditorPreview
 		
 		// avoid orbit spawning when dragging an actor with orbit into the viewport at first
 		// The preview actor that is created doesn't have a valid location

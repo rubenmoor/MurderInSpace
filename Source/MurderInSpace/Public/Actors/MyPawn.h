@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Orbit.h"
+#include "Orbit/Orbit.h"
 #include "GameFramework/Pawn.h"
 #include "MyPawn.generated.h"
 
@@ -46,13 +46,8 @@ public:
 	virtual FLinearColor        GetOrbitColor()  override { return OrbitColor; }
 	virtual AOrbit*				GetOrbit() const override { return RP_Orbit; };
 	virtual void 				SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
-    virtual void SetInitialOrbitParams(FInitialOrbitParams InParams) override
-	{
-		InitialOrbitParams = InParams;
-		bInitialOrbitParamsSet = true;	
-	}
 	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
-	virtual bool GetBInitialOrbitParamsSet() override { return bInitialOrbitParamsSet; }
+	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
 	
     UPROPERTY(ReplicatedUsing=OnRep_Rotation, VisibleAnywhere, BlueprintReadOnly)
     FQuat RP_Rotation;
@@ -83,7 +78,7 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_Orbit, VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
 	AOrbit* RP_Orbit = nullptr;
 	
-	UPROPERTY(EditDefaultsOnly, Category="Orbit")
+	UPROPERTY(EditAnywhere, Category="Orbit")
 	TSubclassOf<AOrbit> OrbitClass;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
@@ -91,11 +86,8 @@ protected:
 
 	EMyPawnReady MyPawnReady = EMyPawnReady::None;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Orbit")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Orbit")
 	FInitialOrbitParams InitialOrbitParams;
-	
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
-    bool bInitialOrbitParamsSet = false;
 
 	// private methods
 

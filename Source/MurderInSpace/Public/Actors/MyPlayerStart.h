@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Orbit.h"
+#include "Orbit/Orbit.h"
 #include "MyPlayerStart.generated.h"
 
 /**
@@ -20,13 +20,8 @@ public:
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
 	virtual AOrbit*				GetOrbit() const override { return RP_Orbit; };
 	virtual void 				SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
-    virtual void SetInitialOrbitParams(FInitialOrbitParams InParams) override
-	{
-		InitialOrbitParams = InParams;
-		bInitialOrbitParamsSet = true;	
-	}
 	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
-	virtual bool GetBInitialOrbitParamsSet() override { return bInitialOrbitParamsSet; }
+	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
 	
 protected:
 	// event handlers
@@ -38,12 +33,9 @@ protected:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
 	AOrbit* RP_Orbit = nullptr;
 	
-	UPROPERTY(EditDefaultsOnly, Category="Orbit")
+	UPROPERTY(EditAnywhere, Category="Orbit")
 	TSubclassOf<AOrbit> OrbitClass;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Orbit")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Orbit")
 	FInitialOrbitParams InitialOrbitParams;
-	
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
-    bool bInitialOrbitParamsSet = false;
 };

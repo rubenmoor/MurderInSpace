@@ -6,7 +6,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameplayTagContainer.h"
 #include "InputMappingContext.h"
-#include "Actors/Orbit.h"
+#include "Orbit/Orbit.h"
 #include "GameFramework/PlayerController.h"
 #include "Input/MyEnhancedInputComponent.h"
 #include "MyPlayerController.generated.h"

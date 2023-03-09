@@ -1,5 +1,6 @@
 ﻿#include "Actors/AsteroidBelt.h"
 #include "Actors/DynamicAsteroid.h"
+#include "Components/SphereComponent.h"
 #include "Modes/MyGameInstance.h"
 
 AAsteroidBelt::AAsteroidBelt()
@@ -7,31 +8,28 @@ AAsteroidBelt::AAsteroidBelt()
     PrimaryActorTick.bCanEverTick = false;
     bRunConstructionScriptOnDrag = false;
     bNetLoadOnClient = false;
-}
 
-void AAsteroidBelt::OnConstruction(const FTransform& Transform)
-{
-    Super::OnConstruction(Transform);
-
-    // TODO: move all this code to PostEditChangeChainProperty and BeginPlay
-    const auto* World = GetWorld();
-    const auto WorldType=  World->WorldType;
-    if  (  WorldType == EWorldType::EditorPreview
-        || (WorldType == EWorldType::Editor && HasAnyFlags(RF_Transient))
-        || ((WorldType == EWorldType::Game || WorldType == EWorldType::PIE) && !HasAnyFlags(RF_Transient))
-        )
-    {
-        return;
-    }
+    Root = CreateDefaultSubobject<USceneComponent>("Root");
+    Root->SetMobility(EComponentMobility::Static);
+	SetRootComponent(Root);
     
+    Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
+    Sphere->SetupAttachment(Root);
+    Sphere->SetMobility(EComponentMobility::Static);
 }
 
 void AAsteroidBelt::Destroyed()
 {
     Super::Destroyed();
-    for(const auto Actor : Children)
+    while(!Children.IsEmpty())
     {
-        Actor->Destroy();
+        if(!Children[0]->Destroy())
+        {
+            UE_LOG(LogMyGame, Warning, TEXT("%s: Destroyed: Failed to destroy child actor %s.")
+                , *GetFullName()
+                , *Children[0].GetName()
+                )
+        }
     }
 }
 
@@ -48,28 +46,32 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
     static const FName FNameMinAsteroidSize      = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, MinAsteroidSize     );
     static const FName FNameFractalNumber        = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, FractalNumber       );
 
-    switch(Name)
+    if(     Name == FNameDynamicAsteroidClass
+         || Name == FNameCurveAsteroidSize
+         || Name == FNameNumAsteroids
+         || Name == FNameMinAsteroidSize
+         || Name == FNameFractalNumber
+        )
     {
-    case FNameDynamicAsteroidClass:
-    case FNameCurveAsteroidSize:
-    case FNameNumAsteroids:
-    case FNameMinAsteroidSize:
-    case FNameFractalNumber:
-        for(auto Actor : Children)
+        if(const auto* World = GetWorld(); IsValid(World) && World->WorldType != EWorldType::EditorPreview)
         {
-            if(!Actor->Destroy())
+            while(!Children.IsEmpty())
             {
-                UE_LOG(LogMyGame, Error, TEXT("%s: Failed to destroy child actor %s.")
-                    , *GetFullName()
-                    , *Actor.GetName()
-                    )
+                Children[0]->Destroy();
             }
+            BuildAsteroids();
         }
-        BuildAsteroids();
-        break;
-    default:
-        break;
     }
+}
+
+void AAsteroidBelt::OnConstruction(const FTransform& Transform)
+{
+    Super::OnConstruction(Transform);
+    auto* MyState = UMyState::Get();
+    auto Physics = MyState->GetPhysicsAny(this);
+
+    Sphere->SetWorldLocation(FVector::Zero());
+    Sphere->SetSphereRadius((Transform.GetLocation() - Physics.VecF1).Length());
 }
 #endif
 
@@ -79,10 +81,13 @@ void AAsteroidBelt::BuildAsteroids()
     check(IsValid(CurveAsteroidSize))
     check(IsValid(DynamicAsteroidClass))
 
+    FRandomStream RandomStream(GetFName());
+
     auto* World = GetWorld();
+    check(World->WorldType != EWorldType::EditorPreview)
+    
     auto* MyState = UMyState::Get();
     const FPhysics Physics = MyState->GetPhysicsAny(this);
-    const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(this);
 
     const FVector VecR = GetActorLocation();
     const float Radius = (VecR - Physics.VecF1).Length();
@@ -90,39 +95,41 @@ void AAsteroidBelt::BuildAsteroids()
     for(int i = 0; i < NumAsteroids; i++)
     {
         const float Alpha = static_cast<float>(i) / NumAsteroids * 2. * PI;
-        const float X = cos(AlphaZero + Alpha) * Radius;
-        const float Y = sin(AlphaZero + Alpha) * Radius;
-        const float Z = cos(Alpha) * VecR.Z;
-        const FVector VecLocation(X, Y, Z);
+        const FVector VecLocation
+            ( cos(AlphaZero + Alpha) * Radius
+            , sin(AlphaZero + Alpha) * Radius
+            , cos(Alpha) * VecR.Z
+            );
         //const float SizeParam = MinAsteroidSize * MakeAsteroidSize(static_cast<float>(i) / NumAsteroids);
-        const float SizeParam = MakeAsteroidSize(static_cast<float>(i));
-        // abusing the scale.x of Transform to pass a size parameter to the asteroid
-        const FVector VecScale(SizeParam, 1., 1.);
-        const FTransform AsteroidTransform(FQuat::Identity, VecLocation, VecScale);
+        const float SizeParam = MakeAsteroidSize(RandomStream);
         FActorSpawnParameters SpawnParameters;
         // Owner is "primarily used for replication"; I use it to have the spawned asteroid
         // added to the children array for destruction
         SpawnParameters.Owner = this;
-        SpawnParameters.CustomPreSpawnInitalization = [Physics, InstanceUI, World] (AActor* Actor)
+        SpawnParameters.CustomPreSpawnInitalization = [this, SizeParam] (AActor* Actor)
         {
             // TODO: replace by some random distribution
-            auto* ActorWithOrbit = Cast<IHasOrbit>(Actor);
-            ActorWithOrbit->SetInitialOrbitParams
+            auto* DynamicAsteroid = Cast<ADynamicAsteroid>(Actor);
+            DynamicAsteroid->GenerateMesh(SizeParam);
+            DynamicAsteroid->SetInitialOrbitParams
                 ( { FVector(0.0, 0.0, 0.)
                     // TODO: only correct for VecR.Z == 0 
                 , FVector(0., 0., 1.)
                 });
-            if(World->WorldType == EWorldType::Editor)
-            {
-                // this isn't necessary when in game: AOrbit::BeginPlay calls this function, too
-                //auto* Orbit = ActorWithOrbit->GetOrbit();
-                //if(IsValid(Orbit)) Orbit->UpdateByInitialParams(Physics, InstanceUI);
-                ActorWithOrbit->GetOrbit()->UpdateByInitialParams(Physics, InstanceUI);
-            }
+#if WITH_EDITOR
+            Actor->SetFolderPath(*GetName());
+#endif
+            // if(World->WorldType == EWorldType::Editor)
+            // {
+            //     // this isn't necessary when in game: AOrbit::BeginPlay calls this function, too
+            //     auto* Orbit = ActorWithOrbit->GetOrbit();
+            //     if(IsValid(Orbit)) Orbit->UpdateByInitialParams(Physics, InstanceUI);
+            // }
         };
-        GetWorld()->SpawnActor<ADynamicAsteroid>
+        World->SpawnActor<ADynamicAsteroid>
             ( DynamicAsteroidClass
-            , AsteroidTransform
+            , VecLocation
+            , FRotator::ZeroRotator
             , SpawnParameters
             );
     }
@@ -140,7 +147,7 @@ float AAsteroidBelt::FractalNoise(int32 N, float Seed)
     return Result;
 }
 
-float AAsteroidBelt::MakeAsteroidSize(float Seed) const
+float AAsteroidBelt::MakeAsteroidSize(const FRandomStream& RandomStream) const
 {
-    return MinAsteroidSize * CurveAsteroidSize->GetFloatValue(FractalNoise(FractalNumber, Seed));
+    return MinAsteroidSize + MaxAsteroidSize * CurveAsteroidSize->GetFloatValue(RandomStream.FRand());
 }

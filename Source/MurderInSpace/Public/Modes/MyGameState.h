@@ -2,11 +2,8 @@
 
 #pragma once
 
-#include <random>
-
 #include "CoreMinimal.h"
 #include "MyState.h"
-#include "Actors/DynamicAsteroid.h"
 #include "GameFramework/GameState.h"
 #include "MyGameState.generated.h"
 
@@ -33,9 +30,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double GyrationOmegaInitial = 0.1;
-
-	std::default_random_engine RndGen;
-	std::poisson_distribution<int> Poisson;
 
 	// event handlers
 

@@ -1,7 +1,6 @@
-#include "Actors/Orbit.h"
+#include "Orbit/Orbit.h"
 
 #include <numeric>
-
 #include "Actors/MyCharacter.h"
 #include "Components/SplineMeshComponent.h"
 #include "HUD/MyHUD.h"
@@ -19,7 +18,7 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
 
 #if WITH_EDITOR
     Actor->SetActorLabel(Actor->GetName());
-    
+
     if(IsValid(GetOrbit()) && GetOrbit()->RP_Body != Actor)
     {
         // this actor has been copied in the editor, to the effect that a new orbit is spawned in a first step
@@ -46,11 +45,15 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
         check(IsValid(GetOrbitClass()))
 
         FActorSpawnParameters Params;
-        Params.CustomPreSpawnInitalization = [Actor] (AActor* ActorOrbit)
+        Params.CustomPreSpawnInitalization = [Actor, Physics, InstanceUI] (AActor* ActorOrbit)
         {
             auto* Orbit = Cast<AOrbit>(ActorOrbit);
             Orbit->RP_Body = Actor;
             Orbit->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
+            Orbit->UpdateByInitialParams(Physics, InstanceUI);
+#if WITH_EDITOR
+            Orbit->SetFolderPath(*Actor->GetOwner()->GetName());
+#endif
         };
         AOrbit* NewOrbit = Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
         SetOrbit(NewOrbit);
@@ -59,7 +62,6 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
 
 AOrbit::AOrbit()
 {
-    // only start to tick after PostNetInit
     PrimaryActorTick.bCanEverTick = true;
     PrimaryActorTick.bStartWithTickEnabled = false;
     
@@ -102,7 +104,7 @@ void AOrbit::OnConstruction(const FTransform& Transform)
 #if WITH_EDITOR
     if(IsValid(RP_Body))
     {
-        SetActorLabel(MakeOrbitLabel(RP_Body), false);
+        SetActorLabel(AOrbit::MakeOrbitLabel(RP_Body), false);
     }
 #endif
 }

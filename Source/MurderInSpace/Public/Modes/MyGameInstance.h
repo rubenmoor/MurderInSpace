@@ -88,9 +88,6 @@ protected:
 	int GlobalNumSplinePoints = 0;
 	
 	UPROPERTY(BlueprintReadWrite)
-	FRandomStream Random;
-
-	UPROPERTY(BlueprintReadWrite)
 	FInstanceUI InstanceUI;
 	
 	// flag enums

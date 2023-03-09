@@ -14,8 +14,8 @@ AMyActor_StaticMesh::AMyActor_StaticMesh()
     Root = CreateDefaultSubobject<USceneComponent>("Root");
     SetRootComponent(Root);
     
-    StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
-    StaticMesh->SetupAttachment(Root);
+    StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
+    StaticMeshComponent->SetupAttachment(Root);
 
     Gyration = CreateDefaultSubobject<UGyrationComponent>("Gyration");
     Collision = CreateDefaultSubobject<UMyCollisionComponent>("Collision");
@@ -50,7 +50,7 @@ void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
         OrbitSetup(this);
     }
 
-    MyMass = pow(StaticMesh->Bounds.SphereRadius, 3);
+    MyMass = pow(StaticMeshComponent->Bounds.SphereRadius, 3);
 }
 
 void AMyActor_StaticMesh::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -78,7 +78,10 @@ void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent
     }
     else if(Name == FNameInitialParams)
     {
-        RP_Orbit->UpdateByInitialParams(PhysicsEditorDefault, InstanceUIEditorDefault);
+        if(IsValid(RP_Orbit))
+        {
+            RP_Orbit->UpdateByInitialParams(PhysicsEditorDefault, InstanceUIEditorDefault);
+        }
     }
 }
 #endif
