@@ -168,7 +168,10 @@ void UGyrationComponent::OnComponentCreated()
     Super::OnComponentCreated();
     
     UE_LOG(LogMyGame, Display, TEXT("%s: OnComponentCreated"), *GetFullName())
-    GyrationSetup();
+    if(!HasAnyFlags(RF_Transient))
+    {
+        GyrationSetup();
+    }
 }
 
 void UGyrationComponent::PostLoad()
@@ -178,6 +181,7 @@ void UGyrationComponent::PostLoad()
 
     if(!bGyrationSetupDone)
     {
+        UE_LOG(LogMyGame, Warning, TEXT("%s: PostLoad, GyrationSetup"), *GetFullName())
         GyrationSetup();
     }
 }

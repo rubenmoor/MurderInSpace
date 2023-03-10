@@ -23,17 +23,20 @@ protected:
     UPROPERTY(EditAnywhere, Category="Generation")
     TObjectPtr<UCurveFloat> CurveAsteroidSize;
 
+    UPROPERTY(EditAnywhere, Category="Generation")
+    TObjectPtr<UCurveFloat> CurveAsteroidDistance;
+
     UPROPERTY(EditInstanceOnly, Category="Generation")
     int32 NumAsteroids = 0;
 
     UPROPERTY(EditAnywhere, Category="Generation")
-    float MinAsteroidSize = 45.;
+    double MinAsteroidSize = 45.;
 
     UPROPERTY(EditAnywhere, Category="Generation")
-    float MaxAsteroidSize = 2000.;
+    double MaxAsteroidSize = 2000.;
 
     UPROPERTY(EditAnywhere, Category="Generation")
-    int32 FractalNumber = 3;
+    double Width = 1000.;
 
     UPROPERTY(VisibleAnywhere)
     TObjectPtr<USceneComponent> Root;
@@ -50,12 +53,16 @@ protected:
 #endif
 
 private:
-    UFUNCTION(BlueprintCallable)
+    UFUNCTION(BlueprintCallable, CallInEditor, Category="Generation")
     void BuildAsteroids();
     
     UFUNCTION(BlueprintPure)
-    static float FractalNoise(int32 N, float Seed);
-    
-    UFUNCTION(BlueprintPure)
     float MakeAsteroidSize(const FRandomStream& RandomStream) const;
+
+    UFUNCTION(BlueprintPure)
+    FVector MakeAsteroidDistance(FPhysics Physics, const FRandomStream& RandomStream) const;
+
+    // Position is a value between 0 and 1
+    UFUNCTION(BlueprintPure)
+    float MakeAsteroidAlpha(const FRandomStream& RandomStream);
 };

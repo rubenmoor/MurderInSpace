@@ -122,7 +122,7 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 		case UnknownError:
 			LPC.GetHUD<AMyHUDMenu>()->MessageShow(LOCTEXT("SessionUnknownError", "error: unknown error"), GotoServerList);
 			break;
-		case Success:
+		case EOnJoinSessionCompleteResult::Success:
 			if(!ClientTravelToSession(LPC.GetLocalPlayer()->GetControllerId(), NAME_GameSession))
 			{
 				LPC.GetHUD<AMyHUDMenu>()->MessageShow(LOCTEXT("ClientTravelToSessionFailed", "error: travel to session failed"), GotoServerList);

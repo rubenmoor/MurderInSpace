@@ -40,25 +40,25 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
 
     const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
     
-    static const FName FNameDynamicAsteroidClass = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, DynamicAsteroidClass);
-    static const FName FNameCurveAsteroidSize    = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, CurveAsteroidSize   );
-    static const FName FNameNumAsteroids         = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, NumAsteroids        );
-    static const FName FNameMinAsteroidSize      = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, MinAsteroidSize     );
-    static const FName FNameFractalNumber        = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, FractalNumber       );
+    static const FName FNameDynamicAsteroidClass  = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, DynamicAsteroidClass );
+    static const FName FNameCurveAsteroidSize     = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, CurveAsteroidSize    );
+    static const FName FNameCurveAsteroidDistance = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, CurveAsteroidDistance);
+    static const FName FNameNumAsteroids          = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, NumAsteroids         );
+    static const FName FNameMinAsteroidSize       = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, MinAsteroidSize      );
+    static const FName FNameMaxAsteroidSize       = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, MaxAsteroidSize      );
+    static const FName FNameWidth                 = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, Width                );
 
     if(     Name == FNameDynamicAsteroidClass
          || Name == FNameCurveAsteroidSize
+         || Name == FNameCurveAsteroidDistance
          || Name == FNameNumAsteroids
          || Name == FNameMinAsteroidSize
-         || Name == FNameFractalNumber
+         || Name == FNameMaxAsteroidSize
+         || Name == FNameWidth
         )
     {
         if(const auto* World = GetWorld(); IsValid(World) && World->WorldType != EWorldType::EditorPreview)
         {
-            while(!Children.IsEmpty())
-            {
-                Children[0]->Destroy();
-            }
             BuildAsteroids();
         }
     }
@@ -79,9 +79,17 @@ void AAsteroidBelt::OnConstruction(const FTransform& Transform)
 void AAsteroidBelt::BuildAsteroids()
 {
     check(IsValid(CurveAsteroidSize))
+    check(IsValid(CurveAsteroidDistance))
     check(IsValid(DynamicAsteroidClass))
 
-    FRandomStream RandomStream(GetFName());
+    while(!Children.IsEmpty())
+    {
+        if(IsValid(Children[0]))
+        {
+            Children[0]->Destroy();
+        }
+    }
+    const FRandomStream RandomStream(GetFName());
 
     auto* World = GetWorld();
     check(World->WorldType != EWorldType::EditorPreview)
@@ -90,11 +98,12 @@ void AAsteroidBelt::BuildAsteroids()
     const FPhysics Physics = MyState->GetPhysicsAny(this);
 
     const FVector VecR = GetActorLocation();
-    const float Radius = (VecR - Physics.VecF1).Length();
-    const float AlphaZero = acos(VecR.X / Radius);
     for(int i = 0; i < NumAsteroids; i++)
     {
-        const float Alpha = static_cast<float>(i) / NumAsteroids * 2. * PI;
+        const FVector VecVaried = MakeAsteroidDistance(Physics, RandomStream);
+        const float Radius = VecVaried.Length();
+        const float AlphaZero = acos(VecVaried.X / Radius);
+        const float Alpha = 2 * PI * static_cast<float>(i) / NumAsteroids;
         const FVector VecLocation
             ( cos(AlphaZero + Alpha) * Radius
             , sin(AlphaZero + Alpha) * Radius
@@ -135,19 +144,19 @@ void AAsteroidBelt::BuildAsteroids()
     }
 }
 
-float AAsteroidBelt::FractalNoise(int32 N, float Seed)
-{
-    float Result = Seed;
-    float X = Result;
-    for(int i = 0; i < N; i++)
-    {
-        Result = FMath::PerlinNoise1D(X);
-        X = (Result + 1.) / 2.;
-    }
-    return Result;
-}
-
 float AAsteroidBelt::MakeAsteroidSize(const FRandomStream& RandomStream) const
 {
     return MinAsteroidSize + MaxAsteroidSize * CurveAsteroidSize->GetFloatValue(RandomStream.FRand());
 }
+
+FVector AAsteroidBelt::MakeAsteroidDistance(FPhysics Physics, const FRandomStream& RandomStream) const
+{
+    return (GetActorLocation() - Physics.VecF1) + Width * (CurveAsteroidDistance->GetFloatValue(RandomStream.FRand()) - 0.5);
+}
+
+float AAsteroidBelt::MakeAsteroidAlpha(const FRandomStream& RandomStream)
+{
+    //return 2 * PI * ((1. + FMath::PerlinNoise1D(Position)) / 2.);
+    return RandomStream.FRandRange(0, 360);
+}
+
