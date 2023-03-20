@@ -7,6 +7,24 @@
 
 #include "AsteroidBelt.generated.h"
 
+USTRUCT(BlueprintType)
+struct FAsteroidType
+{
+    GENERATED_BODY()
+    
+	UPROPERTY(EditAnywhere, Category="Generation")
+	TSubclassOf<ADynamicAsteroid> DynamicAsteroidClass;
+
+    UPROPERTY(EditAnywhere, Category="Generation")
+    float RelativeFrequency = 1.0;
+    
+    UPROPERTY(EditAnywhere, Category="Generation")
+    double MinAsteroidSize = 45.;
+
+    UPROPERTY(EditAnywhere, Category="Generation")
+    double MaxAsteroidSize = 2000.;
+};
+
 UCLASS()
 class MURDERINSPACE_API AAsteroidBelt : public AActor
 {
@@ -17,9 +35,9 @@ public:
     AAsteroidBelt();
 
 protected:
-	UPROPERTY(EditAnywhere, Category="Generation")
-	TSubclassOf<ADynamicAsteroid> DynamicAsteroidClass;
-	
+    UPROPERTY(EditAnywhere, Category="Generation")
+    TArray<FAsteroidType> AsteroidTypes;
+    
     UPROPERTY(EditAnywhere, Category="Generation")
     TObjectPtr<UCurveFloat> CurveAsteroidSize;
 
@@ -28,12 +46,6 @@ protected:
 
     UPROPERTY(EditInstanceOnly, Category="Generation")
     int32 NumAsteroids = 0;
-
-    UPROPERTY(EditAnywhere, Category="Generation")
-    double MinAsteroidSize = 45.;
-
-    UPROPERTY(EditAnywhere, Category="Generation")
-    double MaxAsteroidSize = 2000.;
 
     UPROPERTY(EditAnywhere, Category="Generation")
     double Width = 1000.;
@@ -57,12 +69,11 @@ private:
     void BuildAsteroids();
     
     UFUNCTION(BlueprintPure)
-    float MakeAsteroidSize(const FRandomStream& RandomStream) const;
+    float MakeAsteroidSize(const FRandomStream& RandomStream, const FAsteroidType AsteroidType) const;
 
     UFUNCTION(BlueprintPure)
     FVector MakeAsteroidDistance(FPhysics Physics, const FRandomStream& RandomStream) const;
 
-    // Position is a value between 0 and 1
-    UFUNCTION(BlueprintPure)
-    float MakeAsteroidAlpha(const FRandomStream& RandomStream);
+    UFUNCTION(BlueprintCallable)
+    FAsteroidType PickAsteroidType(FRandomStream RandomStream);
 };
