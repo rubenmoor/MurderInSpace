@@ -10,9 +10,9 @@
 
 ADynamicAsteroid::ADynamicAsteroid()
 {
-    RealtimeMeshComponent = CreateDefaultSubobject<URealtimeMeshComponent>("RealtimeMeshComponent");
-    RealtimeMeshComponent->SetupAttachment(Root);
-	RealtimeMeshComponent->PrimaryComponentTick.bCanEverTick = false;
+    DynamicMeshComponent = CreateDefaultSubobject<UDynamicMeshComponent>("DynamicMeshComponent");
+    DynamicMeshComponent->SetupAttachment(Root);
+	DynamicMeshComponent->PrimaryComponentTick.bCanEverTick = false;
 
 	StaticMeshComponent->bDrawMeshCollisionIfSimple = true;
 	StaticMeshComponent->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
@@ -27,8 +27,7 @@ void ADynamicAsteroid::GenerateMesh(FRandomStream RandomStream, double SizeParam
 		check(IsValid(MaterialType.Material))
 	}
 
-	auto* DynamicMesh = RealtimeMeshComponent->InitializeRealtimeMesh<URealtimeDynamicMesh>();
-    //auto* DynamicMesh = RealtimeMeshComponent->GetDynamicMesh();
+    auto* DynamicMesh = DynamicMeshComponent->GetDynamicMesh();
     DynamicMesh->Reset();
     const FGeometryScriptPrimitiveOptions GeometryScriptPrimitiveOptions;
     const FTransform Transform;
@@ -106,7 +105,7 @@ void ADynamicAsteroid::GenerateMesh(FRandomStream RandomStream, double SizeParam
 	
     // TODO: benchmark
     //DynamicAsteroidMesh->SetVisibility(false);
-    RealtimeMeshComponent->DestroyComponent();
+    DynamicMeshComponent->DestroyComponent();
 }
 
 void ADynamicAsteroid::OnConstruction(const FTransform& Transform)

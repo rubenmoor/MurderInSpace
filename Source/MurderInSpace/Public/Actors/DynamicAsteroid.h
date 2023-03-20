@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "MyActor_StaticMesh.h"
-#include "RealtimeMeshComponent.h"
 #include "Components/DynamicMeshComponent.h"
 #include "Materials/MaterialInstanceConstant.h"
 
@@ -43,7 +42,7 @@ protected:
     double CollisionCapsuleRelativeSize = 0.9;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    TObjectPtr<URealtimeMeshComponent> RealtimeMeshComponent;
+    TObjectPtr<UDynamicMeshComponent> DynamicMeshComponent;
 
     // event handlers
     virtual void OnConstruction(const FTransform& Transform) override;

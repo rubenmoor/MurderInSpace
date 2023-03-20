@@ -118,6 +118,6 @@
 		"IOS",
 		"Linux",
 		"LinuxArm64",
-		"Windows"
+		"Win64"
 	]
 }

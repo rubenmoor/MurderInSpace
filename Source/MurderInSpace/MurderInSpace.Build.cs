@@ -16,7 +16,6 @@ public class MurderInSpace : ModuleRules
 			, "Engine"
 			, "InputCore"
 			, "Niagara"
-			, "RealtimeMeshComponent"
 			, "UMG"
 			});
 
