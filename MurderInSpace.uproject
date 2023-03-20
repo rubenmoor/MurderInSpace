@@ -12,8 +12,7 @@
 				"Engine",
 				"UMG",
 				"CommonUI",
-				"EnhancedInput",
-				"GeometryFramework"
+				"EnhancedInput"
 			]
 		}
 	],
@@ -33,6 +32,11 @@
 				"Mac",
 				"Linux"
 			]
+		},
+		{
+			"Name": "RealtimeMeshComponent",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/ad0b45a6a31e462aba7cf7c790a9c125"
 		},
 		{
 			"Name": "HDRIBackdrop",
@@ -111,13 +115,18 @@
 		},
 		{
 			"Name": "GeometryScripting",
-			"Enabled": true
+			"Enabled": false
+		},
+		{
+			"Name": "PluginDownloader",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/b5ff499954db477eb46af6537f1f9c1b"
 		}
 	],
 	"TargetPlatforms": [
 		"IOS",
 		"Linux",
 		"LinuxArm64",
-		"Windows"
+		"Win64"
 	]
 }

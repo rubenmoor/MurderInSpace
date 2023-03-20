@@ -1,27 +1,21 @@
-#include "Actors/MyActor_StaticMesh.h"
+﻿#include "Actors/MyActor_RealtimeMesh.h"
 
 #include "MyComponents/GyrationComponent.h"
 #include "MyComponents/MyCollisionComponent.h"
 #include "Net/UnrealNetwork.h"
 
-AMyActor_StaticMesh::AMyActor_StaticMesh()
+AMyActor_RealtimeMesh::AMyActor_RealtimeMesh()
 {
     bNetLoadOnClient = false;
     bReplicates = true;
     bAlwaysRelevant = true;
     AActor::SetReplicateMovement(false);
     
-    Root = CreateDefaultSubobject<USceneComponent>("Root");
-    SetRootComponent(Root);
-    
-    StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
-    StaticMeshComponent->SetupAttachment(Root);
-
     Gyration = CreateDefaultSubobject<UGyrationComponent>("Gyration");
     Collision = CreateDefaultSubobject<UMyCollisionComponent>("Collision");
 }
 
-void AMyActor_StaticMesh::Destroyed()
+void AMyActor_RealtimeMesh::Destroyed()
 {
     Super::Destroyed();
     if(IsValid(RP_Orbit))
@@ -30,7 +24,7 @@ void AMyActor_StaticMesh::Destroyed()
     }
 }
 
-void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
+void AMyActor_RealtimeMesh::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
 
@@ -49,19 +43,17 @@ void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
     {
         OrbitSetup(this);
     }
-
-    MyMass = pow(StaticMeshComponent->Bounds.SphereRadius, 3);
 }
 
 #if WITH_EDITOR
-void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+void AMyActor_RealtimeMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
     Super::PostEditChangeChainProperty(PropertyChangedEvent);
-
+    
     const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
-    static const FName FNameOrbitColor    = GET_MEMBER_NAME_CHECKED(AMyActor_StaticMesh, OrbitColor        );
-    static const FName FNameInitialParams = GET_MEMBER_NAME_CHECKED(AMyActor_StaticMesh, InitialOrbitParams);
+    static const FName FNameOrbitColor    = GET_MEMBER_NAME_CHECKED(AMyActor_RealtimeMesh, OrbitColor        );
+    static const FName FNameInitialParams = GET_MEMBER_NAME_CHECKED(AMyActor_RealtimeMesh, InitialOrbitParams);
 
     if(Name == FNameOrbitColor)
     {
@@ -80,9 +72,14 @@ void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent
 }
 #endif
 
-void AMyActor_StaticMesh::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void AMyActor_RealtimeMesh::OnGenerateMesh_Implementation()
+{
+    MyMass = pow(RealtimeMeshComponent->Bounds.SphereRadius, 3);
+}
+
+void AMyActor_RealtimeMesh::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    DOREPLIFETIME_CONDITION(AMyActor_StaticMesh, RP_Orbit, COND_InitialOnly)
+    DOREPLIFETIME_CONDITION(AMyActor_RealtimeMesh, RP_Orbit, COND_InitialOnly)
 }
 

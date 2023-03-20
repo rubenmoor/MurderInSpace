@@ -1,9 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "MyActor_StaticMesh.h"
-#include "RealtimeMeshComponent.h"
-#include "Components/DynamicMeshComponent.h"
+#include "MyActor_RealtimeMesh.h"
 #include "Materials/MaterialInstanceConstant.h"
 
 #include "DynamicAsteroid.generated.h"
@@ -25,7 +23,7 @@ struct FMaterialType
 
 UCLASS()
 // TODO: inherit from AActor
-class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_StaticMesh
+class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh
 {
     GENERATED_BODY()
 
@@ -33,6 +31,7 @@ public:
     ADynamicAsteroid();
 
     UFUNCTION()
+    // TODO: deprecated
     void GenerateMesh(FRandomStream RandomStream, double SizeParam);
 
 protected:
@@ -42,11 +41,8 @@ protected:
     UPROPERTY(EditAnywhere, Category="Generation")
     double CollisionCapsuleRelativeSize = 0.9;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    TObjectPtr<URealtimeMeshComponent> RealtimeMeshComponent;
-
     // event handlers
-    virtual void OnConstruction(const FTransform& Transform) override;
+    virtual void OnGenerateMesh_Implementation() override;
 
     // private methods
     UFUNCTION(BlueprintPure)

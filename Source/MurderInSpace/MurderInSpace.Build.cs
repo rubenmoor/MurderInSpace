@@ -23,16 +23,12 @@ public class MurderInSpace : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new []
 			{ "Chaos"
 			, "EnhancedInput"
-			, "GeometryScriptingCore"
 			, "GameplayTags"
-			, "MeshDescription"
-			, "MeshConversion"
 			, "OnlineSubsystem"
 			, "OnlineSubsystemNull"
 			, "OnlineSubsystemUtils"
 			, "Slate"
 			, "SlateCore"
-			, "StaticMeshDescription"
 			});
 		
 		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true

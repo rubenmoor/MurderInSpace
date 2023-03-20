@@ -1,31 +1,35 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 #include "IHasMesh.h"
+#include "RealtimeMeshActor.h"
 #include "Orbit/Orbit.h"
 #include "MyComponents/MyCollisionComponent.h"
-#include "MyActor_StaticMesh.generated.h"
+
+#include "MyActor_RealtimeMesh.generated.h"
 
 class UGyrationComponent;
-/**
- * 
+
+/*
+ *
  */
 UCLASS()
-class MURDERINSPACE_API AMyActor_StaticMesh
-	: public AActor
+class MURDERINSPACE_API AMyActor_RealtimeMesh
+    : public ARealtimeMeshActor
 	, public IHasMesh
 	, public IHasOrbit
 	, public IHasOrbitColor
 	, public IHasCollision
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	AMyActor_StaticMesh();
+    AMyActor_RealtimeMesh();
 
-	virtual UPrimitiveComponent* GetMesh()   const override { return StaticMeshComponent; }
+	virtual UPrimitiveComponent* GetMesh()   const override { return RealtimeMeshComponent; }
 	virtual float                GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
 	virtual TSubclassOf<AOrbit>  GetOrbitClass()   override { return OrbitClass;   }
 	virtual FLinearColor         GetOrbitColor()   override { return OrbitColor;   }
@@ -41,15 +45,10 @@ protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 #if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+	virtual void OnGenerateMesh_Implementation() override;
 #endif
 
 	// components
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<USceneComponent> Root;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UGyrationComponent> Gyration;

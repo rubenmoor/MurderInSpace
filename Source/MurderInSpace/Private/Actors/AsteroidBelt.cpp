@@ -119,7 +119,7 @@ void AAsteroidBelt::BuildAsteroids()
         {
             // TODO: replace by some random distribution
             auto* DynamicAsteroid = Cast<ADynamicAsteroid>(Actor);
-            DynamicAsteroid->GenerateMesh(RandomStream, SizeParam);
+            //DynamicAsteroid->GenerateMesh(RandomStream, SizeParam);
             DynamicAsteroid->SetInitialOrbitParams
                 ( { FVector(0.0, 0.0, 0.)
                     // TODO: only correct for VecR.Z == 0 

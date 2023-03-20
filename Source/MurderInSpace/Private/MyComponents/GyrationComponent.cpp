@@ -44,7 +44,18 @@ void UGyrationComponent::GyrationSetup()
         
     RandomStream.Initialize(GetOwner()->GetFName());
     // TODO: meshes connected with sockets
-    VecInertia = GetOwner<IHasMesh>()->GetMesh()->GetInertiaTensor();
+
+    auto* Mesh = GetOwner<IHasMesh>()->GetMesh();
+    if(IsValid(Mesh))
+    {
+        VecInertia = Mesh->GetInertiaTensor();
+    }
+    else
+    {
+        UE_LOG(LogMyGame, Error, TEXT("%s: Couldn't initialize VecIntertia: GetOwner<IHasMesh>->GetMesh() invalid")
+            , *GetFullName()
+            )
+    }
     if(VecInertia.IsNearlyZero())
     {
         UE_LOG(LogMyGame, Error, TEXT("%s: VecIntertia nearly zero: (%f, %f, %f), setting to (1, 1, 1)")
