@@ -14,6 +14,7 @@ public class MurderInSpace : ModuleRules
 			, "CommonUI"
 			, "CoreUObject"
 			, "Engine"
+			, "GeometryScriptingCore"
 			, "InputCore"
 			, "Niagara"
 			, "RealtimeMeshComponent"
