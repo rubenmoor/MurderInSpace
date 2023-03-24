@@ -30,10 +30,10 @@ class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh
 public:
     ADynamicAsteroid();
 
-    UFUNCTION()
-    // TODO: deprecated
-    void GenerateMesh(FRandomStream RandomStream, double SizeParam);
-
+    // parameters for OnGenerateMesh_Implementation
+    float SizeParam = 100.;
+    FRandomStream RandomStream;
+    
 protected:
     UPROPERTY(EditAnywhere, Category="Generation")
     TArray<FMaterialType> MaterialTypes;
@@ -46,5 +46,6 @@ protected:
 
     // private methods
     UFUNCTION(BlueprintPure)
-    UMaterialInstance* SelectMaterial(FRandomStream RandomStream, double SizeParam);
+    UMaterialInstance* SelectMaterial();
+
 };

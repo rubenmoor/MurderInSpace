@@ -98,7 +98,7 @@ void AAsteroidBelt::BuildAsteroids()
     const FVector VecR = GetActorLocation();
     for(int i = 0; i < NumAsteroids; i++)
     {
-        const FAsteroidType AsteroidType = PickAsteroidType(RandomStream);
+        auto AsteroidType = PickAsteroidType(RandomStream);
         const FVector VecVaried = MakeAsteroidDistance(Physics, RandomStream);
         const float Radius = VecVaried.Length();
         const float AlphaZero = acos(VecVaried.X / Radius);
@@ -110,15 +110,16 @@ void AAsteroidBelt::BuildAsteroids()
             , cos(Alpha) * VecR.Z
             );
         //const float SizeParam = MinAsteroidSize * MakeAsteroidSize(static_cast<float>(i) / NumAsteroids);
-        const double SizeParam = MakeAsteroidSize(RandomStream, AsteroidType);
         FActorSpawnParameters SpawnParameters;
         // Owner is "primarily used for replication"; I use it to have the spawned asteroid
         // added to the children array for destruction
         SpawnParameters.Owner = this;
-        SpawnParameters.CustomPreSpawnInitalization = [this, RandomStream, SizeParam] (AActor* Actor)
+        SpawnParameters.CustomPreSpawnInitalization = [this, RandomStream, AsteroidType] (AActor* Actor)
         {
             // TODO: replace by some random distribution
             auto* DynamicAsteroid = Cast<ADynamicAsteroid>(Actor);
+            DynamicAsteroid->SizeParam = MakeAsteroidSize(RandomStream, AsteroidType);
+            DynamicAsteroid->RandomStream = RandomStream;
             //DynamicAsteroid->GenerateMesh(RandomStream, SizeParam);
             DynamicAsteroid->SetInitialOrbitParams
                 ( { FVector(0.0, 0.0, 0.)
