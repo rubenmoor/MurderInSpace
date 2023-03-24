@@ -15,4 +15,5 @@ packaged
 *.xcworkspace
 .idea/.idea.MurderInSpace/.idea/workspace.xml
 Windows
-Plugins/Developer/RiderLink/
+Plugins/Developer/
+Plugins/PluginDownloader/

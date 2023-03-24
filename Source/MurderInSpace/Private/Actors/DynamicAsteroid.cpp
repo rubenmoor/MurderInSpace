@@ -2,7 +2,6 @@
 
 #include "RealtimeMeshLibrary.h"
 #include "RealtimeMeshSimple.h"
-#include "GeometryScript/MeshPrimitiveFunctions.h"
 
 ADynamicAsteroid::ADynamicAsteroid()
 {

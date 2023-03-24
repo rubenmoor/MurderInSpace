@@ -119,7 +119,7 @@
 		},
 		{
 			"Name": "PluginDownloader",
-			"Enabled": true,
+			"Enabled": false,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/b5ff499954db477eb46af6537f1f9c1b"
 		}
 	],
