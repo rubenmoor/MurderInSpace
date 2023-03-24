@@ -2,6 +2,7 @@
 
 #include "RealtimeMeshLibrary.h"
 #include "RealtimeMeshSimple.h"
+#include "../../../../Plugins/SimplexNoise/Source/SimplexNoise/Public/SimplexNoiseBPLibrary.h"
 
 ADynamicAsteroid::ADynamicAsteroid()
 {
@@ -30,12 +31,20 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
 	URealtimeMeshBlueprintFunctionLibrary::AppendCapsuleMesh
 		( MeshData
 		, FTransform::Identity
-		, SizeParam / 2.
+		, SizeParam
 		, SizeParam
 		, std::max(4, static_cast<int32>(SizeParam) / 50)
 		, std::max(8, static_cast<int32>(SizeParam) / 25)
 		, std::max(2, static_cast<int32>(SizeParam) / 50)
 		);
+	USimplexNoiseBPLibrary::setNoiseFromStream(RandomStream);
+	check(MeshData.Positions.Num() == MeshData.Normals.Num())
+	for(int i = 0; i < MeshData.Positions.Num(); i++)
+	{
+		auto Pos = MeshData.Positions[i];
+		float V = USimplexNoiseBPLibrary::SimplexNoise3D(Pos.X, Pos.Y, Pos.Z, 1. / 4. / SizeParam);
+		MeshData.Positions[i] += SizeParam / 2. * V * MeshData.Normals[i];
+	}
 	RealtimeMesh->CreateMeshSection
 		(0
 		, // TODO: Section Draw Type: test Static/Dynamic performance
