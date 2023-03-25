@@ -23,6 +23,7 @@ struct FAsteroidType
 
     UPROPERTY(EditAnywhere, Category="Generation")
     double MaxAsteroidSize = 2000.;
+
 };
 
 UCLASS()

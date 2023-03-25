@@ -3,6 +3,7 @@
 #include "RealtimeMeshLibrary.h"
 #include "RealtimeMeshSimple.h"
 #include "../../../../Plugins/SimplexNoise/Source/SimplexNoise/Public/SimplexNoiseBPLibrary.h"
+#include "GeometryScript/MeshNormalsFunctions.h"
 
 ADynamicAsteroid::ADynamicAsteroid()
 {
@@ -33,18 +34,28 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
 		, FTransform::Identity
 		, SizeParam
 		, SizeParam
-		, std::max(4, static_cast<int32>(SizeParam) / 50)
-		, std::max(8, static_cast<int32>(SizeParam) / 25)
-		, std::max(2, static_cast<int32>(SizeParam) / 50)
+		, std::max(4, static_cast<int32>(SizeParam) / 20)
+		, std::max(8, static_cast<int32>(SizeParam) / 10)
+		, std::max(2, static_cast<int32>(SizeParam) / 20)
 		);
 	USimplexNoiseBPLibrary::setNoiseFromStream(RandomStream);
 	check(MeshData.Positions.Num() == MeshData.Normals.Num())
 	for(int i = 0; i < MeshData.Positions.Num(); i++)
 	{
 		auto Pos = MeshData.Positions[i];
-		float V = USimplexNoiseBPLibrary::SimplexNoise3D(Pos.X, Pos.Y, Pos.Z, 1. / 4. / SizeParam);
-		MeshData.Positions[i] += SizeParam / 2. * V * MeshData.Normals[i];
+		float V = USimplexNoiseBPLibrary::GetSimplexNoise3D_EX
+			( Pos.X, Pos.Y, Pos.Z
+			, SxLacunarity
+			, SxPersistance
+			, SxOctaves
+			, SxFrequencyFactor / SizeParam
+			, false
+			);
+		//V = USimplexNoiseBPLibrary::SimplexNoise3D(Pos.X, Pos.Y, Pos.Z, SxFrequencyFactor / SizeParam);
+		MeshData.Positions[i] += SxAmplitudeFactor * SizeParam * V * MeshData.Normals[i];
 	}
+	// UGeometryScriptLibrary_MeshNormalsFunctions::RecomputeNormals()
+	// UGeometryScriptLibrary_MeshNormalsFunctions::AutoRepairNormals()
 	RealtimeMesh->CreateMeshSection
 		(0
 		, // TODO: Section Draw Type: test Static/Dynamic performance

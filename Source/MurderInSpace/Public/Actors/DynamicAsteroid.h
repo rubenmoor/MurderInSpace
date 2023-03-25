@@ -22,7 +22,6 @@ struct FMaterialType
 };
 
 UCLASS()
-// TODO: inherit from AActor
 class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh
 {
     GENERATED_BODY()
@@ -30,8 +29,10 @@ class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh
 public:
     ADynamicAsteroid();
 
-    // parameters for OnGenerateMesh_Implementation
-    float SizeParam = 100.;
+    // parameters for OnGenerateMesh_Implementation, passed in by `AsteroidBelt`
+    UPROPERTY(EditAnywhere, Category="Generation")
+    float SizeParam = 500.;
+    
     FRandomStream RandomStream;
     
 protected:
@@ -48,4 +49,22 @@ protected:
     UFUNCTION(BlueprintPure)
     UMaterialInstance* SelectMaterial();
 
+    // simplex noise parameters
+
+    // noise frequency = frequency factor / size parameter
+    UPROPERTY(EditAnywhere, Category="Generation")
+    double SxFrequencyFactor = 0.5;
+
+    // noise amplitude = amplitude factor * Size parameter
+    UPROPERTY(EditAnywhere, Category="Generation")
+    double SxAmplitudeFactor = 0.5;
+    
+    UPROPERTY(EditAnywhere, Category="Generation")
+    float SxLacunarity = 2.3;
+    
+    UPROPERTY(EditAnywhere, Category="Generation")
+    float SxPersistance = 0.6;
+    
+    UPROPERTY(EditAnywhere, Category="Generation")
+    int SxOctaves = 4;
 };
