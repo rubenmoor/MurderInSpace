@@ -74,6 +74,7 @@ void AMyActor_RealtimeMesh::PostEditChangeChainProperty(FPropertyChangedChainEve
 
 void AMyActor_RealtimeMesh::OnGenerateMesh_Implementation()
 {
+    Super::OnGenerateMesh_Implementation();
     MyMass = pow(RealtimeMeshComponent->Bounds.SphereRadius, 3);
 }
 

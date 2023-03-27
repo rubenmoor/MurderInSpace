@@ -7,6 +7,15 @@
 #include "DynamicAsteroid.generated.h"
 
 USTRUCT(BlueprintType)
+struct FFractureInfo
+{
+    GENERATED_BODY()
+
+    FRealtimeMeshSimpleMeshData MeshData;
+    FVector Location;
+};
+
+USTRUCT(BlueprintType)
 struct FMaterialType
 {
     GENERATED_BODY()
@@ -29,12 +38,14 @@ class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh
 public:
     ADynamicAsteroid();
 
-    // parameters for OnGenerateMesh_Implementation, passed in by `AsteroidBelt`
-    UPROPERTY(EditAnywhere, Category="Generation")
-    float SizeParam = 500.;
-    
-    FRandomStream RandomStream;
-    
+    void GenerateInitialMesh(float SizeParam, FRandomStream RandomStream); 
+
+    UFUNCTION(CallInEditor, BlueprintCallable, Category="Generation")
+    void Fracture();
+
+    UFUNCTION(BlueprintCallable)
+    void SetMeshData(FRealtimeMeshSimpleMeshData InMeshData) { MeshData = InMeshData; }
+
 protected:
     UPROPERTY(EditAnywhere, Category="Generation")
     TArray<FMaterialType> MaterialTypes;
@@ -44,10 +55,6 @@ protected:
 
     // event handlers
     virtual void OnGenerateMesh_Implementation() override;
-
-    // private methods
-    UFUNCTION(BlueprintPure)
-    UMaterialInstance* SelectMaterial();
 
     // simplex noise parameters
 
@@ -67,4 +74,14 @@ protected:
     
     UPROPERTY(EditAnywhere, Category="Generation")
     int SxOctaves = 4;
+
+    FRealtimeMeshSimpleMeshData MeshData;
+
+    // private methods
+    UFUNCTION(BlueprintPure)
+    UMaterialInstance* SelectMaterial(float SizeParam, FRandomStream RandomStream);
+
+    UFUNCTION(BlueprintCallable)
+    TArray<FFractureInfo> GetFractures();  
+    
 };

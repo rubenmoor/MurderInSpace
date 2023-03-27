@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "IHasMesh.h"
 #include "RealtimeMeshActor.h"
+#include "RealtimeMeshSimple.h"
 #include "Orbit/Orbit.h"
 #include "MyComponents/MyCollisionComponent.h"
 
@@ -38,7 +39,7 @@ public:
 	virtual UMyCollisionComponent* GetCollisionComponent() override { return Collision; }
 	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
 	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
-	
+
 protected:
 	// event handlers
 	virtual void Destroyed() override;
