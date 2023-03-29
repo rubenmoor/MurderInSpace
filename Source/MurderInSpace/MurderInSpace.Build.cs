@@ -14,10 +14,8 @@ public class MurderInSpace : ModuleRules
 			, "CommonUI"
 			, "CoreUObject"
 			, "Engine"
-			, "GeometryScriptingCore"
 			, "InputCore"
 			, "Niagara"
-			, "RealtimeMeshComponent"
 			, "SimplexNoise"
 			, "UMG"
 			});
@@ -29,6 +27,8 @@ public class MurderInSpace : ModuleRules
 			, "OnlineSubsystem"
 			, "OnlineSubsystemNull"
 			, "OnlineSubsystemUtils"
+			, "ProceduralMeshComponent"
+			, "RealtimeMeshComponent"
 			, "Slate"
 			, "SlateCore"
 			});

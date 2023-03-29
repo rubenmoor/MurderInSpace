@@ -115,11 +115,18 @@ void AAsteroidBelt::BuildAsteroids()
         // Owner is "primarily used for replication"; I use it to have the spawned asteroid
         // added to the children array for destruction
         SpawnParameters.Owner = this;
+        SpawnParameters.SpawnCollisionHandlingOverride =
+            ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
         SpawnParameters.CustomPreSpawnInitalization = [this, RandomStream, AsteroidType] (AActor* Actor)
         {
             // TODO: replace by some random distribution
             auto* DynamicAsteroid = Cast<ADynamicAsteroid>(Actor);
-            DynamicAsteroid->GenerateInitialMesh(MakeAsteroidSize(RandomStream, AsteroidType), RandomStream);
+            DynamicAsteroid->Initialize
+                ( MakeAsteroidSize (RandomStream, AsteroidType)
+                , RandomStream
+                , MeshResolution
+                , bRecomputeNormals
+                );
             DynamicAsteroid->SetInitialOrbitParams
                 ( { FVector(0.0, 0.0, 0.)
                     // TODO: only correct for VecR.Z == 0 

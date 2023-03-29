@@ -51,6 +51,12 @@ protected:
     UPROPERTY(EditAnywhere, Category="Generation")
     double Width = 1000.;
 
+    UPROPERTY(EditAnywhere, Category="Generation")
+    float MeshResolution = 1.;
+
+    UPROPERTY(EditAnywhere, Category="Generation")
+    bool bRecomputeNormals = false;
+
     UPROPERTY(VisibleAnywhere)
     TObjectPtr<USceneComponent> Root;
     

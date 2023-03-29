@@ -38,7 +38,15 @@ class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh
 public:
     ADynamicAsteroid();
 
-    void GenerateInitialMesh(float SizeParam, FRandomStream RandomStream); 
+
+    UFUNCTION(BlueprintCallable)
+    void Initialize(float InSizeParam, const FRandomStream& InRandomStream, float InMeshResolution, bool InBRecomputeNormals)
+    {
+        SizeParam = InSizeParam;
+        RandomStream = InRandomStream;
+        MeshResolution = InMeshResolution;
+        bRecomputeNormals = InBRecomputeNormals;
+    }
 
     UFUNCTION(CallInEditor, BlueprintCallable, Category="Generation")
     void Fracture();
@@ -59,27 +67,43 @@ protected:
     // simplex noise parameters
 
     // noise frequency = frequency factor / size parameter
-    UPROPERTY(EditAnywhere, Category="Generation")
+    UPROPERTY(EditAnywhere, Category="Generation|Distortion")
     double SxFrequencyFactor = 0.5;
 
     // noise amplitude = amplitude factor * Size parameter
-    UPROPERTY(EditAnywhere, Category="Generation")
+    UPROPERTY(EditAnywhere, Category="Generation|Distortion")
     double SxAmplitudeFactor = 0.5;
     
-    UPROPERTY(EditAnywhere, Category="Generation")
+    UPROPERTY(EditAnywhere, Category="Generation|Distortion")
     float SxLacunarity = 2.3;
     
-    UPROPERTY(EditAnywhere, Category="Generation")
+    UPROPERTY(EditAnywhere, Category="Generation|Distortion")
     float SxPersistance = 0.6;
     
-    UPROPERTY(EditAnywhere, Category="Generation")
+    UPROPERTY(EditAnywhere, Category="Generation|Distortion")
     int SxOctaves = 4;
 
+    // mesh generation
+    
+    UPROPERTY(EditAnywhere, Category="Generation")
+    float MeshResolution = 1.;
+
+    UPROPERTY(EditAnywhere, Category="Generation")
+    bool bRecomputeNormals = false;
+
+    UPROPERTY(EditAnywhere, Category="Generation")
+    float SizeParam = 500;
+
+    FRandomStream RandomStream;
     FRealtimeMeshSimpleMeshData MeshData;
 
     // private methods
+
+    // fill MeshData with asteroid mesh
+    void GenerateAsteroid();
+
     UFUNCTION(BlueprintPure)
-    UMaterialInstance* SelectMaterial(float SizeParam, FRandomStream RandomStream);
+    UMaterialInstance* SelectMaterial();
 
     UFUNCTION(BlueprintCallable)
     TArray<FFractureInfo> GetFractures();  

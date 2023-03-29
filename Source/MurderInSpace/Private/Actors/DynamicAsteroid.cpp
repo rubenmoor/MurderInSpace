@@ -1,5 +1,7 @@
 ﻿#include "Actors/DynamicAsteroid.h"
 
+#include "KismetProceduralMeshLibrary.h"
+#include "RealtimeMesh.h"
 #include "RealtimeMeshLibrary.h"
 #include "RealtimeMeshSimple.h"
 #include "../../../../Plugins/SimplexNoise/Source/SimplexNoise/Public/SimplexNoiseBPLibrary.h"
@@ -8,7 +10,7 @@ ADynamicAsteroid::ADynamicAsteroid()
 {
 }
 
-void ADynamicAsteroid::GenerateInitialMesh(float SizeParam, FRandomStream RandomStream)
+void ADynamicAsteroid::GenerateAsteroid()
 {
     MeshData = FRealtimeMeshSimpleMeshData();
     URealtimeMeshBlueprintFunctionLibrary::AppendCapsuleMesh
@@ -16,10 +18,11 @@ void ADynamicAsteroid::GenerateInitialMesh(float SizeParam, FRandomStream Random
         , FTransform::Identity
         , SizeParam
         , SizeParam
-        , std::max(4, static_cast<int32>(SizeParam) / 20)
-        , std::max(8, static_cast<int32>(SizeParam) / 10)
-        , std::max(2, static_cast<int32>(SizeParam) / 20)
+        , std::max(4, static_cast<int32>(MeshResolution * FMathd::Sqrt(SizeParam) * 3.) / 4)
+        , std::max(8, static_cast<int32>(MeshResolution * FMathd::Sqrt(SizeParam) * 3) / 2)
+        , std::max(2, static_cast<int32>(MeshResolution * FMathd::Sqrt(SizeParam) * 3) / 4)
         );
+
     USimplexNoiseBPLibrary::setNoiseFromStream(RandomStream);
     check(MeshData.Positions.Num() == MeshData.Normals.Num())
     for(int i = 0; i < MeshData.Positions.Num(); i++)
@@ -33,11 +36,25 @@ void ADynamicAsteroid::GenerateInitialMesh(float SizeParam, FRandomStream Random
             , SxFrequencyFactor / SizeParam
             , false
             );
-        //V = USimplexNoiseBPLibrary::SimplexNoise3D(Pos.X, Pos.Y, Pos.Z, SxFrequencyFactor / SizeParam);
         MeshData.Positions[i] += SxAmplitudeFactor * SizeParam * V * MeshData.Normals[i];
     }
-    // UGeometryScriptLibrary_MeshNormalsFunctions::RecomputeNormals()
-    // UGeometryScriptLibrary_MeshNormalsFunctions::AutoRepairNormals()
+
+    if(bRecomputeNormals)
+    {
+        TArray<FProcMeshTangent> ProcTangents;
+        UKismetProceduralMeshLibrary::CalculateTangentsForMesh
+            ( MeshData.Positions
+            , MeshData.Triangles
+            , MeshData.UV0
+            , MeshData.Normals
+            , ProcTangents
+            );
+        for(int32 i = 0; i < ProcTangents.Num(); ++i)
+        {
+            MeshData.Tangents[i] = ProcTangents[i].TangentX;
+            MeshData.Binormals[i] = MeshData.Normals[i].Cross(ProcTangents[i].TangentX);
+        }
+    }
     
     if(MaterialTypes.IsEmpty())
     {
@@ -45,7 +62,7 @@ void ADynamicAsteroid::GenerateInitialMesh(float SizeParam, FRandomStream Random
     }
     else
     {
-        RealtimeMeshComponent->SetMaterial(0, SelectMaterial(SizeParam, RandomStream));
+        RealtimeMeshComponent->SetMaterial(0, SelectMaterial());
     }
 }
 
@@ -62,6 +79,8 @@ void ADynamicAsteroid::Fracture()
             // TODO: replace by some random distribution
             auto* DynamicAsteroid = Cast<ADynamicAsteroid>(Actor);
             DynamicAsteroid->SetMeshData(FractureMeshData);
+            DynamicAsteroid->GetRealtimeMeshComponent()->SetMaterial
+                (0, GetRealtimeMeshComponent()->GetMaterial(0));
             DynamicAsteroid->SetInitialOrbitParams
                 ( { FVector(0.0, 0.0, 0.)
                     // TODO: only correct for VecR.Z == 0 
@@ -73,7 +92,7 @@ void ADynamicAsteroid::Fracture()
         };
         GetWorld()->SpawnActor<ADynamicAsteroid>
             ( this->GetClass()
-            , VecOrigin
+            , GetActorLocation() + VecOrigin
             , FRotator::ZeroRotator
             , SpawnParameters
             );
@@ -118,7 +137,15 @@ TArray<FFractureInfo> ADynamicAsteroid::GetFractures()
         }
     }
     Origin0 /= Fracture0.Positions.Num();
+    for(auto& Pos : Fracture0.Positions)
+    {
+        Pos -= Origin0;
+    }
     Origin1 /= Fracture1.Positions.Num();
+    for(auto& Pos : Fracture1.Positions)
+    {
+        Pos -= Origin1;
+    }
     
     for(int i = 0; i < MeshData.Triangles.Num(); i += 3)
     {
@@ -139,6 +166,9 @@ TArray<FFractureInfo> ADynamicAsteroid::GetFractures()
         }
         // else: the triangle gets discarded; better would be to properly cut it and create new vertices
     }
+    check(Fracture0.Triangles.Num() % 3 == 0)
+    check(Fracture1.Triangles.Num() % 3 == 0)
+
     return
         { { Fracture0, Origin0 }
         , { Fracture1, Origin1 }
@@ -150,6 +180,11 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
     Super::OnGenerateMesh_Implementation();
 
     auto* RealtimeMesh = GetRealtimeMeshComponent()->InitializeRealtimeMesh<URealtimeMeshSimple>();
+    if(!IsValid(RealtimeMesh))
+    {
+        UE_LOG(LogMyGame, Warning, TEXT("%s: OnGenerateMesh: GetRealtimeMesh(): invalid"), *GetFullName())
+        return;
+    }
     RealtimeMesh->SetupMaterialSlot(0, "Material");
 
     for(auto MaterialType : MaterialTypes)
@@ -160,6 +195,31 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
         }
     }
 
+    if(MeshData.Positions.IsEmpty())
+    {
+        GenerateAsteroid();
+        
+        FRealtimeMeshCollisionConfiguration CollisionConfiguration;
+        CollisionConfiguration.bUseComplexAsSimpleCollision = false;
+        RealtimeMesh->SetCollisionConfig(CollisionConfiguration);
+        
+        FRealtimeMeshCollisionCapsule CollisionCapsule;
+        CollisionCapsule.Radius = SizeParam;
+        CollisionCapsule.Length = SizeParam;
+        int32 CCIndex;
+        auto Geo = RealtimeMesh->GetSimpleGeometry();
+        URealtimeMeshSimpleGeometryFunctionLibrary::AddCapsule (Geo , CollisionCapsule , CCIndex);
+        RealtimeMesh->UpdateCollision();
+        Geo.CopyToBodySetup(RealtimeMesh->GetBodySetup());
+        
+        // auto& BodyCapsule = GetRealtimeMeshComponent()->GetBodySetup()->AggGeom.SphylElems.AddDefaulted_GetRef();
+        // BodyCapsule.Radius = SizeParam;
+        // BodyCapsule.Length = SizeParam;
+        // BodyCapsule.SetContributeToMass(true);
+        // BodyCapsule.SetName("CollisionCapsule");
+        
+    }
+    
     RealtimeMesh->CreateMeshSection
         (0
         , // TODO: Section Draw Type: test Static/Dynamic performance
@@ -168,14 +228,10 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
         , false
         );
     
-    // TODO: collision capsule
-    // how to add?
-    //int32 FRealtimeMeshSimpleGeometry::AddCapsule(const FRealtimeMeshCollisionCapsule& CollisionCapsule);
-
     Super::OnGenerateMesh_Implementation();
 }
 
-UMaterialInstance* ADynamicAsteroid::SelectMaterial(float SizeParam, FRandomStream RandomStream)
+UMaterialInstance* ADynamicAsteroid::SelectMaterial()
 {
     TArray<UMaterialInstance*> Materials;
     for(auto [Material, MinSize, MaxSize] : MaterialTypes)
