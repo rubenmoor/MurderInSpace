@@ -1,6 +1,3 @@
-[submodule "Plugins/SimplexNoise"]
-	path = Plugins/SimplexNoise
-	url = git@github.com:devdad/SimplexNoise.git
 [submodule "Plugins/RealtimeMeshComponent"]
 	path = Plugins/RealtimeMeshComponent
 	url = git@github.com:rubenmoor/RealtimeMeshComponent.git

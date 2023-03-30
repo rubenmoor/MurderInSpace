@@ -6,7 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "IHasMesh.h"
 #include "RealtimeMeshActor.h"
-#include "RealtimeMeshSimple.h"
 #include "Orbit/Orbit.h"
 #include "MyComponents/MyCollisionComponent.h"
 
@@ -32,6 +31,7 @@ public:
 
 	virtual UPrimitiveComponent* GetMesh()   const override { return RealtimeMeshComponent; }
 	virtual float                GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
+	virtual FVector              GetMyInertiaTensor() const override { return MyInertia; }
 	virtual TSubclassOf<AOrbit>  GetOrbitClass()   override { return OrbitClass;   }
 	virtual FLinearColor         GetOrbitColor()   override { return OrbitColor;   }
 	virtual AOrbit*				 GetOrbit() const  override { return RP_Orbit;     }
@@ -74,6 +74,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
 	float MyMassOverride = 0.;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	FVector MyInertia = FVector(1., 1., 1.);
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Orbit")
 	FInitialOrbitParams InitialOrbitParams;
+
+	UPROPERTY(EditDefaultsOnly, Category="Generation")
+	TObjectPtr<UPhysicalMaterial> PhysicalMaterial = nullptr;
 };

@@ -35,6 +35,8 @@ public:
     // Sets default values for this actor's properties
     AAsteroidBelt();
 
+    FRandomStream& GetRandomStream() { return RandomStream; }
+    
 protected:
     UPROPERTY(EditAnywhere, Category="Generation")
     TArray<FAsteroidType> AsteroidTypes;
@@ -76,11 +78,13 @@ private:
     void BuildAsteroids();
     
     UFUNCTION(BlueprintPure)
-    float MakeAsteroidSize(const FRandomStream& RandomStream, const FAsteroidType AsteroidType) const;
+    float MakeAsteroidSize(const FAsteroidType& AsteroidType) const;
 
     UFUNCTION(BlueprintPure)
-    FVector MakeAsteroidDistance(FPhysics Physics, const FRandomStream& RandomStream) const;
+    FVector MakeAsteroidDistance(FPhysics Physics) const;
 
     UFUNCTION(BlueprintCallable)
-    FAsteroidType PickAsteroidType(FRandomStream RandomStream);
+    FAsteroidType PickAsteroidType();
+
+    FRandomStream RandomStream;
 };

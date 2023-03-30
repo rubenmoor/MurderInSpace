@@ -4,10 +4,12 @@
 #include "RealtimeMesh.h"
 #include "RealtimeMeshLibrary.h"
 #include "RealtimeMeshSimple.h"
-#include "../../../../Plugins/SimplexNoise/Source/SimplexNoise/Public/SimplexNoiseBPLibrary.h"
+#include "FastNoiseWrapper.h"
 
 ADynamicAsteroid::ADynamicAsteroid()
 {
+    RandomStream.Initialize(GetFName());
+    FastNoiseWrapper = CreateDefaultSubobject<UFastNoiseWrapper>("FastNoiseWrapper");
 }
 
 void ADynamicAsteroid::GenerateAsteroid()
@@ -22,21 +24,25 @@ void ADynamicAsteroid::GenerateAsteroid()
         , std::max(8, static_cast<int32>(MeshResolution * FMathd::Sqrt(SizeParam) * 3) / 2)
         , std::max(2, static_cast<int32>(MeshResolution * FMathd::Sqrt(SizeParam) * 3) / 4)
         );
-
-    USimplexNoiseBPLibrary::setNoiseFromStream(RandomStream);
+    MyInertia = FVector(1., 1., 2.).GetSafeNormal() * pow(SizeParam / 2., 2) * MyMass;
+    
+    NoiseSeed = RandomStream.GetUnsignedInt();
+    FastNoiseWrapper->SetupFastNoise
+        ( NoiseType
+        , NoiseSeed
+        , FrequencyFactor / SizeParam
+        , Interp
+        , FractalType
+        , Octaves
+        , Lacunarity
+        , Gain
+        );
     check(MeshData.Positions.Num() == MeshData.Normals.Num())
     for(int i = 0; i < MeshData.Positions.Num(); i++)
     {
         auto Pos = MeshData.Positions[i];
-        float V = USimplexNoiseBPLibrary::GetSimplexNoise3D_EX
-            ( Pos.X, Pos.Y, Pos.Z
-            , SxLacunarity
-            , SxPersistance
-            , SxOctaves
-            , SxFrequencyFactor / SizeParam
-            , false
-            );
-        MeshData.Positions[i] += SxAmplitudeFactor * SizeParam * V * MeshData.Normals[i];
+        const float V = FastNoiseWrapper->GetNoise3D(Pos.X, Pos.Y, Pos.Z);
+        MeshData.Positions[i] += AmplitudeFactor * SizeParam * V * MeshData.Normals[i];
     }
 
     if(bRecomputeNormals)
@@ -199,6 +205,9 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
     {
         GenerateAsteroid();
         
+        //GetRealtimeMeshComponent()->CreatePhysicsState();
+        //GetRealtimeMeshComponent()->UpdatePhysicsVolume(false);
+        
         FRealtimeMeshCollisionConfiguration CollisionConfiguration;
         CollisionConfiguration.bUseComplexAsSimpleCollision = false;
         RealtimeMesh->SetCollisionConfig(CollisionConfiguration);
@@ -211,7 +220,7 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
         URealtimeMeshSimpleGeometryFunctionLibrary::AddCapsule (Geo , CollisionCapsule , CCIndex);
         RealtimeMesh->UpdateCollision();
         Geo.CopyToBodySetup(RealtimeMesh->GetBodySetup());
-        
+
         // auto& BodyCapsule = GetRealtimeMeshComponent()->GetBodySetup()->AggGeom.SphylElems.AddDefaulted_GetRef();
         // BodyCapsule.Radius = SizeParam;
         // BodyCapsule.Length = SizeParam;

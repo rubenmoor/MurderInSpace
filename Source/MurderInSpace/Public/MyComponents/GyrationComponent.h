@@ -68,8 +68,6 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_GyrationState, VisibleAnywhere, BlueprintReadOnly)
 	FGyrationState RP_GyrationState;
 
-	FRandomStream RandomStream;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bGyrationSetupDone = false;
 	

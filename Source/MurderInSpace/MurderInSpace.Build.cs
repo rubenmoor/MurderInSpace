@@ -14,9 +14,11 @@ public class MurderInSpace : ModuleRules
 			, "CommonUI"
 			, "CoreUObject"
 			, "Engine"
+			, "FastNoiseGenerator"
+			, "FastNoise"
 			, "InputCore"
 			, "Niagara"
-			, "SimplexNoise"
+			, "PhysicsCore"
 			, "UMG"
 			});
 

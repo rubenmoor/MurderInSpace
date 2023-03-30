@@ -3,6 +3,7 @@
 #include "MyComponents/GyrationComponent.h"
 #include "MyComponents/MyCollisionComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 AMyActor_RealtimeMesh::AMyActor_RealtimeMesh()
 {
@@ -10,6 +11,8 @@ AMyActor_RealtimeMesh::AMyActor_RealtimeMesh()
     bReplicates = true;
     bAlwaysRelevant = true;
     AActor::SetReplicateMovement(false);
+
+    RealtimeMeshComponent->CanCharacterStepUpOn = ECB_No;
     
     Gyration = CreateDefaultSubobject<UGyrationComponent>("Gyration");
     Collision = CreateDefaultSubobject<UMyCollisionComponent>("Collision");
@@ -43,6 +46,8 @@ void AMyActor_RealtimeMesh::OnConstruction(const FTransform& Transform)
     {
         OrbitSetup(this);
     }
+    
+    RealtimeMeshComponent->SetPhysMaterialOverride(PhysicalMaterial);
 }
 
 #if WITH_EDITOR
@@ -75,7 +80,8 @@ void AMyActor_RealtimeMesh::PostEditChangeChainProperty(FPropertyChangedChainEve
 void AMyActor_RealtimeMesh::OnGenerateMesh_Implementation()
 {
     Super::OnGenerateMesh_Implementation();
-    MyMass = pow(RealtimeMeshComponent->Bounds.SphereRadius, 3);
+    const float Density = IsValid(PhysicalMaterial) ? PhysicalMaterial->Density : 1.;
+    MyMass = Density * pow(RealtimeMeshComponent->Bounds.SphereRadius, 3);
 }
 
 void AMyActor_RealtimeMesh::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

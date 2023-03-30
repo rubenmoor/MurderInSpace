@@ -121,6 +121,11 @@
 			"Name": "PluginDownloader",
 			"Enabled": false,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/b5ff499954db477eb46af6537f1f9c1b"
+		},
+		{
+			"Name": "FastNoiseGenerator",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/527737f42da544e9abf8607a40495fbd"
 		}
 	],
 	"TargetPlatforms": [

@@ -23,5 +23,4 @@ public:
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<USkeletalMeshComponent> SkeletalMesh;
-    
 };

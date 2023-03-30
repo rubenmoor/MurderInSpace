@@ -7,7 +7,6 @@
 #include "Modes/MyGameState.h"
 #include "Modes/MyState.h"
 #include "Net/UnrealNetwork.h"
-#include "Modes/MyGameInstance.h"
 
 UGyrationComponent::UGyrationComponent()
 {
@@ -20,10 +19,12 @@ void UGyrationComponent::FreezeState()
 {
     if(!GetOwner<IHasMesh>())
     {
-        UE_LOG(LogTemp, Error, TEXT("GetOwner<IHasMesh>(): %s"), *GetOwner()->GetFullName())
+        UE_LOG(LogTemp, Error, TEXT("GetOwner<IHasMesh>() invalid: %s"), *GetOwner()->GetFullName())
     }
     else
-    RP_GyrationState = { GetOwner<IHasMesh>()->GetMesh()->GetComponentRotation() };
+    {
+        RP_GyrationState = { GetOwner<IHasMesh>()->GetMesh()->GetComponentRotation() };
+    }
 }
 
 void UGyrationComponent::BeginPlay()
@@ -37,71 +38,26 @@ void UGyrationComponent::BeginPlay()
 
 void UGyrationComponent::GyrationSetup()
 {
-    UE_LOG(LogMyGame, Warning, TEXT("%s: GyrationSetup: GetOwner() %s")
-        , *GetFullName()
-        , *GetOwner()->GetFName().ToString()
-        )
-        
-    RandomStream.Initialize(GetOwner()->GetFName());
-    // TODO: meshes connected with sockets
-
-    auto* Mesh = GetOwner<IHasMesh>()->GetMesh();
-    if(IsValid(Mesh))
+    FRandomStream RandomStream;
+    if(GetOwner()->Implements<UHasRandom>())
     {
-        VecInertia = Mesh->GetInertiaTensor();
+        RandomStream.Initialize(GetOwner<IHasRandom>()->GetSeed());
     }
     else
     {
-        UE_LOG(LogMyGame, Error, TEXT("%s: Couldn't initialize VecIntertia: GetOwner<IHasMesh>->GetMesh() invalid")
-            , *GetFullName()
-            )
+        RandomStream.Initialize(GetOwner()->GetFName());
     }
-    if(VecInertia.IsNearlyZero())
-    {
-        UE_LOG(LogMyGame, Error, TEXT("%s: VecIntertia nearly zero: (%f, %f, %f), setting to (1, 1, 1)")
-            , *GetFullName()
-            , VecInertia.X
-            , VecInertia.Y
-            , VecInertia.Z
-            )
-        VecInertia = FVector(1., 1., 1.);
-    }
+    
+    // TODO: meshes connected with sockets
+
+    VecInertia = GetOwner<IHasMesh>()->GetMyInertiaTensor();
 
     if(GetOwnerRole() == ROLE_Authority)
     {
-        if(RP_VecL.IsZero())
-        {
-            // TODO: curve look-up
-            const float OmegaInitial = RandomStream.FRand();
-            const FVector VRand = RandomStream.VRand();
-            RP_VecL = VRand * OmegaInitial * VecInertia.Length();
-            UE_LOG
-                ( LogMyGame
-                , Display
-                , TEXT("%s: Initializing angular momentum: (%f, %f, %f), OmegaInitial: %f, Vrand: (%f, %f, %f)")
-                , *GetFullName()
-                , RP_VecL.X
-                , RP_VecL.Y
-                , RP_VecL.Z
-                , OmegaInitial
-                , VRand.X
-                , VRand.Y
-                , VRand.Z
-                )
-        }
-        else
-        {
-            UE_LOG
-                ( LogMyGame
-                , Error
-                , TEXT("%s: Angular momentum set already: (%f, %f, %f), Owner role: %d")
-                , *GetFullName()
-                , RP_VecL.X
-                , RP_VecL.Y
-                , RP_VecL.Z
-                , GetOwnerRole()
-                )
-        }
+        // TODO: curve look-up
+        const float OmegaInitial = RandomStream.FRand();
+        const FVector VRand = RandomStream.VRand();
+        RP_VecL = VRand * OmegaInitial * VecInertia.Length();
     }
     bGyrationSetupDone = true;
 }
@@ -178,7 +134,6 @@ void UGyrationComponent::OnComponentCreated()
 {
     Super::OnComponentCreated();
     
-    UE_LOG(LogMyGame, Display, TEXT("%s: OnComponentCreated"), *GetFullName())
     if(!HasAnyFlags(RF_Transient))
     {
         GyrationSetup();

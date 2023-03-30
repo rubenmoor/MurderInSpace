@@ -1,7 +1,9 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "FastNoiseWrapper.h"
 #include "MyActor_RealtimeMesh.h"
+#include "RealtimeMeshSimple.h"
 #include "Materials/MaterialInstanceConstant.h"
 
 #include "DynamicAsteroid.generated.h"
@@ -31,21 +33,20 @@ struct FMaterialType
 };
 
 UCLASS()
-class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh
+class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh, public IHasRandom
 {
     GENERATED_BODY()
 
 public:
     ADynamicAsteroid();
 
-
     UFUNCTION(BlueprintCallable)
-    void Initialize(float InSizeParam, const FRandomStream& InRandomStream, float InMeshResolution, bool InBRecomputeNormals)
+    void Initialize(float InSizeParam, float InMeshResolution, bool InBRecomputeNormals, int32 InSeed)
     {
         SizeParam = InSizeParam;
-        RandomStream = InRandomStream;
         MeshResolution = InMeshResolution;
         bRecomputeNormals = InBRecomputeNormals;
+        RandomStream.Initialize(InSeed);
     }
 
     UFUNCTION(CallInEditor, BlueprintCallable, Category="Generation")
@@ -53,6 +54,8 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void SetMeshData(FRealtimeMeshSimpleMeshData InMeshData) { MeshData = InMeshData; }
+
+    virtual int32 GetSeed() override { return RandomStream.GetUnsignedInt(); }
 
 protected:
     UPROPERTY(EditAnywhere, Category="Generation")
@@ -64,24 +67,36 @@ protected:
     // event handlers
     virtual void OnGenerateMesh_Implementation() override;
 
-    // simplex noise parameters
+    // fast noise, noise parameters
 
+    UPROPERTY(EditAnywhere, Category="Generation|Distortion")
+    EFastNoise_NoiseType NoiseType = EFastNoise_NoiseType::Simplex; 
+
+    UPROPERTY(EditAnywhere, Category="Generation|Distortion")
+    int32 NoiseSeed = 0;
+    
     // noise frequency = frequency factor / size parameter
     UPROPERTY(EditAnywhere, Category="Generation|Distortion")
-    double SxFrequencyFactor = 0.5;
+    double FrequencyFactor = 0.5;
 
+    UPROPERTY(EditAnywhere, Category="Generation|Distortion")
+    EFastNoise_Interp Interp = EFastNoise_Interp::Quintic;
+    
+    UPROPERTY(EditAnywhere, Category="Generation|Distortion")
+    EFastNoise_FractalType FractalType = EFastNoise_FractalType::FBM;
+    
     // noise amplitude = amplitude factor * Size parameter
     UPROPERTY(EditAnywhere, Category="Generation|Distortion")
-    double SxAmplitudeFactor = 0.5;
+    double AmplitudeFactor = 0.5;
     
     UPROPERTY(EditAnywhere, Category="Generation|Distortion")
-    float SxLacunarity = 2.3;
+    float Lacunarity = 2.3;
     
     UPROPERTY(EditAnywhere, Category="Generation|Distortion")
-    float SxPersistance = 0.6;
+    float Gain = 0.6;
     
     UPROPERTY(EditAnywhere, Category="Generation|Distortion")
-    int SxOctaves = 4;
+    int Octaves = 4;
 
     // mesh generation
     
@@ -94,7 +109,6 @@ protected:
     UPROPERTY(EditAnywhere, Category="Generation")
     float SizeParam = 500;
 
-    FRandomStream RandomStream;
     FRealtimeMeshSimpleMeshData MeshData;
 
     // private methods
@@ -107,5 +121,9 @@ protected:
 
     UFUNCTION(BlueprintCallable)
     TArray<FFractureInfo> GetFractures();  
-    
+
+    FRandomStream RandomStream;
+
+    UPROPERTY(EditAnywhere)
+    TObjectPtr<UFastNoiseWrapper> FastNoiseWrapper;
 };

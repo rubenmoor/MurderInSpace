@@ -17,6 +17,8 @@ AAsteroidBelt::AAsteroidBelt()
     Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
     Sphere->SetupAttachment(Root);
     Sphere->SetMobility(EComponentMobility::Static);
+    
+    RandomStream.Initialize(GetFName());
 }
 
 void AAsteroidBelt::Destroyed()
@@ -88,8 +90,9 @@ void AAsteroidBelt::BuildAsteroids()
             Children[0]->Destroy();
         }
     }
-    const FRandomStream RandomStream(GetFName());
 
+    RandomStream.Reset();
+    
     auto* World = GetWorld();
     check(World->WorldType != EWorldType::EditorPreview)
     
@@ -99,8 +102,8 @@ void AAsteroidBelt::BuildAsteroids()
     const FVector VecR = GetActorLocation();
     for(int i = 0; i < NumAsteroids; i++)
     {
-        auto AsteroidType = PickAsteroidType(RandomStream);
-        const FVector VecVaried = MakeAsteroidDistance(Physics, RandomStream);
+        auto AsteroidType = PickAsteroidType();
+        const FVector VecVaried = MakeAsteroidDistance(Physics);
         const float Radius = VecVaried.Length();
         const float AlphaZero = acos(VecVaried.X / Radius);
         //const float Alpha = 2 * PI * static_cast<float>(i) / NumAsteroids;
@@ -117,15 +120,15 @@ void AAsteroidBelt::BuildAsteroids()
         SpawnParameters.Owner = this;
         SpawnParameters.SpawnCollisionHandlingOverride =
             ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-        SpawnParameters.CustomPreSpawnInitalization = [this, RandomStream, AsteroidType] (AActor* Actor)
+        SpawnParameters.CustomPreSpawnInitalization = [this, AsteroidType] (AActor* Actor)
         {
             // TODO: replace by some random distribution
             auto* DynamicAsteroid = Cast<ADynamicAsteroid>(Actor);
             DynamicAsteroid->Initialize
-                ( MakeAsteroidSize (RandomStream, AsteroidType)
-                , RandomStream
+                ( MakeAsteroidSize (AsteroidType)
                 , MeshResolution
                 , bRecomputeNormals
+                , RandomStream.GetUnsignedInt()
                 );
             DynamicAsteroid->SetInitialOrbitParams
                 ( { FVector(0.0, 0.0, 0.)
@@ -145,25 +148,25 @@ void AAsteroidBelt::BuildAsteroids()
         World->SpawnActor<ADynamicAsteroid>
             ( AsteroidType.DynamicAsteroidClass
             , VecLocation
-            , FRotator::ZeroRotator
+            , FRotationMatrix::MakeFromX(RandomStream.VRand()).Rotator()
             , SpawnParameters
             );
     }
 }
 
-float AAsteroidBelt::MakeAsteroidSize(const FRandomStream& RandomStream, const FAsteroidType AsteroidType) const
+float AAsteroidBelt::MakeAsteroidSize(const FAsteroidType& AsteroidType) const
 {
     return AsteroidType.MinAsteroidSize
         + AsteroidType.MaxAsteroidSize * CurveAsteroidSize->GetFloatValue(RandomStream.FRand());
 }
 
-FVector AAsteroidBelt::MakeAsteroidDistance(FPhysics Physics, const FRandomStream& RandomStream) const
+FVector AAsteroidBelt::MakeAsteroidDistance(FPhysics Physics) const
 {
     return (GetActorLocation() - Physics.VecF1) + Width * (CurveAsteroidDistance->GetFloatValue(RandomStream.FRand()) - 0.5);
 }
 
 
-FAsteroidType AAsteroidBelt::PickAsteroidType(FRandomStream RandomStream)
+FAsteroidType AAsteroidBelt::PickAsteroidType()
 {
     float FreqSum = 0.;
     for(const auto AsteroidType : AsteroidTypes)
