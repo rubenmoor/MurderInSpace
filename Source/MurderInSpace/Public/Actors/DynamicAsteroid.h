@@ -124,6 +124,6 @@ protected:
 
     FRandomStream RandomStream;
 
-    UPROPERTY(EditAnywhere)
+    UPROPERTY()
     TObjectPtr<UFastNoiseWrapper> FastNoiseWrapper;
 };
