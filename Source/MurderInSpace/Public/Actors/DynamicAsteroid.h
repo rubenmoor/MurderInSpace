@@ -71,7 +71,7 @@ public:
     EDynamicAsteroidOrigin Origin = EDynamicAsteroidOrigin::SelfGenerated;
 
 protected:
-    UPROPERTY(EditAnywhere, Category="Generation")
+    UPROPERTY(EditDefaultsOnly, Category="Generation")
     TArray<FMaterialType> MaterialTypes;
     
     UPROPERTY(EditAnywhere, Category="Generation")
