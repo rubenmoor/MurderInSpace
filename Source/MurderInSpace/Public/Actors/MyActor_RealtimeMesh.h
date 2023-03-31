@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "IHasMesh.h"
+#include "MathUtil.h"
 #include "RealtimeMeshActor.h"
 #include "Orbit/Orbit.h"
 #include "MyComponents/MyCollisionComponent.h"
@@ -30,8 +31,8 @@ public:
     AMyActor_RealtimeMesh();
 
 	virtual UPrimitiveComponent* GetMesh()   const override { return RealtimeMeshComponent; }
-	virtual float                GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
-	virtual FVector              GetMyInertiaTensor() const override { return MyInertia; }
+	virtual double               GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
+	virtual FVector              GetMyInertiaTensor() const override { return RotInertiaNorm; }
 	virtual TSubclassOf<AOrbit>  GetOrbitClass()   override { return OrbitClass;   }
 	virtual FLinearColor         GetOrbitColor()   override { return OrbitColor;   }
 	virtual AOrbit*				 GetOrbit() const  override { return RP_Orbit;     }
@@ -68,18 +69,22 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
     FLinearColor OrbitColor;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
-	float MyMass;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
-	float MyMassOverride = 0.;
+	// volume of the mesh, used for calculation of my mass
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Orbit")
+	double MyVolume;
 
+	// custom mass calculation, using volume (from mesh generation) and density (from physical material)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
-	FVector MyInertia = FVector(1., 1., 1.);
+	double MyMass;
+
+	// override the calculation of my mass (via volume and density) with a set value
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	double MyMassOverride = 0.;
+
+	// principal moments of inertia, normalized
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	FVector RotInertiaNorm = FVector(FMathd::InvSqrt3, FMathd::InvSqrt3, FMathd::InvSqrt3);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Orbit")
 	FInitialOrbitParams InitialOrbitParams;
-
-	UPROPERTY(EditDefaultsOnly, Category="Generation")
-	TObjectPtr<UPhysicalMaterial> PhysicalMaterial = nullptr;
 };

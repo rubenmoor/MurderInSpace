@@ -26,7 +26,7 @@ public:
 	AMyActor_StaticMesh();
 
 	virtual UPrimitiveComponent* GetMesh()   const override { return StaticMeshComponent; }
-	virtual float                GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
+	virtual double               GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
 	virtual TSubclassOf<AOrbit>  GetOrbitClass()   override { return OrbitClass;   }
 	virtual FLinearColor         GetOrbitColor()   override { return OrbitColor;   }
 	virtual AOrbit*				 GetOrbit() const  override { return RP_Orbit;     }

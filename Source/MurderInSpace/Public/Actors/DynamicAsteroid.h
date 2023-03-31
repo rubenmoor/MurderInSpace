@@ -32,6 +32,13 @@ struct FMaterialType
     double MaxSize = 1e11;
 };
 
+UENUM()
+enum class EDynamicAsteroidOrigin : uint8
+{
+      SelfGenerated = 0
+    , FromMeshData = 1
+};
+
 UCLASS()
 class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh, public IHasRandom
 {
@@ -53,9 +60,15 @@ public:
     void Fracture();
 
     UFUNCTION(BlueprintCallable)
-    void SetMeshData(FRealtimeMeshSimpleMeshData InMeshData) { MeshData = InMeshData; }
+    void SetMeshData(FRealtimeMeshSimpleMeshData InMeshData)
+    {
+        Origin = EDynamicAsteroidOrigin::FromMeshData;
+        MeshData = InMeshData;
+    }
 
     virtual int32 GetSeed() override { return RandomStream.GetUnsignedInt(); }
+
+    EDynamicAsteroidOrigin Origin = EDynamicAsteroidOrigin::SelfGenerated;
 
 protected:
     UPROPERTY(EditAnywhere, Category="Generation")

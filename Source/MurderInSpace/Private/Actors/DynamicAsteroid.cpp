@@ -5,6 +5,7 @@
 #include "RealtimeMeshLibrary.h"
 #include "RealtimeMeshSimple.h"
 #include "FastNoiseWrapper.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 ADynamicAsteroid::ADynamicAsteroid()
 {
@@ -24,7 +25,6 @@ void ADynamicAsteroid::GenerateAsteroid()
         , std::max(8, static_cast<int32>(MeshResolution * FMathd::Sqrt(SizeParam) * 3) / 2)
         , std::max(2, static_cast<int32>(MeshResolution * FMathd::Sqrt(SizeParam) * 3) / 4)
         );
-    MyInertia = FVector(1., 1., 2.).GetSafeNormal() * pow(SizeParam / 2., 2) * MyMass;
     
     NoiseSeed = RandomStream.GetUnsignedInt();
     FastNoiseWrapper->SetupFastNoise
@@ -37,12 +37,17 @@ void ADynamicAsteroid::GenerateAsteroid()
         , Lacunarity
         , Gain
         );
+
+    // inertia calculation
+    FVector SpatialDistributionSquared = FVector::Zero();
     check(MeshData.Positions.Num() == MeshData.Normals.Num())
     for(int i = 0; i < MeshData.Positions.Num(); i++)
     {
-        auto Pos = MeshData.Positions[i];
+        const FVector Pos = MeshData.Positions[i];
         const float V = FastNoiseWrapper->GetNoise3D(Pos.X, Pos.Y, Pos.Z);
-        MeshData.Positions[i] += AmplitudeFactor * SizeParam * V * MeshData.Normals[i];
+        const FVector NewPos = MeshData.Positions[i] + AmplitudeFactor * SizeParam * V * MeshData.Normals[i];
+        MeshData.Positions[i] = NewPos;
+        SpatialDistributionSquared += FVector(pow(NewPos.X, 2), pow(NewPos.Y, 2), pow(NewPos.Z,2));
     }
 
     if(bRecomputeNormals)
@@ -61,15 +66,7 @@ void ADynamicAsteroid::GenerateAsteroid()
             MeshData.Binormals[i] = MeshData.Normals[i].Cross(ProcTangents[i].TangentX);
         }
     }
-    
-    if(MaterialTypes.IsEmpty())
-    {
-        UE_LOG(LogMyGame, Warning, TEXT("%s: MaterialTypes empty"), *GetFullName())
-    }
-    else
-    {
-        RealtimeMeshComponent->SetMaterial(0, SelectMaterial());
-    }
+    RotInertiaNorm = SpatialDistributionSquared.GetUnsafeNormal();
 }
 
 void ADynamicAsteroid::Fracture()
@@ -186,47 +183,80 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
     Super::OnGenerateMesh_Implementation();
 
     auto* RealtimeMesh = GetRealtimeMeshComponent()->InitializeRealtimeMesh<URealtimeMeshSimple>();
-    if(!IsValid(RealtimeMesh))
-    {
-        UE_LOG(LogMyGame, Warning, TEXT("%s: OnGenerateMesh: GetRealtimeMesh(): invalid"), *GetFullName())
-        return;
-    }
     RealtimeMesh->SetupMaterialSlot(0, "Material");
 
-    for(auto MaterialType : MaterialTypes)
+    double Density = 1.;
+    if(MaterialTypes.IsEmpty())
     {
-        if(!IsValid(MaterialType.Material))
+        UE_LOG(LogMyGame, Warning, TEXT("%s: MaterialTypes empty"), *GetFullName())
+    }
+    else
+    {
+        for(auto MaterialType : MaterialTypes)
         {
-            UE_LOG(LogMyGame, Warning, TEXT("%s: Invalid material in MaterialTypes"), *GetFullName())
+            if(!IsValid(MaterialType.Material))
+            {
+                UE_LOG(LogMyGame, Warning, TEXT("%s: Invalid material in MaterialTypes"), *GetFullName())
+            }
+        }
+        auto* MaterialInstance = SelectMaterial();
+        RealtimeMeshComponent->SetMaterial(0, MaterialInstance);
+        if(IsValid(MaterialInstance))
+        {
+            const auto* PhysMat = MaterialInstance->GetPhysicalMaterial();
+            if(IsValid(PhysMat))
+            {
+                Density = PhysMat->Density;
+            }
+            else
+            {
+                UE_LOG(LogMyGame, Warning, TEXT("%s: no physical material set in %s")
+                    , *GetFullName(), *MaterialInstance->GetFullName())
+            }
+        }
+        else
+        {
+            UE_LOG(LogMyGame, Warning, TEXT("%s: material instance invalid") , *GetFullName())
         }
     }
 
-    if(MeshData.Positions.IsEmpty())
+    switch(Origin)
     {
-        GenerateAsteroid();
+    case EDynamicAsteroidOrigin::SelfGenerated:
+        {
+            GenerateAsteroid();
         
-        //GetRealtimeMeshComponent()->CreatePhysicsState();
-        //GetRealtimeMeshComponent()->UpdatePhysicsVolume(false);
+            FRealtimeMeshCollisionConfiguration CollisionConfiguration;
+            CollisionConfiguration.bUseComplexAsSimpleCollision = false;
+            RealtimeMesh->SetCollisionConfig(CollisionConfiguration);
         
-        FRealtimeMeshCollisionConfiguration CollisionConfiguration;
-        CollisionConfiguration.bUseComplexAsSimpleCollision = false;
-        RealtimeMesh->SetCollisionConfig(CollisionConfiguration);
-        
-        FRealtimeMeshCollisionCapsule CollisionCapsule;
-        CollisionCapsule.Radius = SizeParam;
-        CollisionCapsule.Length = SizeParam;
-        int32 CCIndex;
-        auto Geo = RealtimeMesh->GetSimpleGeometry();
-        URealtimeMeshSimpleGeometryFunctionLibrary::AddCapsule (Geo , CollisionCapsule , CCIndex);
-        RealtimeMesh->UpdateCollision();
-        Geo.CopyToBodySetup(RealtimeMesh->GetBodySetup());
+            FRealtimeMeshCollisionCapsule CollisionCapsule;
+            CollisionCapsule.Radius = SizeParam;
+            CollisionCapsule.Length = SizeParam;
+            int32 CCIndex;
+            auto Geo = RealtimeMesh->GetSimpleGeometry();
+            URealtimeMeshSimpleGeometryFunctionLibrary::AddCapsule (Geo , CollisionCapsule , CCIndex);
+            RealtimeMesh->UpdateCollision();
+            auto* BodySetup = RealtimeMesh->GetBodySetup();
+            if(IsValid(BodySetup))
+            {
+                Geo.CopyToBodySetup(BodySetup);
+            }
+            else
+            {
+                UE_LOG(LogMyGame, Warning, TEXT("%s: OnGenerateMesh: BodySetup invalid"), *GetFullName())
+            }
 
-        // auto& BodyCapsule = GetRealtimeMeshComponent()->GetBodySetup()->AggGeom.SphylElems.AddDefaulted_GetRef();
-        // BodyCapsule.Radius = SizeParam;
-        // BodyCapsule.Length = SizeParam;
-        // BodyCapsule.SetContributeToMass(true);
-        // BodyCapsule.SetName("CollisionCapsule");
+            // auto& BodyCapsule = GetRealtimeMeshComponent()->GetBodySetup()->AggGeom.SphylElems.AddDefaulted_GetRef();
+            // BodyCapsule.Radius = SizeParam;
+            // BodyCapsule.Length = SizeParam;
+            // BodyCapsule.SetContributeToMass(true);
+            // BodyCapsule.SetName("CollisionCapsule");
+            break;
+        }
         
+    case EDynamicAsteroidOrigin::FromMeshData:
+        break;
     }
     
     RealtimeMesh->CreateMeshSection
@@ -237,7 +267,7 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
         , false
         );
     
-    Super::OnGenerateMesh_Implementation();
+    MyMass = Density * pow(RealtimeMeshComponent->Bounds.SphereRadius, 3);
 }
 
 UMaterialInstance* ADynamicAsteroid::SelectMaterial()
