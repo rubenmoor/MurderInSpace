@@ -13,7 +13,14 @@ class IHasMesh
     GENERATED_BODY()
     
 public:
-    virtual UPrimitiveComponent* GetMesh() const = 0;
+    // * actors that have one mesh component as root component return an empty array
+    // * actors that have one or more mesh components, typically all children of the root component,
+    //   return them in the array
+    // * actors that don't have mesh components don't implement this interface
+    virtual TArray<UPrimitiveComponent*> GetMeshComponents() const = 0;
+
+    virtual FBoxSphereBounds GetBounds() const = 0;
+    
     virtual double GetMyMass() const = 0;
     virtual FVector GetMyInertiaTensor() const { return FVector(1., 1., 1.); }
 };

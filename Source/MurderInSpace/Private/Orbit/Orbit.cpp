@@ -260,24 +260,54 @@ void AOrbit::Tick(float DeltaTime)
     RKepler = NewVecRKepler.Length();
     FVector NewVecR = NewVecRKepler + Physics.VecF1;
 
+    const FVector OldVecR = RP_Body->GetActorLocation();
     if(RP_Body->Implements<UHasMesh>() && RP_Body->Implements<UHasCollision>())
     {
         FHitResult HitResult;
-        auto* PrimitiveComponent = Cast<IHasMesh>(RP_Body)->GetMesh();
-        PrimitiveComponent->SetWorldLocation(NewVecR, true, &HitResult);
-        if(HitResult.bBlockingHit && HitResult.GetActor()->Implements<UHasCollision>())
+        auto PrimitiveComponents = Cast<IHasMesh>(RP_Body)->GetMeshComponents();
+        if(PrimitiveComponents.IsEmpty())
         {
-            Cast<IHasCollision>(RP_Body)->GetCollisionComponent()->HandleHit(HitResult);
+            UE_LOG(LogMyGame, Error, TEXT("%s: GetMeshComponents: empty") , *GetFullName())
+            SetActorTickEnabled(false);
+            return;
+        }
+        UPrimitiveComponent* PrimitiveComponent = nullptr;
+        bool bHit = false;
+        for(int i = 0; i < PrimitiveComponents.Num(); i++)
+        {
+            PrimitiveComponent = PrimitiveComponents[i];
+            PrimitiveComponent->SetWorldLocation(NewVecR, true, &HitResult);
+            PrimitiveComponent->SetWorldLocation(OldVecR);
+            if(HitResult.bBlockingHit && HitResult.GetActor()->Implements<UHasCollision>())
+            {
+                // if several components hit, only take into account the first one
+                bHit = true;
+                break;
+            }
+        }
+        
+        if(bHit)
+        {
+            Cast<IHasCollision>(RP_Body)->GetCollisionComponent()->HandleHit(HitResult, PrimitiveComponent);
         }
         else
         {
-            RP_Body->SetActorLocation(NewVecR);
+            if(!RP_Body->SetActorLocation(NewVecR))
+            {
+                UE_LOG(LogMyGame, Error, TEXT("%s: SetActorLocation: false, no Root component"),
+                    *GetFullName())
+                SetActorTickEnabled(false);
+            }
         }
-        PrimitiveComponent->SetRelativeLocation(FVector::Zero());
     }
     else
     {
-        RP_Body->SetActorLocation(NewVecR);
+        if(!RP_Body->SetActorLocation(NewVecR))
+        {
+            UE_LOG(LogMyGame, Error, TEXT("%s: SetActorLocation: false, no Root component"),
+                *GetFullName())
+            SetActorTickEnabled(false);
+        }
     }
     
     UpdateControlParams(Physics);
@@ -743,7 +773,7 @@ void AOrbit::HandleBeginMouseOver(AActor* Actor)
 {
     GEngine->GetEngineSubsystem<UMyState>()->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
     {
-        double Size = Cast<IHasMesh>(RP_Body)->GetMesh()->Bounds.SphereRadius;
+        double Size = Cast<IHasMesh>(RP_Body)->GetBounds().SphereRadius;
         InstanceUI.Hovered = {this, Size };
         bIsVisibleMouseover = true;
         UpdateVisibility(InstanceUI);
@@ -774,7 +804,7 @@ void AOrbit::HandleClick(AActor*, FKey Button)
             }
             if(Orbit != this)
             {
-                double Size = Cast<IHasMesh>(RP_Body)->GetMesh()->Bounds.SphereRadius;
+                double Size = Cast<IHasMesh>(RP_Body)->GetBounds().SphereRadius;
                 InstanceUI.Selected = {this, Size };
             }
             UpdateVisibility(InstanceUI);

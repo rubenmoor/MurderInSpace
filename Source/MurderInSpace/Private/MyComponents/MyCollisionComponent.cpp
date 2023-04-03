@@ -11,7 +11,7 @@ UMyCollisionComponent::UMyCollisionComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UMyCollisionComponent::HandleHit(FHitResult& HitResult)
+void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent* PrimitiveComponent)
 {
 	auto* Other = HitResult.GetActor();
 	if(!IsValid(Other))
@@ -35,9 +35,9 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult)
 			, *GetFullName()
 			)
 		// TODO: deal with hit results due to rotation here
-		auto* PrimitiveComponent = GetOwner<IHasMesh>()->GetMesh();
-		PrimitiveComponent->SetRelativeLocation(HitResult.Normal * HitResult.PenetrationDepth * 1.1);
-		PrimitiveComponent->SetRelativeLocation(FVector::Zero(), true, &HitResult);
+		const FVector OldR = PrimitiveComponent->GetComponentLocation();
+		PrimitiveComponent->SetWorldLocation(OldR + HitResult.Normal * HitResult.PenetrationDepth * 1.1);
+		PrimitiveComponent->SetWorldLocation(OldR, true, &HitResult);
 		if(!HitResult.bBlockingHit)
 		{
 			UE_LOG(LogMyGame, Error, TEXT("%s: bStartPenetrating, no hit after correction"), *GetFullName())

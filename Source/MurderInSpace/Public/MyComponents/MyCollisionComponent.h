@@ -38,7 +38,7 @@ public:
 		MyCollisionDimensions = InMyCollisionDimensions;
 	}
 	
-	void HandleHit(FHitResult& HitResult);
+	void HandleHit(FHitResult& HitResult, UPrimitiveComponent* PrimitiveComponent);
 	
 protected:
 	EMyCollisionDimensions MyCollisionDimensions = EMyCollisionDimensions::CollisionXYPlane;

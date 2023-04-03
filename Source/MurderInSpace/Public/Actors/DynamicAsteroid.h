@@ -133,7 +133,7 @@ protected:
     UMaterialInstance* SelectMaterial();
 
     UFUNCTION(BlueprintCallable)
-    TArray<FFractureInfo> GetFractures();  
+    TArray<FFractureInfo> GetFractures();
 
     FRandomStream RandomStream;
 

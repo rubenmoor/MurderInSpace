@@ -23,7 +23,7 @@ void UGyrationComponent::FreezeState()
     }
     else
     {
-        RP_GyrationState = { GetOwner<IHasMesh>()->GetMesh()->GetComponentRotation() };
+        RP_GyrationState = { GetOwner()->GetActorRotation() };
     }
 }
 
@@ -64,7 +64,7 @@ void UGyrationComponent::GyrationSetup()
 
 void UGyrationComponent::OnRep_GyrationState()
 {
-    GetOwner<IHasMesh>()->GetMesh()->SetWorldRotation(RP_GyrationState.Rot);
+    GetOwner()->SetActorRotation(RP_GyrationState.Rot);
 }
 
 // Called every frame
@@ -72,8 +72,7 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    UPrimitiveComponent* Body = GetOwner<IHasMesh>()->GetMesh();
-    const FMatrix MatROld = FRotationMatrix(Body->GetComponentRotation());
+    const FMatrix MatROld = FRotationMatrix(GetOwner()->GetActorRotation());
     const FMatrix MatInertiaReverse = FMatrix
             ( FVector(1./ VecInertia.X, 0, 0)
             , FVector(0, 1./ VecInertia.Y, 0)
@@ -100,11 +99,7 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
     const FMatrix MatExp = FMatrix::Identity + BNorm * sin(Theta * DeltaTime) + BNorm * BNorm * (1. - cos(Theta * DeltaTime));
     const FMatrix MatRNew = MatExp * MatROld;
 
-    //FHitResult HitResult;
-    // sweeping isn't implemented for rotation
-    // instead I deal with hits in AOrbit::Tick, where translation happens
-    //Body->SetWorldRotation(MatRNew.ToQuat(), true, HitResult);
-    Body->SetWorldRotation(MatRNew.ToQuat());
+    GetOwner()->SetActorRotation(MatRNew.ToQuat());
     L = RP_VecL.Length();
     E = VecOmega.Dot(RP_VecL) * 0.5;
 }

@@ -17,7 +17,8 @@ class MURDERINSPACE_API AMyPawn_SkeletalMesh : public AMyPawn, public IHasMesh
 public:
 	AMyPawn_SkeletalMesh();
 
-	virtual UPrimitiveComponent* GetMesh() const override final { return SkeletalMesh; }
+	virtual TArray<UPrimitiveComponent*> GetMeshComponents() const override final { return {SkeletalMesh}; };
+	virtual FBoxSphereBounds GetBounds() const override { return GetRootComponent()->Bounds; }
 	virtual double GetMyMass() const override { return pow(SkeletalMesh->Bounds.SphereRadius, 3); }
 	
 protected:

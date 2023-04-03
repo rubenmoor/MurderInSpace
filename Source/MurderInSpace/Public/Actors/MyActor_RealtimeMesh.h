@@ -30,7 +30,8 @@ class MURDERINSPACE_API AMyActor_RealtimeMesh
 public:
     AMyActor_RealtimeMesh();
 
-	virtual UPrimitiveComponent* GetMesh()   const override { return RealtimeMeshComponent; }
+	virtual TArray<UPrimitiveComponent*> GetMeshComponents() const override { return {RealtimeMeshComponent}; }
+	virtual FBoxSphereBounds     GetBounds() const override { return RealtimeMeshComponent->Bounds; }
 	virtual double               GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
 	virtual FVector              GetMyInertiaTensor() const override { return RotInertiaNorm; }
 	virtual TSubclassOf<AOrbit>  GetOrbitClass()   override { return OrbitClass;   }

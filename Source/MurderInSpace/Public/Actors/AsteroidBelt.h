@@ -35,8 +35,6 @@ public:
     // Sets default values for this actor's properties
     AAsteroidBelt();
 
-    FRandomStream& GetRandomStream() { return RandomStream; }
-    
 protected:
     UPROPERTY(EditAnywhere, Category="Generation")
     TArray<FAsteroidType> AsteroidTypes;

@@ -15,6 +15,7 @@ ADynamicAsteroid::ADynamicAsteroid()
 
 void ADynamicAsteroid::GenerateAsteroid()
 {
+    RandomStream.Reset();
     MeshData = FRealtimeMeshSimpleMeshData();
     URealtimeMeshBlueprintFunctionLibrary::AppendCapsuleMesh
         ( MeshData
