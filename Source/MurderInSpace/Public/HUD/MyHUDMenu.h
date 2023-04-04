@@ -93,10 +93,6 @@ protected:
 	{
 		UE_LOG(LogMyGame, Warning, TEXT("%s: EndPlay"), *GetFullName())
 	}
-	virtual void Destroyed() override
-	{
-		UE_LOG(LogMyGame, Warning, TEXT("%s: Destroyed"), *GetFullName())
-	}
 
 public:
 	// public methods

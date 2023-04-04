@@ -34,8 +34,6 @@ void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
 
-    ensureMsgf(GetLocalRole() == ROLE_Authority, TEXT("%s: OnConstruction while Role < Authority"), *GetFullName());
-
     // TODO: if this actor is restored from a save game: no orbit setup
     if  (
         GetWorld()->WorldType != EWorldType::EditorPreview
@@ -45,6 +43,7 @@ void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
         // Once the actor is placed inside the viewport, it's no longer transient and the orbit is reconstructed properly
         // according to the actor location
         && !HasAnyFlags(RF_Transient)
+        && GetLocalRole() == ROLE_Authority
         )
     {
         OrbitSetup(this);

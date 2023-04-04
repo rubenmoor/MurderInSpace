@@ -103,8 +103,10 @@ void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Act
 void AMyPlayerController::LocallyHandleAction(EInputAction Action)
 {
     UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-    MyState->WithInstanceUI(this, [this, Action] (FInstanceUI& InstanceUI)
-    {
+    auto* GI = GetGameInstance<UMyGameInstance>();
+    FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
+    // MyState->WithInstanceUI(this, [this, Action] (FInstanceUI& InstanceUI)
+    // {
         const AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
         AOrbit* Orbit = MyCharacter->GetOrbit();
         UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
@@ -151,6 +153,7 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
             break;
             
         case EInputAction::AllTrajectoriesShowHide:
+            // TODO: set InstanceUI in GameInstance
             InstanceUI.bShowAllTrajectories = !InstanceUI.bShowAllTrajectories;
             for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
             {
@@ -163,7 +166,7 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
             Orbit->UpdateVisibility(InstanceUI);
             break;
         }
-    });
+    // });
 }
 
 void AMyPlayerController::Tick(float DeltaSeconds)
