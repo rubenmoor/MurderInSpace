@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "MyComponents/GyrationComponent.h"
 
 #include "Actors/IHasMesh.h"
@@ -33,31 +30,22 @@ void UGyrationComponent::BeginPlay()
 
     const auto* GS = GetWorld()->GetGameState<AMyGameState>();
     SetComponentTickEnabled(GS->bEnableGyration);
-
 }
 
 void UGyrationComponent::GyrationSetup()
 {
-    FRandomStream RandomStream;
-    if(GetOwner()->Implements<UHasRandom>())
-    {
-        RandomStream.Initialize(GetOwner<IHasRandom>()->GetSeed());
-    }
-    else
-    {
-        RandomStream.Initialize(GetOwner()->GetFName());
-    }
-    
     // TODO: meshes connected with sockets
 
     VecInertia = GetOwner<IHasMesh>()->GetMyInertiaTensor();
 
     if(GetOwnerRole() == ROLE_Authority)
     {
+        checkf(GetOwner()->Implements<UHasGyration>(), TEXT("%s: missing interface: IHasGyration"), *GetFullName())
         // TODO: curve look-up
-        const float OmegaInitial = RandomStream.FRand();
-        const FVector VRand = RandomStream.VRand();
-        RP_VecL = VRand * OmegaInitial * VecInertia.Length();
+        const FVector Omega = GetOwner<IHasGyration>()->GetInitialOmega();
+        RP_VecL = Omega * VecInertia.Length();
+        L = RP_VecL.Length();
+        E = Omega.Dot(RP_VecL) / 2.;
     }
     bGyrationSetupDone = true;
 }
@@ -72,6 +60,10 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+    if(RP_VecL.IsZero())
+    {
+        return;
+    }
     const FMatrix MatROld = FRotationMatrix(GetOwner()->GetActorRotation());
     const FMatrix MatInertiaReverse = FMatrix
             ( FVector(1./ VecInertia.X, 0, 0)
@@ -80,15 +72,6 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
             , FVector(0, 0, 0)
             );
     VecOmega = (MatROld * MatInertiaReverse * MatROld.GetTransposed()).TransformFVector4(RP_VecL);
-    if(VecOmega.IsNearlyZero())
-    {
-        if(VecOmega.IsZero())
-        {
-            UE_LOG(LogMyGame, Error, TEXT("%s: VecOmega zero, skipping."), *GetFullName())
-            return;
-        }
-        UE_LOG(LogMyGame, Warning, TEXT("%s: VecOmega nearly zero, just a warning."), *GetFullName())
-    }
     const float Theta = VecOmega.Length();
     const FMatrix BNorm = FMatrix
             ( FVector(0., -VecOmega.Z, VecOmega.Y)
@@ -101,7 +84,7 @@ void UGyrationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
     GetOwner()->SetActorRotation(MatRNew.ToQuat());
     L = RP_VecL.Length();
-    E = VecOmega.Dot(RP_VecL) * 0.5;
+    E = VecOmega.Dot(RP_VecL) / 2.;
 }
 
 #if WITH_EDITOR
@@ -138,11 +121,8 @@ void UGyrationComponent::OnComponentCreated()
 void UGyrationComponent::PostLoad()
 {
     Super::PostLoad();
-    UE_LOG(LogMyGame, Display, TEXT("%s: PostLoad"), *GetFullName())
-
     if(!bGyrationSetupDone)
     {
-        UE_LOG(LogMyGame, Warning, TEXT("%s: PostLoad, GyrationSetup"), *GetFullName())
         GyrationSetup();
     }
 }

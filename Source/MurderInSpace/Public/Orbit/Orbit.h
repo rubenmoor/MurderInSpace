@@ -160,6 +160,9 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+    UFUNCTION(BlueprintCallable)
+    void SetDrawDebug(bool bDraw) { Spline->SetDrawDebug(bDraw); }
+    
     static FString MakeOrbitLabel(const AActor* Actor) { return Actor->GetName().Append(TEXT("_Orbit")); }
 
     UFUNCTION(BlueprintCallable)

@@ -35,7 +35,12 @@ public:
     // Sets default values for this actor's properties
     AAsteroidBelt();
 
+    void ClearAsteroidPointer(ADynamicAsteroid* Asteroid) { Asteroids.RemoveSingle(Asteroid); }
+    
 protected:
+    UPROPERTY(VisibleAnywhere, Category="Generation")
+    TArray<ADynamicAsteroid*> Asteroids;
+    
     UPROPERTY(EditAnywhere, Category="Generation")
     TArray<FAsteroidType> AsteroidTypes;
     

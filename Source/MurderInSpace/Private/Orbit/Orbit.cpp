@@ -51,13 +51,6 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
             Orbit->RP_Body = Actor;
             Orbit->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
             Orbit->UpdateByInitialParams(Physics, InstanceUI);
-#if WITH_EDITOR
-            // not every actor has an owner
-            if(IsValid(Actor->GetOwner()))
-            {
-                Orbit->SetFolderPath(*Actor->GetOwner()->GetName());
-            }
-#endif
         };
         AOrbit* NewOrbit = Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
         SetOrbit(NewOrbit);

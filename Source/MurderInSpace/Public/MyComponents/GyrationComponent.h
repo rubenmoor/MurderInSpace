@@ -6,6 +6,21 @@
 #include "Components/ActorComponent.h"
 #include "GyrationComponent.generated.h"
 
+
+UINTERFACE(meta=(CannotImplementInterfaceBlueprint))
+class UHasGyration : public UInterface
+{
+    GENERATED_BODY()
+};
+
+class IHasGyration
+{
+    GENERATED_BODY()
+
+public:
+    virtual FVector GetInitialOmega() = 0;
+};
+
 /*
  * rotational state of an object for network replication
  */

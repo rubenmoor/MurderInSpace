@@ -5,6 +5,7 @@
 #include "RealtimeMeshLibrary.h"
 #include "RealtimeMeshSimple.h"
 #include "FastNoiseWrapper.h"
+#include "Actors/AsteroidBelt.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 
 ADynamicAsteroid::ADynamicAsteroid()
@@ -179,6 +180,12 @@ TArray<FFractureInfo> ADynamicAsteroid::GetFractures()
         };
 }
 
+FVector ADynamicAsteroid::GetInitialOmega()
+{
+    check(IsValid(CurveOmegaDistribution))
+    return OmegaMax * CurveOmegaDistribution->GetFloatValue(RandomStream.FRand()) * RandomStream.VRand();
+}
+
 void ADynamicAsteroid::OnGenerateMesh_Implementation()
 {
     Super::OnGenerateMesh_Implementation();
@@ -269,6 +276,29 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
         );
     
     MyMass = Density * pow(RealtimeMeshComponent->Bounds.SphereRadius, 3);
+}
+
+void ADynamicAsteroid::Destroyed()
+{
+    Super::Destroyed();
+    if(IsValid(AsteroidBelt))
+    {
+        AsteroidBelt->ClearAsteroidPointer(this);
+    }
+}
+
+void ADynamicAsteroid::OnConstruction(const FTransform& Transform)
+{
+    Super::OnConstruction(Transform);
+
+#if WITH_EDITOR
+    if(IsValid(AsteroidBelt))
+    {
+        // too many white lines for splines in asteroid belts in the editor
+        RP_Orbit->SetDrawDebug(false);
+        RP_Orbit->SetFolderPath(*AsteroidBelt->GetName());
+    }
+#endif
 }
 
 UMaterialInstance* ADynamicAsteroid::SelectMaterial()

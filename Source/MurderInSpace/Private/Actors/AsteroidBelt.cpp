@@ -24,14 +24,23 @@ AAsteroidBelt::AAsteroidBelt()
 void AAsteroidBelt::Destroyed()
 {
     Super::Destroyed();
-    while(!Children.IsEmpty())
+    while(!Asteroids.IsEmpty())
     {
-        if(!Children[0]->Destroy())
+        if(IsValid(Asteroids[0]))
         {
-            UE_LOG(LogMyGame, Warning, TEXT("%s: Destroyed: Failed to destroy child actor %s.")
-                , *GetFullName()
-                , *Children[0].GetName()
-                )
+            if(!Asteroids[0]->Destroy())
+            {
+                UE_LOG(LogMyGame, Warning, TEXT("%s: Destroyed: Failed to destroy asteroid %s.")
+                    , *GetFullName()
+                    , *Asteroids[0]->GetName()
+                    )
+            }
+        }
+        else
+        {
+            Asteroids.RemoveAt(0);
+            UE_LOG(LogMyGame, Warning, TEXT("%s: invalid asteroid in Asteroids. Removing from array")
+                , *GetFullName())
         }
     }
 }
@@ -83,11 +92,11 @@ void AAsteroidBelt::BuildAsteroids()
         check(IsValid(AsteroidType.DynamicAsteroidClass))
     }
     
-    while(!Children.IsEmpty())
+    while(!Asteroids.IsEmpty())
     {
-        if(IsValid(Children[0]))
+        if(IsValid(Asteroids[0]))
         {
-            Children[0]->Destroy();
+            Asteroids[0]->Destroy();
         }
     }
 
@@ -117,7 +126,6 @@ void AAsteroidBelt::BuildAsteroids()
         FActorSpawnParameters SpawnParameters;
         // Owner is "primarily used for replication"; I use it to have the spawned asteroid
         // added to the children array for destruction
-        SpawnParameters.Owner = this;
         SpawnParameters.SpawnCollisionHandlingOverride =
             ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
         SpawnParameters.CustomPreSpawnInitalization = [this, AsteroidType] (AActor* Actor)
@@ -129,6 +137,7 @@ void AAsteroidBelt::BuildAsteroids()
                 , MeshResolution
                 , bRecomputeNormals
                 , RandomStream.GetUnsignedInt()
+                , this
                 );
             DynamicAsteroid->SetInitialOrbitParams
                 ( { FVector(0.0, 0.0, 0.)
@@ -145,12 +154,13 @@ void AAsteroidBelt::BuildAsteroids()
             //     if(IsValid(Orbit)) Orbit->UpdateByInitialParams(Physics, InstanceUI);
             // }
         };
-        World->SpawnActor<ADynamicAsteroid>
+        auto* Asteroid= World->SpawnActor<ADynamicAsteroid>
             ( AsteroidType.DynamicAsteroidClass
             , VecLocation
             , FRotationMatrix::MakeFromX(RandomStream.VRand()).Rotator()
             , SpawnParameters
             );
+        Asteroids.Add(Asteroid);
     }
 }
 

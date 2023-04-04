@@ -5,8 +5,11 @@
 #include "MyActor_RealtimeMesh.h"
 #include "RealtimeMeshSimple.h"
 #include "Materials/MaterialInstanceConstant.h"
+#include "MyComponents/GyrationComponent.h"
 
 #include "DynamicAsteroid.generated.h"
+
+class AAsteroidBelt;
 
 USTRUCT(BlueprintType)
 struct FFractureInfo
@@ -40,7 +43,7 @@ enum class EDynamicAsteroidOrigin : uint8
 };
 
 UCLASS()
-class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh, public IHasRandom
+class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh, public IHasGyration
 {
     GENERATED_BODY()
 
@@ -48,12 +51,19 @@ public:
     ADynamicAsteroid();
 
     UFUNCTION(BlueprintCallable)
-    void Initialize(float InSizeParam, float InMeshResolution, bool InBRecomputeNormals, int32 InSeed)
+    void Initialize
+        ( float InSizeParam
+        , float InMeshResolution
+        , bool InBRecomputeNormals
+        , int32 InSeed
+        , AAsteroidBelt* InAsteroidBelt
+        )
     {
         SizeParam = InSizeParam;
         MeshResolution = InMeshResolution;
         bRecomputeNormals = InBRecomputeNormals;
         RandomStream.Initialize(InSeed);
+        AsteroidBelt = InAsteroidBelt;
     }
 
     UFUNCTION(CallInEditor, BlueprintCallable, Category="Generation")
@@ -66,9 +76,12 @@ public:
         MeshData = InMeshData;
     }
 
-    virtual int32 GetSeed() override { return RandomStream.GetUnsignedInt(); }
-
     EDynamicAsteroidOrigin Origin = EDynamicAsteroidOrigin::SelfGenerated;
+
+    UPROPERTY(VisibleAnywhere, Category="Generation")
+    AAsteroidBelt* AsteroidBelt = nullptr;
+
+    virtual FVector GetInitialOmega() override;
 
 protected:
     UPROPERTY(EditDefaultsOnly, Category="Generation")
@@ -79,6 +92,8 @@ protected:
 
     // event handlers
     virtual void OnGenerateMesh_Implementation() override;
+    virtual void Destroyed() override;
+    virtual void OnConstruction(const FTransform& Transform) override;
 
     // fast noise, noise parameters
 
@@ -121,6 +136,13 @@ protected:
 
     UPROPERTY(EditAnywhere, Category="Generation")
     float SizeParam = 500;
+
+    UPROPERTY(EditDefaultsOnly, Category="Generation")
+    TObjectPtr<UCurveFloat> CurveOmegaDistribution;
+
+    // angular velocity maximum, used with `CurveOmegaDistribution` in `GetInitialOmega` to initialize gyration
+    UPROPERTY(EditDefaultsOnly, Category="Generation")
+    double OmegaMax = 10.;
 
     FRealtimeMeshSimpleMeshData MeshData;
 

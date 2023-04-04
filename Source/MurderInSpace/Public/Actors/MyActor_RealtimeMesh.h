@@ -48,7 +48,6 @@ protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 #if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-	virtual void OnGenerateMesh_Implementation() override;
 #endif
 
 	// components

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "IHasMesh.h"
+#include "MyComponents/GyrationComponent.h"
 #include "Orbit/Orbit.h"
 #include "MyComponents/MyCollisionComponent.h"
 #include "MyActor_StaticMesh.generated.h"
@@ -16,6 +17,7 @@ UCLASS()
 class MURDERINSPACE_API AMyActor_StaticMesh
 	: public AActor
 	, public IHasMesh
+	, public IHasGyration
 	, public IHasOrbit
 	, public IHasOrbitColor
 	, public IHasCollision
@@ -25,7 +27,8 @@ class MURDERINSPACE_API AMyActor_StaticMesh
 public:
 	AMyActor_StaticMesh();
 
-	virtual TArray<UPrimitiveComponent*> GetMeshComponents()   const override { return {StaticMeshComponent}; }
+	virtual TArray<UPrimitiveComponent*> GetMeshComponents() const override { return {StaticMeshComponent}; }
+	virtual FVector              GetInitialOmega() override { return FVector::Zero(); }
 	virtual FBoxSphereBounds     GetBounds() const override { return GetRootComponent()->Bounds; }
 	virtual double               GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
 	virtual TSubclassOf<AOrbit>  GetOrbitClass()   override { return OrbitClass;   }

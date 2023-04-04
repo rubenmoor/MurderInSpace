@@ -74,11 +74,6 @@ void AMyActor_RealtimeMesh::PostEditChangeChainProperty(FPropertyChangedChainEve
 }
 #endif
 
-void AMyActor_RealtimeMesh::OnGenerateMesh_Implementation()
-{
-    Super::OnGenerateMesh_Implementation();
-}
-
 void AMyActor_RealtimeMesh::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
