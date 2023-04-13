@@ -17,6 +17,7 @@ public class MurderInSpace : ModuleRules
 			, "FastNoiseGenerator"
 			, "FastNoise"
 			, "InputCore"
+			, "LoadingScreen"
 			, "Niagara"
 			, "PhysicsCore"
 			, "UMG"
