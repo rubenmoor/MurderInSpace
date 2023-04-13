@@ -1,12 +1,22 @@
 ﻿#include "LoadingScreenModule.h"
+
+#include "MoviePlayer.h"
 #include "Modules/ModuleManager.h"
 
-void LoadingScreenImpl::StartIngameLoadingScreen(bool bPlayUntilStopped, float Playtime)
+void LoadingScreenModule::StartIngameLoadingScreen(bool bPlayUntilStopped, float Playtime)
 {
+    FLoadingScreenAttributes Attrs;
+    Attrs.bAutoCompleteWhenLoadingCompletes = !bPlayUntilStopped;
+    Attrs.bWaitForManualStop = bPlayUntilStopped;
+    Attrs.bAllowEngineTick = bPlayUntilStopped;
+    Attrs.MinimumLoadingScreenDisplayTime = 10;
+    Attrs.WidgetLoadingScreen = FLoadingScreenAttributes::NewTestLoadingScreenWidget();
+    GetMoviePlayer()->SetupLoadingScreen(Attrs);
 }
 
-void LoadingScreenImpl::StopIngameLoadingScreen()
+void LoadingScreenModule::StopIngameLoadingScreen()
 {
+    GetMoviePlayer()->StopMovie();
 }
 
-IMPLEMENT_MODULE(LoadingScreenImpl, LoadingScreen);
+IMPLEMENT_MODULE(LoadingScreenModule, LoadingScreen);

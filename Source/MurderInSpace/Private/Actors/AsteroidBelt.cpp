@@ -7,8 +7,11 @@
 AAsteroidBelt::AAsteroidBelt()
 {
     PrimaryActorTick.bCanEverTick = false;
-    bRunConstructionScriptOnDrag = false;
     bNetLoadOnClient = false;
+
+#if WITH_EDITOR
+    bRunConstructionScriptOnDrag = false;
+#endif
 
     Root = CreateDefaultSubobject<USceneComponent>("Root");
     Root->SetMobility(EComponentMobility::Static);

@@ -8,6 +8,7 @@ public class LoadingScreen: ModuleRules
 			{ "Core"
 			, "CoreUObject"
 			, "Engine"
+			, "MoviePlayer"
 			}); 
 	} 
 }

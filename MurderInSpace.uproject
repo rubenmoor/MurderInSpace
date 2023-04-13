@@ -134,6 +134,7 @@
 		}
 	],
 	"TargetPlatforms": [
-		"Win64"
+		"Win64",
+		"Windows"
 	]
 }

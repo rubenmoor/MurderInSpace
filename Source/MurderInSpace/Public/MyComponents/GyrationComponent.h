@@ -58,9 +58,10 @@ protected:
 
 	#if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+	#endif
+	
 	virtual void OnComponentCreated() override;
 	virtual void PostLoad() override;
-	#endif
 	
 	// private members
 

@@ -3,6 +3,7 @@
 
 #include "Modes/MyGameInstance.h"
 
+#include "LoadingScreenModule.h"
 #include "HUD/MyHUDMenu.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -28,7 +29,7 @@ void UMyGameInstance::HostGame(const FLocalPlayerContext& LPC)
 		{
 			if(bSuccess)
 			{
-				GetWorld()->ServerTravel("/Game/Maps/spacefootball?listen");
+				GetWorld()->ServerTravel("/Game/Maps/Spacefootball?listen");
 				//UGameplayStatics::OpenLevel(GetWorld(), "spacefootball");
 			}
 			else
@@ -82,7 +83,7 @@ void UMyGameInstance::StartSoloGame(const FLocalPlayerContext& LPC)
 		, [LPC] () { LPC.GetHUD<AMyHUDMenu>()->MenuSoloShow(); }
 		);
 
-	UGameplayStatics::OpenLevel(GetWorld(), "spacefootball");
+	UGameplayStatics::OpenLevel(GetWorld(), "/Game/Maps/Spacefootball");
 }
 
 bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessionSearchResult& SearchResult)
@@ -173,6 +174,20 @@ int32 UMyGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUserId U
 	*/
 	
 	return InsertIndex;
+}
+
+void UMyGameInstance::Init()
+{
+	Super::Init();
+	FCoreUObjectDelegates::PreLoadMap.AddLambda([] (const FString& MapName)
+	{
+		LoadingScreenModule().StartIngameLoadingScreen(true, 3.);
+		//StartIngameLoadingScreen(true, 3.);
+	});
+	FCoreUObjectDelegates::PostLoadMapWithWorld.AddLambda([] (UWorld* InLoadedWorld)
+	{
+		LoadingScreenModule().StopIngameLoadingScreen();
+	});
 }
 
 

@@ -86,6 +86,7 @@ protected:
 	// event handlers
 
 	virtual int32 AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUserId UserId) override;
+	virtual void Init() override;
 	
 	// private properties
 	int GlobalNumSplinePoints = 0;
