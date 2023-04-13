@@ -89,10 +89,6 @@ protected:
 	// event handlers
 
 	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override
-	{
-		UE_LOG(LogMyGame, Warning, TEXT("%s: EndPlay"), *GetFullName())
-	}
 
 public:
 	// public methods

@@ -79,6 +79,9 @@ public:
 		UE_LOG(LogMyGame, Display, TEXT("Global number of spline points: %d"), GlobalNumSplinePoints)
 	}
 
+	UPROPERTY(BlueprintReadWrite)
+	FInstanceUI InstanceUI;
+	
 protected:
 	// event handlers
 
@@ -86,9 +89,6 @@ protected:
 	
 	// private properties
 	int GlobalNumSplinePoints = 0;
-	
-	UPROPERTY(BlueprintReadWrite)
-	FInstanceUI InstanceUI;
 	
 	// flag enums
 };

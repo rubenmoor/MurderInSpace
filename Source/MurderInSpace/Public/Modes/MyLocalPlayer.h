@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -11,6 +9,15 @@ enum class ECurrentLevel : uint8
 {
 	MainMenu UMETA(DisplayName="MainMenu"),
 	SpaceFootball UMETA(DisplayName="Spacefootball")
+};
+
+UENUM(BlueprintType)
+enum class EInGame : uint8
+{
+	  IngameUndefined UMETA(DisplayName="undefined")
+	, IngamePlaying   UMETA(DisplayName="playing")
+	, IngameJoining   UMETA(DisplayName="joining game")
+	, IngameMenu      UMETA(DisplayName="in-game menu")
 };
 
 /**
@@ -29,14 +36,14 @@ public:
 	}
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	ECurrentLevel CurrentLevel;
+	ECurrentLevel CurrentLevel = ECurrentLevel::MainMenu;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool IsMultiplayer;
+	bool IsMultiplayer = false;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool ShowInGameMenu;
+	EInGame InGame = EInGame::IngameUndefined;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool IsLoggedIn;
+	bool IsLoggedIn = false;
 };

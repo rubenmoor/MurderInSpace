@@ -91,7 +91,7 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 	FLocalPlayerContext LPC = FLocalPlayerContext(LocalPlayer);
 	return GetSubsystem<UMySessionManager>()->JoinSession(LPC, SearchResult, [this, LPC] (FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 	{
-		const std::function<void()> GotoServerList = [LPC] ()
+		const std::function GotoServerList = [LPC] ()
 		{
 			AMyHUDMenu* HUDMenu = LPC.GetHUD<AMyHUDMenu>();
 			if(IsValid(HUDMenu))
@@ -122,7 +122,7 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 		case UnknownError:
 			LPC.GetHUD<AMyHUDMenu>()->MessageShow(LOCTEXT("SessionUnknownError", "error: unknown error"), GotoServerList);
 			break;
-		case EOnJoinSessionCompleteResult::Success:
+		case Success:
 			if(!ClientTravelToSession(LPC.GetLocalPlayer()->GetControllerId(), NAME_GameSession))
 			{
 				LPC.GetHUD<AMyHUDMenu>()->MessageShow(LOCTEXT("ClientTravelToSessionFailed", "error: travel to session failed"), GotoServerList);
@@ -155,12 +155,11 @@ void UMyGameInstance::QuitGame(const FLocalPlayerContext& LPC)
 int32 UMyGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUserId UserId)
 {
 	int32 InsertIndex = Super::AddLocalPlayer(NewPlayer, UserId);
-	UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(NewPlayer);
-	LocalPlayer->IsMultiplayer = false;
-	LocalPlayer->ShowInGameMenu = false;
 
 	/*
 	 
+	UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(NewPlayer);
+	
 	// for the identity interface, SubsystemName == "NULL" doesn't make sense, I believe, as there
 	// is nor identity provider in the NULL/LAN online subystem
 	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked("EOS");
@@ -172,7 +171,6 @@ int32 UMyGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUserId U
 	LocalPlayer->SetCachedUniqueNetId(FUniqueNetIdRepl(OSSIdentity->CreateUniquePlayerId(FGuid::NewGuid().ToString())));
 	// LocalPlayer->IsLoggedIn = OSSIdentity->GetLoginStatus(LocalPlayer->GetCachedUniqueNetId()) == ELoginStatus::LoggedIn;
 	*/
-	LocalPlayer->IsLoggedIn = false;
 	
 	return InsertIndex;
 }

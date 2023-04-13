@@ -102,71 +102,69 @@ void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Act
 
 void AMyPlayerController::LocallyHandleAction(EInputAction Action)
 {
-    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
     auto* GI = GetGameInstance<UMyGameInstance>();
-    FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
-    // MyState->WithInstanceUI(this, [this, Action] (FInstanceUI& InstanceUI)
-    // {
-        const AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-        AOrbit* Orbit = MyCharacter->GetOrbit();
-        UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
-        
-        switch (Action)
+    const AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
+    AOrbit* Orbit = MyCharacter->GetOrbit();
+    UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
+    
+    switch (Action)
+    {
+    case EInputAction::AccelerateBeginEnd:
+    case EInputAction::TowardsCircleBeginEnd:
+        if(Orbit->bIsVisibleAccelerating)
         {
-        case EInputAction::AccelerateBeginEnd:
-        case EInputAction::TowardsCircleBeginEnd:
-            if(Orbit->bIsVisibleAccelerating)
-            {
-                Orbit->bIsVisibleAccelerating = false;
-                Orbit->DestroyTempSplineMeshes();
-                Orbit->UpdateVisibility(InstanceUI);
-            }
-            else
-            {
-                Orbit->SpawnSplineMesh
-                    ( MyCharacter->GetTempSplineMeshColor()
-                    , ESplineMeshParentSelector::Temporary
-                    , InstanceUI
-                    );
-                Orbit->bIsVisibleAccelerating = true;
-                Orbit->UpdateVisibility(InstanceUI);
-            }
+            Orbit->bIsVisibleAccelerating = false;
+            Orbit->DestroyTempSplineMeshes();
+            Orbit->UpdateVisibility(GI->InstanceUI);
+        }
+        else
+        {
+            Orbit->SpawnSplineMesh
+                ( MyCharacter->GetTempSplineMeshColor()
+                , ESplineMeshParentSelector::Temporary
+                , GI->InstanceUI
+                );
+            Orbit->bIsVisibleAccelerating = true;
+            Orbit->UpdateVisibility(GI->InstanceUI);
+        }
+        break;
+    case EInputAction::IngameMenuToggle:
+        switch(LocalPlayer->InGame)
+        {
+        case EInGame::IngameMenu:   
+            GetHUD<AMyHUD>()->InGameMenuHide();
+            CurrentMouseCursor = EMouseCursor::Crosshairs;
+            LocalPlayer->InGame = EInGame::IngamePlaying;
             break;
-        case EInputAction::IngameMenuToggle:
-            if(LocalPlayer->ShowInGameMenu)
-            {
-                GetHUD<AMyHUD>()->InGameMenuHide();
-                CurrentMouseCursor = EMouseCursor::Crosshairs;
-                LocalPlayer->ShowInGameMenu = false;
-            }
-            else
-            {
-                GetHUD<AMyHUD>()->InGameMenuShow();
-                CurrentMouseCursor = EMouseCursor::Default;
-                LocalPlayer->ShowInGameMenu = true;
-            }
-            break;
-            
-        case EInputAction::MyTrajectoryShowHide:
-            Orbit->bIsVisibleShowMyTrajectory = !Orbit->bIsVisibleShowMyTrajectory;
-            Orbit->UpdateVisibility(InstanceUI);
-            break;
-            
-        case EInputAction::AllTrajectoriesShowHide:
-            // TODO: set InstanceUI in GameInstance
-            InstanceUI.bShowAllTrajectories = !InstanceUI.bShowAllTrajectories;
-            for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
-            {
-                (*IOrbit)->UpdateVisibility(InstanceUI);
-            }
-            break;
-            
-        case EInputAction::MyTrajectoryToggle:
-            Orbit->bIsVisibleToggleMyTrajectory = !Orbit->bIsVisibleToggleMyTrajectory;
-            Orbit->UpdateVisibility(InstanceUI);
+        case EInGame::IngamePlaying:
+            GetHUD<AMyHUD>()->InGameMenuShow();
+            CurrentMouseCursor = EMouseCursor::Default;
+            LocalPlayer->InGame = EInGame::IngameMenu;
+        case EInGame::IngameJoining:
+        case EInGame::IngameUndefined:
             break;
         }
-    // });
+        break;
+        
+    case EInputAction::MyTrajectoryShowHide:
+        Orbit->bIsVisibleShowMyTrajectory = !Orbit->bIsVisibleShowMyTrajectory;
+        Orbit->UpdateVisibility(GI->InstanceUI);
+        break;
+        
+    case EInputAction::AllTrajectoriesShowHide:
+        // TODO: set InstanceUI in GameInstance
+        GI->InstanceUI.bShowAllTrajectories = !GI->InstanceUI.bShowAllTrajectories;
+        for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
+        {
+            (*IOrbit)->UpdateVisibility(GI->InstanceUI);
+        }
+        break;
+        
+    case EInputAction::MyTrajectoryToggle:
+        Orbit->bIsVisibleToggleMyTrajectory = !Orbit->bIsVisibleToggleMyTrajectory;
+        Orbit->UpdateVisibility(GI->InstanceUI);
+        break;
+    }
 }
 
 void AMyPlayerController::Tick(float DeltaSeconds)
@@ -278,7 +276,9 @@ void AMyPlayerController::AcknowledgePossession(APawn* P)
         UE_LOG(LogNet, Error, TEXT("%s: Couldn't determine current level: %s"), *GetFullName(), *LevelName)
         CurrentLevel = ECurrentLevel::MainMenu;
     }
-    Cast<UMyLocalPlayer>(GetLocalPlayer())->CurrentLevel = CurrentLevel;
+    auto* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
+    LocalPlayer->CurrentLevel = CurrentLevel;
+    LocalPlayer->InGame = EInGame::IngamePlaying;
 }
 
 void AMyPlayerController::BeginPlay()

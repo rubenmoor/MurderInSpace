@@ -1,26 +1,26 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Actors/MyPlayerStart.h"
 
+#include "Components/CapsuleComponent.h"
 #include "Orbit/Orbit.h"
-#include "Net/UnrealNetwork.h"
 
 AMyPlayerStart::AMyPlayerStart()
 {
 	bNetLoadOnClient = false;
-	bReplicates = true;
-	// TODO: not sure if necessary, but not harmful either
-    bAlwaysRelevant = true;
+	bReplicates = false;
 	AActor::SetReplicateMovement(false);
+
+	CollisionCapsule = CreateDefaultSubobject<UCapsuleComponent>("CollisionCapsule");
+	SetRootComponent(CollisionCapsule);
+	CollisionCapsule->SetCapsuleRadius(100.);
+	CollisionCapsule->SetCapsuleHalfHeight(100.);
 }
 
 void AMyPlayerStart::Destroyed()
 {
 	Super::Destroyed();
-	if(IsValid(RP_Orbit))
+	if(IsValid(Orbit))
 	{
-		RP_Orbit->Destroy();
+		Orbit->Destroy();
 	}
 }
 
@@ -40,10 +40,4 @@ void AMyPlayerStart::OnConstruction(const FTransform& Transform)
     {
 		OrbitSetup(this);
     }
-}
-
-void AMyPlayerStart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    DOREPLIFETIME_CONDITION(AMyPlayerStart, RP_Orbit      , COND_InitialOnly)
 }

@@ -59,10 +59,11 @@ public:
         , AAsteroidBelt* InAsteroidBelt
         )
     {
-        SizeParam = InSizeParam;
-        MeshResolution = InMeshResolution;
-        bRecomputeNormals = InBRecomputeNormals;
-        RandomStream.Initialize(InSeed);
+        RP_SizeParam = InSizeParam;
+        RP_MeshResolution = InMeshResolution;
+        RP_bRecomputeNormals = InBRecomputeNormals;
+        RP_Seed = InSeed;
+        RandomStream.Initialize(RP_Seed);
         AsteroidBelt = InAsteroidBelt;
     }
 
@@ -127,22 +128,24 @@ protected:
     int Octaves = 4;
 
     // mesh generation
+    UPROPERTY(EditAnywhere, Replicated, Category="Generation")
+    int32 RP_Seed = 0;
     
-    UPROPERTY(EditAnywhere, Category="Generation")
-    float MeshResolution = 1.;
+    UPROPERTY(EditAnywhere, Replicated, Category="Generation")
+    float RP_MeshResolution = 1.;
 
-    UPROPERTY(EditAnywhere, Category="Generation")
-    bool bRecomputeNormals = false;
+    UPROPERTY(EditAnywhere, Replicated, Category="Generation")
+    bool RP_bRecomputeNormals = false;
 
-    UPROPERTY(EditAnywhere, Category="Generation")
-    float SizeParam = 500;
+    UPROPERTY(EditAnywhere, Replicated, Category="Generation")
+    float RP_SizeParam = 500;
 
     UPROPERTY(EditDefaultsOnly, Category="Generation")
     TObjectPtr<UCurveFloat> CurveOmegaDistribution;
 
     // angular velocity maximum, used with `CurveOmegaDistribution` in `GetInitialOmega` to initialize gyration
     UPROPERTY(EditDefaultsOnly, Category="Generation")
-    double OmegaMax = 10.;
+    double OmegaMax = 0.1;
 
     FRealtimeMeshSimpleMeshData MeshData;
 

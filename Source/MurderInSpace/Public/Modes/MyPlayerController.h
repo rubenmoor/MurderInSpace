@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -112,5 +111,5 @@ private:
 	TSoftObjectPtr<UInputMappingContext> IMC_InGame;
 
 	UPROPERTY(EditDefaultsOnly)
-	class UMyInputActionsData* MyInputActionsData;
+	UMyInputActionsData* MyInputActionsData;
 };

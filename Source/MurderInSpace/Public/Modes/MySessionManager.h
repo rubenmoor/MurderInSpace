@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -31,6 +29,8 @@ public:
 	void ShowLoginScreen(const FLocalPlayerContext& LPC);
 
 	TArray<FOnlineSessionSearchResult> GetSearchResult() const { return LastSessionSearch->SearchResults; }
+
+	static UMySessionManager* Get(UGameInstance* GI) { return GI->GetSubsystem<UMySessionManager>(); }
 
 protected:
 	// event handlers

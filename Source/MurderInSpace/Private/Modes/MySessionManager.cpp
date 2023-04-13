@@ -186,7 +186,7 @@ bool UMySessionManager::JoinSession(const FLocalPlayerContext& LPC, const FOnlin
 		SI->OnJoinSessionCompleteDelegates.Clear();
 	}
 	SI->OnJoinSessionCompleteDelegates.AddLambda(Callback);
-	//return SI->JoinSession(*LPC.GetLocalPlayer()->GetCachedUniqueNetId(), NAME_GameSession, Result);
+	Cast<UMyLocalPlayer>(LPC.GetLocalPlayer())->InGame = EInGame::IngameJoining;
 	return SI->JoinSession(LPC.GetLocalPlayer()->GetIndexInGameInstance(), NAME_GameSession, Result);
 }
 

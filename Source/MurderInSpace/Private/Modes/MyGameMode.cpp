@@ -1,11 +1,22 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Modes/MyGameMode.h"
 
 #include "Actors/MyPlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Modes/MyPlayerController.h"
+#include "Modes/MySessionManager.h"
+
+// void AMyGameMode::PostLogin(APlayerController* NewPlayer)
+// {
+// 	Super::PostLogin(NewPlayer);
+// 	
+// 	// doesn't work
+// 	// at PostLogin there is no pawn yet
+// 	if(!IsValid(NewPlayer->GetPawn()))
+// 	{
+// 		auto* GI = GetGameInstance();
+// 		UMySessionManager::Get(GI)->LeaveSession();
+// 	}
+// }
 
 AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {

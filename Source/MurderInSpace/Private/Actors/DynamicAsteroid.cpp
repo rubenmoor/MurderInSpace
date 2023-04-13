@@ -6,6 +6,7 @@
 #include "RealtimeMeshSimple.h"
 #include "FastNoiseWrapper.h"
 #include "Actors/AsteroidBelt.h"
+#include "Net/UnrealNetwork.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 
 ADynamicAsteroid::ADynamicAsteroid()
@@ -17,22 +18,24 @@ ADynamicAsteroid::ADynamicAsteroid()
 void ADynamicAsteroid::GenerateAsteroid()
 {
     RandomStream.Reset();
+    UE_LOG(LogMyGame, Warning, TEXT("%s: GenerateAsteroid with with current seed %d")
+        , *GetFullName(), RandomStream.GetCurrentSeed())
     MeshData = FRealtimeMeshSimpleMeshData();
     URealtimeMeshBlueprintFunctionLibrary::AppendCapsuleMesh
         ( MeshData
         , FTransform::Identity
-        , SizeParam
-        , SizeParam
-        , std::max(4, static_cast<int32>(MeshResolution * FMathd::Sqrt(SizeParam) * 3.) / 4)
-        , std::max(8, static_cast<int32>(MeshResolution * FMathd::Sqrt(SizeParam) * 3) / 2)
-        , std::max(2, static_cast<int32>(MeshResolution * FMathd::Sqrt(SizeParam) * 3) / 4)
+        , RP_SizeParam
+        , RP_SizeParam
+        , std::max(4, static_cast<int32>(RP_MeshResolution * FMathd::Sqrt(RP_SizeParam) * 3.) / 4)
+        , std::max(8, static_cast<int32>(RP_MeshResolution * FMathd::Sqrt(RP_SizeParam) * 3.) / 2)
+        , std::max(2, static_cast<int32>(RP_MeshResolution * FMathd::Sqrt(RP_SizeParam) * 3.) / 4)
         );
     
     NoiseSeed = RandomStream.GetUnsignedInt();
     FastNoiseWrapper->SetupFastNoise
         ( NoiseType
         , NoiseSeed
-        , FrequencyFactor / SizeParam
+        , FrequencyFactor / RP_SizeParam
         , Interp
         , FractalType
         , Octaves
@@ -47,12 +50,12 @@ void ADynamicAsteroid::GenerateAsteroid()
     {
         const FVector Pos = MeshData.Positions[i];
         const float V = FastNoiseWrapper->GetNoise3D(Pos.X, Pos.Y, Pos.Z);
-        const FVector NewPos = MeshData.Positions[i] + AmplitudeFactor * SizeParam * V * MeshData.Normals[i];
+        const FVector NewPos = MeshData.Positions[i] + AmplitudeFactor * RP_SizeParam * V * MeshData.Normals[i];
         MeshData.Positions[i] = NewPos;
         SpatialDistributionSquared += FVector(pow(NewPos.X, 2), pow(NewPos.Y, 2), pow(NewPos.Z,2));
     }
 
-    if(bRecomputeNormals)
+    if(RP_bRecomputeNormals)
     {
         TArray<FProcMeshTangent> ProcTangents;
         UKismetProceduralMeshLibrary::CalculateTangentsForMesh
@@ -239,8 +242,8 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
             RealtimeMesh->SetCollisionConfig(CollisionConfiguration);
         
             FRealtimeMeshCollisionCapsule CollisionCapsule;
-            CollisionCapsule.Radius = SizeParam;
-            CollisionCapsule.Length = SizeParam;
+            CollisionCapsule.Radius = RP_SizeParam;
+            CollisionCapsule.Length = RP_SizeParam;
             int32 CCIndex;
             auto Geo = RealtimeMesh->GetSimpleGeometry();
             URealtimeMeshSimpleGeometryFunctionLibrary::AddCapsule (Geo , CollisionCapsule , CCIndex);
@@ -306,7 +309,7 @@ UMaterialInstance* ADynamicAsteroid::SelectMaterial()
     TArray<UMaterialInstance*> Materials;
     for(auto [Material, MinSize, MaxSize] : MaterialTypes)
     {
-        if(SizeParam >= MinSize && SizeParam <= MaxSize)
+        if(RP_SizeParam >= MinSize && RP_SizeParam <= MaxSize)
         {
             Materials.Push(Material);
         }
@@ -317,4 +320,14 @@ UMaterialInstance* ADynamicAsteroid::SelectMaterial()
         return nullptr;
     }
     return Materials[RandomStream.RandRange(0, Materials.Num() - 1)];
+}
+
+void ADynamicAsteroid::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME_CONDITION(ADynamicAsteroid, RP_Seed, COND_InitialOnly)
+    DOREPLIFETIME_CONDITION(ADynamicAsteroid, RP_MeshResolution, COND_InitialOnly)
+    DOREPLIFETIME_CONDITION(ADynamicAsteroid, RP_bRecomputeNormals, COND_InitialOnly)
+    DOREPLIFETIME_CONDITION(ADynamicAsteroid, RP_SizeParam, COND_InitialOnly)
 }

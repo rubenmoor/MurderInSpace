@@ -34,6 +34,7 @@ void AAsteroidBelt::Destroyed()
                     , *GetFullName()
                     , *Asteroids[0]->GetName()
                     )
+                Asteroids.RemoveAt(0);
             }
         }
         else
