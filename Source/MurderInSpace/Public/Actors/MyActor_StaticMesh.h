@@ -29,7 +29,7 @@ public:
 
 	virtual TArray<UPrimitiveComponent*> GetMeshComponents() const override { return {StaticMeshComponent}; }
 	virtual FVector              GetInitialOmega() override { return FVector::Zero(); }
-	virtual FBoxSphereBounds     GetBounds() const override { return GetRootComponent()->Bounds; }
+	virtual FBoxSphereBounds     GetBounds() const override { return StaticMeshComponent->Bounds; }
 	virtual double               GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
 	virtual TSubclassOf<AOrbit>  GetOrbitClass()   override { return OrbitClass;   }
 	virtual FLinearColor         GetOrbitColor()   override { return OrbitColor;   }

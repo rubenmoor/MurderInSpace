@@ -240,23 +240,17 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
             FRealtimeMeshCollisionConfiguration CollisionConfiguration;
             CollisionConfiguration.bUseComplexAsSimpleCollision = false;
             RealtimeMesh->SetCollisionConfig(CollisionConfiguration);
-        
+
             FRealtimeMeshCollisionCapsule CollisionCapsule;
             CollisionCapsule.Radius = RP_SizeParam;
             CollisionCapsule.Length = RP_SizeParam;
             int32 CCIndex;
-            auto Geo = RealtimeMesh->GetSimpleGeometry();
+            FRealtimeMeshSimpleGeometry Geo;
             URealtimeMeshSimpleGeometryFunctionLibrary::AddCapsule (Geo , CollisionCapsule , CCIndex);
+            RealtimeMesh->SetSimpleGeometry(Geo);
             RealtimeMesh->UpdateCollision();
             auto* BodySetup = RealtimeMesh->GetBodySetup();
-            if(IsValid(BodySetup))
-            {
-                Geo.CopyToBodySetup(BodySetup);
-            }
-            else
-            {
-                UE_LOG(LogMyGame, Warning, TEXT("%s: OnGenerateMesh: BodySetup invalid"), *GetFullName())
-            }
+            Geo.CopyToBodySetup(BodySetup);
 
             // auto& BodyCapsule = GetRealtimeMeshComponent()->GetBodySetup()->AggGeom.SphylElems.AddDefaulted_GetRef();
             // BodyCapsule.Radius = SizeParam;
@@ -293,7 +287,7 @@ void ADynamicAsteroid::Destroyed()
 void ADynamicAsteroid::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
-
+    
 #if WITH_EDITOR
     if(IsValid(AsteroidBelt))
     {
@@ -302,6 +296,22 @@ void ADynamicAsteroid::OnConstruction(const FTransform& Transform)
         RP_Orbit->SetFolderPath(*AsteroidBelt->GetName());
     }
 #endif
+}
+
+void ADynamicAsteroid::BeginPlay()
+{
+    Super::BeginPlay();
+    RealtimeMeshComponent->GetRealtimeMesh()->OnCollisionBodyUpdated().AddLambda([this] (URealtimeMesh*, UBodySetup*)
+    {
+       UE_LOG(LogMyGame, Warning, TEXT("%s: OnCollisionDataUpdated"), *GetFullName()) 
+    });
+    
+    // RealtimeMesh->UpdateCollision(true);
+    // auto* BodySetup = RealtimeMesh->GetBodySetup();
+    // Geo.CopyToBodySetup(BodySetup);
+        
+    // check(IsValid(RealtimeMeshComponent->GetBodySetup()))
+    // check(RealtimeMeshComponent->GetBodySetup()->AggGeom.SphylElems.Num() == 1);
 }
 
 UMaterialInstance* ADynamicAsteroid::SelectMaterial()

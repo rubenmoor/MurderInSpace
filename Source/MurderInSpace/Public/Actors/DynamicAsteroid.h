@@ -95,6 +95,7 @@ protected:
     virtual void OnGenerateMesh_Implementation() override;
     virtual void Destroyed() override;
     virtual void OnConstruction(const FTransform& Transform) override;
+    virtual void BeginPlay() override;
 
     // fast noise, noise parameters
 
