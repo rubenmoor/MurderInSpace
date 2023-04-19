@@ -7,6 +7,7 @@
 
 #include "EnhancedInputSubsystems.h"
 #include "Actors/MyCharacter.h"
+#include "Actors/MyPlayerStart.h"
 #include "MyComponents/GyrationComponent.h"
 #include "HUD/MyHUD.h"
 #include "Kismet/GameplayStatics.h"
@@ -14,6 +15,7 @@
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyLocalPlayer.h"
 #include "Modes/MySessionManager.h"
+#include "Modes/MyGameState.h"
 
 AMyPlayerController::AMyPlayerController()
 {
@@ -226,6 +228,14 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 
     auto* PawnWithOrbit = Cast<IHasOrbit>(InPawn);
     AOrbit* Orbit = PawnWithOrbit->GetOrbit();
+
+    auto* MyState = UMyState::Get();
+    auto* GI = GetGameInstance<UMyGameInstance>();
+    auto* GS = GetWorld()->GetGameState<AMyGameState>();
+    const FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
+    const FPhysics Physics = MyState->GetPhysics(GS);
+    PawnWithOrbit->SetInitialOrbitParams(MyPlayerStart->GetInitialOrbitParams());
+    Orbit->UpdateByInitialParams(Physics, InstanceUI);
 
     Orbit->SetEnableVisibility(true);
     //PawnWithOrbit->SetInitialOrbitParams({FVector::Zero(), FVector(0., 0., 1.)});

@@ -24,6 +24,9 @@ class MURDERINSPACE_API AMyPlayerController : public APlayerController
 public:
 	UFUNCTION(Client, Reliable)
 	void ClientRPC_LeaveSession();
+
+    UPROPERTY(VisibleAnywhere)
+    TObjectPtr<class AMyPlayerStart> MyPlayerStart;
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

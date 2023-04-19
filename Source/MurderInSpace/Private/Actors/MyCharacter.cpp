@@ -4,14 +4,20 @@
 #include "Actors/MyCharacter.h"
 
 #include "NiagaraComponent.h"
+#include "Actors/MyPlayerStart.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Lib/FunctionLib.h"
+#include "Modes/MyPlayerController.h"
 
 AMyCharacter::AMyCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	Dust = CreateDefaultSubobject<UNiagaraComponent>("Dust");
+	Dust->SetupAttachment(Root);
+	Dust->SetVisibility(false);
+	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>("SpringArm");
 	SpringArm->SetupAttachment(Root);
 	SpringArm->TargetArmLength = 1000;
@@ -77,6 +83,7 @@ void AMyCharacter::ShowEffects()
 	VisorFrame->SetVisibility(true);
 	StarsClose->SetVisibility(true);
 	StarsDistant->SetVisibility(true);
+	Dust->SetVisibility(true);
 }
 
 void AMyCharacter::SetVisibility(bool bVisibility)

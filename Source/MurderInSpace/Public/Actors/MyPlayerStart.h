@@ -23,6 +23,14 @@ public:
 	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
 	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
 	
+	// a disabled starting position is used only when there's no enabled starting position left
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsEnabled = true;
+
+	// a spawn point can only be used once
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bIsOccupied = false;
+	
 protected:
 	// event handlers
 	virtual void Destroyed() override;

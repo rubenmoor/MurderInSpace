@@ -3,7 +3,6 @@
 #include "Actors/MyPlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Modes/MyPlayerController.h"
-#include "Modes/MySessionManager.h"
 
 // void AMyGameMode::PostLogin(APlayerController* NewPlayer)
 // {
@@ -22,7 +21,19 @@ AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
 	TArray<AActor*> Starts;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMyPlayerStart::StaticClass(), Starts);
-	if(NumPlayers >= Starts.Num())
+	// TODO UKismetArrayLibrary::Array_Shuffle()
+	const auto Unoccupied = Starts.FilterByPredicate([] (AActor* Start) {
+		return !Cast<AMyPlayerStart>(Start)->bIsOccupied;
+	});
+	const auto Enabled = Unoccupied.FilterByPredicate([] (AActor* Start)
+	{
+		return Cast<AMyPlayerStart>(Start)->bIsEnabled;
+	});
+	const auto Disabled = Unoccupied.FilterByPredicate([] (AActor* Start)
+	{
+		return !Cast<AMyPlayerStart>(Start)->bIsEnabled;
+	});
+	if(Unoccupied.IsEmpty())
 	{
 		UE_LOG
 			( LogNet
@@ -31,10 +42,22 @@ AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 			, *GetFullName()
 			)
 		Cast<AMyPlayerController>(Player)->ClientRPC_LeaveSession();
-		// TODO
-		return nullptr;
+		return Starts.IsEmpty() ? nullptr : Starts[0];
 	}
-	const FVector Loc = Starts[NumPlayers]->GetActorLocation();
+
+	AActor* StartActor;
+	if(!Enabled.IsEmpty())
+	{
+		StartActor = Enabled[0];
+	}
+	else
+	{
+		StartActor = Disabled[0];
+	}
+	auto PlayerStart = Cast<AMyPlayerStart>(StartActor);
+	PlayerStart->bIsOccupied = true;
+	
+	const FVector Loc = StartActor->GetActorLocation();
 	UE_LOG
 		( LogNet
 		, Display
@@ -46,5 +69,6 @@ AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 		, Loc.Y
 		, Loc.Z
 		)
-	return Starts[NumPlayers];
+	Cast<AMyPlayerController>(Player)->MyPlayerStart = PlayerStart;
+	return StartActor;
 }

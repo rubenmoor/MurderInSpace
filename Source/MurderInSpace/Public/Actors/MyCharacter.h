@@ -28,6 +28,7 @@ class MURDERINSPACE_API AMyCharacter final : public AMyPawn_SkeletalMesh
     AMyCharacter();
 
 public:
+
     UFUNCTION(BlueprintCallable)
     void UpdateSpringArm(uint8 CameraPosition);
 
@@ -57,6 +58,9 @@ protected:
     FLinearColor TempSplineMeshColor;
     
     // components
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    TObjectPtr<UNiagaraComponent> Dust;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<USpringArmComponent> SpringArm;

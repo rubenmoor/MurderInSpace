@@ -248,7 +248,7 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
             FRealtimeMeshSimpleGeometry Geo;
             URealtimeMeshSimpleGeometryFunctionLibrary::AddCapsule (Geo , CollisionCapsule , CCIndex);
             RealtimeMesh->SetSimpleGeometry(Geo);
-            RealtimeMesh->UpdateCollision();
+            RealtimeMesh->UpdateCollision(true);
             auto* BodySetup = RealtimeMesh->GetBodySetup();
             Geo.CopyToBodySetup(BodySetup);
 
@@ -301,17 +301,7 @@ void ADynamicAsteroid::OnConstruction(const FTransform& Transform)
 void ADynamicAsteroid::BeginPlay()
 {
     Super::BeginPlay();
-    RealtimeMeshComponent->GetRealtimeMesh()->OnCollisionBodyUpdated().AddLambda([this] (URealtimeMesh*, UBodySetup*)
-    {
-       UE_LOG(LogMyGame, Warning, TEXT("%s: OnCollisionDataUpdated"), *GetFullName()) 
-    });
-    
-    // RealtimeMesh->UpdateCollision(true);
-    // auto* BodySetup = RealtimeMesh->GetBodySetup();
-    // Geo.CopyToBodySetup(BodySetup);
-        
-    // check(IsValid(RealtimeMeshComponent->GetBodySetup()))
-    // check(RealtimeMeshComponent->GetBodySetup()->AggGeom.SphylElems.Num() == 1);
+    OnGenerateMesh();
 }
 
 UMaterialInstance* ADynamicAsteroid::SelectMaterial()

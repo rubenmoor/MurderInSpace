@@ -254,7 +254,8 @@ void AOrbit::Tick(float DeltaTime)
     FVector NewVecR = NewVecRKepler + Physics.VecF1;
 
     const FVector OldVecR = RP_Body->GetActorLocation();
-    if(RP_Body->Implements<UHasMesh>() && RP_Body->Implements<UHasCollision>())
+    // TODO design decision: where are collisions calculated?
+    if(GetLocalRole() == ROLE_Authority && RP_Body->Implements<UHasMesh>() && RP_Body->Implements<UHasCollision>())
     {
         FHitResult HitResult;
         auto PrimitiveComponents = Cast<IHasMesh>(RP_Body)->GetMeshComponents();
