@@ -82,7 +82,6 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
         }
     }
 
-    /* TODO:
     if(
             Name == FNameAlbedo
          || Name == FNameExtinction
@@ -90,13 +89,11 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
          || Name == FNameWidth
          )
     {
-            MaterialInstance->SetScalarParameterValue("Albedo", Albedo);
-            MaterialInstance->SetScalarParameterValue("Extinction", Extinction);
-            MaterialInstance->SetVectorParameterValue("Color", Color);
-            MaterialInstance->SetScalarParameterValue("Width", Width);
-            MaterialInstance->SetScalarParameterValue("Distance", Sphere->GetUnscaledSphereRadius());
+        NS_Fog->SetFloatParameter("Albedo", Albedo);
+        NS_Fog->SetFloatParameter("Extinction", Extinction);
+        NS_Fog->SetColorParameter("Color", Color);
+        NS_Fog->SetFloatParameter("HandleRadius", Width);
     }
-    */
 }
 
 void AAsteroidBelt::OnConstruction(const FTransform& Transform)
@@ -110,14 +107,12 @@ void AAsteroidBelt::OnConstruction(const FTransform& Transform)
     Sphere->SetSphereRadius((VecR - Physics.VecF1).Length());
 
     NS_Fog->SetWorldLocation(FVector::Zero());
-    /*
-            auto* MaterialInstance = FogMesh->CreateDynamicMaterialInstance(0, FogMaterial);
-            MaterialInstance->SetScalarParameterValue("Albedo", Albedo);
-            MaterialInstance->SetScalarParameterValue("Extinction", Extinction);
-            MaterialInstance->SetVectorParameterValue("Color", Color);
-            MaterialInstance->SetScalarParameterValue("Width", Width);
-            MaterialInstance->SetScalarParameterValue("Distance", Sphere->GetUnscaledSphereRadius());
-    */
+    
+    NS_Fog->SetFloatParameter("Albedo", Albedo);
+    NS_Fog->SetFloatParameter("Extinction", Extinction);
+    NS_Fog->SetColorParameter("Color", Color);
+    NS_Fog->SetFloatParameter("HandleRadius", Width);
+    NS_Fog->SetFloatParameter("LargeRadius", Sphere->GetUnscaledSphereRadius());
 }
 #endif
 
