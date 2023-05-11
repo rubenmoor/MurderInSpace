@@ -265,11 +265,6 @@ public:
     UFUNCTION(BlueprintCallable)
     void DestroyTempSplineMeshes();
 
-    /**
-     * @brief constant factor to construct tangents for spline points
-     */
-    static constexpr double SplineToCircle = 1.6568542494923806; // 4. * (sqrt(2) - 1.);
-    
 protected:
 
 #if WITH_EDITOR

@@ -16,6 +16,8 @@ public class MurderInSpace : ModuleRules
 			, "Engine"
 			, "FastNoiseGenerator"
 			, "FastNoise"
+			, "GeometryScriptingCore"
+			, "GeometryFramework"
 			, "InputCore"
 			, "LoadingScreen"
 			, "Niagara"
@@ -35,7 +37,11 @@ public class MurderInSpace : ModuleRules
 			, "Slate"
 			, "SlateCore"
 			});
-		
+
+		if (Target.bBuildEditor)
+		{
+			PublicDependencyModuleNames.Add("UnrealEd");
+		}
 		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
 	}
 }

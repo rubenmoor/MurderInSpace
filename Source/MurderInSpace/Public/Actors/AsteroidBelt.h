@@ -7,6 +7,8 @@
 
 #include "AsteroidBelt.generated.h"
 
+class UNiagaraComponent;
+
 USTRUCT(BlueprintType)
 struct FAsteroidType
 {
@@ -64,6 +66,19 @@ protected:
 
     UPROPERTY(VisibleAnywhere)
     TObjectPtr<USceneComponent> Root;
+
+    // fog
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Fog")
+    TObjectPtr<UNiagaraComponent> NS_Fog;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Fog")
+    float Albedo = 0.02;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Fog")
+    float Extinction = 0.05;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Fog")
+    FLinearColor Color;
     
     // create boundaries that correspond the extend of the asteroid belt
 	UPROPERTY(VisibleAnywhere)

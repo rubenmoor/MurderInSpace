@@ -4,6 +4,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "Modes/MyPlayerController.h"
 
+#if WITH_EDITOR
+#include "Editor.h"
+#endif
+
 // void AMyGameMode::PostLogin(APlayerController* NewPlayer)
 // {
 // 	Super::PostLogin(NewPlayer);
@@ -19,6 +23,13 @@
 
 AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
+#if WITH_EDITOR
+	if(GEditor->IsSimulateInEditorInProgress())
+	{
+		return nullptr;
+	}
+#endif
+	
 	TArray<AActor*> Starts;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMyPlayerStart::StaticClass(), Starts);
 	// TODO UKismetArrayLibrary::Array_Shuffle()

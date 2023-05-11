@@ -1,7 +1,9 @@
 ﻿#include "Actors/AsteroidBelt.h"
 
+#include "NiagaraComponent.h"
 #include "Actors/DynamicAsteroid.h"
 #include "Components/SphereComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Modes/MyGameInstance.h"
 
 AAsteroidBelt::AAsteroidBelt()
@@ -16,10 +18,13 @@ AAsteroidBelt::AAsteroidBelt()
     Root = CreateDefaultSubobject<USceneComponent>("Root");
     Root->SetMobility(EComponentMobility::Static);
 	SetRootComponent(Root);
-    
+
     Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
     Sphere->SetupAttachment(Root);
     Sphere->SetMobility(EComponentMobility::Static);
+
+    NS_Fog = CreateDefaultSubobject<UNiagaraComponent>("NS_Fog");
+    NS_Fog->SetupAttachment(Root);
     
     RandomStream.Initialize(GetFName());
 }
@@ -61,6 +66,10 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
     static const FName FNameNumAsteroids          = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, NumAsteroids         );
     static const FName FNameWidth                 = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, Width                );
 
+    static const FName FNameAlbedo                = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, Albedo               );
+    static const FName FNameExtinction            = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, Extinction           );
+    static const FName FNameColor                 = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, Color                );
+
     if(     Name == FNameCurveAsteroidSize
          || Name == FNameCurveAsteroidDistance
          || Name == FNameNumAsteroids
@@ -72,16 +81,43 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
             BuildAsteroids();
         }
     }
+
+    /* TODO:
+    if(
+            Name == FNameAlbedo
+         || Name == FNameExtinction
+         || Name == FNameColor
+         || Name == FNameWidth
+         )
+    {
+            MaterialInstance->SetScalarParameterValue("Albedo", Albedo);
+            MaterialInstance->SetScalarParameterValue("Extinction", Extinction);
+            MaterialInstance->SetVectorParameterValue("Color", Color);
+            MaterialInstance->SetScalarParameterValue("Width", Width);
+            MaterialInstance->SetScalarParameterValue("Distance", Sphere->GetUnscaledSphereRadius());
+    }
+    */
 }
 
 void AAsteroidBelt::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
     auto* MyState = UMyState::Get();
-    auto Physics = MyState->GetPhysicsAny(this);
-
+    const auto Physics = MyState->GetPhysicsAny(this);
+    
+    const FVector VecR = Transform.GetLocation();
     Sphere->SetWorldLocation(FVector::Zero());
-    Sphere->SetSphereRadius((Transform.GetLocation() - Physics.VecF1).Length());
+    Sphere->SetSphereRadius((VecR - Physics.VecF1).Length());
+
+    NS_Fog->SetWorldLocation(FVector::Zero());
+    /*
+            auto* MaterialInstance = FogMesh->CreateDynamicMaterialInstance(0, FogMaterial);
+            MaterialInstance->SetScalarParameterValue("Albedo", Albedo);
+            MaterialInstance->SetScalarParameterValue("Extinction", Extinction);
+            MaterialInstance->SetVectorParameterValue("Color", Color);
+            MaterialInstance->SetScalarParameterValue("Width", Width);
+            MaterialInstance->SetScalarParameterValue("Distance", Sphere->GetUnscaledSphereRadius());
+    */
 }
 #endif
 

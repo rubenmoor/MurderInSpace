@@ -1,11 +1,13 @@
 #include "Orbit/Orbit.h"
 
 #include <numeric>
+
 #include "Actors/MyCharacter.h"
 #include "Components/SplineMeshComponent.h"
 #include "HUD/MyHUD.h"
 #include "Lib/FunctionLib.h"
 #include "Logging/LogMacros.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Modes/MyPlayerController.h"
 #include "Modes/MyGameState.h"
 #include "Modes/MyGameInstance.h"
@@ -404,8 +406,8 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
     else if(VecENorm.IsZero())
     {
         const FVector VecP2 = VecHNorm.Cross(VecRKepler);
-        const FVector VecT1 = VecHNorm.Cross(VecRKepler) * SplineToCircle;
-        const FVector VecT4 = VecRKepler * SplineToCircle;
+        const FVector VecT1 = VecHNorm.Cross(VecRKepler) * UMyState::SplineToCircle;
+        const FVector VecT4 = VecRKepler * UMyState::SplineToCircle;
         
         SplinePoints =
             { FSplinePoint(0,  VecR,  VecT1,  VecT1)

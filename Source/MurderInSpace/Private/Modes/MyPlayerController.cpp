@@ -31,6 +31,7 @@ void AMyPlayerController::SetupInputComponent()
         UE_LOG(LogMyGame, Error, TEXT("MyInputActionsData: invalid. Need to set in Blueprint defaults"))
         return;
     }
+
     UEnhancedInputLocalPlayerSubsystem* Input =
         GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
     

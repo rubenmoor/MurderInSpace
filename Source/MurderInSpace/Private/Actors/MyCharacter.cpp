@@ -8,7 +8,6 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Lib/FunctionLib.h"
-#include "Modes/MyPlayerController.h"
 
 AMyCharacter::AMyCharacter()
 {

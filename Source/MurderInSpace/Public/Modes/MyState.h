@@ -2,11 +2,13 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include <random>
 
+#include "CoreMinimal.h"
 #include "Input/MyInputTags.h"
 #include "Subsystems/EngineSubsystem.h"
+#include "Engine/LocalPlayer.h"
+
 #include "MyState.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, All, All);
@@ -174,6 +176,11 @@ public:
 
 	TArray<FGameplayTag> GetInputTags() const { return InputTags; }
 
+    /**
+     * @brief constant factor to construct tangents for spline points
+     */
+    static constexpr double SplineToCircle = 1.6568542494923806; // 4. * (sqrt(2) - 1.);
+    
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 

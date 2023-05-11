@@ -4,6 +4,7 @@
 #include "HUD/UW_HUD.h"
 
 #include "Orbit/Orbit.h"
+#include "Modes/MyState.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 
 void UUW_HUD::SetF1Marker(FVector2D InCoords)
@@ -95,7 +96,7 @@ void UUW_HUD::MakeCircle
     , const FLinearColor& Tint
     )
 {
-    constexpr double C = AOrbit::SplineToCircle;
+    constexpr double C = UMyState::SplineToCircle;
     const FVector2D P1 = Center + FVector2D(-Radius, 0);
     const FVector2D T1 = FVector2D(0, -Radius) * C;
     const FVector2D P2 = Center + FVector2D(0, -Radius);
@@ -114,7 +115,7 @@ void UUW_HUD::MakeCircle
 void UUW_HUD::MakeCircularFrame(FSlateWindowElementList& ElementList, uint32 LayerId, const FPaintGeometry& PG,
     const FVector2D& Center, double Radius, double AngularWidth, float Thickness, ESlateDrawEffect DrawEffect, const FLinearColor& Tint)
 {
-    constexpr double C = AOrbit::SplineToCircle;
+    constexpr double C = UMyState::SplineToCircle;
     for(double Alpha = 45; Alpha < 360; Alpha += 90)
     {
         const double AlphaStart = Alpha - AngularWidth / 2.;

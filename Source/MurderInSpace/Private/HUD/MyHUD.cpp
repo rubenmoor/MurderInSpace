@@ -14,6 +14,10 @@
 #include "HUD/UW_MenuInGame.h"
 #include "Modes/MyPlayerController.h"
 
+#if WITH_EDITOR
+#include "Editor.h"
+#endif
+
 void AMyHUD::InGameMenuShow()
 {
 	HideViewportParentWidgets();
@@ -57,6 +61,13 @@ void AMyHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
+#if WITH_EDITOR
+	if(GEditor->IsSimulateInEditorInProgress())
+	{
+		return;
+	}
+#endif
+	
 	bool bHasProblems = false;
 	
 	const AMyPlayerController* PC = Cast<AMyPlayerController>(GetOwningPlayerController());
