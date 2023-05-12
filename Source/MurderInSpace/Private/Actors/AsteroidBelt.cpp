@@ -65,10 +65,10 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
     static const FName FNameCurveAsteroidDistance = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, CurveAsteroidDistance);
     static const FName FNameNumAsteroids          = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, NumAsteroids         );
     static const FName FNameWidth                 = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, Width                );
-
-    static const FName FNameAlbedo                = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, Albedo               );
-    static const FName FNameExtinction            = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, Extinction           );
-    static const FName FNameColor                 = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, Color                );
+    
+    static const FName FNameFogDensity            = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, FogDensity           );
+    static const FName FNameParticleSizeMax       = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, ParticleSizeMax      );
+    static const FName FNameParticleSizeMin       = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, ParticleSizeMin      );
 
     if(     Name == FNameCurveAsteroidSize
          || Name == FNameCurveAsteroidDistance
@@ -83,16 +83,18 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
     }
 
     if(
-            Name == FNameAlbedo
-         || Name == FNameExtinction
-         || Name == FNameColor
+            Name == FNameFogDensity
+         || Name == FNameParticleSizeMax
+         || Name == FNameParticleSizeMin
          || Name == FNameWidth
          )
     {
-        NS_Fog->SetFloatParameter("Albedo", Albedo);
-        NS_Fog->SetFloatParameter("Extinction", Extinction);
-        NS_Fog->SetColorParameter("Color", Color);
-        NS_Fog->SetFloatParameter("HandleRadius", Width);
+        const double Radius = Sphere->GetUnscaledSphereRadius();
+        
+        NS_Fog->SetFloatParameter("ParticleSizeMax", ParticleSizeMax);
+        NS_Fog->SetFloatParameter("ParticleSizeMin", ParticleSizeMin);
+        NS_Fog->SetFloatParameter("HandleRadius", Width - ParticleSizeMax);
+        NS_Fog->SetIntParameter("SpawnCount", 2 * UE_PI * Radius * FogDensity);
     }
 }
 
@@ -108,11 +110,12 @@ void AAsteroidBelt::OnConstruction(const FTransform& Transform)
 
     NS_Fog->SetWorldLocation(FVector::Zero());
     
-    NS_Fog->SetFloatParameter("Albedo", Albedo);
-    NS_Fog->SetFloatParameter("Extinction", Extinction);
-    NS_Fog->SetColorParameter("Color", Color);
-    NS_Fog->SetFloatParameter("HandleRadius", Width);
-    NS_Fog->SetFloatParameter("LargeRadius", Sphere->GetUnscaledSphereRadius());
+    NS_Fog->SetFloatParameter("ParticleSizeMax", ParticleSizeMax);
+    NS_Fog->SetFloatParameter("HandleRadius", std::max(0., Width - ParticleSizeMax));
+
+    const double Radius = Sphere->GetUnscaledSphereRadius();
+    NS_Fog->SetFloatParameter("LargeRadius", Radius);
+    NS_Fog->SetIntParameter("SpawnCount", 2 * UE_PI * Radius * FogDensity);
 }
 #endif
 

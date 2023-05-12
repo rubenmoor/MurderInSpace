@@ -72,13 +72,13 @@ protected:
     TObjectPtr<UNiagaraComponent> NS_Fog;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Fog")
-    float Albedo = 0.02;
+    float ParticleSizeMax = 1000.;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Fog")
-    float Extinction = 0.05;
-
+    float ParticleSizeMin = 200.;
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Fog")
-    FLinearColor Color;
+    double FogDensity = 0.01;
     
     // create boundaries that correspond the extend of the asteroid belt
 	UPROPERTY(VisibleAnywhere)
