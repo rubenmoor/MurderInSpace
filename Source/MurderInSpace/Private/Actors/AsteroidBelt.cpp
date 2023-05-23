@@ -93,7 +93,7 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
         
         NS_Fog->SetFloatParameter("ParticleSizeMax", ParticleSizeMax);
         NS_Fog->SetFloatParameter("ParticleSizeMin", ParticleSizeMin);
-        NS_Fog->SetFloatParameter("HandleRadius", Width - ParticleSizeMax);
+        NS_Fog->SetFloatParameter("HandleRadius", std::max(0., 0.25 * Width - ParticleSizeMax));
         NS_Fog->SetIntParameter("SpawnCount", 2 * UE_PI * Radius * FogDensity);
     }
 }
@@ -111,7 +111,8 @@ void AAsteroidBelt::OnConstruction(const FTransform& Transform)
     NS_Fog->SetWorldLocation(FVector::Zero());
     
     NS_Fog->SetFloatParameter("ParticleSizeMax", ParticleSizeMax);
-    NS_Fog->SetFloatParameter("HandleRadius", std::max(0., Width - ParticleSizeMax));
+    NS_Fog->SetFloatParameter("ParticleSizeMin", ParticleSizeMin);
+    NS_Fog->SetFloatParameter("HandleRadius", std::max(0., 0.25 * Width - ParticleSizeMax));
 
     const double Radius = Sphere->GetUnscaledSphereRadius();
     NS_Fog->SetFloatParameter("LargeRadius", Radius);

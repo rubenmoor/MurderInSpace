@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "Blackhole.generated.h"
 
+class UNiagaraComponent;
+
 UCLASS()
 class MURDERINSPACE_API ABlackhole : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ABlackhole();
 
 protected:
@@ -23,4 +24,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Required")
 	TObjectPtr<UStaticMeshComponent> GravitationalLens;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Required")
+	TObjectPtr<UNiagaraComponent> NS_Vortex;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Required")
+	TObjectPtr<UStaticMeshComponent> InnerDisc;
 };
