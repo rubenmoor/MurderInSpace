@@ -16,6 +16,12 @@ AMyCharacter::AMyCharacter()
 	Dust = CreateDefaultSubobject<UNiagaraComponent>("Dust");
 	Dust->SetupAttachment(Root);
 	Dust->SetVisibility(false);
+	Dust->SetColorParameter("Color", FLinearColor(FVector4d(1., 1., 1., .5)));
+	Dust->SetFloatParameter("SizeMax", 10.);
+	Dust->SetFloatParameter("SizeMin", 5.);
+	Dust->SetFloatParameter("SpawnCylinderRadius", 2000.);
+	Dust->SetFloatParameter("SpawnProbability", .1);
+	Dust->SetFloatParameter("SpawnRate", 20.);
 	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>("SpringArm");
 	SpringArm->SetupAttachment(Root);
@@ -47,16 +53,28 @@ AMyCharacter::AMyCharacter()
 
 	StarAnchor = CreateDefaultSubobject<USceneComponent>("StarAnchor");
 	StarAnchor->SetupAttachment(SpringArm);
-	StarAnchor->SetRelativeLocation(FVector(11000, 0, 0));
+	StarAnchor->SetRelativeLocation(FVector(20000, 0, 0));
 
 	StarsClose = CreateDefaultSubobject<UNiagaraComponent>("StarsClose");
 	StarsClose->SetupAttachment(StarAnchor);
 	StarsClose->SetVisibility(false);
+	StarsClose->SetColorParameter("Color", FLinearColor(FVector4d(1., 1., 1., 1.)));
+	StarsClose->SetFloatParameter("SizeMax", 60.);
+	StarsClose->SetFloatParameter("SizeMin", 10.);
+	StarsClose->SetFloatParameter("SpawnCylinderRadius", 10000.);
+	StarsClose->SetFloatParameter("SpawnProbability", .1);
+	StarsClose->SetFloatParameter("SpawnRate", 25.);
 	
 	StarsDistant = CreateDefaultSubobject<UNiagaraComponent>("StarsDistant");
 	StarsDistant->SetupAttachment(StarAnchor);
-	StarsDistant->SetRelativeLocation(FVector(10000, 0, 0));
+	StarsDistant->SetRelativeLocation(FVector(40000, 0, 0));
 	StarsDistant->SetVisibility(false);
+	StarsDistant->SetColorParameter("Color", FLinearColor(FVector4d(1., 1., 1., 1.)));
+	StarsDistant->SetFloatParameter("SizeMax", 120.);
+	StarsDistant->SetFloatParameter("SizeMin", 30.);
+	StarsDistant->SetFloatParameter("SpawnCylinderRadius", 50000.);
+	StarsDistant->SetFloatParameter("SpawnProbability", .1);
+	StarsDistant->SetFloatParameter("SpawnRate", 50.);
 }
 
 void AMyCharacter::UpdateSpringArm(uint8 CameraPosition)
