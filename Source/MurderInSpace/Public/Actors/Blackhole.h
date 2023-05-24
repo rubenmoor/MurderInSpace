@@ -30,4 +30,8 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Required")
 	TObjectPtr<UStaticMeshComponent> InnerDisc;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Required")
+	TObjectPtr<UNiagaraComponent> NS_Jet;
+	
 };

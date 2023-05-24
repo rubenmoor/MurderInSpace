@@ -16,12 +16,12 @@ AMyCharacter::AMyCharacter()
 	Dust = CreateDefaultSubobject<UNiagaraComponent>("Dust");
 	Dust->SetupAttachment(Root);
 	Dust->SetVisibility(false);
-	Dust->SetColorParameter("Color", FLinearColor(FVector4d(1., 1., 1., .5)));
-	Dust->SetFloatParameter("SizeMax", 10.);
-	Dust->SetFloatParameter("SizeMin", 5.);
-	Dust->SetFloatParameter("SpawnCylinderRadius", 2000.);
-	Dust->SetFloatParameter("SpawnProbability", .1);
-	Dust->SetFloatParameter("SpawnRate", 20.);
+	Dust->SetVariableLinearColor("Color", FLinearColor(FVector4d(1., 1., 1., .5)));
+	Dust->SetVariableFloat("SizeMax", 10.);
+	Dust->SetVariableFloat("SizeMin", 5.);
+	Dust->SetVariableFloat("SpawnCylinderRadius", 2000.);
+	Dust->SetVariableFloat("SpawnProbability", .1);
+	Dust->SetVariableFloat("SpawnRate", 20.);
 	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>("SpringArm");
 	SpringArm->SetupAttachment(Root);
@@ -58,23 +58,23 @@ AMyCharacter::AMyCharacter()
 	StarsClose = CreateDefaultSubobject<UNiagaraComponent>("StarsClose");
 	StarsClose->SetupAttachment(StarAnchor);
 	StarsClose->SetVisibility(false);
-	StarsClose->SetColorParameter("Color", FLinearColor(FVector4d(1., 1., 1., 1.)));
-	StarsClose->SetFloatParameter("SizeMax", 60.);
-	StarsClose->SetFloatParameter("SizeMin", 10.);
-	StarsClose->SetFloatParameter("SpawnCylinderRadius", 10000.);
-	StarsClose->SetFloatParameter("SpawnProbability", .1);
-	StarsClose->SetFloatParameter("SpawnRate", 25.);
+	StarsClose->SetVariableLinearColor("Color", FLinearColor(FVector4d(1., 1., 1., 1.)));
+	StarsClose->SetVariableFloat("SizeMax", 60.);
+	StarsClose->SetVariableFloat("SizeMin", 10.);
+	StarsClose->SetVariableFloat("SpawnCylinderRadius", 10000.);
+	StarsClose->SetVariableFloat("SpawnProbability", .1);
+	StarsClose->SetVariableFloat("SpawnRate", 25.);
 	
 	StarsDistant = CreateDefaultSubobject<UNiagaraComponent>("StarsDistant");
 	StarsDistant->SetupAttachment(StarAnchor);
 	StarsDistant->SetRelativeLocation(FVector(40000, 0, 0));
 	StarsDistant->SetVisibility(false);
-	StarsDistant->SetColorParameter("Color", FLinearColor(FVector4d(1., 1., 1., 1.)));
-	StarsDistant->SetFloatParameter("SizeMax", 120.);
-	StarsDistant->SetFloatParameter("SizeMin", 30.);
-	StarsDistant->SetFloatParameter("SpawnCylinderRadius", 50000.);
-	StarsDistant->SetFloatParameter("SpawnProbability", .1);
-	StarsDistant->SetFloatParameter("SpawnRate", 50.);
+	StarsDistant->SetVariableLinearColor("Color", FLinearColor(FVector4d(1., 1., 1., 1.)));
+	StarsDistant->SetVariableFloat("SizeMax", 120.);
+	StarsDistant->SetVariableFloat("SizeMin", 30.);
+	StarsDistant->SetVariableFloat("SpawnCylinderRadius", 50000.);
+	StarsDistant->SetVariableFloat("SpawnProbability", .1);
+	StarsDistant->SetVariableFloat("SpawnRate", 50.);
 }
 
 void AMyCharacter::UpdateSpringArm(uint8 CameraPosition)
