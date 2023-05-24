@@ -25,4 +25,7 @@ ABlackhole::ABlackhole()
 
 	NS_Jet = CreateDefaultSubobject<UNiagaraComponent>("Jet");
 	NS_Jet->SetupAttachment(Root);
+	
+	NS_Jetstream = CreateDefaultSubobject<UNiagaraComponent>("Jetstream");
+	NS_Jetstream->SetupAttachment(Root);
 }

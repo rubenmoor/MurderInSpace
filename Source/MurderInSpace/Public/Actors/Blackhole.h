@@ -34,4 +34,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Required")
 	TObjectPtr<UNiagaraComponent> NS_Jet;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Required")
+	TObjectPtr<UNiagaraComponent> NS_Jetstream;
 };
