@@ -38,20 +38,33 @@ class MURDERINSPACE_API UUW_HUD : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void SetF1Marker(FVector2D InCoords);
-	
+	void F1MarkerHide()
+	{
+		F1Marker.bShow = false;
+		HoriDistanceF1OnScreen->SetVisibility(ESlateVisibility::Collapsed);
+	}
 	UFUNCTION(BlueprintCallable)
-	void F1MarkerHide() { F1Marker.bShow = false; }
+	void F1MarkerShow()
+	{
+		F1Marker.bShow = true;
+        HoriDistanceF1OnScreen->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
 
 protected:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UCommonNumericTextBlock> TextFPS;
 
 	UPROPERTY(meta=(BindWidget))
-	TObjectPtr<UHorizontalBox> HoriDistanceF1;
+	TObjectPtr<UHorizontalBox> HoriDistanceF1OffScreen;
 
 	UPROPERTY(meta=(BindWidget))
-	TObjectPtr<UCommonNumericTextBlock> TextDistanceF1;
+	TObjectPtr<UCommonNumericTextBlock> TextDistanceF1OffScreen;
+	
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UHorizontalBox> HoriDistanceF1OnScreen;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UCommonNumericTextBlock> TextDistanceF1OnScreen;
 	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> TextVelocitySI;
@@ -61,6 +74,9 @@ protected:
 	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> TextVelocityDirection;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UTextBlock> TextCameraHeight;
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UCanvasPanel> CanvasCenterOfMass;

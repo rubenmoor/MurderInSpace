@@ -151,10 +151,14 @@ void AMyHUD::Tick(float DeltaSeconds)
 	WidgetHUD->TextFPS->SetText(FText::AsNumber(GAverageFPS, &FOFPS));
 	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FOVelocity));
 	WidgetHUD->TextVelocityVCircle->SetText(
-		FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics).Length(), &FOVelocity));
-	WidgetHUD->TextDistanceF1->SetText(
-		FText::AsNumber(Orbit->GetVecRKepler(Physics).Length() * Physics.ScaleFactor, &FODistance));
-
+		FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics).Length(), &FOVelocity)
+		);
+	WidgetHUD->TextCameraHeight->SetText(
+		FText::AsNumber(MyCharacter->GetSpringArmLength() * Physics.ScaleFactor, &FODistance)
+		);
+	
+	const float DistanceF1 = Orbit->GetVecRKepler(Physics).Length() * Physics.ScaleFactor;
+	
 	const float AngleVelocityArrow =
 		FQuat::FindBetween
 			( FVector(1, 0, 0)
@@ -219,8 +223,14 @@ void AMyHUD::Tick(float DeltaSeconds)
 	// off-screen
 	if(abs(Pos.Y) > 0.5 || abs(Pos.X) > 0.5 - XArc(Pos.Y))
 	{
-		WidgetHUD->F1MarkerHide();
-		WidgetHUD->CanvasCenterOfMass->SetVisibility(ESlateVisibility::Visible);
+		if(bF1OnScreen)
+		{
+			WidgetHUD->F1MarkerHide();
+			WidgetHUD->CanvasCenterOfMass->SetVisibility(ESlateVisibility::Visible);
+			bF1OnScreen = false;
+		}
+		
+		WidgetHUD->TextDistanceF1OffScreen->SetText(FText::AsNumber(DistanceF1, &FODistance));
 		
 		float OverlayX, OverlayY;
 
@@ -265,20 +275,31 @@ void AMyHUD::Tick(float DeltaSeconds)
 
 		SlotCenterOfMass->SetAlignment(Vec2Alignment);
 		SlotCenterOfMass->SetPosition
-				( CenterToScreenScaled(this, { OverlayX, OverlayY } )
+			( CenterToScreenScaled(this, { OverlayX, OverlayY } )
 			);
-		//WidgetHUD->ImgPointer->SetRenderTransformAngle(atan2(Pos.Y, Pos.X) * 180. / PI + 135);
 		const float AngleF1Marker = atan2(Pos.Y, Pos.X) + PI;
 		WidgetHUD->ImgPointer->SetRenderTransformAngle(AngleF1Marker * 180. / PI - 45);
-		const auto SlotDistanceF1 = UWidgetLayoutLibrary::SlotAsCanvasSlot(WidgetHUD->HoriDistanceF1);
-		const float DistanceF1Radius = 30.;
+		const auto SlotDistanceF1 = UWidgetLayoutLibrary::SlotAsCanvasSlot(WidgetHUD->HoriDistanceF1OffScreen);
 		SlotDistanceF1->SetPosition(FVector2D(cos(AngleF1Marker), sin(AngleF1Marker)) * DistanceF1Radius);
 		SlotDistanceF1->SetAlignment(Vec2Alignment);
 	}
 	// on-screen
 	else
 	{
-		WidgetHUD->CanvasCenterOfMass->SetVisibility(ESlateVisibility::Collapsed);
-		WidgetHUD->SetF1Marker(CenterToScreenScaled(this, Pos));
+		if(!bF1OnScreen)
+		{
+			WidgetHUD->CanvasCenterOfMass->SetVisibility(ESlateVisibility::Collapsed);
+			WidgetHUD->F1MarkerShow();
+			bF1OnScreen = true;
+		}
+		
+		// TODO: show distance to F1
+		WidgetHUD->TextDistanceF1OnScreen->SetText(FText::AsNumber(DistanceF1, &FODistance));
+		FVector2D Vec2Alignment = FVector2D(0., 0.);
+		WidgetHUD->F1Marker.Coords = CenterToScreenScaled(this, Pos);
+		const auto SlotDistanceF1 = UWidgetLayoutLibrary::SlotAsCanvasSlot(WidgetHUD->HoriDistanceF1OnScreen);
+		const float AngleF1Marker = atan2(Pos.Y, Pos.X) + PI;
+		SlotDistanceF1->SetPosition(FVector2D(cos(AngleF1Marker), sin(AngleF1Marker)) * DistanceF1Radius);
+		SlotDistanceF1->SetAlignment(Vec2Alignment);
 	}
 }

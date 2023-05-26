@@ -122,12 +122,12 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
         }
         else
         {
-            Orbit->SpawnSplineMesh
-                ( MyCharacter->GetTempSplineMeshColor()
-                , ESplineMeshParentSelector::Temporary
-                , GI->InstanceUI
-                );
-            Orbit->bIsVisibleAccelerating = true;
+            // Orbit->SpawnSplineMesh
+            //     ( MyCharacter->GetTempSplineMeshColor()
+            //     , ESplineMeshParentSelector::Temporary
+            //     , GI->InstanceUI
+            //     );
+            // Orbit->bIsVisibleAccelerating = true;
             Orbit->UpdateVisibility(GI->InstanceUI);
         }
         break;

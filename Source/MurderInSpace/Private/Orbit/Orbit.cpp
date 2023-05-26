@@ -353,19 +353,17 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             const FVector VecVNorm = VecVelocity.GetSafeNormal();
             if(VecVNorm.IsZero())
             {
-                SplinePoints =
+                AddPointsToSpline(
                     { FSplinePoint(0, VecR, ESplinePointType::Linear)
                     , FSplinePoint(1, -VecRKepler + Physics.VecF1, ESplinePointType::Linear)
-                    };
-                AddPointsToSpline();
+                    });
             }
             else
             {
-                SplinePoints =
+                AddPointsToSpline(
                     { FSplinePoint(0, -VecVNorm * Apsis + Physics.VecF1, ESplinePointType::Linear)
                     , FSplinePoint(1,  VecVNorm * Apsis + Physics.VecF1, ESplinePointType::Linear)
-                    };
-                AddPointsToSpline();
+                    });
             }
             
             Spline->SetClosedLoop(true, false);
@@ -378,12 +376,8 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         // unbound
         else
         {
-            SplinePoints =
-                { FSplinePoint
-                    (0
-                    , VecR
-                    , ESplinePointType::Linear
-                    )
+            AddPointsToSpline(
+                { FSplinePoint (0 , VecR , ESplinePointType::Linear )
                 , FSplinePoint
                     ( 1
                     , VecVelocity.GetUnsafeNormal() *
@@ -392,8 +386,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
                         )
                     , ESplinePointType::Linear
                     )
-                };
-            AddPointsToSpline();
+                });
 
             Spline->SetClosedLoop(false, false);
             Params.OrbitType = EOrbitType::LINEUNBOUND;
@@ -409,13 +402,12 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         const FVector VecT1 = VecHNorm.Cross(VecRKepler) * UMyState::SplineToCircle;
         const FVector VecT4 = VecRKepler * UMyState::SplineToCircle;
         
-        SplinePoints =
+        AddPointsToSpline(
             { FSplinePoint(0,  VecR,  VecT1,  VecT1)
             , FSplinePoint(1, VecP2 + Physics.VecF1, -VecT4, -VecT4)
             , FSplinePoint(2, -VecRKepler + Physics.VecF1 , -VecT1, -VecT1)
             , FSplinePoint(3, -VecP2 + Physics.VecF1,  VecT4,  VecT4)
-            };
-        AddPointsToSpline();
+            });
         Spline->SetClosedLoop(true, false);
         Params.OrbitType = EOrbitType::CIRCLE;
         Params.A = RKepler;
@@ -483,7 +475,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             Points.emplace_front(Params.A * (1. + Params.Eccentricity) * -VecENorm);
         }
         
-        SplinePoints.Empty();
+        TArray<FSplinePoint> SplinePoints;
         SplinePoints.Reserve(Points.size());
         int InputKey = 0;
         for(std::list<FVector>::const_iterator IPoint = Points.begin(); IPoint != Points.end(); ++IPoint)
@@ -492,7 +484,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             SplinePoints.Emplace (InputKey, P);
             InputKey++;
         }
-        AddPointsToSpline();
+        AddPointsToSpline(SplinePoints);
         Params.OrbitType = EOrbitType::ELLIPSE;
         Params.Period = UFunctionLib::PeriodEllipse(Params.A, Physics.Alpha);
     }
@@ -514,7 +506,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             Points.emplace_front(VecY - VecX + Physics.VecF1);
         }
 
-        SplinePoints.Empty();
+        TArray<FSplinePoint> SplinePoints;
         SplinePoints.Reserve(Points.size());
         const int32 NumPoints = Points.size();
         for(int i = 0; i < NumPoints; i++)
@@ -522,14 +514,8 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             SplinePoints.Emplace(i, Points.front());
             Points.pop_front();
         }
-        AddPointsToSpline();
+        AddPointsToSpline(SplinePoints);
 
-        // ClearSplinePoints();
-        // for(const FVector Point : Points)
-        // {
-        // 	AddSplineWorldPoint(Point);
-        // }
-        
         Spline->SetClosedLoop(false, false);
         Params.OrbitType = EOrbitType::PARABOLA;
         Params.Period = 0;
@@ -560,7 +546,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             Points.emplace_back(VecX - VecY + Physics.VecF1);
         }
 
-        SplinePoints.Empty();
+        TArray<FSplinePoint> SplinePoints;
         SplinePoints.Reserve(Points.size());
         int InputKey = 0;
         for(std::list<FVector>::const_iterator IPoint = Points.begin(); IPoint != Points.end(); ++IPoint)
@@ -575,7 +561,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             }
             InputKey++;
         }
-        AddPointsToSpline();
+        AddPointsToSpline(SplinePoints);
 
         Spline->SetClosedLoop(false, false);
         Params.A = Params.P / (1 - pow(Params.Eccentricity, 2)); // Params.A < 0
@@ -636,7 +622,7 @@ void AOrbit::UpdateSplineMeshScale(double InScaleFactor)
     }
 }
 
-void AOrbit::AddPointsToSpline()
+void AOrbit::AddPointsToSpline(TArray<FSplinePoint> SplinePoints)
 {
     Spline->ClearSplinePoints();
     

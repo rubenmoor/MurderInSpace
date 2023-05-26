@@ -252,7 +252,6 @@ public:
     
     // replication
 
-    // TODO: rename 'FreezeSplineKey'
     UFUNCTION(BlueprintCallable)
     void FreezeOrbitState()
     {
@@ -264,6 +263,9 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void DestroyTempSplineMeshes();
+
+    UFUNCTION(BlueprintCallable)
+    USplineComponent* GetSplineComponent() { return Spline; }
 
 protected:
 
@@ -280,8 +282,6 @@ protected:
 #endif
 
 	// components
-
-    // TODO
 public:
     UPROPERTY(ReplicatedUsing=OnRep_Body, VisibleAnywhere, BlueprintReadOnly)
     AActor* RP_Body = nullptr;
@@ -371,7 +371,7 @@ protected:
     // however: this one only corrects for the translation, not for rotation and scale
     // as long as we don't scale or rotate the spline, this is fine
     UFUNCTION(BlueprintCallable)
-    void AddPointsToSpline();
+    void AddPointsToSpline(TArray<FSplinePoint> SplinePoints);
 
     UFUNCTION(BlueprintPure)
     bool GetVisibility(const FInstanceUI& InstanceUI) const;
@@ -389,28 +389,6 @@ protected:
 
     UFUNCTION()
     void OnRep_Body();
-
-    // TODO delete
-    UPROPERTY()
-    TArray<FSplinePoint> SplinePoints;
-
-    // TODO delete
-    UFUNCTION()
-    void OnRep_SplinePoints()
-    {
-        AddPointsToSpline();
-        Spline->UpdateSpline();
-    }
-
-    // TODO: delete
-    UPROPERTY(VisibleAnywhere)
-    bool bClosedLoop;
-
-    UFUNCTION()
-    void OnRep_bClosedLoop()
-    {
-        Spline->SetClosedLoop(bClosedLoop, true);
-    }
 
     // server only
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite)

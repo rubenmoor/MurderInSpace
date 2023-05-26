@@ -42,6 +42,9 @@ public:
 
 	void SetReadyFlags(EHUDReady ReadyFlags);
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DistanceF1Radius = 32.;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUW_HUD> WidgetHUDClass;
@@ -51,6 +54,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<AMyCharacter> MyCharacter;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bF1OnScreen = false;
 
 	// in game menu
 

@@ -1,6 +1,7 @@
 #include "Actors/Blackhole.h"
 
 #include "NiagaraComponent.h"
+#include "Components/PointLightComponent.h"
 
 ABlackhole::ABlackhole()
 {
@@ -28,4 +29,7 @@ ABlackhole::ABlackhole()
 	
 	NS_Jetstream = CreateDefaultSubobject<UNiagaraComponent>("Jetstream");
 	NS_Jetstream->SetupAttachment(Root);
+
+	PointLight = CreateDefaultSubobject<UPointLightComponent>("PointLight");
+	PointLight->SetupAttachment(Root);
 }

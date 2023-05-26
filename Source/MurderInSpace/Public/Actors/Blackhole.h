@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blackhole.generated.h"
 
+class UPointLightComponent;
 class UNiagaraComponent;
 
 UCLASS()
@@ -36,4 +37,7 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Required")
 	TObjectPtr<UNiagaraComponent> NS_Jetstream;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Required")
+	TObjectPtr<UPointLightComponent> PointLight;
 };
