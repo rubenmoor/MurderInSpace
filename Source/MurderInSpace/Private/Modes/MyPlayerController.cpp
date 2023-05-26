@@ -128,7 +128,7 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
             //     , GI->InstanceUI
             //     );
             // Orbit->bIsVisibleAccelerating = true;
-            Orbit->UpdateVisibility(GI->InstanceUI);
+            // Orbit->UpdateVisibility(GI->InstanceUI);
         }
         break;
     case EInputAction::IngameMenuToggle:

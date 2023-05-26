@@ -75,33 +75,32 @@ int32 UUW_HUD::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
             );
     }
 
+#if WITH_EDITOR
+    TArray<FInterpCurvePoint<FVector>> Points;
+#else
     auto* Orbit = GetPlayerContext().GetPawn<AMyCharacter>()->GetOrbit();
     auto* SplineComponent = Orbit->GetSplineComponent();
     auto Points = SplineComponent->GetSplinePointsPosition().Points;
-    Points.Push(FInterpCurvePoint(Points[0]));
+#endif
 
     struct FCurvePoint2D
     {
-        FCurvePoint2D(FVector2D InLoc, FVector2D InArriveTangent, FVector2D InLeaveTangent)
-            : Loc(InLoc), ArriveTangent(InArriveTangent), LeaveTangent(InLeaveTangent) {};
+        FCurvePoint2D() { bOnScreen = false; }
+        FCurvePoint2D(FVector2D InLoc, bool InOnScreen, FVector InPos, FVector InArriveTangent, FVector InLeaveTangent)
+            : Loc(InLoc), bOnScreen(InOnScreen), Pos(InPos), ArriveTangent(InArriveTangent), LeaveTangent(InLeaveTangent) {}
         
-        FVector2D Loc;    
-        FVector2D ArriveTangent;    
-        FVector2D LeaveTangent;    
+        FVector2D Loc;
+        bool bOnScreen;
+        FVector Pos;
+        FVector ArriveTangent;    
+        FVector LeaveTangent;
     };
     TArray<FCurvePoint2D> CurvePoints;
-
-    // if and only if all points are on-screen, we need to close the circle
-    bool bAllPointsOnScreen = true;
-    
-    bool bThisPointOnScreen = false;
-
-    // if the last point was on-screen, this point needs connection
-    bool bLastPointOnScreen = false;
+    CurvePoints.Reserve(Points.Num());
+    CurvePoints.SetNum(Points.Num());
     
     const FVector2D Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld()) / UWidgetLayoutLibrary::GetViewportScale(GetWorld());
         
-    TArray<FVector2D> ScreenPoints;
     for(int32 i = 0; i < Points.Num(); ++i)
     {
         FVector2D ScreenPos;
@@ -112,98 +111,77 @@ int32 UUW_HUD::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
             , true
             );
 
-        bThisPointOnScreen = 
+        bool bOnScreen = 
                bProjected
             && ScreenPos.X >= 0.
             && ScreenPos.X <= Vec2DSize.X
             && ScreenPos.Y >= 0.
             && ScreenPos.Y <= Vec2DSize.Y;
 
-        // maybe causes stackoverflow
-        // if(!bThisPointOnScreen)
-        //     MakeCircle
-        //         ( OutDrawElements
-        //         , LayerId
-        //         , PG
-        //         , ScreenPos
-        //         , 5
-        //         , 1
-        //         , ESlateDrawEffect::None
-        //         , FLinearColor::Blue
-        //         );
+        CurvePoints[i] = FCurvePoint2D(ScreenPos, bOnScreen, Points[i].OutVal, Points[i].ArriveTangent, Points[i].LeaveTangent);
 
-        auto AddCurvePoint = [&] (const FInterpCurvePoint<FVector>& Point)
+        // auto AddCurvePoint = [&] (const FInterpCurvePoint<FVector>& Point)
+        // {
+        //     FVector2D InTangentPos, OutTangentPos;
+
+        //     CurvePoints.Emplace(ScreenPos, InTangentPos - ScreenPos, OutTangentPos - ScreenPos);
+        // };
+
+        //if(bThisPointOnScreen || bLastPointOnScreen)
+        //{
+        //    AddCurvePoint(Points[i]);
+        //}
+        //else
+        //{
+        //    bAllPointsOnScreen = false;
+        //    if(bThisPointOnScreen && !bLastPointOnScreen)
+        //    {
+        //        AddCurvePoint(Points[i - 1]);
+        //    }
+        //}
+
+        //bLastPointOnScreen = bThisPointOnScreen;
+    }
+
+    for(int32 i = 0; i < CurvePoints.Num(); ++i)
+    {
+        FCurvePoint2D ThisCurvePoint = CurvePoints[i];
+        FCurvePoint2D NextCurvePoint = CurvePoints[(i + 1) % CurvePoints.Num()];
+        // MakeCircle
+        //     ( OutDrawElements
+        //     , LayerId
+        //     , PG
+        //     , ThisCurvePoint.Loc
+        //     , 5
+        //     , 1
+        //     , ESlateDrawEffect::None
+        //     , FLinearColor::Green
+        //     );
+        
+        if(ThisCurvePoint.bOnScreen || NextCurvePoint.bOnScreen)
         {
-            FVector2D InTangentPos, OutTangentPos;
-
+            FVector2D LeaveTangentPos, ArriveTangentPos;
             UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition
                 ( GetOwningPlayer()
-                , Point.OutVal + Point.ArriveTangent
-                , InTangentPos
+                , ThisCurvePoint.Pos + ThisCurvePoint.LeaveTangent
+                , LeaveTangentPos
                 , true
                 );
             UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition
                 ( GetOwningPlayer()
-                , Point.OutVal + Point.LeaveTangent
-                , OutTangentPos
+                , NextCurvePoint.Pos + NextCurvePoint.ArriveTangent
+                , ArriveTangentPos
                 , true
                 );
-            CurvePoints.Emplace(ScreenPos, InTangentPos - ScreenPos, OutTangentPos - ScreenPos);
-        };
-
-        if(bThisPointOnScreen || bLastPointOnScreen)
-        {
-            AddCurvePoint(Points[i]);
-        }
-        else
-        {
-            bAllPointsOnScreen = false;
-            if(bThisPointOnScreen && !bLastPointOnScreen)
-            {
-                AddCurvePoint(Points[i - 1]);
-            }
-        }
-
-        bLastPointOnScreen = bThisPointOnScreen;
-    }
-
-    if(CurvePoints.IsEmpty())
-    {
-        UE_LOG(LogMyGame, Error, TEXT("%s: curve points empty"), *GetFullName())
-    }
-    else
-    {
-        int32 iMax = CurvePoints.Num() - (bAllPointsOnScreen ? 1 : 2);
-        //for(int32 i = 0; i < iMax; ++i)
-        for(int32 i = 0; i < CurvePoints.Num() - 2; ++i)
-        {
-            MakeCircle
-                ( OutDrawElements
-                , LayerId
-                , PG
-                , CurvePoints[i].Loc
-                , 5
-                , 1
-                , ESlateDrawEffect::None
-                , FLinearColor::Green
-                );
-            UE_LOG(LogMyGame, Display, TEXT("Loc1: (%.1f, %.1f), LeaveTangent: (%.1f, %.1f), Loc2: (%.1f, %.1f), ArriveTangent: (%.1f, %.1f)")
-                , CurvePoints[i].Loc.X, CurvePoints[i].Loc.Y
-                , CurvePoints[i].LeaveTangent.X, CurvePoints[i].LeaveTangent.Y
-                , CurvePoints[i + 1].Loc.X
-                , CurvePoints[i + 1].Loc.Y
-                , CurvePoints[i + 1].ArriveTangent.X
-                , CurvePoints[i + 1].ArriveTangent.Y
-                )
             FSlateDrawElement::MakeSpline
                 ( OutDrawElements
                 , LayerId
                 , PG
-                , CurvePoints[i].Loc
-                , CurvePoints[i].LeaveTangent
-                , CurvePoints[i + 1].Loc
-                , CurvePoints[i + 1].ArriveTangent
-                , 1.5
+                , ThisCurvePoint.Loc
+                , LeaveTangentPos - ThisCurvePoint.Loc
+                , NextCurvePoint.Loc
+                , ArriveTangentPos - NextCurvePoint.Loc
+                , 1
                 , ESlateDrawEffect::None
                 , FLinearColor::Green.CopyWithNewOpacity(0.7)
                 );
