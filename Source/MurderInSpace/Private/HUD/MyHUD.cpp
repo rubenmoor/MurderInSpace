@@ -62,7 +62,7 @@ void AMyHUD::BeginPlay()
 	Super::BeginPlay();
 
 #if WITH_EDITOR
-	if(GEditor->IsSimulateInEditorInProgress())
+	if(GetWorld()->WorldType == EWorldType::PIE && GEditor->IsSimulateInEditorInProgress())
 	{
 		return;
 	}
@@ -100,6 +100,8 @@ void AMyHUD::BeginPlay()
 		WidgetHUD = CreateWidget<UUW_HUD>(GI, WidgetHUDClass, "HUD");
 		WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
 		WidgetHUD->AddToViewport(0);
+
+		WidgetHUD->WidgetHUDBorder->SetParams(X0, Y0, X1, Y1);
 	}
 	else
 	{
@@ -296,7 +298,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 		// TODO: show distance to F1
 		WidgetHUD->TextDistanceF1OnScreen->SetText(FText::AsNumber(DistanceF1, &FODistance));
 		FVector2D Vec2Alignment = FVector2D(0., 0.);
-		WidgetHUD->F1Marker.Coords = CenterToScreenScaled(this, Pos);
+		WidgetHUD->WidgetOrbit->F1Marker.Coords = CenterToScreenScaled(this, Pos);
 		const auto SlotDistanceF1 = UWidgetLayoutLibrary::SlotAsCanvasSlot(WidgetHUD->HoriDistanceF1OnScreen);
 		const float AngleF1Marker = atan2(Pos.Y, Pos.X) + PI;
 		SlotDistanceF1->SetPosition(FVector2D(cos(AngleF1Marker), sin(AngleF1Marker)) * DistanceF1Radius);

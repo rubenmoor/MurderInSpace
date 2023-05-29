@@ -34,12 +34,6 @@ public:
 	static FVector2D CenterToScreenScaled(const UObject* Outer, FVector2D CenterCoords);
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
-	TSubclassOf<UWidgetHUDBorder> WidgetHUDBorderClass;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
-	TObjectPtr<UWidgetHUDBorder> WidgetHUDBorder;
-	
     // Default values: overridden by blueprint
 	// relative to viewport width: the horizontal distance from the circular HUD
 	// to the viewport edge at top and bottom

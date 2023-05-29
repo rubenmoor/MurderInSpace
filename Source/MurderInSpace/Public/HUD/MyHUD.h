@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "MyHUDBase.h"
 #include "HUD/UW_HUD.h"
+#include "HUD/UW_Orbit.h"
 #include "HUD/UW_MenuInGame.h"
 #include "Misc/EnumClassFlags.h"
 #include "MyHUD.generated.h"

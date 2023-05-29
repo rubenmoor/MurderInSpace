@@ -55,11 +55,6 @@ void AMyHUDBase::BeginPlay()
 	LocalPlayerContext = FLocalPlayerContext(GetOwningPlayerController());
 	
 	UGameInstance* GI = GetGameInstance();
-	
-	WidgetHUDBorder = CreateWidget<UWidgetHUDBorder>(GI, WidgetHUDBorderClass, "HUD Border");
-	// TODO: proly have to set foreground color
-	WidgetHUDBorder->SetParams(X0, Y0, X1, Y1);
-	WidgetHUDBorder->AddToViewport(-1);
 }
 
 void AMyHUDBase::HideViewportParentWidgets()

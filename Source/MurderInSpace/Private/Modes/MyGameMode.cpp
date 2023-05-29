@@ -24,7 +24,7 @@
 AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
 #if WITH_EDITOR
-	if(GEditor->IsSimulateInEditorInProgress())
+	if(GetWorld()->WorldType == EWorldType::PIE && GEditor->IsSimulateInEditorInProgress())
 	{
 		return nullptr;
 	}
