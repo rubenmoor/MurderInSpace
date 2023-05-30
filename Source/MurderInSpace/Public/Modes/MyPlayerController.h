@@ -32,7 +32,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 CameraPosition = 2;
 
-	static constexpr uint8 MaxCameraPosition = 8;
+	static constexpr uint8 MaxCameraPosition = 7;
 
 	// event handlers
 	

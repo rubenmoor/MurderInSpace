@@ -18,6 +18,7 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
                              const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
     const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry();
+	const auto FGColor = InWidgetStyle.GetForegroundColor();
 
     if(F1Marker.bShow)
     {
@@ -29,7 +30,7 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
             , GetPlayerContext().GetHUD<AMyHUD>()->DistanceF1Radius
             , 1
             , ESlateDrawEffect::None
-            , FLinearColor::Green
+            , FGColor
             );
     }
 
@@ -53,7 +54,7 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
             , 30.
             , 3.
             , ESlateDrawEffect::None
-            , FLinearColor::Green.CopyWithNewOpacity(0.7)
+            , FGColor
             );
     }
 
@@ -75,7 +76,7 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
             , 0.9 * 1000. / ScreenPos.Z * InstanceUI.Selected.Size
             , 1.
             , ESlateDrawEffect::None
-            , FLinearColor::Green.CopyWithNewOpacity(0.7)
+            , FGColor
             );
     }
 
@@ -119,12 +120,15 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
             , true
             );
 
+        // "on-screen" really means on screen within the given tolerance
+        const float ToleranceX = Vec2DSize.X;
+        const float ToleranceY = Vec2DSize.Y;
         bool bOnScreen = 
                bProjected
-            && ScreenPos.X >= 0.
-            && ScreenPos.X <= Vec2DSize.X
-            && ScreenPos.Y >= 0.
-            && ScreenPos.Y <= Vec2DSize.Y;
+            && ScreenPos.X >= -ToleranceX
+            && ScreenPos.X <= Vec2DSize.X + ToleranceX
+            && ScreenPos.Y >= -ToleranceY
+            && ScreenPos.Y <= Vec2DSize.Y + ToleranceY;
 
         CurvePoints[i] = FCurvePoint2D(ScreenPos, bOnScreen, Points[i].OutVal, Points[i].ArriveTangent, Points[i].LeaveTangent);
     }
@@ -133,18 +137,11 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
     {
         FCurvePoint2D ThisCurvePoint = CurvePoints[i];
         FCurvePoint2D NextCurvePoint = CurvePoints[(i + 1) % CurvePoints.Num()];
-        // MakeCircle
-        //     ( OutDrawElements
-        //     , LayerId
-        //     , PG
-        //     , ThisCurvePoint.Loc
-        //     , 5
-        //     , 1
-        //     , ESlateDrawEffect::None
-        //     , FLinearColor::Green
-        //     );
         
-        if(ThisCurvePoint.bOnScreen || NextCurvePoint.bOnScreen)
+        if  (
+               ThisCurvePoint.bOnScreen
+            && NextCurvePoint.bOnScreen
+            )
         {
             FVector2D LeaveTangentPos, ArriveTangentPos;
             UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition
@@ -169,8 +166,33 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
                 , ArriveTangentPos - NextCurvePoint.Loc
                 , 1
                 , ESlateDrawEffect::None
-                , FLinearColor::Green.CopyWithNewOpacity(0.7)
+                , FGColor
                 );
+        }
+        else
+        {
+            if(ThisCurvePoint.bOnScreen /* next isn't */)
+            {
+                
+            }
+            else if(NextCurvePoint.bOnScreen /* this isn't */ )
+            {
+                
+            }
+            else /* neither is */
+            {
+                FCurvePoint2D PrevCurvePoint = CurvePoints[(i + CurvePoints.Num() - 1) % CurvePoints.Num()];
+                if(PrevCurvePoint.bOnScreen)
+                {
+                    
+                }
+                else if(false)
+                // TODO: 
+                // neither this, previous, nor next point is on screen - but this point is part of the closest pair
+                {
+                    
+                }
+            }
         }
     }
     

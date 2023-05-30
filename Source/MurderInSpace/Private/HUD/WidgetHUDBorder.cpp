@@ -10,9 +10,9 @@ int32 UWidgetHUDBorder::NativePaint(const FPaintArgs& Args, const FGeometry& All
 {
 	const auto PG = AllottedGeometry.ToPaintGeometry();
 	const auto ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
-	const auto Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
-	const auto Width = Vec2DSize.X / ViewportScale;
-	const auto Height = Vec2DSize.Y / ViewportScale;
+	const auto Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld()) / ViewportScale;
+	const auto Width = Vec2DSize.X;
+	const auto Height = Vec2DSize.Y;
 	const auto FGColor = InWidgetStyle.GetForegroundColor();
 	const auto Thickness = 1.;
 	const auto LayerIdNew = LayerId + 1;
@@ -31,6 +31,11 @@ int32 UWidgetHUDBorder::NativePaint(const FPaintArgs& Args, const FGeometry& All
 	const auto P3Right = FVector2D(Width * (1. - X0), Height * (1. - Y0));
 	FSlateDrawElement::MakeCubicBezierSpline(OutDrawElements, LayerIdNew, PG,
 		P0Right, P1Right, P2Right, P3Right, Thickness, ESlateDrawEffect::None, FGColor);
+
+	FSlateDrawElement::MakeLines(OutDrawElements, LayerIdNew, PG,
+		{P0Left, P0Right}, ESlateDrawEffect::None, FGColor, true, 1.5);
+	FSlateDrawElement::MakeLines(OutDrawElements, LayerIdNew, PG,
+		{P3Left, P3Right}, ESlateDrawEffect::None, FGColor, true, 1.5);
 		
 	return Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerIdNew, InWidgetStyle,
 	                          bParentEnabled);

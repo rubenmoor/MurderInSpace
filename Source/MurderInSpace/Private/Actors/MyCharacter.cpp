@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Lib/FunctionLib.h"
+#include "Modes/MyPlayerController.h"
 
 AMyCharacter::AMyCharacter()
 {
@@ -77,17 +78,18 @@ AMyCharacter::AMyCharacter()
 	StarsDistant->SetVariableFloat("SpawnRate", 50.);
 }
 
-void AMyCharacter::UpdateSpringArm(uint8 CameraPosition)
+void AMyCharacter::UpdateSpringArm(uint8 InCameraPosition)
 {
-	const float Length = pow(CameraPosition, 2) * 250;
+	CameraPosition = InCameraPosition;
+	const float Length = CameraLengthFactor * (1. + pow(CameraPosition, CameraLengthExponent)) + CameraLengthConst;
 	SpringArm->TargetArmLength = Length;
 	SpringArm->SetWorldRotation(FRotator
-		( CameraPosition < 2 ? -10 + CameraPosition * -20 : -50 - CameraPosition * 5
+		( -CameraRotationConst + CameraPosition * -CameraRotationFactor
 		, 0
 		, 0
 		));
-	StarAnchor->SetRelativeLocation(FVector(10000 + Length, 0, 0));
-	// TODO: maybe missing an orbit component?
+	//StarAnchor->SetRelativeLocation(FVector(10000 + Length, 0, 0));
+	// TODO: redundant when orbits are nativepaint
 	for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
 	{
 		(*IOrbit)->UpdateSplineMeshScale(sqrt(Length) / 100.);
@@ -127,3 +129,30 @@ void AMyCharacter::OnConstruction(const FTransform& Transform)
 		OrbitSetup(this);
     }
 }
+
+#if WITH_EDITOR
+void AMyCharacter::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+
+	const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
+
+	static const FName FNameCameraLengthExponent = GET_MEMBER_NAME_CHECKED(AMyCharacter, CameraLengthExponent);
+	static const FName FNameCameraLengthConst    = GET_MEMBER_NAME_CHECKED(AMyCharacter, CameraLengthConst   );
+	static const FName FNameCameraLengthFactor   = GET_MEMBER_NAME_CHECKED(AMyCharacter, CameraLengthFactor  );
+	static const FName FNameCameraRotationConst  = GET_MEMBER_NAME_CHECKED(AMyCharacter, CameraRotationConst );
+	static const FName FNameCameraRotationFactor = GET_MEMBER_NAME_CHECKED(AMyCharacter, CameraRotationFactor);
+	static const FName FNameCameraPosition       = GET_MEMBER_NAME_CHECKED(AMyCharacter, CameraPosition      );
+
+	if  (  Name == FNameCameraLengthExponent
+		|| Name == FNameCameraLengthConst
+		|| Name == FNameCameraLengthFactor
+		|| Name == FNameCameraRotationConst
+		|| Name == FNameCameraRotationFactor
+		|| Name == FNameCameraPosition
+		)
+	{
+		UpdateSpringArm(CameraPosition);
+	}
+}
+#endif

@@ -30,7 +30,7 @@ class MURDERINSPACE_API AMyCharacter final : public AMyPawn_SkeletalMesh
 public:
 
     UFUNCTION(BlueprintCallable)
-    void UpdateSpringArm(uint8 CameraPosition);
+    void UpdateSpringArm(uint8 InCameraPosition);
 
     // make stuff visible for the possessing player
     UFUNCTION(BlueprintCallable)
@@ -54,6 +54,10 @@ protected:
     // event handlers
     virtual void OnConstruction(const FTransform& Transform) override;
 
+#if WITH_EDITOR
+    virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+#endif
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FLinearColor TempSplineMeshColor;
     
@@ -82,4 +86,23 @@ protected:
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UNiagaraComponent> StarsDistant;
+
+    // camera settings
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
+    float CameraLengthExponent = 2.;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
+    float CameraLengthConst = 250.;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
+    float CameraLengthFactor = 250.;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
+    float CameraRotationConst = 10.;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
+    float CameraRotationFactor = 7.;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
+    uint8 CameraPosition = 5;
 };

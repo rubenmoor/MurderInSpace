@@ -58,8 +58,6 @@ void AMyPlayerController::Zoom(float Delta)
         {
             CameraPosition = std::clamp<int8>(CameraPosition - Delta, 0, MaxCameraPosition);
             GetPawn<AMyCharacter>()->UpdateSpringArm(CameraPosition);
-            GetPawn<AMyCharacter>()->SetVisibility(CameraPosition != 0);
-
             // TODO: at `CameraPosition = 0` lookAt mouse doesn't work anymore
         }		
     }
