@@ -12,6 +12,7 @@
 #include "Modes/MyState.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "HUD/MyHUD.h"
+#include "Kismet/GameplayStatics.h"
 
 int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
                              const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
@@ -20,13 +21,16 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
     const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry();
 	const auto FGColor = InWidgetStyle.GetForegroundColor();
 
+    auto* PC = GetOwningPlayer();
+    const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
+
     if(F1Marker.bShow)
     {
         MakeCircle
             (OutDrawElements
             , LayerId
             , PG
-            , F1Marker.Coords
+            , F1Marker.Coords / ViewportScale
             , GetPlayerContext().GetHUD<AMyHUD>()->DistanceF1Radius
             , 1
             , ESlateDrawEffect::None
@@ -39,9 +43,8 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
     if(IsValid(OrbitHovered))
     {
         FVector ScreenPos;
-        UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPositionWithDistance
-            (GetOwningPlayer()
-            , OrbitHovered->GetVecR()
+        PC->ProjectWorldLocationToScreenWithDistance
+            ( OrbitHovered->GetVecR()
             , ScreenPos
             , true
             );
@@ -49,7 +52,7 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
             ( OutDrawElements
             , LayerId
             , PG
-            , FVector2D(ScreenPos)
+            , FVector2D(ScreenPos) / ViewportScale
             , 1000. / ScreenPos.Z * InstanceUI.Hovered.Size
             , 30.
             , 3.
@@ -62,9 +65,8 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
     if(IsValid(OrbitSelected))
     {
         FVector ScreenPos;
-        UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPositionWithDistance
-            (GetOwningPlayer()
-            , OrbitSelected->GetVecR()
+        PC->ProjectWorldLocationToScreenWithDistance
+            ( OrbitSelected->GetVecR()
             , ScreenPos
             , true
             );
@@ -72,7 +74,7 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
             ( OutDrawElements
             , LayerId
             , PG
-            , FVector2D(ScreenPos)
+            , FVector2D(ScreenPos) / ViewportScale
             , 0.9 * 1000. / ScreenPos.Z * InstanceUI.Selected.Size
             , 1.
             , ESlateDrawEffect::None
@@ -108,51 +110,111 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
     CurvePoints.Reserve(Points.Num());
     CurvePoints.SetNum(Points.Num());
     
-    const FVector2D Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld()) / UWidgetLayoutLibrary::GetViewportScale(GetWorld());
+    const FVector2D Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
+    
+    // "on-screen" really means on screen within the given tolerance
+    //constexpr float Tolerance = 0.1;
+    constexpr float Tolerance = 0.;
+    const float ToleranceX = Vec2DSize.X * Tolerance;
+    const float ToleranceY = Vec2DSize.Y * Tolerance;
+    const float XMin = -ToleranceX;
+    const float XMax = Vec2DSize.X + ToleranceX;
+    const float YMin = -ToleranceY;
+    const float YMax = Vec2DSize.Y + ToleranceY;
         
     for(int32 i = 0; i < Points.Num(); ++i)
     {
         FVector2D ScreenPos;
-        bool bProjected = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition
-            ( GetOwningPlayer()
-            , Points[i].OutVal
+        bool bProjected = PC->ProjectWorldLocationToScreen
+            ( Points[i].OutVal
             , ScreenPos
             , true
             );
+        // bool bProjected = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition
+        //     ( PC
+        //     , Points[i].OutVal
+        //     , ScreenPos
+        //     , true
+        //     );
+        // ScreenPos *= UWidgetLayoutLibrary::GetViewportScale(GetWorld());
 
-        // "on-screen" really means on screen within the given tolerance
-        const float ToleranceX = Vec2DSize.X;
-        const float ToleranceY = Vec2DSize.Y;
         bool bOnScreen = 
                bProjected
-            && ScreenPos.X >= -ToleranceX
-            && ScreenPos.X <= Vec2DSize.X + ToleranceX
-            && ScreenPos.Y >= -ToleranceY
-            && ScreenPos.Y <= Vec2DSize.Y + ToleranceY;
+            && ScreenPos.X >= XMin
+            && ScreenPos.X <= XMax
+            && ScreenPos.Y >= YMin
+            && ScreenPos.Y <= YMax;
 
         CurvePoints[i] = FCurvePoint2D(ScreenPos, bOnScreen, Points[i].OutVal, Points[i].ArriveTangent, Points[i].LeaveTangent);
     }
 
+    // calculate the world position of the visible screen corners on the xy-plane
+    FVector TopLeft, TopLeftDirection, BottomLeft, BottomLeftDirection, TopRight, TopRightDirection, BottomRight, BottomRightDirection;
+    UGameplayStatics::DeprojectScreenToWorld(PC, {XMin, YMin}, TopLeft, TopLeftDirection);
+    UGameplayStatics::DeprojectScreenToWorld(PC, {XMin, YMax}, BottomLeft, BottomLeftDirection);
+    UGameplayStatics::DeprojectScreenToWorld(PC, {XMax, YMin}, TopRight, TopRightDirection);
+    UGameplayStatics::DeprojectScreenToWorld(PC, {XMax, YMax}, BottomRight, BottomRightDirection);
+    
+    const float AlphaTL = -TopLeft.Z / TopLeftDirection.Z;
+    const FVector2D TopLeftZ0(TopLeft.X + AlphaTL * TopLeftDirection.X, TopLeft.Y + AlphaTL * TopLeftDirection.Y);
+    const float AlphaBL = -BottomLeft.Z / BottomLeftDirection.Z;
+    const FVector2D BottomLeftZ0(BottomLeft.X + AlphaBL * BottomLeftDirection.X, BottomLeft.Y + AlphaBL * BottomLeftDirection.Y);
+    const float AlphaTR = -TopRight.Z / TopRightDirection.Z;
+    const FVector2D TopRightZ0(TopRight.X + AlphaTR * TopRightDirection.X, TopRight.Y + AlphaTR * TopRightDirection.Y);
+    const float AlphaBR = -BottomRight.Z / BottomRightDirection.Z;
+    const FVector2D BottomRightZ0(BottomRight.X + AlphaBR * BottomRightDirection.X, BottomRight.Y + AlphaBR * BottomRightDirection.Y);
+
+    const float MTop = (TopLeft.X - TopRight.X) / (TopLeft.Y - TopRight.Y);
+    const float MBottom = (BottomLeft.X - BottomRight.X) / (BottomLeft.Y - BottomRight.Y);
+    const float MLeft = (TopLeftZ0.Y - BottomLeftZ0.Y) / (TopLeftZ0.X - BottomLeftZ0.X);
+    const float MRight = (TopRightZ0.Y - BottomRightZ0.Y) / (TopRightZ0.X - BottomRightZ0.X);
+    UE_LOG(LogMyGame, Warning, TEXT("%.3f, %.3f, %.3f, %.3f"), MTop, MBottom, MLeft, MRight)
+
+    FVector2D DebugTL, DebugTR, DebugBL, DebugBR;
+    PC->ProjectWorldLocationToScreen
+        ( FVector(TopLeftZ0.X, TopLeftZ0.Y, 0.)
+        , DebugTL
+        , true
+        );
+    MakeCircle(OutDrawElements, LayerId, PG, DebugTL / ViewportScale, 100, 2);
+    PC->ProjectWorldLocationToScreen
+        ( FVector(TopRightZ0.X, TopRightZ0.Y, 0.)
+        , DebugTR
+        , true
+        );
+    MakeCircle(OutDrawElements, LayerId, PG, DebugTR / ViewportScale, 100, 2);
+    PC->ProjectWorldLocationToScreen
+        ( FVector(BottomLeftZ0.X, BottomLeftZ0.Y, 0.)
+        , DebugBL
+        , true
+        );
+    MakeCircle(OutDrawElements, LayerId, PG, DebugBL / ViewportScale, 100, 2);
+    PC->ProjectWorldLocationToScreen
+        ( FVector(BottomRightZ0.X, BottomRightZ0.Y, 0.)
+        , DebugBR
+        , true
+        );
+    MakeCircle(OutDrawElements, LayerId, PG, DebugBR / ViewportScale, 100, 2);
+    
     for(int32 i = 0; i < CurvePoints.Num(); ++i)
     {
         FCurvePoint2D ThisCurvePoint = CurvePoints[i];
         FCurvePoint2D NextCurvePoint = CurvePoints[(i + 1) % CurvePoints.Num()];
-        
+
+        // simple case: this point and nex point on-screen
         if  (
                ThisCurvePoint.bOnScreen
             && NextCurvePoint.bOnScreen
             )
         {
             FVector2D LeaveTangentPos, ArriveTangentPos;
-            UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition
-                ( GetOwningPlayer()
-                , ThisCurvePoint.Pos + ThisCurvePoint.LeaveTangent
+            PC->ProjectWorldLocationToScreen
+                ( ThisCurvePoint.Pos + ThisCurvePoint.LeaveTangent
                 , LeaveTangentPos
                 , true
                 );
-            UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition
-                ( GetOwningPlayer()
-                , NextCurvePoint.Pos + NextCurvePoint.ArriveTangent
+            PC->ProjectWorldLocationToScreen
+                ( NextCurvePoint.Pos + NextCurvePoint.ArriveTangent
                 , ArriveTangentPos
                 , true
                 );
@@ -160,10 +222,10 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
                 ( OutDrawElements
                 , LayerId
                 , PG
-                , ThisCurvePoint.Loc
-                , LeaveTangentPos - ThisCurvePoint.Loc
-                , NextCurvePoint.Loc
-                , ArriveTangentPos - NextCurvePoint.Loc
+                , ThisCurvePoint.Loc / ViewportScale
+                , (LeaveTangentPos - ThisCurvePoint.Loc) / ViewportScale
+                , NextCurvePoint.Loc / ViewportScale
+                , (ArriveTangentPos - NextCurvePoint.Loc) / ViewportScale
                 , 1
                 , ESlateDrawEffect::None
                 , FGColor

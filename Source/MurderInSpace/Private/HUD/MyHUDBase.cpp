@@ -39,12 +39,16 @@ FVector2D AMyHUDBase::ScreenToCenter(const UObject* Outer, FVector2D ScreenCoord
 
 FVector2D AMyHUDBase::CenterToScreenScaled(const UObject* Outer, FVector2D CenterCoords)
 {
-	UWorld* World = Outer->GetWorld();
-	const FVector2D Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(World);
-	const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(World);
+	const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(Outer->GetWorld());
+	return CenterToScreen(Outer, CenterCoords) / ViewportScale;
+}
+
+FVector2D AMyHUDBase::CenterToScreen(const UObject* Outer, FVector2D CenterCoords)
+{
+	const FVector2D Vec2DSize = UWidgetLayoutLibrary::GetViewportSize(Outer->GetWorld());
 	return
-		{ (CenterCoords.X + 0.5) * Vec2DSize.X / ViewportScale
-		, (CenterCoords.Y + 0.5) *Vec2DSize.Y / ViewportScale
+		{ (CenterCoords.X + 0.5) * Vec2DSize.X
+		, (CenterCoords.Y + 0.5) *Vec2DSize.Y
 		};
 }
 

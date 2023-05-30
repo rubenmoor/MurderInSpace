@@ -92,17 +92,17 @@ protected:
     float CameraLengthExponent = 2.;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
-    float CameraLengthConst = 250.;
+    float CameraLengthConst = 500.;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
-    float CameraLengthFactor = 250.;
+    float CameraLengthFactor = 100.;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
-    float CameraRotationConst = 10.;
+    float CameraRotationConst = 30.;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
     float CameraRotationFactor = 7.;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
-    uint8 CameraPosition = 5;
+    uint8 CameraPosition = 2;
 };

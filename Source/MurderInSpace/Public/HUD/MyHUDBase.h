@@ -33,6 +33,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	static FVector2D CenterToScreenScaled(const UObject* Outer, FVector2D CenterCoords);
 	
+	// convert from center coordinates ([-0.5, 0.5], [-0.5, 0.5])
+	// to screen coordinates ([0, Width], [0, Height])
+	// disregarding viewport scale
+	UFUNCTION(BlueprintCallable)
+	static FVector2D CenterToScreen(const UObject* Outer, FVector2D CenterCoords);
+	
 protected:
     // Default values: overridden by blueprint
 	// relative to viewport width: the horizontal distance from the circular HUD
