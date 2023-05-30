@@ -83,28 +83,26 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
     }
 
     TArray<FInterpCurvePoint<FVector>> Points;
+    USplineComponent* Spline = nullptr;
 #if WITH_EDITOR
     if(GetWorld()->WorldType == EWorldType::PIE && !GEditor->IsSimulateInEditorInProgress())
     {
-        Points = GetPlayerContext().GetPawn<AMyCharacter>()->GetOrbit()
-            ->GetSplineComponent()->GetSplinePointsPosition().Points;
+        Spline = GetPlayerContext().GetPawn<AMyCharacter>()->GetOrbit() ->GetSplineComponent();
+        Points = Spline->GetSplinePointsPosition().Points;
     }
 #else
-    Points = GetPlayerContext().GetPawn<AMyCharacter>()->GetOrbit()
-        ->GetSplineComponent()->GetSplinePointsPosition().Points;
+    Spline = GetPlayerContext().GetPawn<AMyCharacter>()->GetOrbit() ->GetSplineComponent();
+    Points = Spline->GetSplinePointsPosition().Points;
 #endif
 
     struct FCurvePoint2D
     {
         FCurvePoint2D() { bOnScreen = false; }
         FCurvePoint2D(FVector2D InLoc, bool InOnScreen, FVector InPos, FVector InArriveTangent, FVector InLeaveTangent)
-            : Loc(InLoc), bOnScreen(InOnScreen), Pos(InPos), ArriveTangent(InArriveTangent), LeaveTangent(InLeaveTangent) {}
+            : Loc(InLoc), bOnScreen(InOnScreen) {}
         
         FVector2D Loc;
         bool bOnScreen;
-        FVector Pos;
-        FVector ArriveTangent;    
-        FVector LeaveTangent;
     };
     TArray<FCurvePoint2D> CurvePoints;
     CurvePoints.Reserve(Points.Num());
@@ -114,7 +112,7 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
     
     // "on-screen" really means on screen within the given tolerance
     //constexpr float Tolerance = 0.1;
-    constexpr float Tolerance = 0.;
+    constexpr float Tolerance = -0.2;
     const float ToleranceX = Vec2DSize.X * Tolerance;
     const float ToleranceY = Vec2DSize.Y * Tolerance;
     const float XMin = -ToleranceX;
@@ -154,6 +152,13 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
     UGameplayStatics::DeprojectScreenToWorld(PC, {XMin, YMax}, BottomLeft, BottomLeftDirection);
     UGameplayStatics::DeprojectScreenToWorld(PC, {XMax, YMin}, TopRight, TopRightDirection);
     UGameplayStatics::DeprojectScreenToWorld(PC, {XMax, YMax}, BottomRight, BottomRightDirection);
+
+    TArray<FVector2D> DebugFramePoints = { {XMin, YMin}, {XMin, YMax}, {XMax, YMax}, {XMax, YMin}, {XMin, YMin}};
+    for(auto& Point : DebugFramePoints)
+    {
+        Point /= ViewportScale;
+    }
+    FSlateDrawElement::MakeLines(OutDrawElements, LayerId, PG, DebugFramePoints);
     
     const float AlphaTL = -TopLeft.Z / TopLeftDirection.Z;
     const FVector2D TopLeftZ0(TopLeft.X + AlphaTL * TopLeftDirection.X, TopLeft.Y + AlphaTL * TopLeftDirection.Y);
@@ -164,44 +169,29 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
     const float AlphaBR = -BottomRight.Z / BottomRightDirection.Z;
     const FVector2D BottomRightZ0(BottomRight.X + AlphaBR * BottomRightDirection.X, BottomRight.Y + AlphaBR * BottomRightDirection.Y);
 
-    const float MTop = (TopLeft.X - TopRight.X) / (TopLeft.Y - TopRight.Y);
-    const float MBottom = (BottomLeft.X - BottomRight.X) / (BottomLeft.Y - BottomRight.Y);
+    // screen limits in the z-plane in world-space 
+    const float CTop = TopLeftZ0.X; // MTop = 0
+    const float CBottom = BottomLeftZ0.X; // MBottom = 0
     const float MLeft = (TopLeftZ0.Y - BottomLeftZ0.Y) / (TopLeftZ0.X - BottomLeftZ0.X);
-    const float MRight = (TopRightZ0.Y - BottomRightZ0.Y) / (TopRightZ0.X - BottomRightZ0.X);
-    UE_LOG(LogMyGame, Warning, TEXT("%.3f, %.3f, %.3f, %.3f"), MTop, MBottom, MLeft, MRight)
+    const float CLeft = TopLeftZ0.Y - MLeft * TopLeftZ0.X;
+    const float MRight = -MLeft;
+    const float CRight = TopRightZ0.Y - MRight * TopRightZ0.X;
 
-    FVector2D DebugTL, DebugTR, DebugBL, DebugBR;
-    PC->ProjectWorldLocationToScreen
-        ( FVector(TopLeftZ0.X, TopLeftZ0.Y, 0.)
-        , DebugTL
-        , true
-        );
-    MakeCircle(OutDrawElements, LayerId, PG, DebugTL / ViewportScale, 100, 2);
-    PC->ProjectWorldLocationToScreen
-        ( FVector(TopRightZ0.X, TopRightZ0.Y, 0.)
-        , DebugTR
-        , true
-        );
-    MakeCircle(OutDrawElements, LayerId, PG, DebugTR / ViewportScale, 100, 2);
-    PC->ProjectWorldLocationToScreen
-        ( FVector(BottomLeftZ0.X, BottomLeftZ0.Y, 0.)
-        , DebugBL
-        , true
-        );
-    MakeCircle(OutDrawElements, LayerId, PG, DebugBL / ViewportScale, 100, 2);
-    PC->ProjectWorldLocationToScreen
-        ( FVector(BottomRightZ0.X, BottomRightZ0.Y, 0.)
-        , DebugBR
-        , true
-        );
-    MakeCircle(OutDrawElements, LayerId, PG, DebugBR / ViewportScale, 100, 2);
-    
     for(int32 i = 0; i < CurvePoints.Num(); ++i)
     {
         FCurvePoint2D ThisCurvePoint = CurvePoints[i];
+        FInterpCurvePoint<FVector> ThisPoint = Points[i];
         FCurvePoint2D NextCurvePoint = CurvePoints[(i + 1) % CurvePoints.Num()];
+        FInterpCurvePoint<FVector> NextPoint = Points[(i + 1) % Points.Num()];
 
-        // simple case: this point and nex point on-screen
+        // final
+        //bool bDrawSpline;
+        // debugging
+        bool bDrawSpline = false;
+        
+        FVector2D Start, StartDir, End, EndDir;
+        
+        // simple case: this point and next point on-screen
         if  (
                ThisCurvePoint.bOnScreen
             && NextCurvePoint.bOnScreen
@@ -209,33 +199,116 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
         {
             FVector2D LeaveTangentPos, ArriveTangentPos;
             PC->ProjectWorldLocationToScreen
-                ( ThisCurvePoint.Pos + ThisCurvePoint.LeaveTangent
+                ( ThisPoint.OutVal + ThisPoint.LeaveTangent
                 , LeaveTangentPos
                 , true
                 );
             PC->ProjectWorldLocationToScreen
-                ( NextCurvePoint.Pos + NextCurvePoint.ArriveTangent
+                ( NextPoint.OutVal + NextPoint.ArriveTangent
                 , ArriveTangentPos
                 , true
                 );
-            FSlateDrawElement::MakeSpline
-                ( OutDrawElements
-                , LayerId
-                , PG
-                , ThisCurvePoint.Loc / ViewportScale
-                , (LeaveTangentPos - ThisCurvePoint.Loc) / ViewportScale
-                , NextCurvePoint.Loc / ViewportScale
-                , (ArriveTangentPos - NextCurvePoint.Loc) / ViewportScale
-                , 1
-                , ESlateDrawEffect::None
-                , FGColor
-                );
+            Start = ThisCurvePoint.Loc;
+            StartDir = LeaveTangentPos - Start;
+            End = NextCurvePoint.Loc;
+            EndDir = ArriveTangentPos - End;
+            bDrawSpline = true;
         }
         else
         {
             if(ThisCurvePoint.bOnScreen /* next isn't */)
             {
+                FVector2D LeaveTangentPos, ArriveTangentPos;
+                PC->ProjectWorldLocationToScreen
+                    ( ThisPoint.OutVal + ThisPoint.LeaveTangent
+                    , LeaveTangentPos
+                    , true
+                    );
+                Start = ThisCurvePoint.Loc;
+                StartDir = LeaveTangentPos - NextCurvePoint.Loc;
                 
+                const float ITopY = ThisPoint.OutVal.Y + (CTop - ThisPoint.OutVal.X) / ThisPoint.LeaveTangent.X * ThisPoint.LeaveTangent.Y;
+                const float IBottomY = ThisPoint.OutVal.Y + (CBottom - ThisPoint.OutVal.X) / ThisPoint.LeaveTangent.X * ThisPoint.LeaveTangent.Y;
+                const bool bUpwards = ThisPoint.LeaveTangent.X > 0.;
+                
+                if(    ( bUpwards && TopLeftZ0.Y    < ITopY    && ITopY    < TopRightZ0.Y   ) // check for intersection with top
+                    || (!bUpwards && BottomLeftZ0.Y < IBottomY && IBottomY < BottomRightZ0.Y) // check for intersection with bottom
+                    )
+                {
+                    const FVector I = bUpwards ? FVector(CTop, ITopY, 0.) : FVector(CBottom, IBottomY, 0.);
+                    const float Key = Spline->FindInputKeyClosestToWorldLocation(I);
+                    const FVector EdgePoint = Spline->GetLocationAtSplineInputKey(Key, ESplineCoordinateSpace::World);
+                    PC->ProjectWorldLocationToScreen
+                        ( EdgePoint
+                        , End
+                        , true
+                        );
+                    PC->ProjectWorldLocationToScreen
+                        ( EdgePoint + Spline->GetTangentAtSplineInputKey(Key, ESplineCoordinateSpace::World)
+                        , ArriveTangentPos
+                        , true
+                        );
+                    EndDir = ArriveTangentPos - End;
+                    EndDir.Normalize();
+                    EndDir = FVector2D::Zero();
+                    
+                    bDrawSpline = true;
+                    
+                    // debug
+                    MakeCircle
+                        ( OutDrawElements
+                        , LayerId
+                        , PG
+                        , End / ViewportScale
+                        , 50.
+                        , 2
+                        , ESlateDrawEffect::None
+                        , FLinearColor::Red
+                        );
+                }
+                else
+                {
+                    const bool bRightbound = ThisPoint.LeaveTangent.Y > 0.;
+                    const double P1 = Points[i].OutVal.X;
+                    const double P2 = Points[i].OutVal.Y;
+                    const double T1 = Points[i].LeaveTangent.X;
+                    const double T2 = Points[i].LeaveTangent.Y;
+                    const double Q1 = bRightbound ? TopRightZ0.X : TopLeftZ0.X;
+                    const double Q2 = bRightbound ? TopRightZ0.Y : TopLeftZ0.Y;
+                    const FVector2D VecD = bRightbound ? BottomRightZ0 - TopRightZ0 : BottomLeftZ0 - TopLeftZ0;
+                    const double D1 = VecD.X;
+                    const double D2 = VecD.Y;
+                    const double Alpha = (D1 * (P2 - Q2) - D2 * (P1 - Q1)) / (T1 * D2 - T2 * D1);
+                    const FVector I = Points[i].OutVal + Alpha * Points[i].LeaveTangent;
+                    const float Key = Spline->FindInputKeyClosestToWorldLocation(I);
+                    const FVector EdgePoint = Spline->GetLocationAtSplineInputKey(Key, ESplineCoordinateSpace::World);
+                    PC->ProjectWorldLocationToScreen
+                        ( EdgePoint
+                        , End
+                        , true
+                        );
+                    PC->ProjectWorldLocationToScreen
+                        ( EdgePoint + Spline->GetTangentAtSplineInputKey(Key, ESplineCoordinateSpace::World)
+                        , ArriveTangentPos
+                        , true
+                        );
+                    EndDir = (ArriveTangentPos - End);
+                    EndDir.Normalize();
+                    EndDir = FVector2D::Zero();
+                    
+                    bDrawSpline = true;
+                    // debug
+                    MakeCircle
+                        ( OutDrawElements
+                        , LayerId
+                        , PG
+                        , End / ViewportScale
+                        , 50.
+                        , 2
+                        , ESlateDrawEffect::None
+                        , FLinearColor::Yellow
+                        );
+                }
             }
             else if(NextCurvePoint.bOnScreen /* this isn't */ )
             {
@@ -254,7 +327,27 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
                 {
                     
                 }
+                else
+                {
+                    bDrawSpline = false;
+                }
             }
+        }
+        
+        if(bDrawSpline)
+        {
+            FSlateDrawElement::MakeSpline
+                ( OutDrawElements
+                , LayerId
+                , PG
+                , Start / ViewportScale
+                , StartDir / ViewportScale
+                , End / ViewportScale
+                , EndDir / ViewportScale
+                , 1
+                , ESlateDrawEffect::None
+                , FGColor
+                );
         }
     }
     
