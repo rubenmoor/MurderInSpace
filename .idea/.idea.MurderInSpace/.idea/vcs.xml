@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Plugins/Developer/SubsystemBrowserPlugin" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Plugins/RealtimeMeshComponent" vcs="Git" />
   </component>
 </project>

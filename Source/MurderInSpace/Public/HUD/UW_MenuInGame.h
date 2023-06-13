@@ -21,6 +21,9 @@ protected:
 	TObjectPtr<UMyCommonButton> BtnResume;
 	
 	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UMyCommonButton> BtnSettings;
+	
+	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UMyCommonButton> BtnLeave;
 	
 	UPROPERTY(meta=(BindWidget))

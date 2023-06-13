@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MyPawn_SkeletalMesh.h"
+#include "Components/SceneCaptureComponent2D.h"
 #include "MyCharacter.generated.h"
 
 class UCameraComponent;
@@ -46,6 +47,12 @@ public:
     UFUNCTION(BlueprintPure)
     FLinearColor GetTempSplineMeshColor() const { return TempSplineMeshColor; }
 
+    UFUNCTION()
+    void AddComponentToSceneCapture(UPrimitiveComponent* Component) const
+    {
+        SceneCapture->ShowOnlyComponent(Component);
+    }
+    
     // IHasMesh
     //virtual UPrimitiveComponent* GetMesh() override { return SkeletalMesh; }
 
@@ -71,6 +78,9 @@ protected:
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UCameraComponent> Camera;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    TObjectPtr<USceneCaptureComponent2D> SceneCapture;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UStaticMeshComponent> Visor;

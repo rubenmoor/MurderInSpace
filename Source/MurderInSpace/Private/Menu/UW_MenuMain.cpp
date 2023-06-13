@@ -51,6 +51,11 @@ void UUW_MenuMain::NativeConstruct()
 		// 	);
 	});
 	// TODO: BtnLogin: on focus lost: hide
+	BtnSettings->OnClicked().AddLambda([this] ()
+	{
+		GetPlayerContext().GetHUD<AMyHUDBase>()->SettingsShow();
+	});
+	
 	BtnQuit->OnClicked().AddLambda([this] ()
 	{
 		GetGameInstance<UMyGameInstance>()->QuitGame(GetPlayerContext());

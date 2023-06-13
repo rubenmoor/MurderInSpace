@@ -878,6 +878,16 @@ void AOrbit::SpawnSplineMesh
         // if I don't add instance here, the spline meshes don't show in the component list in the editor
         AddInstanceComponent(SplineMesh.Get());
 
+        SplineMesh->SetVisibleInSceneCaptureOnly(true);
+        for(auto Iter = GetWorld()->GetPlayerControllerIterator(); Iter; ++Iter)
+        {
+            auto* Character = (*Iter)->GetPawn<AMyCharacter>();
+            if(IsValid(Character))
+            {
+                Character->AddComponentToSceneCapture(SplineMesh.Get());
+            }
+        }
+
         SplineMesh->CastShadow = false;
         SplineMesh->SetStaticMesh(StaticMesh);
 

@@ -120,13 +120,13 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
         }
         else
         {
-            // Orbit->SpawnSplineMesh
-            //     ( MyCharacter->GetTempSplineMeshColor()
-            //     , ESplineMeshParentSelector::Temporary
-            //     , GI->InstanceUI
-            //     );
-            // Orbit->bIsVisibleAccelerating = true;
-            // Orbit->UpdateVisibility(GI->InstanceUI);
+            Orbit->SpawnSplineMesh
+                ( MyCharacter->GetTempSplineMeshColor()
+                , ESplineMeshParentSelector::Temporary
+                , GI->InstanceUI
+                );
+            Orbit->bIsVisibleAccelerating = true;
+            Orbit->UpdateVisibility(GI->InstanceUI);
         }
         break;
     case EInputAction::IngameMenuToggle:

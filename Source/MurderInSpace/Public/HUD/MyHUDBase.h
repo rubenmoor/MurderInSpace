@@ -8,6 +8,7 @@
 
 #include "MyHUDBase.generated.h"
 
+class UUW_Settings;
 class UWidgetHUDBorder;
 
 /**
@@ -38,8 +39,19 @@ public:
 	// disregarding viewport scale
 	UFUNCTION(BlueprintCallable)
 	static FVector2D CenterToScreen(const UObject* Outer, FVector2D CenterCoords);
-	
+
+	UFUNCTION()
+	void SettingsShow();
+
+	TSharedPtr<FNumberFormattingOptions> GetFODPIScale() { return FODPIScale; }
+
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
+	TSubclassOf<UUW_Settings> WidgetSettingsClass;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
+	TObjectPtr<UUW_Settings> WidgetSettings;
+	
     // Default values: overridden by blueprint
 	// relative to viewport width: the horizontal distance from the circular HUD
 	// to the viewport edge at top and bottom
@@ -68,7 +80,8 @@ protected:
 
 	FLocalPlayerContext LocalPlayerContext;
 
-	FNumberFormattingOptions FOVelocity;
-	FNumberFormattingOptions FOFPS;
-	FNumberFormattingOptions FODistance;
+	TSharedPtr<FNumberFormattingOptions> FOVelocity;
+	TSharedPtr<FNumberFormattingOptions> FOFPS;
+	TSharedPtr<FNumberFormattingOptions> FODistance;
+	TSharedPtr<FNumberFormattingOptions> FODPIScale;
 };

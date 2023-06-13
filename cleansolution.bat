@@ -12,7 +12,7 @@ set MyUVS="C:\Program Files (x86)\Epic Games\Launcher\Engine\Binaries\Win64\Unre
 set MyUBT="F:\ue\UE_5.1\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe"
 
 rem change to your own project name
-set MyFullPath="%cd%\MurderInSpace2"
+set MyFullPath="%cd%\MurderInSpace"
 
 
 %MyUVS% /projectfiles %MyFullPath%.uproject

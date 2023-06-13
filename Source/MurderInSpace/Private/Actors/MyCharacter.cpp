@@ -6,9 +6,9 @@
 #include "NiagaraComponent.h"
 #include "Actors/MyPlayerStart.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SceneCaptureComponent2D.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Lib/FunctionLib.h"
-#include "Modes/MyPlayerController.h"
 
 AMyCharacter::AMyCharacter()
 {
@@ -35,6 +35,9 @@ AMyCharacter::AMyCharacter()
 
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(SpringArm);
+
+	SceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>("SceneCapture");
+	SceneCapture->SetupAttachment(Camera);
 
 	Visor = CreateDefaultSubobject<UStaticMeshComponent>("Visor");
 	Visor->SetupAttachment(Camera);

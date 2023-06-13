@@ -12,6 +12,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "HUD/UW_HUD.h"
 #include "HUD/UW_MenuInGame.h"
+#include "Menu/UW_Settings.h"
 #include "Modes/MyPlayerController.h"
 
 #if WITH_EDITOR
@@ -102,6 +103,7 @@ void AMyHUD::BeginPlay()
 		WidgetHUD->AddToViewport(0);
 
 		WidgetHUD->WidgetHUDBorder->SetParams(X0, Y0, X1, Y1);
+		//WidgetHUD->ImgOrbit->SetDesiredSizeOverride(UWidgetLayoutLibrary::GetViewportSize(GetWorld()));
 	}
 	else
 	{
@@ -119,6 +121,11 @@ void AMyHUD::BeginPlay()
 	else
 	{
 		UE_LOG(LogMyGame, Error, TEXT("%s: WidgetInGameClass null"), *GetFullName())
+		bHasProblems = true;
+	}
+	// WidgetSettings is set in parent class
+	if(!IsValid(WidgetSettings))
+	{
 		bHasProblems = true;
 	}
 
@@ -150,13 +157,13 @@ void AMyHUD::Tick(float DeltaSeconds)
 	const float Velocity = Orbit->GetScalarVelocity();
 
 	extern ENGINE_API float GAverageFPS;
-	WidgetHUD->TextFPS->SetText(FText::AsNumber(GAverageFPS, &FOFPS));
-	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, &FOVelocity));
+	WidgetHUD->TextFPS->SetText(FText::AsNumber(GAverageFPS, FOFPS.Get()));
+	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, FOVelocity.Get()));
 	WidgetHUD->TextVelocityVCircle->SetText(
-		FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics).Length(), &FOVelocity)
+		FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics).Length(), FOVelocity.Get())
 		);
 	WidgetHUD->TextCameraHeight->SetText(
-		FText::AsNumber(MyCharacter->GetSpringArmLength() * Physics.ScaleFactor, &FODistance)
+		FText::AsNumber(MyCharacter->GetSpringArmLength() * Physics.ScaleFactor, FODistance.Get())
 		);
 	
 	const float DistanceF1 = Orbit->GetVecRKepler(Physics).Length() * Physics.ScaleFactor;
@@ -232,7 +239,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 			bF1OnScreen = false;
 		}
 		
-		WidgetHUD->TextDistanceF1OffScreen->SetText(FText::AsNumber(DistanceF1, &FODistance));
+		WidgetHUD->TextDistanceF1OffScreen->SetText(FText::AsNumber(DistanceF1, FODistance.Get()));
 		
 		float OverlayX, OverlayY;
 
@@ -296,7 +303,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 		}
 		
 		// TODO: show distance to F1
-		WidgetHUD->TextDistanceF1OnScreen->SetText(FText::AsNumber(DistanceF1, &FODistance));
+		WidgetHUD->TextDistanceF1OnScreen->SetText(FText::AsNumber(DistanceF1, FODistance.Get()));
 		FVector2D Vec2Alignment = FVector2D(0., 0.);
 		WidgetHUD->WidgetOrbit->F1Marker.Coords = CenterToScreen(this, Pos);
 		const auto SlotDistanceF1 = UWidgetLayoutLibrary::SlotAsCanvasSlot(WidgetHUD->HoriDistanceF1OnScreen);

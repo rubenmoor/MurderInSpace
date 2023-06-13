@@ -23,10 +23,11 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 
 	if(Other->GetName() > GetOwner()->GetName())
 	{
-		UE_LOG(LogMyGame, Display, TEXT("%s: Ignoring blocking hit with %s")
-			, *GetFullName()
-			, *Other->GetName()
-			)
+		// TODO: too many hits are being ignored. have to distinguish between legitimately ignored hits and errors
+		//UE_LOG(LogMyGame, Display, TEXT("%s: Ignoring blocking hit with %s")
+		//	, *GetFullName()
+		//	, *Other->GetName()
+		//	)
 		return;
 	}
 	if(HitResult.bStartPenetrating)
@@ -53,10 +54,10 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	// Still, both are the same unless the object that was hit has a collision shape that isn't sphere or plane
 	// In case two non-capsule shapes collide, I don't know what the value of 'Normal' would be
 
-	UE_LOG(LogMyGame, Warning, TEXT("%s: Blocking hit with %s")
-		, *GetFullName()
-		, *Other->GetName()
-		)
+	// UE_LOG(LogMyGame, Warning, TEXT("%s: Blocking hit with %s")
+	// 	, *GetFullName()
+	// 	, *Other->GetName()
+	// 	)
 	
 	auto* Orbit1 = GetOwner<IHasOrbit>()->GetOrbit();
 	auto* Orbit2 = Cast<IHasOrbit>(Other)->GetOrbit();

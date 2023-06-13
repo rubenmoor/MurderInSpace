@@ -9,21 +9,30 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Lib/FunctionLib.h"
+#include "Menu/UW_Settings.h"
 
 AMyHUDBase::AMyHUDBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
-	FOVelocity.SetUseGrouping(false);
-	FOVelocity.SetMinimumFractionalDigits(1);
-	FOVelocity.SetMaximumFractionalDigits(1);
+	FOVelocity = MakeShared<FNumberFormattingOptions>();
+	FOVelocity->SetUseGrouping(false);
+	FOVelocity->SetMinimumFractionalDigits(1);
+	FOVelocity->SetMaximumFractionalDigits(1);
 
-	FOFPS.SetUseGrouping(false);
-	FOFPS.SetMaximumFractionalDigits(0);
+	FOFPS = MakeShared<FNumberFormattingOptions>();
+	FOFPS->SetUseGrouping(false);
+	FOFPS->SetMaximumFractionalDigits(0);
 
-	FODistance.SetUseGrouping(false);
-	FODistance.SetMaximumFractionalDigits(0);
+	FODistance = MakeShared<FNumberFormattingOptions>();
+	FODistance->SetUseGrouping(false);
+	FODistance->SetMaximumFractionalDigits(0);
+
+	FODPIScale = MakeShared<FNumberFormattingOptions>();
+	FODPIScale->SetUseGrouping(false);
+	FODPIScale->SetMaximumFractionalDigits(1);
+	FODPIScale->SetMinimumFractionalDigits(1);
 
 	// TODO: find a way to set HUD default style
 }
@@ -59,6 +68,17 @@ void AMyHUDBase::BeginPlay()
 	LocalPlayerContext = FLocalPlayerContext(GetOwningPlayerController());
 	
 	UGameInstance* GI = GetGameInstance();
+	
+	if(IsValid(WidgetSettingsClass))
+	{
+		WidgetSettings = CreateWidget<UUW_Settings>(GI, WidgetSettingsClass, "Settings");
+		WidgetSettings->SetVisibility(ESlateVisibility::Collapsed);
+		WidgetSettings->AddToViewport(1);
+	}
+	else
+	{
+		UE_LOG(LogMyGame, Error, TEXT("%s: WidgetSettingsClass null"), *GetFullName())
+	}
 }
 
 void AMyHUDBase::HideViewportParentWidgets()
@@ -81,4 +101,9 @@ void AMyHUDBase::HideViewportParentWidgets()
 	{
 		UE_LOG(LogSlate, Warning, TEXT("AMyHUDBase: invalid HUD"))
 	}
+}
+void AMyHUDBase::SettingsShow()
+{
+	HideViewportParentWidgets();
+	WidgetSettings->SetVisibility(ESlateVisibility::Visible);
 }

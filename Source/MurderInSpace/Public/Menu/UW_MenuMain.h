@@ -33,6 +33,9 @@ protected:
 	TObjectPtr<UMyCommonButton> BtnLogin;
 	
 	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UMyCommonButton> BtnSettings;
+	
+	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UMyCommonButton> BtnQuit;
 	
 	// event handlers

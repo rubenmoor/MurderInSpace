@@ -76,4 +76,7 @@ public:
 		WidgetOrbit->F1Marker.bShow = true;
         HoriDistanceF1OnScreen->SetVisibility(ESlateVisibility::HitTestInvisible);
 	}
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UImage> ImgOrbit;
 };

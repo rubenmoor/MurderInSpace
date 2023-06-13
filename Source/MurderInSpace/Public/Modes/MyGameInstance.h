@@ -76,7 +76,8 @@ public:
 	void IncGlobalNumSplinePoints(int Amount)
 	{
 		GlobalNumSplinePoints += Amount;
-		UE_LOG(LogMyGame, Display, TEXT("Global number of spline points: %d"), GlobalNumSplinePoints)
+		// TODO: check if this count is necessary, so far no problem confirmed
+		//UE_LOG(LogMyGame, Display, TEXT("Global number of spline points: %d"), GlobalNumSplinePoints)
 	}
 
 	UPROPERTY(BlueprintReadWrite)
