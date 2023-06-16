@@ -9,7 +9,8 @@
 #include "MyHUDBase.generated.h"
 
 class UUW_Settings;
-class UWidgetHUDBorder;
+class UUW_WidgetHUDBorder;
+class UUW_MenuBackground;
 
 /**
  * 
@@ -45,12 +46,23 @@ public:
 
 	TSharedPtr<FNumberFormattingOptions> GetFODPIScale() { return FODPIScale; }
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector2D MenuBackgroundSize = { 1050, 800 };
+
+	UFUNCTION(BlueprintCallable)
+    void ScaleBorderWidget(float DPIScale);
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUW_Settings> WidgetSettingsClass;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
 	TObjectPtr<UUW_Settings> WidgetSettings;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
+	TSubclassOf<UUW_MenuBackground> WidgetBackgroundClass;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="UMG Widgets")
+	TObjectPtr<UUW_MenuBackground> WidgetBackground;
 	
     // Default values: overridden by blueprint
 	// relative to viewport width: the horizontal distance from the circular HUD
@@ -68,7 +80,7 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float Y1 = 0.33;
-	
+
 	// event handlers
 	
 	virtual void BeginPlay() override;

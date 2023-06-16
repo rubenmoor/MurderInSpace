@@ -12,6 +12,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "HUD/UW_HUD.h"
 #include "HUD/UW_MenuInGame.h"
+#include "Menu/UW_MenuBackground.h"
 #include "Menu/UW_Settings.h"
 #include "Modes/MyPlayerController.h"
 
@@ -23,12 +24,14 @@ void AMyHUD::InGameMenuShow()
 {
 	HideViewportParentWidgets();
 	WidgetMenuInGame->SetVisibility(ESlateVisibility::Visible);
+	WidgetBackground->SetVisibility(ESlateVisibility::Visible);
 }
 
 void AMyHUD::InGameMenuHide()
 {
 	HideViewportParentWidgets();
 	WidgetHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
+	WidgetBackground->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void AMyHUD::SetReadyFlags(EHUDReady ReadyFlags)

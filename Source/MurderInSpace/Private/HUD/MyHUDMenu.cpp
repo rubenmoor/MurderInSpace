@@ -40,7 +40,7 @@ void AMyHUDMenu::BeginPlay()
 	}
 
 	WidgetMenuMain = CreateWidget<UUW_MenuMain>(GI, WidgetMenuMainClass, "Main Menu");
-	WidgetMenuMain->AddToViewport(1);
+	WidgetMenuMain->AddToViewport(2);
 
 	// set up solo menu
 
@@ -51,7 +51,7 @@ void AMyHUDMenu::BeginPlay()
 	}
 	WidgetMenuSolo = CreateWidget<UUW_MenuSolo>(GI, WidgetMenuSoloClass, "Menu Solo");
 	WidgetMenuSolo->SetVisibility(ESlateVisibility::Collapsed);
-	WidgetMenuSolo->AddToViewport(1);
+	WidgetMenuSolo->AddToViewport(2);
 
 	// set up multiplayer menu
 
@@ -62,7 +62,7 @@ void AMyHUDMenu::BeginPlay()
 	}
 	WidgetMenuMultiplayer = CreateWidget<UUW_MenuMultiPlayer>(GI, WidgetMenuMultiplayerClass, "Menu Multiplayer");
 	WidgetMenuMultiplayer->SetVisibility(ESlateVisibility::Collapsed);
-	WidgetMenuMultiplayer->AddToViewport(1);
+	WidgetMenuMultiplayer->AddToViewport(2);
 
 	// set up menu server list
 	
@@ -78,7 +78,7 @@ void AMyHUDMenu::BeginPlay()
 
 	WidgetServerList = CreateWidget<UUW_ServerList>(GI, WidgetServerListClass, "Server List");
 	WidgetServerList->SetVisibility(ESlateVisibility::Collapsed);
-	WidgetServerList->AddToViewport(1);
+	WidgetServerList->AddToViewport(2);
 
 	// host game
 	
@@ -89,7 +89,7 @@ void AMyHUDMenu::BeginPlay()
 	}
 	WidgetHostGame = CreateWidget<UUW_HostGame>(GI, WidgetHostGameClass, "Host Game");
 	WidgetHostGame->SetVisibility(ESlateVisibility::Collapsed);
-	WidgetHostGame->AddToViewport(1);
+	WidgetHostGame->AddToViewport(2);
 
 	// loading screen
 	
@@ -100,7 +100,7 @@ void AMyHUDMenu::BeginPlay()
 	}
 	WidgetLoadingScreen = CreateWidget<UUW_LoadingScreen>(GI, WidgetLoadingScreenClass, "Loading Screen");
 	WidgetLoadingScreen->SetVisibility(ESlateVisibility::Collapsed);
-	WidgetLoadingScreen->AddToViewport(1);
+	WidgetLoadingScreen->AddToViewport(2);
 
 	if(!IsValid(WidgetMessageClass))
 	{
@@ -109,7 +109,7 @@ void AMyHUDMenu::BeginPlay()
 	}
 	WidgetMessage = CreateWidget<UUW_Message>(GI, WidgetMessageClass, "Message");
 	WidgetMessage->SetVisibility(ESlateVisibility::Collapsed);
-	WidgetMessage->AddToViewport(1);
+	WidgetMessage->AddToViewport(2);
 }
 
 void AMyHUDMenu::ServerListShow()

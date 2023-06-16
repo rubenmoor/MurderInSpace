@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "WidgetHUDBorder.generated.h"
+#include "UW_WidgetHUDBorder.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MURDERINSPACE_API UWidgetHUDBorder : public UUserWidget
+class MURDERINSPACE_API UUW_WidgetHUDBorder : public UUserWidget
 {
 	GENERATED_BODY()
 	

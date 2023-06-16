@@ -1,12 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CommonTextBlock.h"
 #include "Blueprint/UserWidget.h"
 #include "UW_Settings.generated.h"
 
+class UCheckBox;
 class UMyCommonButton;
 class UCommonTextBlock;
-class UAnalogSlider;
 class USlider;
 class UComboBoxKey;
 
@@ -20,7 +21,6 @@ class UUW_Settings : public UUserWidget
 
 protected:
     // events
-    virtual void NativePreConstruct() override;
     virtual void NativeOnInitialized() override;
     virtual void NativeConstruct() override;
 
@@ -30,7 +30,10 @@ protected:
     TObjectPtr<UComboBoxKey> ComboResolution;
 
     UPROPERTY(meta=(BindWidget))
-    TObjectPtr<UAnalogSlider> SliderDPIScale;
+    TObjectPtr<UCheckBox> CheckFullscreen;
+    
+    UPROPERTY(meta=(BindWidget))
+    TObjectPtr<USlider> SliderDPIScale;
 
     UPROPERTY(meta=(BindWidget))
     TObjectPtr<UCommonTextBlock> TextDPIScale;
@@ -41,9 +44,12 @@ protected:
     UPROPERTY(meta=(BindWidget))
     TObjectPtr<UMyCommonButton> BtnBack;
 
+    UPROPERTY(EditAnywhere)
+    TSubclassOf<UCommonTextStyle> TextStyle;
+
 private:
     TMap<FName, FIntPoint> Resolutions;
-
+    
     // event handlers
 
     UFUNCTION()
@@ -52,7 +58,15 @@ private:
     UFUNCTION()
     void HandleDPIScaleValue(float Value);
 
-    UFUNCTION(BlueprintCallable)
+    UFUNCTION()
     UWidget* HandleComboResolutionGenerate(FName Item);
+
+    UFUNCTION()
+    UWidget* HandleComboResolutionItemGenerate(FName Item);
+
+    UFUNCTION()
+    void HandleCheckFullscreen(bool bChecked);
+
+    void GoBack();
 };
 

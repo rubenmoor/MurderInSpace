@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CommonNumericTextBlock.h"
-#include "WidgetHUDBorder.h"
+#include "UW_WidgetHUDBorder.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/HorizontalBox.h"
 #include "HUD/UW_Orbit.h"
@@ -61,7 +61,7 @@ public:
 	TObjectPtr<UUW_Orbit> WidgetOrbit;
 
 	UPROPERTY(meta=(BindWidget))
-	TObjectPtr<UWidgetHUDBorder> WidgetHUDBorder;
+	TObjectPtr<UUW_WidgetHUDBorder> WidgetHUDBorder;
 	
 	UFUNCTION(BlueprintCallable)
 	void F1MarkerHide()

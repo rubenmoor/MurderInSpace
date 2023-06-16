@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "HUD/WidgetHUDBorder.h"
+#include "HUD/UW_WidgetHUDBorder.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 
-int32 UWidgetHUDBorder::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
+int32 UUW_WidgetHUDBorder::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 	const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
 	const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
