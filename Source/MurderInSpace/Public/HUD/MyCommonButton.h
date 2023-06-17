@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -15,7 +13,6 @@ class MURDERINSPACE_API UMyCommonButton : public UCommonButtonBase
 {
 	GENERATED_BODY()
 
-	UMyCommonButton();
 protected:
 	UPROPERTY(EditAnywhere)
 	FText Label;
@@ -28,6 +25,7 @@ protected:
 	
 	// event handlers
 	virtual void NativeOnCurrentTextStyleChanged() override;
+	virtual void NativeConstruct() override;
 	virtual void SynchronizeProperties() override;
-	virtual void NativeOnFocusLost(const FFocusEvent& InFocusEvent) override;
+	//virtual void NativeOnFocusLost(const FFocusEvent& InFocusEvent) override;
 };

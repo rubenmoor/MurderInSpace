@@ -106,11 +106,10 @@ void AMyHUDBase::BeginPlay()
 
 void AMyHUDBase::HideViewportParentWidgets()
 {
-    bool bMainMenu = IsValid(Cast<AMyHUDMenu>(this));
     if(IsValid(this))
     {
         TArray<UUserWidget*> ParentWidgets;
-        TMyObjectIterator<UUserWidget> IWidget([this, bMainMenu] (const UUserWidget* Widget)
+        TMyObjectIterator<UUserWidget> IWidget([this] (const UUserWidget* Widget)
         {
             return Widget->GetWorld() == GetWorld()
                 && Widget->IsInViewport()

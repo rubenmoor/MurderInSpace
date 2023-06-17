@@ -2,7 +2,7 @@
 
 #include "Blueprint/WidgetTree.h"
 #include "Components/CheckBox.h"
-#include "Components/ComboBoxKey.h"
+#include "Components/ComboBoxString.h"
 #include "Components/Slider.h"
 #include "Engine/UserInterfaceSettings.h"
 #include "HUD/MyCommonButton.h"
@@ -16,6 +16,7 @@
 void UUW_Settings::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
+    UE_LOG(LogMyGame, Warning, TEXT("UUW_Settings: NativeOnInitialized"))
     Resolutions.Add("1280x720" , {1280, 720  });
     Resolutions.Add("1024x768" , {1024, 768  });
     Resolutions.Add("1360x768" , {1360, 768  });
@@ -35,17 +36,17 @@ void UUW_Settings::NativeOnInitialized()
         
     for(const auto Res : Resolutions)
     {
-        ComboResolution->AddOption(Res.Key);
+        ComboBoxResolution->AddOption(Res.Key.ToString());
     }
     auto Res = GEngine->GetGameUserSettings()->GetScreenResolution();
     const FName* Name = Resolutions.FindKey(Res);
     if(Name)
     {
-        ComboResolution->SetSelectedOption(*Name);
+        ComboBoxResolution->SetSelectedOption(Name->ToString());
     }
     else
     {
-        ComboResolution->SetSelectedOption("custom");
+        ComboBoxResolution->SetSelectedOption("custom");
     }
     
     BtnBack->OnClicked().AddLambda([this] ()
@@ -65,12 +66,14 @@ void UUW_Settings::NativeOnInitialized()
         );
     SliderDPIScale->SetValue(GetMutableDefault<UUserInterfaceSettings>()->ApplicationScale);
 
-    ComboResolution->OnGenerateItemWidget.BindDynamic(this, &UUW_Settings::HandleComboResolutionItemGenerate);
-    ComboResolution->OnGenerateContentWidget.BindDynamic(this, &UUW_Settings::HandleComboResolutionGenerate);
-    ComboResolution->OnSelectionChanged.AddUniqueDynamic(this, &UUW_Settings::HandleResolutionSelect);
-    //SliderDPIScale->OnAnalogCapture.AddUniqueDynamic(this, &UUW_Settings::HandleDPIScaleValue);
+    //ComboResolution->OnGenerateItemWidget.BindDynamic(this, &UUW_Settings::HandleComboResolutionItemGenerate);
+    //ComboResolution->OnGenerateContentWidget.BindDynamic(this, &UUW_Settings::HandleComboResolutionGenerate);
+    
+    ComboBoxResolution->OnSelectionChanged.AddUniqueDynamic(this, &UUW_Settings::HandleResolutionSelect);
     SliderDPIScale->OnValueChanged.AddUniqueDynamic(this, &UUW_Settings::HandleDPIScaleValue);
     CheckFullscreen->OnCheckStateChanged.AddUniqueDynamic(this, &UUW_Settings::HandleCheckFullscreen);
+
+    BtnApply->SetIsEnabled(GEngine->GetGameUserSettings()->IsDirty());
 }
 
 void UUW_Settings::NativeConstruct()
@@ -78,10 +81,10 @@ void UUW_Settings::NativeConstruct()
     Super::NativeConstruct();
 }
 
-void UUW_Settings::HandleResolutionSelect(FName Item, ESelectInfo::Type)
+void UUW_Settings::HandleResolutionSelect(FString Item, ESelectInfo::Type)
 {
     auto* Settings = GEngine->GetGameUserSettings();
-    Settings->SetScreenResolution(Resolutions[Item]);
+    Settings->SetScreenResolution(Resolutions[FName(*Item)]);
     BtnApply->SetIsEnabled(Settings->IsDirty());
 }
 
@@ -121,6 +124,7 @@ UWidget* UUW_Settings::HandleComboResolutionItemGenerate(FName Item)
 void UUW_Settings::HandleCheckFullscreen(bool bChecked)
 {
     GEngine->GameUserSettings->SetFullscreenMode(bChecked ? EWindowMode::Fullscreen : EWindowMode::Windowed);
+    BtnApply->SetIsEnabled(GEngine->GameUserSettings->IsDirty());
 }
 
 void UUW_Settings::GoBack()

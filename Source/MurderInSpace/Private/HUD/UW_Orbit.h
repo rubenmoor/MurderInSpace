@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -58,4 +56,6 @@ protected:
 		, ESlateDrawEffect DrawEffect = ESlateDrawEffect::None
 		, const FLinearColor& Tint = FLinearColor::White
 		);
+private:
+	void DrawOrbit(const FGeometry& AllotedGeometry, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle) const;
 };

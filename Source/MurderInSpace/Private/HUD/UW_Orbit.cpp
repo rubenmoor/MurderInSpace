@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "HUD/UW_Orbit.h"
 
 #if WITH_EDITOR
@@ -82,6 +79,63 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
             );
     }
 
+    //DrawOrbit(AllottedGeometry, OutDrawElements, LayerId, InWidgetStyle);
+    
+    const int32 LayerIdNew = LayerId + 1;
+    return Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerIdNew, InWidgetStyle,
+                              bParentEnabled);
+}
+
+void UUW_Orbit::MakeCircle
+    ( FSlateWindowElementList& ElementList
+    , uint32 LayerId
+    , const FPaintGeometry& PG
+    , const FVector2D& Center
+    , double Radius
+    , float Thickness
+    , ESlateDrawEffect DrawEffect
+    , const FLinearColor& Tint
+    )
+{
+    constexpr double C = UMyState::SplineToCircle;
+    const FVector2D P1 = Center + FVector2D(-Radius, 0);
+    const FVector2D T1 = FVector2D(0, -Radius) * C;
+    const FVector2D P2 = Center + FVector2D(0, -Radius);
+    const FVector2D T2 = FVector2D(Radius, 0) * C;
+    const FVector2D P3 = Center + FVector2D(Radius, 0);
+    const FVector2D T3 = FVector2D(0, Radius) * C;
+    const FVector2D P4 = Center + FVector2D(0, Radius);
+    const FVector2D T4 = FVector2D(-Radius, 0) * C;
+    
+    FSlateDrawElement::MakeSpline(ElementList, LayerId, PG, P1, T1, P2, T2, Thickness, DrawEffect, Tint);
+    FSlateDrawElement::MakeSpline(ElementList, LayerId, PG, P2, T2, P3, T3, Thickness, DrawEffect, Tint);
+    FSlateDrawElement::MakeSpline(ElementList, LayerId, PG, P3, T3, P4, T4, Thickness, DrawEffect, Tint);
+    FSlateDrawElement::MakeSpline(ElementList, LayerId, PG, P4, T4, P1, T1, Thickness, DrawEffect, Tint);
+}
+
+void UUW_Orbit::MakeCircularFrame(FSlateWindowElementList& ElementList, uint32 LayerId, const FPaintGeometry& PG,
+    const FVector2D& Center, double Radius, double AngularWidth, float Thickness, ESlateDrawEffect DrawEffect, const FLinearColor& Tint)
+{
+    constexpr double C = UMyState::SplineToCircle;
+    for(double Alpha = 45; Alpha < 360; Alpha += 90)
+    {
+        const double AlphaStart = Alpha - AngularWidth / 2.;
+        const double AlphaEnd   = Alpha + AngularWidth / 2.;
+        const FVector2D Start  = Center + FVector2D(Radius, 0).GetRotated(AlphaStart);
+        const FVector2D End    = Center + FVector2D(Radius, 0).GetRotated(AlphaEnd);
+        const FVector2D StartT = FVector2D(0, Radius).GetRotated(AlphaStart) * C * AngularWidth / 90.;
+        const FVector2D EndT   = FVector2D(0, Radius).GetRotated(AlphaEnd  ) * C * AngularWidth / 90.;
+        FSlateDrawElement::MakeSpline(ElementList, LayerId, PG, Start, StartT, End, EndT, Thickness, DrawEffect, Tint);
+    }
+}
+
+void UUW_Orbit::DrawOrbit(const FGeometry& AllottedGeometry, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle) const
+{
+    auto* PC = GetOwningPlayer();
+    const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
+    const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry();
+	const auto FGColor = InWidgetStyle.GetForegroundColor();
+    
     TArray<FInterpCurvePoint<FVector>> Points;
     USplineComponent* Spline = nullptr;
 #if WITH_EDITOR
@@ -349,52 +403,5 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
                 , FGColor
                 );
         }
-    }
-    
-    const int32 LayerIdNew = LayerId + 1;
-    return Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerIdNew, InWidgetStyle,
-                              bParentEnabled);
-}
-
-void UUW_Orbit::MakeCircle
-    ( FSlateWindowElementList& ElementList
-    , uint32 LayerId
-    , const FPaintGeometry& PG
-    , const FVector2D& Center
-    , double Radius
-    , float Thickness
-    , ESlateDrawEffect DrawEffect
-    , const FLinearColor& Tint
-    )
-{
-    constexpr double C = UMyState::SplineToCircle;
-    const FVector2D P1 = Center + FVector2D(-Radius, 0);
-    const FVector2D T1 = FVector2D(0, -Radius) * C;
-    const FVector2D P2 = Center + FVector2D(0, -Radius);
-    const FVector2D T2 = FVector2D(Radius, 0) * C;
-    const FVector2D P3 = Center + FVector2D(Radius, 0);
-    const FVector2D T3 = FVector2D(0, Radius) * C;
-    const FVector2D P4 = Center + FVector2D(0, Radius);
-    const FVector2D T4 = FVector2D(-Radius, 0) * C;
-    
-    FSlateDrawElement::MakeSpline(ElementList, LayerId, PG, P1, T1, P2, T2, Thickness, DrawEffect, Tint);
-    FSlateDrawElement::MakeSpline(ElementList, LayerId, PG, P2, T2, P3, T3, Thickness, DrawEffect, Tint);
-    FSlateDrawElement::MakeSpline(ElementList, LayerId, PG, P3, T3, P4, T4, Thickness, DrawEffect, Tint);
-    FSlateDrawElement::MakeSpline(ElementList, LayerId, PG, P4, T4, P1, T1, Thickness, DrawEffect, Tint);
-}
-
-void UUW_Orbit::MakeCircularFrame(FSlateWindowElementList& ElementList, uint32 LayerId, const FPaintGeometry& PG,
-    const FVector2D& Center, double Radius, double AngularWidth, float Thickness, ESlateDrawEffect DrawEffect, const FLinearColor& Tint)
-{
-    constexpr double C = UMyState::SplineToCircle;
-    for(double Alpha = 45; Alpha < 360; Alpha += 90)
-    {
-        const double AlphaStart = Alpha - AngularWidth / 2.;
-        const double AlphaEnd   = Alpha + AngularWidth / 2.;
-        const FVector2D Start  = Center + FVector2D(Radius, 0).GetRotated(AlphaStart);
-        const FVector2D End    = Center + FVector2D(Radius, 0).GetRotated(AlphaEnd);
-        const FVector2D StartT = FVector2D(0, Radius).GetRotated(AlphaStart) * C * AngularWidth / 90.;
-        const FVector2D EndT   = FVector2D(0, Radius).GetRotated(AlphaEnd  ) * C * AngularWidth / 90.;
-        FSlateDrawElement::MakeSpline(ElementList, LayerId, PG, Start, StartT, End, EndT, Thickness, DrawEffect, Tint);
     }
 }

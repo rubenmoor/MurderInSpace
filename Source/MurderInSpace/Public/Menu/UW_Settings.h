@@ -9,7 +9,7 @@ class UCheckBox;
 class UMyCommonButton;
 class UCommonTextBlock;
 class USlider;
-class UComboBoxKey;
+class UComboBoxString;
 
 /**
  * 
@@ -27,7 +27,7 @@ protected:
     // widgets
     
     UPROPERTY(meta=(BindWidget))
-    TObjectPtr<UComboBoxKey> ComboResolution;
+    TObjectPtr<UComboBoxString> ComboBoxResolution;
 
     UPROPERTY(meta=(BindWidget))
     TObjectPtr<UCheckBox> CheckFullscreen;
@@ -53,7 +53,7 @@ private:
     // event handlers
 
     UFUNCTION()
-    void HandleResolutionSelect(FName Item, ESelectInfo::Type _);
+    void HandleResolutionSelect(FString Item, ESelectInfo::Type _);
     
     UFUNCTION()
     void HandleDPIScaleValue(float Value);
