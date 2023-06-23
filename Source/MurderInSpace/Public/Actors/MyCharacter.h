@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "MyPawn_SkeletalMesh.h"
 #include "Components/SceneCaptureComponent2D.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "Kismet/KismetRenderingLibrary.h"
 #include "MyCharacter.generated.h"
 
 class UCameraComponent;
@@ -47,10 +49,27 @@ public:
     UFUNCTION(BlueprintPure)
     FLinearColor GetTempSplineMeshColor() const { return TempSplineMeshColor; }
 
-    UFUNCTION()
+    UFUNCTION(BlueprintCallable)
     void AddComponentToSceneCapture(UPrimitiveComponent* Component) const
     {
         SceneCapture->ShowOnlyComponent(Component);
+    }
+
+    UFUNCTION(BlueprintCallable)
+    UTextureRenderTarget2D* SetNewRenderTarget(int32 Width, int32 Height)
+    {
+	    return SceneCapture->TextureTarget = UKismetRenderingLibrary::CreateRenderTarget2D
+            ( this
+            , Width
+            , Height
+            , RTF_RGBA8
+            );
+    }
+
+    UFUNCTION(BlueprintCallable)
+    void ClearRenderTarget()
+    {
+        SceneCapture->TextureTarget = nullptr;
     }
     
     // IHasMesh
@@ -60,6 +79,7 @@ protected:
 
     // event handlers
     virtual void OnConstruction(const FTransform& Transform) override;
+    virtual void BeginPlay() override;
 
 #if WITH_EDITOR
     virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;

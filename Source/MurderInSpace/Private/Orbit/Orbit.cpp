@@ -881,7 +881,7 @@ void AOrbit::SpawnSplineMesh
         // IMPORTANT
         // disabled for debugging purposes
         // if everything works fine, the rendered spline mesh should look identical to its scene capture version
-        //SplineMesh->SetVisibleInSceneCaptureOnly(true);
+        SplineMesh->SetVisibleInSceneCaptureOnly(true);
         
         for(auto Iter = GetWorld()->GetPlayerControllerIterator(); Iter; ++Iter)
         {

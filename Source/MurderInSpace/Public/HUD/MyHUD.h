@@ -45,6 +45,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DistanceF1Radius = 32.;
 
+	UFUNCTION(BlueprintCallable)
+	void SetOrbitMaterial(UTextureRenderTarget2D* InRenderTarget);
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUW_HUD> WidgetHUDClass;
@@ -65,7 +68,13 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="UMG Widgets")
 	TObjectPtr<UUW_MenuInGame> WidgetMenuInGame;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit Visualization")
+	TObjectPtr<UMaterial> MOrbit;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> MIOrbit;
+
 	// event handlers
 
 	virtual void BeginPlay() override;

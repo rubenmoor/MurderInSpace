@@ -7,8 +7,12 @@
 #include "Actors/MyPlayerStart.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
+#include "GameFramework/GameUserSettings.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "HUD/MyHUD.h"
+#include "Kismet/KismetRenderingLibrary.h"
 #include "Lib/FunctionLib.h"
+#include "Modes/MyPlayerController.h"
 
 AMyCharacter::AMyCharacter()
 {
@@ -131,6 +135,14 @@ void AMyCharacter::OnConstruction(const FTransform& Transform)
     {
 		OrbitSetup(this);
     }
+}
+
+void AMyCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	auto Res = GEngine->GetGameUserSettings()->GetScreenResolution();
+    auto* RenderTarget = SetNewRenderTarget(Res.X, Res.Y);
+	GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->SetOrbitMaterial(RenderTarget);
 }
 
 #if WITH_EDITOR

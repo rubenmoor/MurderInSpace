@@ -12,6 +12,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "HUD/UW_HUD.h"
 #include "HUD/UW_MenuInGame.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Menu/UW_MenuBackground.h"
 #include "Menu/UW_Settings.h"
 #include "Modes/MyPlayerController.h"
@@ -59,6 +60,19 @@ void AMyHUD::SetReadyFlags(EHUDReady ReadyFlags)
 			, !(HUDReady & EHUDReady::PawnOrbitReady    ) ? TEXT("waiting") : TEXT("ready")
 			)
 	}
+}
+
+void AMyHUD::SetOrbitMaterial(UTextureRenderTarget2D* InRenderTarget)
+{
+	MIOrbit = UMaterialInstanceDynamic::Create(MOrbit, this);
+	MIOrbit->SetTextureParameterValue("RenderTarget", InRenderTarget);
+	WidgetHUD->ImgOrbit->SetBrushFromMaterial(MIOrbit);
+	const FSlateBrush SlateBrush = WidgetHUD->ImgOrbit->Brush;
+	UE_LOG(LogMyGame, Warning, TEXT("%s"), *SlateBrush.GetResourceName().ToString())
+	
+	//FSlateBrush SlateBrush;
+	//SlateBrush.DrawAs = ESlateBrushDrawType::Image;
+	//WidgetHUD->ImgOrbit->SetBrush(SlateBrush);
 }
 
 void AMyHUD::BeginPlay()

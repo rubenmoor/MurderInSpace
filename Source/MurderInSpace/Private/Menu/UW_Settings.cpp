@@ -1,5 +1,6 @@
 #include "Menu/UW_Settings.h"
 
+#include "Actors/MyCharacter.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/CheckBox.h"
 #include "Components/ComboBoxString.h"
@@ -16,7 +17,6 @@
 void UUW_Settings::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
-    UE_LOG(LogMyGame, Warning, TEXT("UUW_Settings: NativeOnInitialized"))
     Resolutions.Add("1280x720" , {1280, 720  });
     Resolutions.Add("1024x768" , {1024, 768  });
     Resolutions.Add("1360x768" , {1360, 768  });
@@ -33,7 +33,7 @@ void UUW_Settings::NativeOnInitialized()
     Resolutions.Add("3440x1440", {3440, 1440 });
     Resolutions.Add("3840x2160", {3840, 2160 });
     Resolutions.Add("custom"   , { 0  , 0    });
-        
+
     for(const auto Res : Resolutions)
     {
         ComboBoxResolution->AddOption(Res.Key.ToString());
@@ -56,7 +56,17 @@ void UUW_Settings::NativeOnInitialized()
 
     BtnApply->OnClicked().AddLambda([this] ()
     {
-        GEngine->GetGameUserSettings()->ApplyResolutionSettings(false);
+        auto* Settings = GEngine->GetGameUserSettings();
+        auto* MyCharacter = GetPlayerContext().GetPawn<AMyCharacter>();
+        
+        MyCharacter->ClearRenderTarget();
+        Settings->ApplyResolutionSettings(false);
+        
+        auto Res = Settings->GetScreenResolution();
+        auto* RenderTarget = MyCharacter->SetNewRenderTarget(Res.X, Res.Y);
+
+        GetPlayerContext().GetHUD<AMyHUD>()->SetOrbitMaterial(RenderTarget);
+        
         GoBack();
     });
     CheckFullscreen->SetCheckedState
