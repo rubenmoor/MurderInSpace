@@ -8,6 +8,13 @@
 
 struct FInitialOrbitParams;
 
+UENUM()
+enum class EMotionEquation : uint8
+{
+      FollowSpline
+    , Newtonian
+};
+
 UENUM(meta=(Bitflags))
 enum class EOrbitReady : uint8
 {
@@ -407,4 +414,7 @@ protected:
     void SetReadyFlags(EOrbitReady ReadyFlags);
     
     EOrbitReady OrbitReady = EOrbitReady::None;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    EMotionEquation MotionEquation = EMotionEquation::Newtonian;
 };

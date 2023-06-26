@@ -24,6 +24,7 @@ void AMyActor_RealtimeMesh::Destroyed()
     {
         RP_Orbit->Destroy();
     }
+    UE_LOG(LogMyGame, Warning, TEXT("%s: Destroyed()"), *GetFullName())
 }
 
 void AMyActor_RealtimeMesh::OnConstruction(const FTransform& Transform)

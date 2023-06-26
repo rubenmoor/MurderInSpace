@@ -223,9 +223,27 @@ void AOrbit::Tick(float DeltaTime)
     const FVector VecRKepler = GetVecRKepler(Physics);
 
     FVector NewVecRKepler;
-    if(RKepler < 100.)
+    if(RKepler < Physics.KillRadius)
     {
-        // newtonian motion isn't stable here because of the 1/r potential
+        RP_Body->Destroy();
+        return;
+    }
+    else if(RKepler < 200.)
+    {
+        // newtonian motion shows discrepancy with the visualized orbit, thus rather follow the spline
+        MotionEquation = EMotionEquation::FollowSpline;
+    }
+    else if(RKepler > 250.)
+    {
+        // safely switch to newtonian motion; without the overlap, a body can get caught in between the two
+        MotionEquation = EMotionEquation::Newtonian;
+    }
+
+    switch(MotionEquation)
+    {
+    using enum EMotionEquation;
+    case FollowSpline:
+        
         NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(
             Spline->GetDistanceAlongSplineAtSplineInputKey(
                 Spline->FindInputKeyClosestToWorldLocation(
@@ -234,17 +252,14 @@ void AOrbit::Tick(float DeltaTime)
                 ) + ScalarVelocity * DeltaTime
             , ESplineCoordinateSpace::World
             );
-        VecVelocity =UFunctionLib::VecVelocity
+        VecVelocity = UFunctionLib::VecVelocity
             ( Params.VecE
             , NewVecRKepler
             , Params.VecH
             , Physics.Alpha
             , (NewVecRKepler - VecRKepler) / DeltaTime // not accurate
             );
-    }
-    else
-    {
-        // newtonian motion
+    case Newtonian:
         NewVecRKepler = VecRKepler + VecVelocity * DeltaTime
             + pow(DeltaTime, 2) * Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetSafeNormal();
         VecVelocity = (NewVecRKepler - VecRKepler) / DeltaTime;
