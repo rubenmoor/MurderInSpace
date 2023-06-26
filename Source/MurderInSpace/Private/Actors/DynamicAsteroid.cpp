@@ -5,6 +5,7 @@
 #include "RealtimeMeshLibrary.h"
 #include "RealtimeMeshSimple.h"
 #include "FastNoiseWrapper.h"
+#include "ProceduralMeshComponent.h"
 #include "Actors/AsteroidBelt.h"
 #include "Net/UnrealNetwork.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
