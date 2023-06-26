@@ -60,6 +60,9 @@ struct FPhysics
 	// distance to black hole: any orbiting thing closer than the `KillRadius` immediately gets destroyed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double KillRadius = 100.;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	double DamageRadius = 1000.;
 };
 
 /*

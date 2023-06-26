@@ -22,6 +22,10 @@ public:
 	bool bEnableGyration = true;
 
 	static AMyGameState* Get(const UWorld* World) { return World->GetGameState<AMyGameState>(); }
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
+	TObjectPtr<AActor> BlackHole;
+	
 protected:
 
 	// game world parameters to be edited in blueprint and to be used in game
