@@ -7,9 +7,8 @@
 #include "GameFramework/GameState.h"
 #include "MyGameState.generated.h"
 
-/**
- * 
- */
+class ABlackhole;
+
 UCLASS()
 class MURDERINSPACE_API AMyGameState : public AGameState
 {
@@ -23,10 +22,15 @@ public:
 
 	static AMyGameState* Get(const UWorld* World) { return World->GetGameState<AMyGameState>(); }
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
-	TObjectPtr<AActor> BlackHole;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	double MinimumDamage = 1.;
+
+	UFUNCTION(BlueprintPure)
+	ABlackhole* GetBlackhole() const;
+    
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TSubclassOf<AActor> BlackholeClass;
 
 	// game world parameters to be edited in blueprint and to be used in game
 	UPROPERTY(ReplicatedUsing=OnRep_Physics, EditAnywhere, BlueprintReadWrite)
@@ -37,7 +41,7 @@ protected:
 
 	// event handlers
 
-	virtual void PostInitializeComponents() override;
+	virtual void BeginPlay() override;
 
 	#if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;

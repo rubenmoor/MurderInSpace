@@ -3,6 +3,7 @@
 #include "NiagaraComponent.h"
 #include "Actors/DynamicAsteroid.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Modes/MyGameInstance.h"
 
@@ -196,7 +197,7 @@ void AAsteroidBelt::BuildAsteroids()
         auto* Asteroid= World->SpawnActor<ADynamicAsteroid>
             ( AsteroidType.DynamicAsteroidClass
             , VecLocation
-            , FRotationMatrix::MakeFromX(RandomStream.VRand()).Rotator()
+            , UKismetMathLibrary::RandomRotator(true)
             , SpawnParameters
             );
         Asteroids.Add(Asteroid);

@@ -1,7 +1,6 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
+#include <functional>
 #include <random>
 
 #include "CoreMinimal.h"
@@ -11,6 +10,7 @@
 
 #include "MyState.generated.h"
 
+class ABlackhole;
 DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, All, All);
 
 /**
@@ -57,12 +57,6 @@ struct FPhysics
 	UPROPERTY(EditAnywhere, BlueprintReadwrite)
 	double Alpha = 0.f;
 
-	// distance to black hole: any orbiting thing closer than the `KillRadius` immediately gets destroyed
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	double KillRadius = 100.;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	double DamageRadius = 1000.;
 };
 
 /*
@@ -187,7 +181,7 @@ public:
      * @brief constant factor to construct tangents for spline points
      */
     static constexpr double SplineToCircle = 1.6568542494923806; // 4. * (sqrt(2) - 1.);
-    
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 

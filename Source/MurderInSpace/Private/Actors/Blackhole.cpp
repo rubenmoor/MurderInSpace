@@ -2,6 +2,8 @@
 
 #include "NiagaraComponent.h"
 #include "Components/PointLightComponent.h"
+#include "Engine/DamageEvents.h"
+#include "Modes/MyGameState.h"
 
 ABlackhole::ABlackhole()
 {
@@ -32,4 +34,24 @@ ABlackhole::ABlackhole()
 
 	PointLight = CreateDefaultSubobject<UPointLightComponent>("PointLight");
 	PointLight->SetupAttachment(Root);
+
+	// this offset should be the negative damage value at `TideForceDamageRadius`, such that damage start at zero
+	TFYOffset = -DamageCurve(TideForceDamageRadius);
+}
+
+bool ABlackhole::ApplyTideForceDamage(AActor* Actor, double RKepler)
+{
+	if(RKepler > TideForceDamageRadius)
+	{
+		return true;
+	}
+	
+	const double Damage = DamageCurve(RKepler) + TFYOffset;
+	Actor->TakeDamage(Damage, FDamageEvent(), nullptr, this);
+	return IsValid(Actor);
+}
+
+double ABlackhole::DamageCurve(double R) const
+{
+	return TFVScale / FMath::Sqrt(FMath::Pow(R*TFHScale, 2.) + 1.);
 }

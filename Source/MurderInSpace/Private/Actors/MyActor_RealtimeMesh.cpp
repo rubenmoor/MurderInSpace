@@ -3,6 +3,7 @@
 #include "MyComponents/GyrationComponent.h"
 #include "MyComponents/MyCollisionComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Orbit/MyDebris.h"
 
 AMyActor_RealtimeMesh::AMyActor_RealtimeMesh()
 {
@@ -24,7 +25,6 @@ void AMyActor_RealtimeMesh::Destroyed()
     {
         RP_Orbit->Destroy();
     }
-    UE_LOG(LogMyGame, Warning, TEXT("%s: Destroyed()"), *GetFullName())
 }
 
 void AMyActor_RealtimeMesh::OnConstruction(const FTransform& Transform)
@@ -45,6 +45,30 @@ void AMyActor_RealtimeMesh::OnConstruction(const FTransform& Transform)
     {
         OrbitSetup(this);
     }
+}
+
+float AMyActor_RealtimeMesh::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
+    AController* EventInstigator, AActor* DamageCauser)
+{
+    const float EffectiveDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+    StructurePointsCurrent -= EffectiveDamage;
+    if(StructurePointsCurrent <= 0.)
+    {
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.CustomPreSpawnInitalization = [this] (AActor* NewActor)
+        {
+            auto Debris = Cast<AMyDebris>(NewActor);
+            double Size = GetBounds().SphereRadius;
+            Debris->SetLifetime(3.);
+            Debris->SetRadius(Size);
+            Debris->SetCoMVelocity(GetOrbit()->GetVecVelocity());
+            Debris->SetNumParticles(FMath::Max(10, pow(Size / 20., 2.)));
+            Debris->SetAverageScale(Size);
+        };
+        GetWorld()->SpawnActor<AMyDebris>(DebrisClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
+        Destroy();
+    }
+    return EffectiveDamage;
 }
 
 #if WITH_EDITOR
@@ -79,4 +103,3 @@ void AMyActor_RealtimeMesh::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME_CONDITION(AMyActor_RealtimeMesh, RP_Orbit, COND_InitialOnly)
 }
-

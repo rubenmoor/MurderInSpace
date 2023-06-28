@@ -43,9 +43,10 @@ public:
 	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
 
 protected:
-	// event handlers
+	// event handler overrides
 	virtual void Destroyed() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 #if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 #endif
@@ -87,4 +88,19 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Orbit")
 	FInitialOrbitParams InitialOrbitParams;
+
+	// destruction animation
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Damage")
+	TSubclassOf<AActor> DebrisClass;
+
+	// damage
+
+	static double constexpr StructurePointsMaxInitial = 100.;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Damage")
+	double StructurePointsMax = StructurePointsMaxInitial;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Damage")
+	double StructurePointsCurrent = StructurePointsMaxInitial;
 };

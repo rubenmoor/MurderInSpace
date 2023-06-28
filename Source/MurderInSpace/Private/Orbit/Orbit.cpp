@@ -2,9 +2,9 @@
 
 #include <numeric>
 
+#include "Actors/Blackhole.h"
 #include "Actors/MyCharacter.h"
 #include "Components/SplineMeshComponent.h"
-#include "Engine/DamageEvents.h"
 #include "HUD/MyHUD.h"
 #include "Lib/FunctionLib.h"
 #include "Logging/LogMacros.h"
@@ -222,9 +222,10 @@ void AOrbit::Tick(float DeltaTime)
     auto* MyState = GEngine->GetEngineSubsystem<UMyState>();
     const auto Physics = MyState->GetPhysics(GS);
     const FVector VecRKepler = GetVecRKepler(Physics);
+    auto* Blackhole = GS->GetBlackhole();
 
     FVector NewVecRKepler;
-    if(RKepler < Physics.KillRadius)
+    if(RKepler < Blackhole->GetKillRadius())
     {
         RP_Body->Destroy();
         return;
@@ -262,13 +263,13 @@ void AOrbit::Tick(float DeltaTime)
             );
     case Newtonian:
         NewVecRKepler = VecRKepler + VecVelocity * DeltaTime
-            + pow(DeltaTime, 2) * Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetSafeNormal();
+            + pow(DeltaTime, 2) * Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetUnsafeNormal();
         VecVelocity = (NewVecRKepler - VecRKepler) / DeltaTime;
     }
 
-    if(RKepler < Physics.DamageRadius)
+    if(!Blackhole->ApplyTideForceDamage(RP_Body, RKepler))
     {
-        RP_Body->TakeDamage(1. / RKepler - 1 / Physics.DamageRadius, FDamageEvent(), nullptr, GS->BlackHole);
+        return;
     }
     
     ScalarVelocity = VecVelocity.Length();
