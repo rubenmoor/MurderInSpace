@@ -19,8 +19,6 @@ ADynamicAsteroid::ADynamicAsteroid()
 void ADynamicAsteroid::GenerateAsteroid()
 {
     RandomStream.Reset();
-    UE_LOG(LogMyGame, Warning, TEXT("%s: GenerateAsteroid with with current seed %d")
-        , *GetFullName(), RandomStream.GetCurrentSeed())
     MeshData = FRealtimeMeshSimpleMeshData();
     URealtimeMeshBlueprintFunctionLibrary::AppendCapsuleMesh
         ( MeshData

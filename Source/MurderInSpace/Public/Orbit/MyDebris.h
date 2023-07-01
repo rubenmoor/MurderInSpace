@@ -25,14 +25,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UInstancedStaticMeshComponent> ISMComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UStaticMesh> Mesh;
-
 	double Radius;
 
 	// life-time in seconds; when age reaches lifetime, the particle dies
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	double Lifetime = 3.;
+	double Lifetime = 1.;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	double TraversalAttenuation = 0.1;
@@ -42,6 +39,9 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	double ScaleFactor = 1.;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	double ExplosionFactor = 2.;
 	
 	double AverageScale;
 	double Age = 0.;

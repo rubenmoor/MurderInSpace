@@ -32,9 +32,9 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	}
 	if(HitResult.bStartPenetrating)
 	{
-		UE_LOG(LogMyGame, Warning, TEXT("%s: bStartPenetrating, hit due to rotation")
-			, *GetFullName()
-			)
+		//UE_LOG(LogMyGame, Warning, TEXT("%s: bStartPenetrating, hit due to rotation")
+		//	, *GetFullName()
+		//	)
 		// TODO: deal with hit results due to rotation here
 		const FVector OldR = PrimitiveComponent->GetComponentLocation();
 		PrimitiveComponent->SetWorldLocation(OldR + HitResult.Normal * HitResult.PenetrationDepth * 1.1);

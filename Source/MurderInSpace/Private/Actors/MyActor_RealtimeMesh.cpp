@@ -59,13 +59,13 @@ float AMyActor_RealtimeMesh::TakeDamage(float DamageAmount, FDamageEvent const& 
         {
             auto Debris = Cast<AMyDebris>(NewActor);
             double Size = GetBounds().SphereRadius;
-            Debris->SetLifetime(3.);
             Debris->SetRadius(Size);
             Debris->SetCoMVelocity(GetOrbit()->GetVecVelocity());
             Debris->SetNumParticles(FMath::Max(10, pow(Size / 20., 2.)));
-            Debris->SetAverageScale(Size);
+            Debris->SetAverageScale(Size / 4.);
         };
-        GetWorld()->SpawnActor<AMyDebris>(DebrisClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
+        auto Debris = GetWorld()->SpawnActor<AMyDebris>(DebrisClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
+        UE_LOG(LogMyGame, Warning, TEXT("%s: destroyed, debris spawned: %s"), *GetFullName(), *Debris->GetFullName())
         Destroy();
     }
     return EffectiveDamage;

@@ -12,7 +12,8 @@ UENUM()
 enum class EMotionEquation : uint8
 {
       FollowSpline
-    , Newtonian
+    , NewtonianLocation
+    , NewtonianVelocity
 };
 
 UENUM(meta=(Bitflags))
@@ -121,8 +122,11 @@ struct FControlParameters
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, DisplayName="P = (H * H)/MU")
     double P = 0.;
     
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly )
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     double Energy = 0.;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    double DistanceToSpline = 0.;
 };
 
 /*
@@ -343,10 +347,6 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     double RKepler;
 
-    // debugging: monitor the closest distance of the body to its orbit, while updating
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
-    double DistanceToOrbit = 0.;
-    
     // the bigger this value, the earlier an eccentricity approaching 1 will be interpreted as parabola orbit
     // which results in smoother orbits
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
@@ -411,10 +411,38 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void HandleClick(AActor* Actor, FKey Button);
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+    float SplineInputKey;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
+    float DistanceToSplineAtUpdate;
+
     void SetReadyFlags(EOrbitReady ReadyFlags);
     
     EOrbitReady OrbitReady = EOrbitReady::None;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-    EMotionEquation MotionEquation = EMotionEquation::Newtonian;
+    // at a distance closer to this, the motion equation is set to "follow spline", e.g. movement along spline
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Kepler")
+    double FollowSplineRadius = 200.;
+    
+    // at a distance farther than this, the motion equation is set to newtonian
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Kepler")
+    double NewtonianMotionRadius = 250.;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+    EMotionEquation MotionEquation = EMotionEquation::FollowSpline;
+
+    // if true, the above Radii are ignored
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+    bool bFixMotionEquation = true;
+
+    // minimal velocity mechanism
+    // when we move slowly, spline distance is too inaccurate and the body effectively stops
+    // thus we define a minimum velocity to always move
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
+    bool bAtMinimalVelocity = false;
+
+    // the minimal velocity: but in terms of spline distance displaced per frame
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+    float MinimalDisplacement = 1.;
 };

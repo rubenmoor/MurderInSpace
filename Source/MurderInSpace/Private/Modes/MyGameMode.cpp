@@ -70,15 +70,12 @@ AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	
 	const FVector Loc = StartActor->GetActorLocation();
 	UE_LOG
-		( LogNet
+		( LogMyGame
 		, Display
-		, TEXT("%s: Player %d gets Start %d: (%.0f, %.0f, %.0f)")
-		, *GetFullName()
+		, TEXT("Player %d gets Start %d: %s")
 		, NumPlayers
 		, NumPlayers
-		, Loc.X
-		, Loc.Y
-		, Loc.Z
+		, *StartActor->GetName()
 		)
 	Cast<AMyPlayerController>(Player)->MyPlayerStart = PlayerStart;
 	return StartActor;

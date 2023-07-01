@@ -266,6 +266,9 @@ void AMyPlayerController::AcknowledgePossession(APawn* P)
 {
     Super::AcknowledgePossession(P);
 
+    auto* GI = GetGameInstance<UMyGameInstance>();
+    auto* MyState = UMyState::Get();
+    auto InstanceUI = MyState->GetInstanceUI(GI);
     AMyCharacter* MyCharacter = Cast<AMyCharacter>(P);
     MyCharacter->UpdateSpringArm(CameraPosition);
     MyCharacter->ShowEffects();

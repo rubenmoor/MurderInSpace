@@ -230,41 +230,64 @@ void AOrbit::Tick(float DeltaTime)
         RP_Body->Destroy();
         return;
     }
-    else if(RKepler < 200.)
+    
+    if(!bFixMotionEquation)
     {
-        // newtonian motion shows discrepancy with the visualized orbit, thus rather follow the spline
-        MotionEquation = EMotionEquation::FollowSpline;
-    }
-    else if(RKepler > 250.)
-    {
-        // safely switch to newtonian motion; without the overlap, a body can get caught in between the two
-        MotionEquation = EMotionEquation::Newtonian;
+        if(RKepler < 200.)
+        {
+           
+            // newtonian motion shows discrepancy with the visualized orbit, thus rather follow the spline
+            MotionEquation = EMotionEquation::FollowSpline;
+        } 
+        else if(RKepler > 250.)
+        {
+            // safely switch to newtonian motion; without the overlap, a body can get caught in between the two
+            MotionEquation = EMotionEquation::NewtonianLocation;
+        }
     }
 
     switch(MotionEquation)
     {
     using enum EMotionEquation;
     case FollowSpline:
-        
-        NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(
-            Spline->GetDistanceAlongSplineAtSplineInputKey(
-                Spline->FindInputKeyClosestToWorldLocation(
-                    VecRKepler           
-                    )
-                ) + ScalarVelocity * DeltaTime
-            , ESplineCoordinateSpace::World
-            );
-        VecVelocity = UFunctionLib::VecVelocity
-            ( Params.VecE
-            , NewVecRKepler
-            , Params.VecH
-            , Physics.Alpha
-            , (NewVecRKepler - VecRKepler) / DeltaTime // not accurate
-            );
-    case Newtonian:
+        {
+            const float OldDistance = Spline->GetDistanceAlongSplineAtSplineInputKey(SplineInputKey);
+            float NewDistance = FMath::Fmod(
+                 OldDistance + ScalarVelocity * DeltaTime
+                , Spline->GetSplineLength()
+                );
+            const float DeltaDistance = NewDistance - OldDistance;
+            if(abs(DeltaDistance) < MinimalDisplacement)
+            {
+                bAtMinimalVelocity = true;
+                NewDistance = OldDistance + FMath::Sign(DeltaDistance) * MinimalDisplacement;
+            }
+            else
+            {
+                bAtMinimalVelocity = false;
+            }
+            SplineInputKey = Spline->GetInputKeyValueAtDistanceAlongSpline(NewDistance);
+            NewVecRKepler = Spline->GetLocationAtSplineInputKey(SplineInputKey, ESplineCoordinateSpace::World);
+            VecVelocity = UFunctionLib::VecVelocity
+                ( Params.VecE
+                , NewVecRKepler
+                , Params.VecH
+                , Physics.Alpha
+                , (NewVecRKepler - VecRKepler) / DeltaTime // inaccurate default value
+                );
+        }
+        break;
+    case NewtonianLocation:
         NewVecRKepler = VecRKepler + VecVelocity * DeltaTime
-            + pow(DeltaTime, 2) * Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetUnsafeNormal();
+            + 0.5 * pow(DeltaTime, 2) * Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetUnsafeNormal();
         VecVelocity = (NewVecRKepler - VecRKepler) / DeltaTime;
+        break;
+    case NewtonianVelocity:
+        check(!VecVelocity.ContainsNaN())
+        VecVelocity += Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetUnsafeNormal() * DeltaTime;
+        check(!VecVelocity.ContainsNaN())
+        NewVecRKepler += VecVelocity * DeltaTime;
+        break;
     }
 
     if(!Blackhole->ApplyTideForceDamage(RP_Body, RKepler))
@@ -279,9 +302,11 @@ void AOrbit::Tick(float DeltaTime)
 
     const FVector OldVecR = RP_Body->GetActorLocation();
     // TODO design decision: where are collisions calculated?
+    bool bHit = false;
+    UPrimitiveComponent* PrimitiveComponent = nullptr;
+    FHitResult HitResult;
     if(GetLocalRole() == ROLE_Authority && RP_Body->Implements<UHasMesh>() && RP_Body->Implements<UHasCollision>())
     {
-        FHitResult HitResult;
         auto PrimitiveComponents = Cast<IHasMesh>(RP_Body)->GetMeshComponents();
         if(PrimitiveComponents.IsEmpty())
         {
@@ -289,8 +314,6 @@ void AOrbit::Tick(float DeltaTime)
             SetActorTickEnabled(false);
             return;
         }
-        UPrimitiveComponent* PrimitiveComponent = nullptr;
-        bool bHit = false;
         for(int i = 0; i < PrimitiveComponents.Num(); i++)
         {
             PrimitiveComponent = PrimitiveComponents[i];
@@ -303,20 +326,11 @@ void AOrbit::Tick(float DeltaTime)
                 break;
             }
         }
+    }
         
-        if(bHit)
-        {
-            Cast<IHasCollision>(RP_Body)->GetCollisionComponent()->HandleHit(HitResult, PrimitiveComponent);
-        }
-        else
-        {
-            if(!RP_Body->SetActorLocation(NewVecR))
-            {
-                UE_LOG(LogMyGame, Error, TEXT("%s: SetActorLocation: false, no Root component"),
-                    *GetFullName())
-                SetActorTickEnabled(false);
-            }
-        }
+    if(bHit)
+    {
+        Cast<IHasCollision>(RP_Body)->GetCollisionComponent()->HandleHit(HitResult, PrimitiveComponent);
     }
     else
     {
@@ -482,15 +496,15 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             const double T = i * DeltaT;
             const FVector VecX = Params.A * cos(T) * VecENorm;
             const FVector VecY = B * sin(T) * VecVertical;
-            Points.emplace_front(VecC + VecX + VecY + Physics.VecF1);
-            Points.emplace_back (VecC + VecX - VecY + Physics.VecF1);
+            Points.emplace_front(VecC + VecX - VecY + Physics.VecF1);
+            Points.emplace_back (VecC + VecX + VecY + Physics.VecF1);
         }
         if(bEllipseIsCut)
         {
             const FVector VecX = Params.A * cos(TMax) * VecENorm;
             const FVector VecY = B * sin(TMax) * VecVertical;
-            Points.emplace_front(VecC + VecX + VecY + Physics.VecF1);
-            Points.emplace_back (VecC + VecX - VecY + Physics.VecF1);
+            Points.emplace_front(VecC + VecX - VecY + Physics.VecF1);
+            Points.emplace_back (VecC + VecX + VecY + Physics.VecF1);
         }
         else
         {
@@ -564,8 +578,8 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             const FVector VecX = R * cos(T) * VecENorm;
             const FVector VecY = R * sin(T) * VecVertical;
 
-            Points.emplace_front(VecX + VecY + Physics.VecF1);
-            Points.emplace_back(VecX - VecY + Physics.VecF1);
+            Points.emplace_front(VecX - VecY + Physics.VecF1);
+            Points.emplace_back(VecX + VecY + Physics.VecF1);
         }
 
         TArray<FSplinePoint> SplinePoints;
@@ -591,6 +605,8 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         Params.Period = 0;
     }
     Spline->UpdateSpline();
+    SplineInputKey = Spline->FindInputKeyClosestToWorldLocation(VecR);
+    DistanceToSplineAtUpdate = (Spline->GetLocationAtSplineInputKey(SplineInputKey, ESplineCoordinateSpace::World) - VecR).Length();
 
     TArray<USceneComponent*> Meshes;
     SplineMeshParent->GetChildrenComponents(false, Meshes);
@@ -619,11 +635,13 @@ void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
 
 void AOrbit::UpdateControlParams(FPhysics Physics)
 {
+    const auto VecR = GetVecR();
     const FVector VecRKepler = GetVecRKepler(Physics);
     ControlParams =
         { UFunctionLib::Eccentricity(VecRKepler, VecVelocity, Physics.Alpha).Length()
         , VecRKepler.Cross(VecVelocity).SquaredLength() / Physics.Alpha
-        ,pow(ScalarVelocity, 2) / 2. - Physics.Alpha / RKepler
+        , pow(ScalarVelocity, 2) / 2. - Physics.Alpha / RKepler
+        , (Spline->FindLocationClosestToWorldLocation(VecR, ESplineCoordinateSpace::World) - VecR).Length()
         };
 }
 
@@ -663,7 +681,6 @@ void AOrbit::AddPointsToSpline(TArray<FSplinePoint> SplinePoints)
 
 bool AOrbit::GetVisibility(const FInstanceUI& InstanceUI) const
 {
-
     bool bIsVisibleInEditorActive = false;
 #if WITH_EDITOR
     if(GetWorld()->WorldType == EWorldType::Editor)
@@ -958,7 +975,11 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     static const FName FNameSMTrajectory          = GET_MEMBER_NAME_CHECKED(AOrbit, StaticMesh           );
     static const FName FNameSplineMeshMaterial    = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshMaterial   );
     static const FName FNameSplineMeshScaleFactor = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshScaleFactor);
+    static const FName FNameMotionEquation        = GET_MEMBER_NAME_CHECKED(AOrbit, MotionEquation       );
+    static const FName FNameSplineInputKey        = GET_MEMBER_NAME_CHECKED(AOrbit, SplineInputKey       );
 
+    bool bOrbitDirty = false;
+    
     if(
            Name == FNameVisibleInEditor
         || Name == FNameBVisibleMouseOver
@@ -976,6 +997,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         || Name == FNameSplineMeshScaleFactor
         )
     {
+        bOrbitDirty = true;
     }
     else if
         (  Name == FNameScalarVelocity
@@ -983,12 +1005,6 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         || Name == FNameVecVelocity
         )
     {
-        DistanceToOrbit =
-            ( Spline->GetLocationAtDistanceAlongSpline(
-                Spline->GetDistanceAlongSplineAtSplineInputKey(
-                    Spline->FindInputKeyClosestToWorldLocation( GetVecR() )
-                ), ESplineCoordinateSpace::World
-            ) - GetVecR()).Length();
         const FVector VelocityNormal = VecVelocity.GetSafeNormal(1e-8, FVector(0., 1., 0.));
 
         if(Name == FNameScalarVelocity)
@@ -1004,21 +1020,38 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
             SetVelocity(VecVelocity, PhysicsEditorDefault);
         }
         bIsVisibleInEditor = false;
+        bOrbitDirty = true;
     }
-    
-    if(IsValid(RP_Body))
+    else if
+        ( Name == FNameMotionEquation
+        )
     {
-        Update(PhysicsEditorDefault, InstanceUIEditorDefault);
-        Cast<IHasOrbit>(RP_Body)->SetInitialOrbitParams({Params.VecE, Params.VecH.GetSafeNormal()});
+        bFixMotionEquation = true;
+        bOrbitDirty = true;
     }
-    else
+    else if
+        ( Name == FNameSplineInputKey
+        )
     {
-        UE_LOG
-            ( LogMyGame
-            , Warning
-            , TEXT("%s: PostEditChangedChainProperty: body invalid")
-            , *GetFullName()
-            )
+        RP_Body->SetActorLocation(Spline->GetLocationAtSplineInputKey(SplineInputKey, ESplineCoordinateSpace::World));
+    }
+
+    if(bOrbitDirty)
+    {
+        if(IsValid(RP_Body))
+        {
+            Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+            Cast<IHasOrbit>(RP_Body)->SetInitialOrbitParams({Params.VecE, Params.VecH.GetSafeNormal()});
+        }
+        else
+        {
+            UE_LOG
+                ( LogMyGame
+                , Warning
+                , TEXT("%s: PostEditChangedChainProperty: body invalid")
+                , *GetFullName()
+                )
+        }
     }
 }
 #endif
