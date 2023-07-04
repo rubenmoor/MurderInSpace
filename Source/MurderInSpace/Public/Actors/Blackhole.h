@@ -21,6 +21,10 @@ public:
 	UFUNCTION(BlueprintPure)
 	double GetKillRadius() { return KillRadius; }
 
+	// disabled for debugging of trajectories
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bKilling = true;
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly);
 	TObjectPtr<USceneComponent> Root;
@@ -51,7 +55,7 @@ protected:
 	// distance to black hole: any orbiting thing closer than the `KillRadius` immediately gets destroyed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double KillRadius = 100.;
-	
+
 	// tidal force damage parameters
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double TFVScale = 1000.;

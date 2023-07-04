@@ -41,7 +41,7 @@ ABlackhole::ABlackhole()
 
 bool ABlackhole::ApplyTideForceDamage(AActor* Actor, double RKepler)
 {
-	if(RKepler > TideForceDamageRadius)
+	if(!bKilling || RKepler > TideForceDamageRadius)
 	{
 		return true;
 	}

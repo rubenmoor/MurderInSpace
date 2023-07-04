@@ -139,7 +139,7 @@ protected:
     bool RP_bRecomputeNormals = false;
 
     UPROPERTY(EditAnywhere, Replicated, Category="Generation")
-    float RP_SizeParam = 500;
+    float RP_SizeParam = 100;
 
     UPROPERTY(EditDefaultsOnly, Category="Generation")
     TObjectPtr<UCurveFloat> CurveOmegaDistribution;

@@ -225,12 +225,17 @@ void AOrbit::Tick(float DeltaTime)
     auto* Blackhole = GS->GetBlackhole();
 
     FVector NewVecRKepler;
-    if(RKepler < Blackhole->GetKillRadius())
+    if  (
+            Blackhole->bKilling
+        &&  RKepler < Blackhole->GetKillRadius()
+        && !RP_Body->GetClass()->IsChildOf<AMyCharacter>()
+        )
     {
         RP_Body->Destroy();
         return;
     }
-    
+
+    // TODO: replace by `FollowSpline`
     if(!bFixMotionEquation)
     {
         if(RKepler < 200.)
@@ -251,29 +256,22 @@ void AOrbit::Tick(float DeltaTime)
     using enum EMotionEquation;
     case FollowSpline:
         {
-            const float OldDistance = Spline->GetDistanceAlongSplineAtSplineInputKey(SplineInputKey);
+            const float Delta = FMath::Max(ScalarVelocity * DeltaTime, MinimalDisplacement);
             float NewDistance = FMath::Fmod(
-                 OldDistance + ScalarVelocity * DeltaTime
+                Spline->GetDistanceAlongSplineAtSplineInputKey(SplineInputKey) + Delta
                 , Spline->GetSplineLength()
                 );
-            const float DeltaDistance = NewDistance - OldDistance;
-            if(abs(DeltaDistance) < MinimalDisplacement)
-            {
-                bAtMinimalVelocity = true;
-                NewDistance = OldDistance + FMath::Sign(DeltaDistance) * MinimalDisplacement;
-            }
-            else
-            {
-                bAtMinimalVelocity = false;
-            }
             SplineInputKey = Spline->GetInputKeyValueAtDistanceAlongSpline(NewDistance);
             NewVecRKepler = Spline->GetLocationAtSplineInputKey(SplineInputKey, ESplineCoordinateSpace::World);
+            auto VecDefaultV = Params.OrbitType == EOrbitType::LINEBOUND || Params.OrbitType == EOrbitType::LINEUNBOUND ?
+                FMath::Sqrt(2 * (Params.Energy + Physics.Alpha / RKepler)) * Params.VecE
+                : FVector::Zero();
             VecVelocity = UFunctionLib::VecVelocity
                 ( Params.VecE
                 , NewVecRKepler
                 , Params.VecH
                 , Physics.Alpha
-                , (NewVecRKepler - VecRKepler) / DeltaTime // inaccurate default value
+                , VecDefaultV
                 );
         }
         break;
@@ -283,9 +281,7 @@ void AOrbit::Tick(float DeltaTime)
         VecVelocity = (NewVecRKepler - VecRKepler) / DeltaTime;
         break;
     case NewtonianVelocity:
-        check(!VecVelocity.ContainsNaN())
         VecVelocity += Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetUnsafeNormal() * DeltaTime;
-        check(!VecVelocity.ContainsNaN())
         NewVecRKepler += VecVelocity * DeltaTime;
         break;
     }
@@ -363,7 +359,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
     VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics).Length();
     RKepler = VecRKepler.Length();
     
-    Params.Energy = pow(ScalarVelocity, 2) / 2. - Physics.Alpha / RKepler;
+    Params.Energy = VecVelocity.SquaredLength() / 2. - Physics.Alpha / RKepler;
     
     Params.Eccentricity = Params.VecE.Length();
     const FVector VecENorm = Params.VecE.GetSafeNormal();
@@ -373,19 +369,17 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
     const double E_BOUND_MIN = -Physics.Alpha / (2 * Physics.WorldRadius);
 
     // e = 1, orbit: line bound and line unbound
-    // TODO testing
     if  (  Params.VecH.Length() / RKepler < 1.
         && Params.Eccentricity > 1.0 - EccentricityTolerance
         && Params.Eccentricity < 1.0 + EccentricityTolerance
         )
     {
         const double EMIN = -Physics.Alpha / Physics.WorldRadius;
-        const double E = VecVelocity.SquaredLength() / 2. - Physics.Alpha / RKepler;
 
         // bound
-        if(E < EMIN)
+        if(Params.Energy < EMIN)
         {
-            const double Apsis = -Physics.Alpha / E;
+            const double Apsis = -Physics.Alpha / Params.Energy;
             const FVector VecVNorm = VecVelocity.GetSafeNormal();
             if(VecVNorm.IsZero())
             {
@@ -396,12 +390,14 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             }
             else
             {
+                const int32 Sign = VecVNorm.Dot(VecENorm);
                 AddPointsToSpline(
-                    { FSplinePoint(0, -VecVNorm * Apsis + Physics.VecF1, ESplinePointType::Linear)
-                    , FSplinePoint(1,  VecVNorm * Apsis + Physics.VecF1, ESplinePointType::Linear)
+                    { FSplinePoint(0, -Sign * VecVNorm * Apsis + Physics.VecF1, ESplinePointType::Linear)
+                    , FSplinePoint(1,  Sign * VecVNorm * Apsis + Physics.VecF1, ESplinePointType::Linear)
                     });
             }
-            
+
+            SplineInputKey = Spline->FindInputKeyClosestToWorldLocation(VecR);
             Spline->SetClosedLoop(true, false);
             
             Params.OrbitType = EOrbitType::LINEBOUND;
@@ -417,9 +413,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
                 , FSplinePoint
                     ( 1
                     , VecVelocity.GetUnsafeNormal() *
-                        ( Physics.WorldRadius -
-                            (VecR).Length()
-                        )
+                        (Physics.WorldRadius - VecR.Length())
                     , ESplinePointType::Linear
                     )
                 });
@@ -605,7 +599,12 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         Params.Period = 0;
     }
     Spline->UpdateSpline();
-    SplineInputKey = Spline->FindInputKeyClosestToWorldLocation(VecR);
+
+    // the line-bound orbit set the spline input key before closing the spline loop
+    if(Params.OrbitType != EOrbitType::LINEBOUND)
+    {
+        SplineInputKey = Spline->FindInputKeyClosestToWorldLocation(VecR);
+    }
     DistanceToSplineAtUpdate = (Spline->GetLocationAtSplineInputKey(SplineInputKey, ESplineCoordinateSpace::World) - VecR).Length();
 
     TArray<USceneComponent*> Meshes;
@@ -842,7 +841,7 @@ void AOrbit::UpdateByInitialParams(FPhysics Physics, FInstanceUI InstanceUI)
             , GetVecR()
             , Initial.VecHNorm
             , Physics.Alpha
-            , FVector::Zero()
+            , Initial.VecVelocity
         ) , Physics);
     Update(Physics, InstanceUI);
 }
@@ -1041,7 +1040,11 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         if(IsValid(RP_Body))
         {
             Update(PhysicsEditorDefault, InstanceUIEditorDefault);
-            Cast<IHasOrbit>(RP_Body)->SetInitialOrbitParams({Params.VecE, Params.VecH.GetSafeNormal()});
+            Cast<IHasOrbit>(RP_Body)->SetInitialOrbitParams(
+                { Params.VecE
+                , Params.VecH.GetSafeNormal()
+                , VecVelocity
+            });
         }
         else
         {

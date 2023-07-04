@@ -181,8 +181,9 @@ void AAsteroidBelt::BuildAsteroids()
                 );
             DynamicAsteroid->SetInitialOrbitParams
                 ( { FVector(0.0, 0.0, 0.)
-                    // TODO: only correct for VecR.Z == 0 
+                // TODO: only correct for VecR.Z == 0 
                 , FVector(0., 0., 1.)
+                // for line/line-bound orbit: set velocity
                 });
 #if WITH_EDITOR
             Actor->SetFolderPath(*GetName());

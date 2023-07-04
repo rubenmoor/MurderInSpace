@@ -5,7 +5,8 @@
 
 /*
  * calculate velocity vector given eccentricity vector, R, H
- * H is only used for its direction, can't be zero
+ * H is only used for its direction
+ * when H = 0, the default velocity is returned
  */
 FVector UFunctionLib::VecVelocity(FVector E, FVector R, FVector VecH, double Alpha, FVector Default)
 {

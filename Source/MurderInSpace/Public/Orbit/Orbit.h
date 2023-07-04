@@ -154,11 +154,15 @@ struct FInitialOrbitParams
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FVector VecEccentricity = FVector::Zero();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FVector VecHNorm = FVector(0., 0., 1.);
+
+    // the velocity is only relevant when H = 0
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FVector VecVelocity = FVector(0., 0., 1.);
 };
 
 UCLASS()
@@ -363,6 +367,7 @@ protected:
     UPROPERTY(VisibleAnywhere)
     bool bIsInitialized = false;
 
+    // TODO: deprecate
     // error correction
     // the resulting orbit tends to be off by up to 300 UU, i.e. the body location and the closest point on its orbit
     // ideally, I could correct this by increasing the accuracy of the orbit calculation
@@ -421,6 +426,8 @@ protected:
     
     EOrbitReady OrbitReady = EOrbitReady::None;
 
+    // TODO: remove
+    
     // at a distance closer to this, the motion equation is set to "follow spline", e.g. movement along spline
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Kepler")
     double FollowSplineRadius = 200.;
@@ -439,9 +446,6 @@ protected:
     // minimal velocity mechanism
     // when we move slowly, spline distance is too inaccurate and the body effectively stops
     // thus we define a minimum velocity to always move
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
-    bool bAtMinimalVelocity = false;
-
     // the minimal velocity: but in terms of spline distance displaced per frame
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     float MinimalDisplacement = 1.;

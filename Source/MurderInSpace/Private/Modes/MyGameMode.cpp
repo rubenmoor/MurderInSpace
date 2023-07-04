@@ -68,7 +68,6 @@ AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	auto PlayerStart = Cast<AMyPlayerStart>(StartActor);
 	PlayerStart->bIsOccupied = true;
 	
-	const FVector Loc = StartActor->GetActorLocation();
 	UE_LOG
 		( LogMyGame
 		, Display
