@@ -407,15 +407,7 @@ protected:
     bool bIsChanging = false;
 
     // custom event handlers
-	UFUNCTION(BlueprintCallable)
-	void HandleBeginMouseOver(AActor* Actor);
-	
-	UFUNCTION(BlueprintCallable)
-	void HandleEndMouseOver(AActor* Actor);
-	
-	UFUNCTION(BlueprintCallable)
-	void HandleClick(AActor* Actor, FKey Button);
-
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     float SplineDistance;
 

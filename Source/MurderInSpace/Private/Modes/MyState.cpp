@@ -7,6 +7,12 @@
 
 DEFINE_LOG_CATEGORY(LogMyGame);
 
+UInputAction* UMyState::GetInputAction(UMyInputActionsData* MyInputActionsData, EInputAction InputAction)
+{
+	const FGameplayTag Tag = InputTags[static_cast<uint8>(InputAction)];
+	return MyInputActionsData->Data[Tag];
+}
+
 void UMyState::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -22,6 +28,8 @@ void UMyState::Initialize(FSubsystemCollectionBase& Collection)
     InputTags[static_cast<uint8>(EInputAction::MyTrajectoryShowHide   )] = GTM.AddNativeGameplayTag("InputAction.MyTrajectoryShowHide");
     InputTags[static_cast<uint8>(EInputAction::AllTrajectoriesShowHide)] = GTM.AddNativeGameplayTag("InputAction.AllTrajectoriesShowHide");
     InputTags[static_cast<uint8>(EInputAction::MyTrajectoryToggle     )] = GTM.AddNativeGameplayTag("InputAction.MyTrajectoryToggle");
+	InputTags[static_cast<uint8>(EInputAction::Zoom                   )] = GTM.AddNativeGameplayTag("InputAction.Zoom"            );
+	InputTags[static_cast<uint8>(EInputAction::Select                 )] = GTM.AddNativeGameplayTag("InputAction.Select"          );
     
     GTM.DoneAddingNativeTags();
 }

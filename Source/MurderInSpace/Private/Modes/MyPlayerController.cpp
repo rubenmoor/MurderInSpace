@@ -32,18 +32,17 @@ void AMyPlayerController::SetupInputComponent()
         return;
     }
 
-    UEnhancedInputLocalPlayerSubsystem* Input =
-        GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-    
+    Input = GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
     Input->AddMappingContext(IMC_InGame.LoadSynchronous(), 0);
 
     // interface actions
-    InputComponent->BindAxis("MouseWheel", this, &AMyPlayerController::Zoom);
 
     BindAction<EInputAction::IngameMenuToggle       >();
     BindAction<EInputAction::MyTrajectoryShowHide   >();
     BindAction<EInputAction::AllTrajectoriesShowHide>();
     BindAction<EInputAction::MyTrajectoryToggle     >();
+    BindAction<EInputAction::Zoom                   >();
+    BindAction<EInputAction::Select                 >();
     
     // gameplay actions
     BindAction<EInputAction::TowardsCircleBeginEnd>();
@@ -165,6 +164,63 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
         Orbit->bIsVisibleToggleMyTrajectory = !Orbit->bIsVisibleToggleMyTrajectory;
         Orbit->UpdateVisibility(GI->InstanceUI);
         break;
+    case EInputAction::Zoom:
+        {
+            auto* MyState = UMyState::Get();
+            auto* IA = MyState->GetInputAction(MyInputActionsData, EInputAction::Zoom);
+            auto Value = Input->GetPlayerInput()->GetActionValue(IA);
+            float Delta = Value.Get<float>();
+            if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
+            {
+                if(abs(Delta) > 0)
+                {
+                    CameraPosition = std::clamp<int8>(CameraPosition - Delta, 0, MaxCameraPosition);
+                    GetPawn<AMyCharacter>()->UpdateSpringArm(CameraPosition);
+                    // TODO: at `CameraPosition = 0` lookAt mouse doesn't work anymore
+                }		
+            }
+        }
+        break;
+    case EInputAction::Select:
+        
+        FHitResult HitResult;
+        GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+
+        if(HitResult.IsValidBlockingHit())
+        {
+            AOrbit* SelectedOrbit = GI->InstanceUI.Selected.Orbit;
+            if(IsValid(SelectedOrbit))
+            {
+                GI->InstanceUI.Selected.Orbit = nullptr;
+                SelectedOrbit->UpdateVisibility(GI->InstanceUI);
+            }
+            if(HitResult.GetActor()->Implements<UHasOrbit>())
+            {
+                auto* ClickedOrbit = Cast<IHasOrbit>(HitResult.GetActor())->GetOrbit();
+                if(SelectedOrbit != ClickedOrbit)
+                {
+                    double Size = Cast<IHasMesh>(HitResult.GetActor())->GetBounds().SphereRadius;
+                    GI->InstanceUI.Selected = {ClickedOrbit, Size };
+                }
+                else
+                {
+                    // deselect selected orbit
+                    GI->InstanceUI.Selected.Orbit = nullptr;
+                }
+                ClickedOrbit->UpdateVisibility(GI->InstanceUI);
+            }
+        }
+        else
+        {
+            auto* SelectedOrbit = GI->InstanceUI.Selected.Orbit;
+            if(IsValid(SelectedOrbit))
+            {
+                // deselect any selected orbit
+                GI->InstanceUI.Selected.Orbit = nullptr;
+                SelectedOrbit->UpdateVisibility(GI->InstanceUI);
+            }
+        }
+        break;
     }
 }
 
@@ -181,6 +237,36 @@ void AMyPlayerController::Tick(float DeltaSeconds)
     
     if(!MyPlayer->GetIsInMainMenu())
     {
+        auto* GI = GetGameInstance<UMyGameInstance>();
+        
+        // hovering
+        FHitResult HitResult;
+        GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+        auto* Body = HitResult.GetActor();
+        if (   HitResult.IsValidBlockingHit()
+            && Body->Implements<UHasOrbit>()
+            && Body->Implements<UHasMesh>()
+            )
+        {
+            // begin mouse over
+            auto* Orbit = Cast<IHasOrbit>(Body)->GetOrbit();
+            const double Size = Cast<IHasMesh>(Body)->GetBounds().SphereRadius;
+            GI->InstanceUI.Hovered = {Orbit, Size };
+            Orbit->bIsVisibleMouseover = true;
+            Orbit->UpdateVisibility(GI->InstanceUI);
+        }
+        else
+        {
+            // end mouse over
+            auto* HoveredOrbit = GI->InstanceUI.Hovered.Orbit;
+            if(IsValid(HoveredOrbit))
+            {
+                GI->InstanceUI.Hovered.Orbit = nullptr;
+                HoveredOrbit->bIsVisibleMouseover = false;
+                HoveredOrbit->UpdateVisibility(GI->InstanceUI);
+            }
+        }
+        
         // reacting to mouse move
         AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
         FVector Position, Direction;

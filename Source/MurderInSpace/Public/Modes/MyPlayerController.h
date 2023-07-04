@@ -60,10 +60,9 @@ private:
 	template<EInputAction InputAction>
 	void BindAction()
 	{
-		const UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-		const TArray<FGameplayTag> InputTags = MyState->GetInputTags();
-		const FGameplayTag Tag = InputTags[static_cast<uint8>(InputAction)];
-		if (const UInputAction* IA = MyInputActionsData->FindInputActionForTag(Tag))
+		auto* MyState = UMyState::Get();
+		const auto* IA = MyState->GetInputAction(MyInputActionsData, InputAction);
+		if (IsValid(IA))
 		{
 			Cast<UMyEnhancedInputComponent>(InputComponent)->BindAction
 				( IA
@@ -77,9 +76,9 @@ private:
 			UE_LOG
 				( LogMyGame
 				, Error
-				, TEXT("%s: couldn't find input action for gameplay tag %s")
+				, TEXT("%s: couldn't find input action asset for %s")
 				, *GetFullName()
-				, *Tag.GetTagName().ToString()
+				, *UEnum::GetValueAsString(InputAction)
 				)
 		}
 	}
@@ -115,4 +114,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	UMyInputActionsData* MyInputActionsData;
+
+	UPROPERTY()
+    TObjectPtr<UEnhancedInputLocalPlayerSubsystem> Input;
 };

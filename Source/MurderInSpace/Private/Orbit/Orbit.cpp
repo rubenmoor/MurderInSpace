@@ -123,15 +123,6 @@ void AOrbit::Initialize()
         return;
     }
     
-    if  (  RP_Body->Implements<UHasMesh>()
-        && !(Cast<AMyCharacter>(RP_Body) && Cast<AMyCharacter>(RP_Body)->IsLocallyControlled())
-        )
-    {
-        RP_Body->OnBeginCursorOver.AddDynamic(this, &AOrbit::HandleBeginMouseOver);
-        RP_Body->OnEndCursorOver.AddDynamic(this, &AOrbit::HandleEndMouseOver);
-        RP_Body->OnClicked.AddDynamic(this, &AOrbit::HandleClick);
-    }
-    
     if(RP_Body->GetLocalRole() == ROLE_AutonomousProxy)
     {
         Cast<AMyCharacter>(RP_Body)->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->SetReadyFlags(EHUDReady::OrbitReady);
@@ -765,49 +756,6 @@ void AOrbit::OnRep_Body()
 {
     SetEnableVisibility(RP_Body->Implements<UHasOrbitColor>());
     SetReadyFlags(EOrbitReady::BodyReady);
-}
-
-void AOrbit::HandleBeginMouseOver(AActor* Actor)
-{
-    GEngine->GetEngineSubsystem<UMyState>()->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
-    {
-        double Size = Cast<IHasMesh>(RP_Body)->GetBounds().SphereRadius;
-        InstanceUI.Hovered = {this, Size };
-        bIsVisibleMouseover = true;
-        UpdateVisibility(InstanceUI);
-    });
-}
-
-void AOrbit::HandleEndMouseOver(AActor* Actor)
-{
-    GEngine->GetEngineSubsystem<UMyState>()->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
-    {
-        InstanceUI.Hovered.Orbit = nullptr;
-        bIsVisibleMouseover = false;
-        UpdateVisibility(InstanceUI);
-    });
-}
-
-void AOrbit::HandleClick(AActor*, FKey Button)
-{
-    if(Button == EKeys::LeftMouseButton)
-    {
-        GEngine->GetEngineSubsystem<UMyState>()->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
-        {
-            AOrbit* Orbit = InstanceUI.Selected.Orbit;
-            if(IsValid(Orbit))
-            {
-                InstanceUI.Selected.Orbit = nullptr;
-                Orbit->UpdateVisibility(InstanceUI);
-            }
-            if(Orbit != this)
-            {
-                double Size = Cast<IHasMesh>(RP_Body)->GetBounds().SphereRadius;
-                InstanceUI.Selected = {this, Size };
-            }
-            UpdateVisibility(InstanceUI);
-        });
-    }
 }
 
 void AOrbit::UpdateByInitialParams(FPhysics Physics, FInstanceUI InstanceUI)

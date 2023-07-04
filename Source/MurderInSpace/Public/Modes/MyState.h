@@ -10,6 +10,7 @@
 
 #include "MyState.generated.h"
 
+class UMyGameInstance;
 class ABlackhole;
 DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, All, All);
 
@@ -23,14 +24,16 @@ enum class EInputAction : uint8
 	  AccelerateBeginEnd      UMETA(DisplayName = "accelerate")
 	, TowardsCircleBeginEnd   UMETA(DispalyName = "accelerate towards circular orbit")
 
-	// given your current orientation, use the main rocket engine to accelerate
+	// pure UI actions
 	, IngameMenuToggle        UMETA(DisplayName = "toggle in-game menu")
 	, MyTrajectoryShowHide    UMETA(DisplayName = "show my trajectory")
 	, AllTrajectoriesShowHide UMETA(DisplayName = "show all trajectories")
 	, MyTrajectoryToggle      UMETA(DisplayName = "toggle my trajectories visibility")
+	, Zoom                    UMETA(DisplayName = "zoom the camera in or out")
+	, Select                  UMETA(DisplayName = "deselect any selected body")
 	
 	, MinPureUI = IngameMenuToggle
-	, Last = MyTrajectoryToggle
+	, Last = Select
 };
 
 /*
@@ -182,6 +185,10 @@ public:
      */
     static constexpr double SplineToCircle = 1.6568542494923806; // 4. * (sqrt(2) - 1.);
 
+	// get the InputAction asset given the `EInputAction`
+	UFUNCTION(BlueprintCallable)
+	UInputAction* GetInputAction(UMyInputActionsData* MyInputActionsData, EInputAction InputAction);
+	
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
