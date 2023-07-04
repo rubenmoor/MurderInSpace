@@ -419,6 +419,9 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     float SplineInputKey;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
+    float SplineDistance;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
     float DistanceToSplineAtUpdate;
 

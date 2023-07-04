@@ -257,12 +257,19 @@ void AOrbit::Tick(float DeltaTime)
     case FollowSpline:
         {
             const float Delta = FMath::Max(ScalarVelocity * DeltaTime, MinimalDisplacement);
-            float NewDistance = FMath::Fmod(
-                Spline->GetDistanceAlongSplineAtSplineInputKey(SplineInputKey) + Delta
+
+            // USplineComponent::GetDistanceAlongSplineAtSplineInputKey has a bug
+            // and only works accurately in some cases, probably when the spline points aren't far apart
+            //SplineDistance = FMath::Fmod
+            //    (Spline->GetDistanceAlongSplineAtSplineInputKey(SplineInputKey) + Delta
+            //    , Spline->GetSplineLength()
+            //    );
+            SplineDistance = FMath::Fmod
+                (SplineDistance + Delta
                 , Spline->GetSplineLength()
                 );
-            SplineInputKey = Spline->GetInputKeyValueAtDistanceAlongSpline(NewDistance);
-            NewVecRKepler = Spline->GetLocationAtSplineInputKey(SplineInputKey, ESplineCoordinateSpace::World);
+            SplineInputKey = Spline->GetInputKeyValueAtDistanceAlongSpline(SplineDistance);
+            NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
             auto VecDefaultV = Params.OrbitType == EOrbitType::LINEBOUND || Params.OrbitType == EOrbitType::LINEUNBOUND ?
                 FMath::Sqrt(2 * (Params.Energy + Physics.Alpha / RKepler)) * Params.VecE
                 : FVector::Zero();
@@ -606,6 +613,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         SplineInputKey = Spline->FindInputKeyClosestToWorldLocation(VecR);
     }
     DistanceToSplineAtUpdate = (Spline->GetLocationAtSplineInputKey(SplineInputKey, ESplineCoordinateSpace::World) - VecR).Length();
+    SplineDistance = Spline->GetDistanceAlongSplineAtSplineInputKey(SplineInputKey);
 
     TArray<USceneComponent*> Meshes;
     SplineMeshParent->GetChildrenComponents(false, Meshes);
@@ -976,6 +984,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     static const FName FNameSplineMeshScaleFactor = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshScaleFactor);
     static const FName FNameMotionEquation        = GET_MEMBER_NAME_CHECKED(AOrbit, MotionEquation       );
     static const FName FNameSplineInputKey        = GET_MEMBER_NAME_CHECKED(AOrbit, SplineInputKey       );
+    static const FName FNameSplineDistance        = GET_MEMBER_NAME_CHECKED(AOrbit, SplineDistance       );
 
     bool bOrbitDirty = false;
     
@@ -1033,6 +1042,12 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         )
     {
         RP_Body->SetActorLocation(Spline->GetLocationAtSplineInputKey(SplineInputKey, ESplineCoordinateSpace::World));
+    }
+    else if
+        ( Name == FNameSplineDistance
+        )
+    {
+        RP_Body->SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World));
     }
 
     if(bOrbitDirty)
