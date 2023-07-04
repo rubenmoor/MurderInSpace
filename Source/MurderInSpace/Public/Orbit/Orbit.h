@@ -417,9 +417,6 @@ protected:
 	void HandleClick(AActor* Actor, FKey Button);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    float SplineInputKey;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     float SplineDistance;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
@@ -428,23 +425,6 @@ protected:
     void SetReadyFlags(EOrbitReady ReadyFlags);
     
     EOrbitReady OrbitReady = EOrbitReady::None;
-
-    // TODO: remove
-    
-    // at a distance closer to this, the motion equation is set to "follow spline", e.g. movement along spline
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Kepler")
-    double FollowSplineRadius = 200.;
-    
-    // at a distance farther than this, the motion equation is set to newtonian
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Kepler")
-    double NewtonianMotionRadius = 250.;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    EMotionEquation MotionEquation = EMotionEquation::FollowSpline;
-
-    // if true, the above Radii are ignored
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    bool bFixMotionEquation = true;
 
     // minimal velocity mechanism
     // when we move slowly, spline distance is too inaccurate and the body effectively stops

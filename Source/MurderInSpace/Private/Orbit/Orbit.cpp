@@ -235,63 +235,30 @@ void AOrbit::Tick(float DeltaTime)
         return;
     }
 
-    // TODO: replace by `FollowSpline`
-    if(!bFixMotionEquation)
-    {
-        if(RKepler < 200.)
-        {
-           
-            // newtonian motion shows discrepancy with the visualized orbit, thus rather follow the spline
-            MotionEquation = EMotionEquation::FollowSpline;
-        } 
-        else if(RKepler > 250.)
-        {
-            // safely switch to newtonian motion; without the overlap, a body can get caught in between the two
-            MotionEquation = EMotionEquation::NewtonianLocation;
-        }
-    }
+    const float Delta = FMath::Max(ScalarVelocity * DeltaTime, MinimalDisplacement);
 
-    switch(MotionEquation)
-    {
-    using enum EMotionEquation;
-    case FollowSpline:
-        {
-            const float Delta = FMath::Max(ScalarVelocity * DeltaTime, MinimalDisplacement);
-
-            // USplineComponent::GetDistanceAlongSplineAtSplineInputKey has a bug
-            // and only works accurately in some cases, probably when the spline points aren't far apart
-            //SplineDistance = FMath::Fmod
-            //    (Spline->GetDistanceAlongSplineAtSplineInputKey(SplineInputKey) + Delta
-            //    , Spline->GetSplineLength()
-            //    );
-            SplineDistance = FMath::Fmod
-                (SplineDistance + Delta
-                , Spline->GetSplineLength()
-                );
-            SplineInputKey = Spline->GetInputKeyValueAtDistanceAlongSpline(SplineDistance);
-            NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
-            auto VecDefaultV = Params.OrbitType == EOrbitType::LINEBOUND || Params.OrbitType == EOrbitType::LINEUNBOUND ?
-                FMath::Sqrt(2 * (Params.Energy + Physics.Alpha / RKepler)) * Params.VecE
-                : FVector::Zero();
-            VecVelocity = UFunctionLib::VecVelocity
-                ( Params.VecE
-                , NewVecRKepler
-                , Params.VecH
-                , Physics.Alpha
-                , VecDefaultV
-                );
-        }
-        break;
-    case NewtonianLocation:
-        NewVecRKepler = VecRKepler + VecVelocity * DeltaTime
-            + 0.5 * pow(DeltaTime, 2) * Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetUnsafeNormal();
-        VecVelocity = (NewVecRKepler - VecRKepler) / DeltaTime;
-        break;
-    case NewtonianVelocity:
-        VecVelocity += Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetUnsafeNormal() * DeltaTime;
-        NewVecRKepler += VecVelocity * DeltaTime;
-        break;
-    }
+    // USplineComponent::GetDistanceAlongSplineAtSplineInputKey has a bug
+    // and only works accurately in some cases, probably when the spline points aren't far apart
+    //SplineDistance = FMath::Fmod
+    //    (Spline->GetDistanceAlongSplineAtSplineInputKey(SplineInputKey) + Delta
+    //    , Spline->GetSplineLength()
+    //    );
+    SplineDistance = FMath::Fmod
+        (SplineDistance + Delta
+        , Spline->GetSplineLength()
+        );
+    
+    NewVecRKepler = Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World);
+    auto VecDefaultV = Params.OrbitType == EOrbitType::LINEBOUND || Params.OrbitType == EOrbitType::LINEUNBOUND ?
+        FMath::Sqrt(2 * (Params.Energy + Physics.Alpha / RKepler)) * Params.VecE
+        : FVector::Zero();
+    VecVelocity = UFunctionLib::VecVelocity
+        ( Params.VecE
+        , NewVecRKepler
+        , Params.VecH
+        , Physics.Alpha
+        , VecDefaultV
+        );
 
     if(!Blackhole->ApplyTideForceDamage(RP_Body, RKepler))
     {
@@ -404,7 +371,9 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
                     });
             }
 
-            SplineInputKey = Spline->FindInputKeyClosestToWorldLocation(VecR);
+            SplineDistance = Spline->GetDistanceAlongSplineAtSplineInputKey
+                ( Spline->FindInputKeyClosestToWorldLocation(VecR)
+                );
             Spline->SetClosedLoop(true, false);
             
             Params.OrbitType = EOrbitType::LINEBOUND;
@@ -610,10 +579,11 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
     // the line-bound orbit set the spline input key before closing the spline loop
     if(Params.OrbitType != EOrbitType::LINEBOUND)
     {
-        SplineInputKey = Spline->FindInputKeyClosestToWorldLocation(VecR);
+        SplineDistance = Spline->GetDistanceAlongSplineAtSplineInputKey
+            ( Spline->FindInputKeyClosestToWorldLocation(VecR)
+            );
     }
-    DistanceToSplineAtUpdate = (Spline->GetLocationAtSplineInputKey(SplineInputKey, ESplineCoordinateSpace::World) - VecR).Length();
-    SplineDistance = Spline->GetDistanceAlongSplineAtSplineInputKey(SplineInputKey);
+    DistanceToSplineAtUpdate = (Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World) - VecR).Length();
 
     TArray<USceneComponent*> Meshes;
     SplineMeshParent->GetChildrenComponents(false, Meshes);
@@ -982,8 +952,6 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     static const FName FNameSMTrajectory          = GET_MEMBER_NAME_CHECKED(AOrbit, StaticMesh           );
     static const FName FNameSplineMeshMaterial    = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshMaterial   );
     static const FName FNameSplineMeshScaleFactor = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshScaleFactor);
-    static const FName FNameMotionEquation        = GET_MEMBER_NAME_CHECKED(AOrbit, MotionEquation       );
-    static const FName FNameSplineInputKey        = GET_MEMBER_NAME_CHECKED(AOrbit, SplineInputKey       );
     static const FName FNameSplineDistance        = GET_MEMBER_NAME_CHECKED(AOrbit, SplineDistance       );
 
     bool bOrbitDirty = false;
@@ -1029,19 +997,6 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         }
         bIsVisibleInEditor = false;
         bOrbitDirty = true;
-    }
-    else if
-        ( Name == FNameMotionEquation
-        )
-    {
-        bFixMotionEquation = true;
-        bOrbitDirty = true;
-    }
-    else if
-        ( Name == FNameSplineInputKey
-        )
-    {
-        RP_Body->SetActorLocation(Spline->GetLocationAtSplineInputKey(SplineInputKey, ESplineCoordinateSpace::World));
     }
     else if
         ( Name == FNameSplineDistance
