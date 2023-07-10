@@ -14,15 +14,21 @@ ABlackhole::ABlackhole()
 
 	EventHorizon = CreateDefaultSubobject<UStaticMeshComponent>("EventHorizon");
 	EventHorizon->SetupAttachment(Root);
+	EventHorizon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	EventHorizon->SetGenerateOverlapEvents(false);
+	EventHorizon->CanCharacterStepUpOn = ECB_No;
 
 	GravitationalLens = CreateDefaultSubobject<UStaticMeshComponent>("GravitationalLens");
 	GravitationalLens->SetupAttachment(Root);
+	GravitationalLens->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GravitationalLens->SetGenerateOverlapEvents(false);
+	GravitationalLens->CanCharacterStepUpOn = ECB_No;
 
 	NS_Vortex = CreateDefaultSubobject<UNiagaraComponent>("Vortex");
 	NS_Vortex->SetupAttachment(Root);
 	NS_Vortex->SetVariableFloat("Albedo", 0.5);
-	NS_Vortex->SetVariableFloat("Extinction", 0.1);
-	NS_Vortex->SetVariableLinearColor("Color", FLinearColor(FVector4d(1., 0.772553, 0., 1.)));
+	NS_Vortex->SetVariableFloat("Extinction", 0.5);
+	NS_Vortex->SetVariableLinearColor("Color", FLinearColor(FVector4d(1., 0.864953, 0.406250, 1.)));
 	NS_Vortex->SetVariableVec2("MinSize", FVector2D(50., 10.));
 	NS_Vortex->SetVariableVec2("MaxSize", FVector2D(100., 250.));
 

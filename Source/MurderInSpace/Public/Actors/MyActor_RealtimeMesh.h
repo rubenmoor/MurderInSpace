@@ -30,18 +30,25 @@ class MURDERINSPACE_API AMyActor_RealtimeMesh
 public:
     AMyActor_RealtimeMesh();
 
-	virtual TArray<UPrimitiveComponent*> GetMeshComponents() const override { return {RealtimeMeshComponent}; }
+	// IHasMesh
+	virtual TArray<UPrimitiveComponent*> GetPrimitiveComponents() const override { return {RealtimeMeshComponent}; }
 	virtual FBoxSphereBounds     GetBounds() const override { return RealtimeMeshComponent->Bounds; }
 	virtual double               GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
 	virtual FVector              GetMyInertiaTensor() const override { return RotInertiaNorm; }
+
+	// IHasOrbit
 	virtual TSubclassOf<AOrbit>  GetOrbitClass()   override { return OrbitClass;   }
-	virtual FLinearColor         GetOrbitColor()   override { return OrbitColor;   }
 	virtual AOrbit*				 GetOrbit() const  override { return RP_Orbit;     }
 	virtual void 				 SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; }
-	virtual UMyCollisionComponent* GetCollisionComponent() override { return Collision; }
-	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
-	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
+	virtual FInitialOrbitParams  GetInitialOrbitParams() const override { return InitialOrbitParams; }
+	virtual void                 SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
 
+	// IHasOrbitColor
+	virtual FLinearColor         GetOrbitColor()   override { return OrbitColor;   }
+	
+	// IHasCollision
+	virtual UMyCollisionComponent* GetCollisionComponent() override { return CollisionComponent; }
+	
 protected:
 	// event handler overrides
 	virtual void Destroyed() override;
@@ -57,7 +64,7 @@ protected:
     TObjectPtr<UGyrationComponent> Gyration;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UMyCollisionComponent> Collision;
+	TObjectPtr<UMyCollisionComponent> CollisionComponent;
 
 	// members
 	

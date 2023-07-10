@@ -27,7 +27,7 @@ class MURDERINSPACE_API AMyActor_StaticMesh
 public:
 	AMyActor_StaticMesh();
 
-	virtual TArray<UPrimitiveComponent*> GetMeshComponents() const override { return {StaticMeshComponent}; }
+	virtual TArray<UPrimitiveComponent*> GetPrimitiveComponents() const override { return {StaticMeshComponent}; }
 	virtual FVector              GetInitialOmega() override { return FVector::Zero(); }
 	virtual FBoxSphereBounds     GetBounds() const override { return StaticMeshComponent->Bounds; }
 	virtual double               GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }

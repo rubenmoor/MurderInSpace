@@ -82,6 +82,9 @@ AMyCharacter::AMyCharacter()
 	StarsDistant->SetVariableFloat("SpawnCylinderRadius", 50000.);
 	StarsDistant->SetVariableFloat("SpawnProbability", .1);
 	StarsDistant->SetVariableFloat("SpawnRate", 50.);
+
+	// make collisions with character inelastic
+	CollisionComponent->CoR = 0.5;
 }
 
 void AMyCharacter::UpdateSpringArm(uint8 InCameraPosition)

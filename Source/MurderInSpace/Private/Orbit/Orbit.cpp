@@ -127,6 +127,7 @@ void AOrbit::Initialize()
     {
         Cast<AMyCharacter>(RP_Body)->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->SetReadyFlags(EHUDReady::OrbitReady);
     }
+    
     if(GetLocalRole() == ROLE_Authority)
     {
         // for the server, the initial params are valid
@@ -268,7 +269,7 @@ void AOrbit::Tick(float DeltaTime)
     FHitResult HitResult;
     if(GetLocalRole() == ROLE_Authority && RP_Body->Implements<UHasMesh>() && RP_Body->Implements<UHasCollision>())
     {
-        auto PrimitiveComponents = Cast<IHasMesh>(RP_Body)->GetMeshComponents();
+        auto PrimitiveComponents = Cast<IHasMesh>(RP_Body)->GetPrimitiveComponents();
         if(PrimitiveComponents.IsEmpty())
         {
             UE_LOG(LogMyGame, Error, TEXT("%s: GetMeshComponents: empty") , *GetFullName())
@@ -280,7 +281,8 @@ void AOrbit::Tick(float DeltaTime)
             PrimitiveComponent = PrimitiveComponents[i];
             PrimitiveComponent->SetWorldLocation(NewVecR, true, &HitResult);
             PrimitiveComponent->SetWorldLocation(OldVecR);
-            if(HitResult.bBlockingHit && HitResult.GetActor()->Implements<UHasCollision>())
+            auto* Other = HitResult.GetActor();
+            if(HitResult.bBlockingHit && Other->Implements<UHasCollision>() && Other->Implements<UHasMesh>())
             {
                 // if several components hit, only take into account the first one
                 bHit = true;

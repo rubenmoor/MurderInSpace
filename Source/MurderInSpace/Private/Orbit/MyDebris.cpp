@@ -43,7 +43,6 @@ void AMyDebris::BeginPlay()
 		IndividualVelocities[i] = VecCoMVelocity + ExplosionFactor * Transforms[i].GetLocation() - InitialAttenuation * VecCoMVelocity;
 	}
 	ISMComponent->AddInstances(Transforms, false);
-	UE_LOG(LogMyGame, Warning, TEXT("%s: Debris, Num: %d, average scale: %f"), *GetFullName(), Num, AverageScale)
 }
 
 void AMyDebris::Tick(float DeltaSeconds)
@@ -71,7 +70,8 @@ void AMyDebris::Tick(float DeltaSeconds)
 		auto Loc = Transform.GetLocation();
 		auto VecR = Loc + GetActorLocation();
 		auto VecRKepler = VecR - Physics.VecF1;
-		
+
+		// newtonian-style orbit simulation w/o orbit actor
 		// attenuate to have the debris fall into the black hole
 		IndividualVelocities[i] *= 1. - TraversalAttenuation * DeltaSeconds; // * ToTangential(IndividualVelocities[i], VecRKepler);
 		IndividualVelocities[i] += 2. * Physics.Alpha / VecRKepler.SquaredLength() * -VecRKepler.GetUnsafeNormal() * DeltaSeconds;

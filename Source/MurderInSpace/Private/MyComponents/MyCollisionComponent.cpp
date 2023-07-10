@@ -11,7 +11,7 @@ UMyCollisionComponent::UMyCollisionComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent* PrimitiveComponent)
+void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent* PrimitiveComponent) const
 {
 	auto* Other = HitResult.GetActor();
 	if(!IsValid(Other))
@@ -21,15 +21,16 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 		return;
 	}
 
-	if(Other->GetName() > GetOwner()->GetName())
-	{
-		// TODO: too many hits are being ignored. have to distinguish between legitimately ignored hits and errors
-		//UE_LOG(LogMyGame, Display, TEXT("%s: Ignoring blocking hit with %s")
-		//	, *GetFullName()
-		//	, *Other->GetName()
-		//	)
-		return;
-	}
+	// if(Other->GetName() > GetOwner()->GetName())
+	// {
+	// 	// TODO: too many hits are being ignored. have to distinguish between legitimately ignored hits and errors
+	// 	//UE_LOG(LogMyGame, Display, TEXT("%s: Ignoring blocking hit with %s")
+	// 	//	, *GetFullName()
+	// 	//	, *Other->GetName()
+	// 	//	)
+	// 	return;
+	// }
+	
 	if(HitResult.bStartPenetrating)
 	{
 		//UE_LOG(LogMyGame, Warning, TEXT("%s: bStartPenetrating, hit due to rotation")
@@ -77,10 +78,10 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	const FVector VecU2O = VecV2 - Alpha2 * VecN;
 
 	const double UBar = (M1 * Alpha1 + M2 * Alpha2) / (M1 + M2);
-	// TODO: use PhysicsMaterial for k value, e.g. k = std::min(1., k1 + k2)
-	//double K = 0.5;
-	double K = 1.;
+	
 	// partially elastic collision, k in [0, 1] where k = 0 is plastic and k = 1 elastic collision, respectively
+	const double K = CoR * Cast<IHasCollision>(Other)->GetCollisionComponent()->CoR;
+	
 	FVector VecW1 = (UBar - M2 * (Alpha1 - Alpha2) / (M1 + M2) * K) * VecN + VecU1O;
 	FVector VecW2 = (UBar - M1 * (Alpha2 - Alpha1) / (M1 + M2) * K) * VecN + VecU2O;
 

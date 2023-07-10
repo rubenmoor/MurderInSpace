@@ -15,7 +15,7 @@ AMyActor_RealtimeMesh::AMyActor_RealtimeMesh()
     RealtimeMeshComponent->CanCharacterStepUpOn = ECB_No;
     
     Gyration = CreateDefaultSubobject<UGyrationComponent>("Gyration");
-    Collision = CreateDefaultSubobject<UMyCollisionComponent>("Collision");
+    CollisionComponent = CreateDefaultSubobject<UMyCollisionComponent>("Collision");
 }
 
 void AMyActor_RealtimeMesh::Destroyed()
@@ -64,8 +64,7 @@ float AMyActor_RealtimeMesh::TakeDamage(float DamageAmount, FDamageEvent const& 
             Debris->SetNumParticles(FMath::Max(10, pow(Size / 20., 2.)));
             Debris->SetAverageScale(Size / 4.);
         };
-        auto Debris = GetWorld()->SpawnActor<AMyDebris>(DebrisClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
-        UE_LOG(LogMyGame, Warning, TEXT("%s: destroyed, debris spawned: %s"), *GetFullName(), *Debris->GetFullName())
+        GetWorld()->SpawnActor<AMyDebris>(DebrisClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
         Destroy();
     }
     return EffectiveDamage;

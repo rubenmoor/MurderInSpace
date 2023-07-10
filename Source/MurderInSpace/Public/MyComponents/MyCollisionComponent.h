@@ -38,11 +38,11 @@ public:
 		MyCollisionDimensions = InMyCollisionDimensions;
 	}
 	
-	void HandleHit(FHitResult& HitResult, UPrimitiveComponent* PrimitiveComponent);
+	void HandleHit(FHitResult& HitResult, UPrimitiveComponent* PrimitiveComponent) const;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	double CoR = 1.;
 	
 protected:
 	EMyCollisionDimensions MyCollisionDimensions = EMyCollisionDimensions::CollisionXYPlane;
-	// event handlers
-
-public:	
 };
