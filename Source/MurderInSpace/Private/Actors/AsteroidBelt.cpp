@@ -138,10 +138,10 @@ void AAsteroidBelt::BuildAsteroids()
 {
     check(IsValid(CurveAsteroidSize))
     check(IsValid(CurveAsteroidDistance))
-    check(!AsteroidTypes.IsEmpty())
-    for(const auto AsteroidType : AsteroidTypes)
+    check(!AsteroidGroups.IsEmpty())
+    for(const auto AsteroidGroup : AsteroidGroups)
     {
-        check(IsValid(AsteroidType.DynamicAsteroidClass))
+        check(IsValid(AsteroidGroup.DynamicAsteroidClass))
     }
     
     while(!Asteroids.IsEmpty())
@@ -163,7 +163,7 @@ void AAsteroidBelt::BuildAsteroids()
     const FVector VecR = GetActorLocation();
     for(int i = 0; i < NumAsteroids; i++)
     {
-        auto AsteroidType = PickAsteroidType();
+        auto AsteroidGroup = PickAsteroidGroup();
         const FVector VecVaried = MakeAsteroidDistance(Physics);
         const float Radius = VecVaried.Length();
         const float AlphaZero = acos(VecVaried.X / Radius);
@@ -180,12 +180,12 @@ void AAsteroidBelt::BuildAsteroids()
         // added to the children array for destruction
         SpawnParameters.SpawnCollisionHandlingOverride =
             ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-        SpawnParameters.CustomPreSpawnInitalization = [this, AsteroidType] (AActor* Actor)
+        SpawnParameters.CustomPreSpawnInitalization = [this, AsteroidGroup] (AActor* Actor)
         {
             // TODO: replace by some random distribution
             auto* DynamicAsteroid = Cast<ADynamicAsteroid>(Actor);
             DynamicAsteroid->Initialize
-                ( MakeAsteroidSize (AsteroidType)
+                ( MakeAsteroidSize (AsteroidGroup)
                 , MeshResolution
                 , bRecomputeNormals
                 , RandomStream.GetUnsignedInt()
@@ -208,7 +208,7 @@ void AAsteroidBelt::BuildAsteroids()
             // }
         };
         auto* Asteroid= World->SpawnActor<ADynamicAsteroid>
-            ( AsteroidType.DynamicAsteroidClass
+            ( AsteroidGroup.DynamicAsteroidClass
             , VecLocation
             , UKismetMathLibrary::RandomRotator(true)
             , SpawnParameters
@@ -217,10 +217,10 @@ void AAsteroidBelt::BuildAsteroids()
     }
 }
 
-float AAsteroidBelt::MakeAsteroidSize(const FAsteroidType& AsteroidType) const
+float AAsteroidBelt::MakeAsteroidSize(const FAsteroidGroup& AsteroidGroup) const
 {
-    return AsteroidType.MinAsteroidSize
-        + AsteroidType.MaxAsteroidSize * CurveAsteroidSize->GetFloatValue(RandomStream.FRand());
+    return AsteroidGroup.MinAsteroidSize
+        + AsteroidGroup.MaxAsteroidSize * CurveAsteroidSize->GetFloatValue(RandomStream.FRand());
 }
 
 FVector AAsteroidBelt::MakeAsteroidDistance(FPhysics Physics) const
@@ -229,25 +229,25 @@ FVector AAsteroidBelt::MakeAsteroidDistance(FPhysics Physics) const
 }
 
 
-FAsteroidType AAsteroidBelt::PickAsteroidType()
+FAsteroidGroup AAsteroidBelt::PickAsteroidGroup()
 {
     float FreqSum = 0.;
-    for(const auto AsteroidType : AsteroidTypes)
+    for(const auto AsteroidGroup : AsteroidGroups)
     {
-        FreqSum += AsteroidType.RelativeFrequency;
+        FreqSum += AsteroidGroup.RelativeFrequency;
     }
     const float Die = RandomStream.FRand() * FreqSum;
 
     FreqSum = 0.;
-    for(const auto AsteroidType : AsteroidTypes)
+    for(const auto AsteroidGroup : AsteroidGroups)
     {
-        FreqSum += AsteroidType.RelativeFrequency;
+        FreqSum += AsteroidGroup.RelativeFrequency;
         if(Die < FreqSum)
         {
-            return AsteroidType;
+            return AsteroidGroup;
         }
     }
     //std::unreachable;
-    return AsteroidTypes[0];
+    return AsteroidGroups[0];
 }
 

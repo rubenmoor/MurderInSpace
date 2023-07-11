@@ -10,7 +10,7 @@
 class UNiagaraComponent;
 
 USTRUCT(BlueprintType)
-struct FAsteroidType
+struct FAsteroidGroup
 {
     GENERATED_BODY()
     
@@ -48,7 +48,7 @@ protected:
     TArray<ADynamicAsteroid*> Asteroids;
     
     UPROPERTY(EditAnywhere, Category="Generation")
-    TArray<FAsteroidType> AsteroidTypes;
+    TArray<FAsteroidGroup> AsteroidGroups;
     
     UPROPERTY(EditAnywhere, Category="Generation")
     TObjectPtr<UCurveFloat> CurveAsteroidSize;
@@ -100,13 +100,13 @@ private:
     void BuildAsteroids();
     
     UFUNCTION(BlueprintPure)
-    float MakeAsteroidSize(const FAsteroidType& AsteroidType) const;
+    float MakeAsteroidSize(const FAsteroidGroup& AsteroidGroup) const;
 
     UFUNCTION(BlueprintPure)
     FVector MakeAsteroidDistance(FPhysics Physics) const;
 
     UFUNCTION(BlueprintCallable)
-    FAsteroidType PickAsteroidType();
+    FAsteroidGroup PickAsteroidGroup();
 
     FRandomStream RandomStream;
 };

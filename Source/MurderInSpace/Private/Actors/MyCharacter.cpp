@@ -84,7 +84,7 @@ AMyCharacter::AMyCharacter()
 	StarsDistant->SetVariableFloat("SpawnRate", 50.);
 
 	// make collisions with character inelastic
-	CollisionComponent->CoR = 0.5;
+	CollisionComponent->CoR = 0.2;
 }
 
 void AMyCharacter::UpdateSpringArm(uint8 InCameraPosition)

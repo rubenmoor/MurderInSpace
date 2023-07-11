@@ -196,20 +196,20 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
     auto* RealtimeMesh = GetRealtimeMeshComponent()->InitializeRealtimeMesh<URealtimeMeshSimple>();
     RealtimeMesh->SetupMaterialSlot(0, "Material");
 
-    if(MaterialTypes.IsEmpty())
+    if(AsteroidTypes.IsEmpty())
     {
-        UE_LOG(LogMyGame, Warning, TEXT("%s: MaterialTypes empty"), *GetFullName())
+        UE_LOG(LogMyGame, Warning, TEXT("%s: AsteroidTypes empty"), *GetFullName())
     }
     else
     {
-        for(auto MaterialType : MaterialTypes)
+        for(auto AsteroidType : AsteroidTypes)
         {
-            if(!IsValid(MaterialType.Material))
+            if(!IsValid(AsteroidType.Material))
             {
-                UE_LOG(LogMyGame, Warning, TEXT("%s: Invalid material in MaterialTypes"), *GetFullName())
+                UE_LOG(LogMyGame, Warning, TEXT("%s: Invalid material in AsteroidTypes"), *GetFullName())
             }
         }
-        auto* MaterialInstance = SelectMaterial();
+        auto [MaterialInstance, CoR] = SelectAsteroidType();
         RealtimeMeshComponent->SetMaterial(0, MaterialInstance);
     }
 
@@ -289,22 +289,24 @@ void ADynamicAsteroid::BeginPlay()
     OnGenerateMesh();
 }
 
-UMaterialInstance* ADynamicAsteroid::SelectMaterial()
+FSelectedAsteroidType ADynamicAsteroid::SelectAsteroidType()
 {
-    TArray<UMaterialInstance*> Materials;
-    for(auto [Material, MinSize, MaxSize] : MaterialTypes)
+    TArray<FSelectedAsteroidType> ValidAsteroidTypes;
+    for(auto [Material, MinSize, MaxSize, CoR] : AsteroidTypes)
     {
         if(RP_SizeParam >= MinSize && RP_SizeParam <= MaxSize)
         {
-            Materials.Push(Material);
+            const double Variation = RandomStream.FRand() * 0.2 - 0.1;
+            const double CoRVaried = std::max(0., CoR + Variation);
+            ValidAsteroidTypes.Push({Material, CoRVaried});
         }
     }
-    if(Materials.IsEmpty())
+    if(ValidAsteroidTypes.IsEmpty())
     {
         UE_LOG(LogMyGame, Warning, TEXT("%s: No valid material in Materials"), *GetFullName())
-        return nullptr;
+        return {};
     }
-    return Materials[RandomStream.RandRange(0, Materials.Num() - 1)];
+    return ValidAsteroidTypes[RandomStream.RandRange(0, ValidAsteroidTypes.Num() - 1)];
 }
 
 void ADynamicAsteroid::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

@@ -16,7 +16,9 @@ FVector UFunctionLib::VecVelocity(FVector E, FVector R, FVector VecH, double Alp
     {
         return Default;
     }
-    return VecHNorm.Cross(E + RNorm) * sqrt(Alpha / R.Length() / (RNorm.Dot(E) + 1));
+    FVector VecVelocity = VecHNorm.Cross(E + RNorm) * sqrt(Alpha / R.Length() / (RNorm.Dot(E) + 1));
+    VecVelocity.Z = 0.;
+    return VecVelocity;
 }
 
 double UFunctionLib::ScalarVelocitySquared(double R, double A, double Alpha)

@@ -62,6 +62,7 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	
 	auto* Orbit1 = GetOwner<IHasOrbit>()->GetOrbit();
 	auto* Orbit2 = Cast<IHasOrbit>(Other)->GetOrbit();
+	
 	const FVector VecV1 = Orbit1->GetVecVelocity();
 	const FVector VecV2 = Orbit2->GetVecVelocity();
 
@@ -83,27 +84,23 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 		// leave the impact normal
 		break;
 	}
-	
-	const double Alpha1 = VecV1.Dot(VecN);
-	const FVector VecU1O = VecV1 - Alpha1 * VecN;
-	const double Alpha2 = VecV2.Dot(VecN);
-	const FVector VecU2O = VecV2 - Alpha2 * VecN;
-
-	const double UBar = (MyMass * Alpha1 + OtherMass * Alpha2) / (MyMass + OtherMass);
 
 	// collision restitution: combination by multiplication
 	const double K = CoR * OtherCollisionComponent->CoR;
-	
+
 	// partially elastic collision, k in [0, 1] where k = 0 is plastic and k = 1 elastic collision, respectively
-	FVector VecW1 = (UBar - OtherMass * (Alpha1 - Alpha2) / (MyMass + OtherMass) * K) * VecN + VecU1O;
-	FVector VecW2 = (UBar - MyMass * (Alpha2 - Alpha1) / (MyMass + OtherMass) * K) * VecN + VecU2O;
+	
+	// calculation for 3 dimensions
+	// https://en.wikipedia.org/wiki/Inelastic_collision
+ 	const double J = MyMass * OtherMass / (MyMass + OtherMass) * (1. + K) * (VecV2 - VecV1).Dot(VecN);
+	const FVector VecDeltaV1 = J / MyMass * VecN;
+	const FVector VecDeltaV2 = -J / OtherMass * VecN;
 
 	switch(MyCollisionDimensions)
 	{
 	using enum EMyCollisionDimensions;
 	case CollisionXYPlane:
-		checkf(VecW1.Z == 0., TEXT("%f"), VecW1.Z)
-		checkf(VecW2.Z == 0., TEXT("%f"), VecW2.Z)
+		// TODO: z must be 0
 		break;
 	case CollisionXYZ:
 		// leave the impact normal
@@ -115,8 +112,9 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	const auto* GS = GetWorld()->GetGameState<AMyGameState>();
 	const FPhysics Physics = MyState->GetPhysics(GS);
 	const FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
-	Orbit1->Update(VecW1 - VecV1, Physics, InstanceUI);
-	Orbit2->Update(VecW2 - VecV2, Physics, InstanceUI);
+	
+	Orbit1->Update(VecDeltaV1, Physics, InstanceUI);
+	Orbit2->Update(VecDeltaV2, Physics, InstanceUI);
 }
 
 double UMyCollisionComponent::GetMyMass()

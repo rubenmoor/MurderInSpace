@@ -47,6 +47,8 @@ void AMyPlayerController::SetupInputComponent()
     // gameplay actions
     BindAction<EInputAction::TowardsCircleBeginEnd>();
     BindAction<EInputAction::AccelerateBeginEnd   >();
+    BindAction<EInputAction::EmbraceBeginEnd      >();
+    BindAction<EInputAction::KickPositionExecute  >();
 }
 
 void AMyPlayerController::Zoom(float Delta)
@@ -109,8 +111,9 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
     
     switch (Action)
     {
-    case EInputAction::AccelerateBeginEnd:
-    case EInputAction::TowardsCircleBeginEnd:
+    using enum EInputAction;
+    case AccelerateBeginEnd:
+    case TowardsCircleBeginEnd:
         if(Orbit->bIsVisibleAccelerating)
         {
             Orbit->bIsVisibleAccelerating = false;
@@ -128,7 +131,13 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
             Orbit->UpdateVisibility(GI->InstanceUI);
         }
         break;
-    case EInputAction::IngameMenuToggle:
+    case EmbraceBeginEnd:
+        break;
+    case KickPositionExecute:
+        break;
+
+    // UI
+    case IngameMenuToggle:
         switch(LocalPlayer->InGame)
         {
         case EInGame::IngameMenu:   

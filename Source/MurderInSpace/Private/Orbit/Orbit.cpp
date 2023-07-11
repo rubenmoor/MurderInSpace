@@ -319,7 +319,7 @@ void AOrbit::Tick(float DeltaTime)
 void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
 {
     const FVector VecR = GetVecR();
-    
+
     // transform location vector r to Kepler coordinates, where F1 is the origin
     const FVector VecRKepler = GetVecRKepler(Physics);
 

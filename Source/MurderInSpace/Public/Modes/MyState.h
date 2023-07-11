@@ -22,7 +22,9 @@ enum class EInputAction : uint8
 {
 	// given your current orientation, use the main rocket engine to accelerate
 	  AccelerateBeginEnd      UMETA(DisplayName = "accelerate")
-	, TowardsCircleBeginEnd   UMETA(DispalyName = "accelerate towards circular orbit")
+	, TowardsCircleBeginEnd   UMETA(DisplayName = "accelerate towards circular orbit")
+	, EmbraceBeginEnd         UMETA(DisplayName = "use arms to embrace a thing, e.g. an asteroid")
+	, KickPositionExecute     UMETA(DisplayName = "use legs to kick something away")
 
 	// pure UI actions
 	, IngameMenuToggle        UMETA(DisplayName = "toggle in-game menu")

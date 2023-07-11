@@ -21,7 +21,7 @@ struct FFractureInfo
 };
 
 USTRUCT(BlueprintType)
-struct FMaterialType
+struct FAsteroidType
 {
     GENERATED_BODY()
 
@@ -33,6 +33,21 @@ struct FMaterialType
     
     UPROPERTY(EditAnywhere)
     double MaxSize = 1e11;
+
+    UPROPERTY(EditAnywhere)
+    double CoR = 1.;
+};
+
+USTRUCT()
+struct FSelectedAsteroidType
+{
+    GENERATED_BODY()
+    
+    UPROPERTY(EditAnywhere)
+    UMaterialInstanceConstant* Material;
+
+    UPROPERTY(EditAnywhere)
+    double CoR;
 };
 
 UENUM()
@@ -86,7 +101,7 @@ public:
 
 protected:
     UPROPERTY(EditDefaultsOnly, Category="Generation")
-    TArray<FMaterialType> MaterialTypes;
+    TArray<FAsteroidType> AsteroidTypes;
     
     UPROPERTY(EditAnywhere, Category="Generation")
     double CollisionCapsuleRelativeSize = 0.9;
@@ -155,8 +170,9 @@ protected:
     // fill MeshData with asteroid mesh
     void GenerateAsteroid();
 
-    UFUNCTION(BlueprintPure)
-    UMaterialInstance* SelectMaterial();
+    // returning structs is not supported by blueprint
+    UFUNCTION()
+    FSelectedAsteroidType SelectAsteroidType();
 
     UFUNCTION(BlueprintCallable)
     TArray<FFractureInfo> GetFractures();

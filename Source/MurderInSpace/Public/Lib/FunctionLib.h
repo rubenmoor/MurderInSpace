@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "FunctionLib.generated.h"
