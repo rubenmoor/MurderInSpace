@@ -174,7 +174,7 @@ public:
 	AOrbit();
 
 	virtual void Tick(float DeltaTime) override;
-
+    
     UFUNCTION(BlueprintCallable)
     void SetDrawDebug(bool bDraw) { Spline->SetDrawDebug(bDraw); }
     
@@ -193,10 +193,11 @@ public:
     UFUNCTION(BlueprintCallable)
     void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
     
-    // update the orbit given
-    // * the location of the owner
-    // * `VecVelocity`
-    // * `Physics`
+    /* update the orbit given
+     *     the location of the owner
+     *     `DeltaVecV`: a change in velocity
+     *     `Physics`
+     */
     UFUNCTION(BlueprintCallable)
     void Update
         ( FVector DeltaVecV
@@ -282,6 +283,9 @@ public:
     UFUNCTION(BlueprintCallable)
     USplineComponent* GetSplineComponent() { return Spline; }
 
+    UFUNCTION(BlueprintCallable)
+    void SetEnabled(bool InEnabled);
+
 protected:
 
 #if WITH_EDITOR
@@ -366,6 +370,10 @@ protected:
 
     UPROPERTY(VisibleAnywhere)
     bool bIsInitialized = false;
+
+    // disable to stop ticking and orbit visualisation
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool bEnabled = true;
 
     // TODO: deprecate
     // error correction

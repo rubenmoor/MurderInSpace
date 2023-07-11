@@ -44,9 +44,12 @@ struct FPhysics
 {
 	GENERATED_BODY()
 
-	// ScaleFactor = 1 UU / 1 m
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	double ScaleFactor = 0.f;
+	// scale factor for lengths = 1 UU / 1 m
+	static constexpr double inline LengthScaleFactor = .01;
+
+	// scale factor for mass, such that the astronaut weighs is set to roughly 160 (e.g. 1 = 1 kg)
+	// this only affects displayed value as the physics are invariant to mass scale
+	static constexpr double inline MassScaleFactor = 7./1000.;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	double WorldRadius = 0.f;
@@ -127,15 +130,11 @@ constexpr double ALPHA_Sun_SI = 1.3e20;
 // for actors, unreal guaranties sanity for values of x and y within [-1048535, 1048535]
 constexpr double MAX_WORLDRADIUS_UU = 1.048535e6;
 
-// scale factor = 1 UU/1 m
-constexpr double DEFAULT_SCALEFACTOR = .01;
-
 const FPhysics PhysicsEditorDefault =
-	{ DEFAULT_SCALEFACTOR
-	, MAX_WORLDRADIUS_UU
-	, MAX_WORLDRADIUS_UU * DEFAULT_SCALEFACTOR // = 1.048535e4 = 10 km
+	{  MAX_WORLDRADIUS_UU
+	, MAX_WORLDRADIUS_UU * FPhysics::LengthScaleFactor // = 1.048535e4 = 10 km
 	, FVector::Zero()
-	, ALPHA_Game_SI / (DEFAULT_SCALEFACTOR * DEFAULT_SCALEFACTOR * DEFAULT_SCALEFACTOR)
+	, ALPHA_Game_SI / (FPhysics::LengthScaleFactor * FPhysics::LengthScaleFactor * FPhysics::LengthScaleFactor)
 	};
 
 constexpr FPlayerUI PlayerUIEditorDefault =

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "HUD/MyCommonButton.h"

@@ -33,7 +33,6 @@ public:
 	// IHasMesh
 	virtual TArray<UPrimitiveComponent*> GetPrimitiveComponents() const override { return {RealtimeMeshComponent}; }
 	virtual FBoxSphereBounds     GetBounds() const override { return RealtimeMeshComponent->Bounds; }
-	virtual double               GetMyMass() const override { return MyMassOverride == 0. ? MyMass : MyMassOverride; }
 	virtual FVector              GetMyInertiaTensor() const override { return RotInertiaNorm; }
 
 	// IHasOrbit
@@ -78,16 +77,8 @@ protected:
     FLinearColor OrbitColor;
 
 	// volume of the mesh, used for calculation of my mass
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Orbit")
-	double MyVolume;
-
-	// custom mass calculation, using volume (from mesh generation) and density (from physical material)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
-	double MyMass;
-
-	// override the calculation of my mass (via volume and density) with a set value
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
-	double MyMassOverride = 0.;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Orbit")
+	//double MyVolume;
 
 	// principal moments of inertia, normalized
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")

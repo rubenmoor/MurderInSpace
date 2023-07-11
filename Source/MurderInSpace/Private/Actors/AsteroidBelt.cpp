@@ -70,6 +70,7 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
     static const FName FNameFogDensity            = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, FogDensity           );
     static const FName FNameParticleSizeMax       = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, ParticleSizeMax      );
     static const FName FNameParticleSizeMin       = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, ParticleSizeMin      );
+    static const FName FNameEnabled               = GET_MEMBER_NAME_CHECKED(AAsteroidBelt, bEnabled             );
 
     if(     Name == FNameCurveAsteroidSize
          || Name == FNameCurveAsteroidDistance
@@ -82,7 +83,7 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
             BuildAsteroids();
         }
     }
-
+    
     if(
             Name == FNameFogDensity
          || Name == FNameParticleSizeMax
@@ -96,6 +97,17 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
         NS_Fog->SetFloatParameter("ParticleSizeMin", ParticleSizeMin);
         NS_Fog->SetFloatParameter("HandleRadius", std::max(0., 0.25 * Width - ParticleSizeMax));
         NS_Fog->SetIntParameter("SpawnCount", 2 * UE_PI * Radius * FogDensity);
+    }
+    else if
+        ( Name == FNameEnabled
+        )
+    {
+        for(auto* Asteroid : Asteroids)
+        {
+            Asteroid->SetActorEnableCollision(bEnabled);
+            Asteroid->GetRootComponent()->SetVisibility(bEnabled, true);
+            Asteroid->GetOrbit()->SetEnabled(bEnabled);
+        }
     }
 }
 

@@ -46,7 +46,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 	
 	if(RP_bIsAccelerating)
 	{
-		const double DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
+		const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
 		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics, InstanceUI);
 	}
 	else if(RP_bTowardsCircle)
@@ -56,7 +56,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 		RP_Rotation = FQuat::FindBetween(FVector(1., 0., 0.), VecTarget);
 		SetActorRotation(RP_Rotation);
 		const FVector VecDelta = VecTarget - RP_Orbit->GetVecVelocity();
-		const double DeltaV = AccelerationSI / Physics.ScaleFactor * DeltaSeconds;
+		const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
 		if(VecDelta.Length() > DeltaV)
 		{
 			RP_Orbit->Update(VecDelta.GetSafeNormal() * DeltaV, Physics, InstanceUI);

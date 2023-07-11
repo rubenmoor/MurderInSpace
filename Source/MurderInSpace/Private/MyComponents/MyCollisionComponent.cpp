@@ -64,36 +64,49 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	auto* Orbit2 = Cast<IHasOrbit>(Other)->GetOrbit();
 	const FVector VecV1 = Orbit1->GetVecVelocity();
 	const FVector VecV2 = Orbit2->GetVecVelocity();
-	// TODO: use PhysicsMaterial for mass density
-	const double M1 = GetOwner<IHasMesh>()->GetMyMass();
-	const double M2 = Cast<IHasMesh>(Other)->GetMyMass();
+
+	auto* OtherCollisionComponent = Cast<IHasCollision>(Other)->GetCollisionComponent();
+	const double OtherMass = OtherCollisionComponent->GetMyMass();
+	
 	// the idea is to subtract the CoM velocity to make sure that u1 and u2 are on plane with the normal,
 	// I am not sure about that, however
 	// new base vectors: VecN, VecO
-	const FVector VecN = HitResult.ImpactNormal;
-	// U1 = Alpha1 * VecN + Beta1 * VecO
+	FVector VecN = HitResult.ImpactNormal;
+
+	switch(MyCollisionDimensions)
+	{
+	using enum EMyCollisionDimensions;
+	case CollisionXYPlane:
+		VecN = VecN.GetUnsafeNormal2D();
+		break;
+	case CollisionXYZ:
+		// leave the impact normal
+		break;
+	}
+	
 	const double Alpha1 = VecV1.Dot(VecN);
 	const FVector VecU1O = VecV1 - Alpha1 * VecN;
 	const double Alpha2 = VecV2.Dot(VecN);
 	const FVector VecU2O = VecV2 - Alpha2 * VecN;
 
-	const double UBar = (M1 * Alpha1 + M2 * Alpha2) / (M1 + M2);
+	const double UBar = (MyMass * Alpha1 + OtherMass * Alpha2) / (MyMass + OtherMass);
+
+	// collision restitution: combination by multiplication
+	const double K = CoR * OtherCollisionComponent->CoR;
 	
 	// partially elastic collision, k in [0, 1] where k = 0 is plastic and k = 1 elastic collision, respectively
-	const double K = CoR * Cast<IHasCollision>(Other)->GetCollisionComponent()->CoR;
-	
-	FVector VecW1 = (UBar - M2 * (Alpha1 - Alpha2) / (M1 + M2) * K) * VecN + VecU1O;
-	FVector VecW2 = (UBar - M1 * (Alpha2 - Alpha1) / (M1 + M2) * K) * VecN + VecU2O;
+	FVector VecW1 = (UBar - OtherMass * (Alpha1 - Alpha2) / (MyMass + OtherMass) * K) * VecN + VecU1O;
+	FVector VecW2 = (UBar - MyMass * (Alpha2 - Alpha1) / (MyMass + OtherMass) * K) * VecN + VecU2O;
 
 	switch(MyCollisionDimensions)
 	{
-	case EMyCollisionDimensions::CollisionXYPlane:
-		// eliminate z-component
-		// TODO: apply damage according to the lost kinetic energy
-		VecW1.Z = 0.;
-		VecW2.Z = 0.;
+	using enum EMyCollisionDimensions;
+	case CollisionXYPlane:
+		checkf(VecW1.Z == 0., TEXT("%f"), VecW1.Z)
+		checkf(VecW2.Z == 0., TEXT("%f"), VecW2.Z)
 		break;
-	case EMyCollisionDimensions::CollisionXYZ:
+	case CollisionXYZ:
+		// leave the impact normal
 		break;
 	}
 
@@ -104,4 +117,38 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	const FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
 	Orbit1->Update(VecW1 - VecV1, Physics, InstanceUI);
 	Orbit2->Update(VecW2 - VecV2, Physics, InstanceUI);
+}
+
+double UMyCollisionComponent::GetMyMass()
+{
+	check(bMassInitialized)
+	return bOverrideMass ? MassOverride : MyMass;
+}
+
+#if WITH_EDITOR
+void UMyCollisionComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+
+    const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
+
+    static const FName FMassOverride = GET_MEMBER_NAME_CHECKED(UMyCollisionComponent, MassOverride);
+    static const FName FDensity      = GET_MEMBER_NAME_CHECKED(UMyCollisionComponent, Density);
+	static const FName FDensityExponent = GET_MEMBER_NAME_CHECKED(UMyCollisionComponent, DensityExponent);
+
+    if(Name == FMassOverride)
+    {
+		bOverrideMass = true;
+    }
+    else if(Name == FDensity || Name == FDensityExponent)
+    {
+		UpdateMass(GetOwner<IHasMesh>()->GetBounds().SphereRadius);
+    }
+}
+#endif
+
+void UMyCollisionComponent::UpdateMass(double Radius)
+{
+	MyMass = Density * pow(Radius, DensityExponent) * FPhysics::MassScaleFactor;
+	bMassInitialized = true;
 }

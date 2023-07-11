@@ -20,6 +20,5 @@ public:
     // for mouse interaction/selection of orbiting bodies
     virtual FBoxSphereBounds GetBounds() const = 0;
     
-    virtual double GetMyMass() const = 0;
     virtual FVector GetMyInertiaTensor() const { return FVector(1., 1., 1.); }
 };

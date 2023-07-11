@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "CoreMinimal.h"
 #include "OnlineSessionSettings.h"
 #include "Interfaces/OnlineSessionInterface.h"
@@ -8,6 +10,7 @@
 
 #define SETTING_CUSTOMNAME "CUSTOMNAME"
 
+struct FLocalPlayerContext;
 /**
  * using a game instance subsystem to manage LAN and online sessions 
  */

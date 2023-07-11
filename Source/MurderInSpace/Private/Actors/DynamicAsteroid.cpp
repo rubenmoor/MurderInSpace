@@ -8,7 +8,6 @@
 #include "ProceduralMeshComponent.h"
 #include "Actors/AsteroidBelt.h"
 #include "Net/UnrealNetwork.h"
-#include "PhysicalMaterials/PhysicalMaterial.h"
 
 ADynamicAsteroid::ADynamicAsteroid()
 {
@@ -197,7 +196,6 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
     auto* RealtimeMesh = GetRealtimeMeshComponent()->InitializeRealtimeMesh<URealtimeMeshSimple>();
     RealtimeMesh->SetupMaterialSlot(0, "Material");
 
-    double Density = 1.;
     if(MaterialTypes.IsEmpty())
     {
         UE_LOG(LogMyGame, Warning, TEXT("%s: MaterialTypes empty"), *GetFullName())
@@ -213,23 +211,6 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
         }
         auto* MaterialInstance = SelectMaterial();
         RealtimeMeshComponent->SetMaterial(0, MaterialInstance);
-        if(IsValid(MaterialInstance))
-        {
-            const auto* PhysMat = MaterialInstance->GetPhysicalMaterial();
-            if(IsValid(PhysMat))
-            {
-                Density = PhysMat->Density;
-            }
-            else
-            {
-                UE_LOG(LogMyGame, Warning, TEXT("%s: no physical material set in %s")
-                    , *GetFullName(), *MaterialInstance->GetFullName())
-            }
-        }
-        else
-        {
-            UE_LOG(LogMyGame, Warning, TEXT("%s: material instance invalid") , *GetFullName())
-        }
     }
 
     switch(Origin)
@@ -272,8 +253,11 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
         , MeshData
         , false
         );
-    
-    MyMass = Density * pow(RealtimeMeshComponent->Bounds.SphereRadius, 3);
+
+    // TODO: set based on asteroid type
+    CollisionComponent->Density = 2.;
+    CollisionComponent->DensityExponent = 2.9;
+    CollisionComponent->UpdateMass(GetBounds().SphereRadius);
 }
 
 void ADynamicAsteroid::Destroyed()

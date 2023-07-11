@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "CoreMinimal.h"
 #include "CommonTextBlock.h"
 #include "HUD/MyCommonButton.h"

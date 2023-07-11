@@ -42,7 +42,37 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double CoR = 1.;
+
+	UFUNCTION(BlueprintCallable)
+	double GetMyMass();
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateMass(double Radius);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	bool bOverrideMass = false;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	double MassOverride = 0.;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	double Density = 1.;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	double DensityExponent = 3.;
+
 protected:
 	EMyCollisionDimensions MyCollisionDimensions = EMyCollisionDimensions::CollisionXYPlane;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Orbit")
+	double MyMass;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bMassInitialized;
+
+	// event handlers
+
+#if WITH_EDITOR
+	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+#endif
 };

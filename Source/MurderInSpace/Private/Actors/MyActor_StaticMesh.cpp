@@ -18,7 +18,7 @@ AMyActor_StaticMesh::AMyActor_StaticMesh()
     StaticMeshComponent->SetupAttachment(Root);
 
     Gyration = CreateDefaultSubobject<UGyrationComponent>("Gyration");
-    Collision = CreateDefaultSubobject<UMyCollisionComponent>("Collision");
+    CollisionComponent = CreateDefaultSubobject<UMyCollisionComponent>("Collision");
 }
 
 void AMyActor_StaticMesh::Destroyed()
@@ -48,8 +48,7 @@ void AMyActor_StaticMesh::OnConstruction(const FTransform& Transform)
     {
         OrbitSetup(this);
     }
-
-    MyMass = pow(StaticMeshComponent->Bounds.SphereRadius, 3);
+    CollisionComponent->UpdateMass(GetBounds().SphereRadius);
 }
 
 #if WITH_EDITOR

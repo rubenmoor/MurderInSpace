@@ -21,8 +21,7 @@ public:
 
 	// IHasMesh
 	virtual TArray<UPrimitiveComponent*> GetPrimitiveComponents() const override final { return {CapsuleComponent}; };
-	virtual FBoxSphereBounds GetBounds() const override { return CapsuleComponent->Bounds; }
-	virtual double GetMyMass() const override { return GetCapsuleVolume(CapsuleComponent); }
+	virtual FBoxSphereBounds GetBounds() const override { return SkeletalMesh->Bounds; }
 
 	// IHasCollision
 	virtual UMyCollisionComponent* GetCollisionComponent() override { return CollisionComponent; }
@@ -37,12 +36,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UMyCollisionComponent> CollisionComponent;
 
-private:
-	static double GetCapsuleVolume(const UCapsuleComponent* Capsule)
-	{
-		const double R = Capsule->GetScaledCapsuleRadius();
-		const double H = 2 * Capsule->GetScaledCapsuleHalfHeight();
-		return 4. / 3. * PI * pow(R, 3)
-		     +  H * 4. * PI * pow(R, 2);
-	}
+	// event handlers
+	virtual void OnConstruction(const FTransform& Transform) override;
 };

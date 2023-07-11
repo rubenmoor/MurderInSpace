@@ -40,6 +40,10 @@ public:
     void ClearAsteroidPointer(ADynamicAsteroid* Asteroid) { Asteroids.RemoveSingle(Asteroid); }
     
 protected:
+    // if disabled, the asteroid belt disappears with all its asteroids
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Generation")
+    bool bEnabled = true;
+    
     UPROPERTY(VisibleAnywhere, Category="Generation")
     TArray<ADynamicAsteroid*> Asteroids;
     

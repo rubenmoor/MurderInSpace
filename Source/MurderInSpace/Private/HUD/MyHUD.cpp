@@ -175,15 +175,15 @@ void AMyHUD::Tick(float DeltaSeconds)
 
 	extern ENGINE_API float GAverageFPS;
 	WidgetHUD->TextFPS->SetText(FText::AsNumber(GAverageFPS, FOFPS.Get()));
-	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * Physics.ScaleFactor, FOVelocity.Get()));
+	WidgetHUD->TextVelocitySI->SetText(FText::AsNumber(Velocity * FPhysics::LengthScaleFactor, FOVelocity.Get()));
 	WidgetHUD->TextVelocityVCircle->SetText(
 		FText::AsNumber(Velocity / Orbit->GetCircleVelocity(Physics).Length(), FOVelocity.Get())
 		);
 	WidgetHUD->TextCameraHeight->SetText(
-		FText::AsNumber(MyCharacter->GetSpringArmLength() * Physics.ScaleFactor, FODistance.Get())
+		FText::AsNumber(MyCharacter->GetSpringArmLength() * FPhysics::LengthScaleFactor, FODistance.Get())
 		);
 	
-	const float DistanceF1 = Orbit->GetVecRKepler(Physics).Length() * Physics.ScaleFactor;
+	const float DistanceF1 = Orbit->GetVecRKepler(Physics).Length() * FPhysics::LengthScaleFactor;
 	
 	const float AngleVelocityArrow =
 		FQuat::FindBetween

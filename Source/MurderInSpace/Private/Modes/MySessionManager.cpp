@@ -9,6 +9,7 @@
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyLocalPlayer.h"
 #include "Modes/MyPlayerState.h"
+#include "Online/OnlineSessionNames.h"
 
 #define LOCTEXT_NAMESPACE "Menu"
 
@@ -202,7 +203,7 @@ void UMySessionManager::ShowLoginScreen(const FLocalPlayerContext& LPC)
 	OnlineAccountCredentials.Id = "localhost:1234";
 	OnlineAccountCredentials.Token = "foo";
 
-	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked("EOS");
+	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked(GetWorld(), "EOS");
 	
 	OSSIdentity->Login
 		( LPC.GetLocalPlayer()->GetLocalPlayerIndex()
@@ -223,7 +224,7 @@ void UMySessionManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked("EOS");
+	const IOnlineIdentityPtr OSSIdentity = Online::GetIdentityInterfaceChecked(GetWorld(), "EOS");
 	
 	// login handler
 	

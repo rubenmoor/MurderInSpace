@@ -77,8 +77,8 @@ void AMyActor_RealtimeMesh::PostEditChangeChainProperty(FPropertyChangedChainEve
     
     const FName Name = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 
-    static const FName FNameOrbitColor    = GET_MEMBER_NAME_CHECKED(AMyActor_RealtimeMesh, OrbitColor        );
-    static const FName FNameInitialParams = GET_MEMBER_NAME_CHECKED(AMyActor_RealtimeMesh, InitialOrbitParams);
+    static const FName FNameOrbitColor     = GET_MEMBER_NAME_CHECKED(AMyActor_RealtimeMesh, OrbitColor        );
+    static const FName FNameInitialParams  = GET_MEMBER_NAME_CHECKED(AMyActor_RealtimeMesh, InitialOrbitParams);
 
     if(Name == FNameOrbitColor)
     {

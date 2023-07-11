@@ -98,6 +98,13 @@ void AOrbit::DestroyTempSplineMeshes()
     }
 }
 
+void AOrbit::SetEnabled(bool InEnabled)
+{
+    SetActorTickEnabled(bEnabled);
+    SetEnableVisibility(bEnabled);
+    UpdateVisibility(InstanceUIEditorDefault);
+}
+
 void AOrbit::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
@@ -144,9 +151,10 @@ void AOrbit::Initialize()
         // the initial params aren't valid anymore, when there have been interaction before this client joined
         Update(Physics, InstanceUI);
     }
-    
+
     bIsInitialized = true;
-    SetActorTickEnabled(true);
+    // start ticking, unless the orbit has been disabled via property
+    SetActorTickEnabled(bEnabled);
 }
 
 void AOrbit::CorrectSplineLocation()
@@ -903,6 +911,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     static const FName FNameSplineMeshMaterial    = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshMaterial   );
     static const FName FNameSplineMeshScaleFactor = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshScaleFactor);
     static const FName FNameSplineDistance        = GET_MEMBER_NAME_CHECKED(AOrbit, SplineDistance       );
+    static const FName FNameEnabled                   = GET_MEMBER_NAME_CHECKED(AOrbit, bEnabled             );
 
     bool bOrbitDirty = false;
     
@@ -953,6 +962,12 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         )
     {
         RP_Body->SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World));
+    }
+    else if
+        ( Name == FNameEnabled
+        )
+    {
+        SetEnabled(bEnabled);
     }
 
     if(bOrbitDirty)
