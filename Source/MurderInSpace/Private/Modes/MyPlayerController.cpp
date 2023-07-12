@@ -82,13 +82,27 @@ void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Act
     AOrbit* Orbit = MyCharacter->GetOrbit();
     switch (Action)
     {
-    case EInputAction::AccelerateBeginEnd:
+    using enum EInputAction;
+    case AccelerateBeginEnd:
         Orbit->ToggleIsChanging();
-        MyCharacter->RP_bIsAccelerating = !MyCharacter->RP_bIsAccelerating;
+        MyCharacter->RP_bIsAccelerating ^= true;
         break;
-    case EInputAction::TowardsCircleBeginEnd:
+    case TowardsCircleBeginEnd:
         Orbit->ToggleIsChanging();
-        MyCharacter->RP_bTowardsCircle = !MyCharacter->RP_bTowardsCircle;
+        MyCharacter->RP_bTowardsCircle ^= true;
+        break;
+    case EmbraceBeginEnd:
+        MyCharacter->RP_bActionIdle    =  MyCharacter->RP_bActionEmbrace;
+        MyCharacter->RP_bActionEmbrace ^= true;
+        break;
+    case KickPositionExecute:
+        {
+        auto* MyState = UMyState::Get();
+        auto* IA = MyState->GetInputAction(MyInputActionsData, KickPositionExecute);
+        auto Value = Input->GetPlayerInput()->GetActionValue(IA);
+        bool bPressed = Value.Get<bool>();
+        UE_LOG(LogMyGame, Warning, TEXT("%s: bPressed: %s"), *GetFullName(), bPressed ? TEXT("true") : TEXT("false"))
+        }
         break;
     default:
         UE_LOG

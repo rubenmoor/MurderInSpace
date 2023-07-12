@@ -119,7 +119,7 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 
 double UMyCollisionComponent::GetMyMass()
 {
-	check(bMassInitialized)
+	checkf(bMassInitialized, TEXT("%s: mass not initialized"), *GetFullName())
 	return bOverrideMass ? MassOverride : MyMass;
 }
 

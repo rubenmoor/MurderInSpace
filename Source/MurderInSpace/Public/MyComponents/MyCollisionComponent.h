@@ -49,22 +49,22 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UpdateMass(double Radius);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bOverrideMass = false;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double MassOverride = 0.;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double Density = 1.;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Orbit")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double DensityExponent = 3.;
 
 protected:
 	EMyCollisionDimensions MyCollisionDimensions = EMyCollisionDimensions::CollisionXYPlane;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Orbit")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	double MyMass;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)

@@ -8,6 +8,13 @@
 
 #include "MyPawn_SkeletalMesh.generated.h"
 
+UENUM(BlueprintType)
+enum class ERotationDirection : uint8
+{
+	  Clockwise
+	, Counterclockwise
+};
+
 /**
  * 
  */
@@ -26,6 +33,26 @@ public:
 	// IHasCollision
 	virtual UMyCollisionComponent* GetCollisionComponent() override { return CollisionComponent; }
 	
+	// actions and animations
+
+	// TODO: needed?
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	bool RP_bActionIdle = true;
+	
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	bool RP_bActionEmbrace = false;
+	
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	bool RP_bActionRotate = false;
+	
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	ERotationDirection RP_RotationDirection = ERotationDirection::Clockwise;
+	
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	bool RP_bActionKickPosition = false;
+	
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	bool RP_bActionKickExecute = false;
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<USkeletalMeshComponent> SkeletalMesh;
@@ -37,5 +64,5 @@ protected:
 	TObjectPtr<UMyCollisionComponent> CollisionComponent;
 
 	// event handlers
-	virtual void OnConstruction(const FTransform& Transform) override;
+
 };
