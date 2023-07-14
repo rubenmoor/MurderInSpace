@@ -8,6 +8,33 @@
 #include "Input/MyEnhancedInputComponent.h"
 #include "MyPlayerController.generated.h"
 
+struct FGameplayTag;
+class UTaggedInputActionData;
+/**
+ * 
+ */
+UENUM()
+enum class EInputAction : uint8
+{
+	// given your current orientation, use the main rocket engine to accelerate
+	  AccelerateBeginEnd      UMETA(DisplayName = "accelerate")
+	, TowardsCircleBeginEnd   UMETA(DisplayName = "accelerate towards circular orbit")
+	, EmbraceBeginEnd         UMETA(DisplayName = "use arms to embrace a thing, e.g. an asteroid")
+	, KickPositionExecute     UMETA(DisplayName = "use legs to kick something away")
+	, KickCancel              UMETA(DisplayName = "cancel the kick")
+
+	// pure UI actions
+	, IngameMenuToggle        UMETA(DisplayName = "toggle in-game menu")
+	, MyTrajectoryShowHide    UMETA(DisplayName = "show my trajectory")
+	, AllTrajectoriesShowHide UMETA(DisplayName = "show all trajectories")
+	, MyTrajectoryToggle      UMETA(DisplayName = "toggle my trajectories visibility")
+	, Zoom                    UMETA(DisplayName = "zoom the camera in or out")
+	, Select                  UMETA(DisplayName = "deselect any selected body")
+	
+	, MinPureUI = IngameMenuToggle
+	, Last = Select
+};
+
 /**
  * 
  */
@@ -58,8 +85,7 @@ private:
 	template<EInputAction InputAction>
 	void BindAction()
 	{
-		auto* MyState = UMyState::Get();
-		const auto* IA = MyState->GetInputAction(MyInputActionsData, InputAction);
+		const auto* IA = GetInputAction(InputAction);
 		if (IsValid(IA))
 		{
 			Cast<UMyEnhancedInputComponent>(InputComponent)->BindAction
@@ -87,12 +113,14 @@ private:
 	{
 		// 'MinPureUI' marks the enumerator where UI-only actions begin
 		// those have only local execution
+		// TODO: ? if(InputAction < EInputAction::MinPureUI || GetLocalRole() == ROLE_Authority)
 		if(InputAction < EInputAction::MinPureUI)
 		{
 			ServerRPC_HandleAction(InputAction);
 		}
 		
 		// input action prediction tbd. here
+		// TODO: ? if(GetLocalRole() == ROLE_AutonomousProxy)
 		
 		LocallyHandleAction(InputAction);
 	}
@@ -111,8 +139,26 @@ private:
 	TSoftObjectPtr<UInputMappingContext> IMC_InGame;
 
 	UPROPERTY(EditDefaultsOnly)
-	UMyInputActionsData* MyInputActionsData;
+	TObjectPtr<UTaggedInputActionData> MyInputActionsData;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
     TObjectPtr<UEnhancedInputLocalPlayerSubsystem> Input;
+
+	// input action values for input actions that don't have an InputAction asset
+	// e.g. input actions that are triggered by mouse movement
+	TMap<EInputAction, FInputActionValue> CustomInputActionValues;
+
+	// private methods
+	
+	UFUNCTION(BlueprintCallable)
+	FVector GetMouseDirection();
+	
+	// get the value of the InputAction asset given the `EInputAction`
+	UFUNCTION(BlueprintCallable)
+	FInputActionValue GetInputActionValue(EInputAction InputAction);
+	
+	// get the InputAction asset given the `EInputAction`
+	UFUNCTION(BlueprintCallable)
+	UInputAction* GetInputAction(EInputAction InputAction);
+	
 };

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MyPawn_SkeletalMesh.h"
+#include "MyPawn_Humanoid.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/KismetRenderingLibrary.h"
@@ -22,7 +22,7 @@ class UNiagaraComponent;
  * 
  */
 UCLASS()
-class MURDERINSPACE_API AMyCharacter final : public AMyPawn_SkeletalMesh
+class MURDERINSPACE_API AMyCharacter final : public AMyPawn_Humanoid
 {
     GENERATED_BODY()
 

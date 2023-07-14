@@ -1,5 +1,6 @@
 #include "Actors/MyPawn.h"
 
+#include "Actors/MyCharacter.h"
 #include "HUD/MyHUD.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
@@ -67,6 +68,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 void AMyPawn::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
+	
     if  (
 		// Only the server spawns orbits
     	   GetLocalRole()        == ROLE_Authority
@@ -78,7 +80,7 @@ void AMyPawn::OnConstruction(const FTransform& Transform)
 		// The preview actor that is created doesn't have a valid location
 		// Once the actor is placed inside the viewport, it's no longer transient and the orbit is reconstructed properly
 		// according to the actor location
-		&& !HasAnyFlags(RF_Transient)
+		&& (!HasAnyFlags(RF_Transient) || Cast<AMyCharacter>(this))
 		)
     {
 		OrbitSetup(this);

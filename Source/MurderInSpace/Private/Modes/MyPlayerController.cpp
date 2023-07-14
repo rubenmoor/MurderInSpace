@@ -10,6 +10,7 @@
 #include "Actors/MyPlayerStart.h"
 #include "MyComponents/GyrationComponent.h"
 #include "HUD/MyHUD.h"
+#include "Input/MyGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
 #include "Modes/MyGameInstance.h"
@@ -37,18 +38,19 @@ void AMyPlayerController::SetupInputComponent()
 
     // interface actions
 
-    BindAction<EInputAction::IngameMenuToggle       >();
-    BindAction<EInputAction::MyTrajectoryShowHide   >();
-    BindAction<EInputAction::AllTrajectoriesShowHide>();
-    BindAction<EInputAction::MyTrajectoryToggle     >();
-    BindAction<EInputAction::Zoom                   >();
-    BindAction<EInputAction::Select                 >();
+    using enum EInputAction;
+    BindAction<IngameMenuToggle       >();
+    BindAction<MyTrajectoryShowHide   >();
+    BindAction<AllTrajectoriesShowHide>();
+    BindAction<MyTrajectoryToggle     >();
+    BindAction<Zoom                   >();
+    BindAction<Select                 >();
     
     // gameplay actions
-    BindAction<EInputAction::TowardsCircleBeginEnd>();
-    BindAction<EInputAction::AccelerateBeginEnd   >();
-    BindAction<EInputAction::EmbraceBeginEnd      >();
-    BindAction<EInputAction::KickPositionExecute  >();
+    BindAction<TowardsCircleBeginEnd>();
+    BindAction<AccelerateBeginEnd   >();
+    BindAction<EmbraceBeginEnd      >();
+    BindAction<KickPositionExecute  >();
 }
 
 void AMyPlayerController::Zoom(float Delta)
@@ -80,29 +82,47 @@ void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Act
 {
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
     AOrbit* Orbit = MyCharacter->GetOrbit();
+    
+    const auto Value = GetInputActionValue(Action);
+
+    // so far all game play action are keys that rely on the triggers pressed and released
+    // `bPressedReleased` is true for pressed, false for released
+    // for any action that doesn't have a value of type bool, `bPressedReleased` doesn't make sense
+    const bool bPressedReleased = Value.Get<bool>();
+    
     switch (Action)
     {
     using enum EInputAction;
     case AccelerateBeginEnd:
-        Orbit->ToggleIsChanging();
-        MyCharacter->RP_bIsAccelerating ^= true;
+        Orbit->bIsChanging              = bPressedReleased;
+        MyCharacter->RP_bIsAccelerating = bPressedReleased;
         break;
     case TowardsCircleBeginEnd:
-        Orbit->ToggleIsChanging();
-        MyCharacter->RP_bTowardsCircle ^= true;
+        Orbit->bIsChanging             = bPressedReleased;
+        MyCharacter->RP_bTowardsCircle = bPressedReleased;
         break;
     case EmbraceBeginEnd:
-        MyCharacter->RP_bActionIdle    =  MyCharacter->RP_bActionEmbrace;
-        MyCharacter->RP_bActionEmbrace ^= true;
+        if(bPressedReleased)
+        {
+            MyCharacter->RP_ActionState.State = EActionState::Embracing;
+        }
+        else
+        {
+            MyCharacter->RP_ActionState.State = EActionState::Idle;
+        }
         break;
     case KickPositionExecute:
+        if(bPressedReleased)
         {
-        auto* MyState = UMyState::Get();
-        auto* IA = MyState->GetInputAction(MyInputActionsData, KickPositionExecute);
-        auto Value = Input->GetPlayerInput()->GetActionValue(IA);
-        bool bPressed = Value.Get<bool>();
-        UE_LOG(LogMyGame, Warning, TEXT("%s: bPressed: %s"), *GetFullName(), bPressed ? TEXT("true") : TEXT("false"))
+            MyCharacter->RP_ActionState.State = EActionState::KickPositioning;
         }
+        else
+        {
+            // TODO: if the player doesn't hold the key for "minimum kick positioning time", the kick gets canceled
+            MyCharacter->RP_ActionState = { EActionState::Idle, true };
+            // TODO: execute kick
+        }
+        // TODO: cancel kick action
         break;
     default:
         UE_LOG
@@ -123,31 +143,40 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
     AOrbit* Orbit = MyCharacter->GetOrbit();
     UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
     
+    // polymorphic value, templated access via `Get<T>() -> T`
+    auto Value = GetInputActionValue(Action);
+    
+    // well-defined but not meaningful for non-bool input action values
+    auto bPressedReleased = Value.Get<bool>();
+    // `FInputActionValue::Axis1D` is a type alias for `float`
+    auto Axis1DValue = Value.Get<FInputActionValue::Axis1D>();
+    
     switch (Action)
     {
     using enum EInputAction;
     case AccelerateBeginEnd:
     case TowardsCircleBeginEnd:
-        if(Orbit->bIsVisibleAccelerating)
-        {
-            Orbit->bIsVisibleAccelerating = false;
-            Orbit->DestroyTempSplineMeshes();
-            Orbit->UpdateVisibility(GI->InstanceUI);
-        }
-        else
+        Orbit->bIsVisibleAccelerating = bPressedReleased;
+        if(bPressedReleased)
         {
             Orbit->SpawnSplineMesh
                 ( MyCharacter->GetTempSplineMeshColor()
                 , ESplineMeshParentSelector::Temporary
                 , GI->InstanceUI
                 );
-            Orbit->bIsVisibleAccelerating = true;
+            Orbit->UpdateVisibility(GI->InstanceUI);
+        }
+        else
+        {
+            Orbit->DestroyTempSplineMeshes();
             Orbit->UpdateVisibility(GI->InstanceUI);
         }
         break;
     case EmbraceBeginEnd:
+        // maybe nothing? motion prediction?
         break;
     case KickPositionExecute:
+        // maybe nothing? motion prediction?
         break;
 
     // UI
@@ -169,43 +198,36 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
         }
         break;
         
-    case EInputAction::MyTrajectoryShowHide:
-        Orbit->bIsVisibleShowMyTrajectory = !Orbit->bIsVisibleShowMyTrajectory;
+    case MyTrajectoryShowHide:
+        Orbit->bIsVisibleShowMyTrajectory = bPressedReleased;
         Orbit->UpdateVisibility(GI->InstanceUI);
         break;
         
-    case EInputAction::AllTrajectoriesShowHide:
-        // TODO: set InstanceUI in GameInstance
-        GI->InstanceUI.bShowAllTrajectories = !GI->InstanceUI.bShowAllTrajectories;
+    case AllTrajectoriesShowHide:
+        GI->InstanceUI.bShowAllTrajectories = bPressedReleased;
         for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
         {
             (*IOrbit)->UpdateVisibility(GI->InstanceUI);
         }
         break;
         
-    case EInputAction::MyTrajectoryToggle:
-        Orbit->bIsVisibleToggleMyTrajectory = !Orbit->bIsVisibleToggleMyTrajectory;
+    case MyTrajectoryToggle:
+        Orbit->bIsVisibleToggleMyTrajectory ^= true;
         Orbit->UpdateVisibility(GI->InstanceUI);
         break;
-    case EInputAction::Zoom:
+    case Zoom:
+        if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
         {
-            auto* MyState = UMyState::Get();
-            auto* IA = MyState->GetInputAction(MyInputActionsData, EInputAction::Zoom);
-            auto Value = Input->GetPlayerInput()->GetActionValue(IA);
-            float Delta = Value.Get<float>();
-            if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
+            if(abs(Axis1DValue) > 0)
             {
-                if(abs(Delta) > 0)
-                {
-                    CameraPosition = std::clamp<int8>(CameraPosition - Delta, 0, MaxCameraPosition);
-                    GetPawn<AMyCharacter>()->UpdateSpringArm(CameraPosition);
-                    // TODO: at `CameraPosition = 0` lookAt mouse doesn't work anymore
-                }		
-            }
+                CameraPosition = std::clamp<int8>(CameraPosition - Axis1DValue, 0, MaxCameraPosition);
+                GetPawn<AMyCharacter>()->UpdateSpringArm(CameraPosition);
+                // TODO: at `CameraPosition = 0` lookAt mouse doesn't work anymore
+            }		
         }
         break;
-    case EInputAction::Select:
-        
+    case Select:
+    {
         FHitResult HitResult;
         GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
 
@@ -245,6 +267,46 @@ void AMyPlayerController::LocallyHandleAction(EInputAction Action)
         }
         break;
     }
+case KickCancel:
+    // TODO
+    break;
+default: ;
+    }
+}
+
+FVector AMyPlayerController::GetMouseDirection()
+{
+    const AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
+    FVector Position, Direction;
+    DeprojectMousePositionToWorld(Position, Direction);
+    if(abs(Direction.Z) > 1e-8)
+    {
+        // TODO: only works for Position.Z == 0
+        const double X = Position.X - Direction.X * Position.Z / Direction.Z;
+        const double Y = Position.Y - Direction.Y * Position.Z / Direction.Z;
+        const double Z = MyCharacter->GetActorLocation().Z;
+        // TODO: physical rotation/animation instead
+
+        const FVector VecP(X, Y, Z);
+        
+        const FVector VecMe = MyCharacter->GetActorLocation();
+        return VecP - VecMe;
+    }
+    else
+    {
+        return FVector(1., 0., 0.);
+    }       
+}
+
+FInputActionValue AMyPlayerController::GetInputActionValue(EInputAction InputAction)
+{
+    return Input->GetPlayerInput()->GetActionValue(GetInputAction(InputAction));
+}
+
+UInputAction* AMyPlayerController::GetInputAction(EInputAction InputAction)
+{
+    const FGameplayTag Tag = FMyGameplayTags::Get().GetInputActionTag(InputAction);
+    return MyInputActionsData->Data[Tag];
 }
 
 void AMyPlayerController::Tick(float DeltaSeconds)
@@ -258,75 +320,74 @@ void AMyPlayerController::Tick(float DeltaSeconds)
         return;
     }
     
-    if(!MyPlayer->GetIsInMainMenu())
+    if(MyPlayer->GetIsInMainMenu())
     {
-        auto* GI = GetGameInstance<UMyGameInstance>();
-        
-        // hovering
-        FHitResult HitResult;
-        GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
-        auto* Body = HitResult.GetActor();
-        if (   HitResult.IsValidBlockingHit()
-            && Body->Implements<UHasOrbit>()
-            && Body->Implements<UHasMesh>()
-            )
+        return;
+    }
+    // react to mouse movement
+    
+    auto* GI = GetGameInstance<UMyGameInstance>();
+    
+    // hovering
+    FHitResult HitResult;
+    GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+    auto* Body = HitResult.GetActor();
+    if (   HitResult.IsValidBlockingHit()
+        && Body->Implements<UHasOrbit>()
+        && Body->Implements<UHasMesh>()
+        )
+    {
+        // begin mouse over
+        auto* Orbit = Cast<IHasOrbit>(Body)->GetOrbit();
+        const double Size = Cast<IHasMesh>(Body)->GetBounds().SphereRadius;
+        GI->InstanceUI.Hovered = {Orbit, Size };
+        Orbit->bIsVisibleMouseover = true;
+        Orbit->UpdateVisibility(GI->InstanceUI);
+    }
+    else
+    {
+        // end mouse over
+        auto* HoveredOrbit = GI->InstanceUI.Hovered.Orbit;
+        if(IsValid(HoveredOrbit))
         {
-            // begin mouse over
-            auto* Orbit = Cast<IHasOrbit>(Body)->GetOrbit();
-            const double Size = Cast<IHasMesh>(Body)->GetBounds().SphereRadius;
-            GI->InstanceUI.Hovered = {Orbit, Size };
-            Orbit->bIsVisibleMouseover = true;
-            Orbit->UpdateVisibility(GI->InstanceUI);
-        }
-        else
-        {
-            // end mouse over
-            auto* HoveredOrbit = GI->InstanceUI.Hovered.Orbit;
-            if(IsValid(HoveredOrbit))
-            {
-                GI->InstanceUI.Hovered.Orbit = nullptr;
-                HoveredOrbit->bIsVisibleMouseover = false;
-                HoveredOrbit->UpdateVisibility(GI->InstanceUI);
-            }
-        }
-        
-        // reacting to mouse move
-        AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-        FVector Position, Direction;
-        DeprojectMousePositionToWorld(Position, Direction);
-        if(abs(Direction.Z) > 1e-8)
-        {
-            // TODO: only works for Position.Z == 0
-            const double X = Position.X - Direction.X * Position.Z / Direction.Z;
-            const double Y = Position.Y - Direction.Y * Position.Z / Direction.Z;
-            const double Z = MyCharacter->GetActorLocation().Z;
-            // TODO: physical rotation/animation instead
-
-            const FVector VecP(X, Y, Z);
-            
-            const FVector VecMe = MyCharacter->GetActorLocation();
-            const FVector VecDirection = VecP - VecMe;
-            const FQuat Quat = FQuat::FindBetween(FVector(1, 0, 0), VecDirection);
-            const double AngleDelta = Quat.GetTwistAngle
-                ( FVector(0, 0, 1)) -
-                    MyCharacter->GetActorQuat().GetTwistAngle(FVector(0, 0, 1)
-                );
-            if(abs(AngleDelta) > 15. / 180. * PI)
-            {
-                // server-only
-                ServerRPC_LookAt(Quat);
-                
-                if(GetLocalRole() == ROLE_AutonomousProxy)
-                {
-                    // "movement prediction"
-                    MyCharacter->RP_Rotation = Quat;
-                    MyCharacter->OnRep_Rotation();
-                }
-            }
-            // debugging direction
-            DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
+            GI->InstanceUI.Hovered.Orbit = nullptr;
+            HoveredOrbit->bIsVisibleMouseover = false;
+            HoveredOrbit->UpdateVisibility(GI->InstanceUI);
         }
     }
+    
+    // reacting to mouse movement
+    const FQuat Quat = FQuat::FindBetween(FVector(1, 0, 0), GetMouseDirection());
+    AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
+    if(MyCharacter->RP_ActionState.State == EActionState::Idle)
+    {
+        const double AngleDelta = Quat.GetTwistAngle
+            ( FVector(0, 0, 1)) -
+                MyCharacter->GetActorQuat().GetTwistAngle(FVector(0, 0, 1)
+            );
+        if(abs(AngleDelta) > 15. / 180. * PI)
+        {
+            MyCharacter->RP_ActionState.State = AngleDelta > 0
+                ? EActionState::RotatingCCW
+                : EActionState::RotatingCW;
+
+            // server-only
+            ServerRPC_LookAt(Quat);
+            
+            if(GetLocalRole() == ROLE_AutonomousProxy)
+            {
+                // "movement prediction"
+                MyCharacter->RP_Rotation = Quat;
+                MyCharacter->OnRep_Rotation();
+            }
+        }
+    }
+    else if(MyCharacter->RP_ActionState.State == EActionState::KickPositioning)
+    {
+        // TODO:
+    }
+    // debugging direction
+    //DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
 }
 
 // server-only

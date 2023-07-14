@@ -2,7 +2,19 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "MyInputTags.generated.h"
+#include "MyGameplayTags.generated.h"
+
+enum class EInputAction : uint8;
+
+struct MURDERINSPACE_API FMyGameplayTags
+{
+    FMyGameplayTags();
+    static const FMyGameplayTags& Get() { return MyGameplayTags; }
+    const FGameplayTag& GetInputActionTag(EInputAction InputAction) const;
+private:
+    TArray<FGameplayTag> InputActionTags;
+    static FMyGameplayTags MyGameplayTags;
+};
 
 class UInputAction;
 /**
@@ -11,7 +23,7 @@ class UInputAction;
  *	Struct used to map an input action to a gameplay input tag.
  */
 USTRUCT(BlueprintType)
-struct FTaggedInputAction
+struct MURDERINSPACE_API FTaggedInputAction
 {
     GENERATED_BODY()
 
@@ -26,7 +38,7 @@ struct FTaggedInputAction
  *
  */
 UCLASS()
-class MURDERINSPACE_API UMyInputActionsData : public UDataAsset
+class MURDERINSPACE_API UTaggedInputActionData : public UDataAsset
 {
     GENERATED_BODY()
 

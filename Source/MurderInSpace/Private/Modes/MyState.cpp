@@ -7,35 +7,6 @@
 
 DEFINE_LOG_CATEGORY(LogMyGame);
 
-UInputAction* UMyState::GetInputAction(UMyInputActionsData* MyInputActionsData, EInputAction InputAction)
-{
-    const FGameplayTag Tag = InputTags[static_cast<uint8>(InputAction)];
-    return MyInputActionsData->Data[Tag];
-}
-
-void UMyState::Initialize(FSubsystemCollectionBase& Collection)
-{
-    Super::Initialize(Collection);
-    
-    UGameplayTagsManager& GTM = UGameplayTagsManager::Get();
-
-    InputTags.SetNumZeroed(static_cast<uint8>(EInputAction::Last) + 1);
-    
-    InputTags[static_cast<uint8>(EInputAction::AccelerateBeginEnd     )] = GTM.AddNativeGameplayTag("InputAction.AccelerateBeginEnd");
-    InputTags[static_cast<uint8>(EInputAction::TowardsCircleBeginEnd  )] = GTM.AddNativeGameplayTag("InputAction.TowardsCircleBeginEnd");
-    InputTags[static_cast<uint8>(EInputAction::EmbraceBeginEnd        )] = GTM.AddNativeGameplayTag("InputAction.EmbraceBeginEnd");
-    InputTags[static_cast<uint8>(EInputAction::KickPositionExecute    )] = GTM.AddNativeGameplayTag("InputAction.KickPositionExecute");
-    
-    InputTags[static_cast<uint8>(EInputAction::IngameMenuToggle       )] = GTM.AddNativeGameplayTag("InputAction.IngameMenuToggle");
-    InputTags[static_cast<uint8>(EInputAction::MyTrajectoryShowHide   )] = GTM.AddNativeGameplayTag("InputAction.MyTrajectoryShowHide");
-    InputTags[static_cast<uint8>(EInputAction::AllTrajectoriesShowHide)] = GTM.AddNativeGameplayTag("InputAction.AllTrajectoriesShowHide");
-    InputTags[static_cast<uint8>(EInputAction::MyTrajectoryToggle     )] = GTM.AddNativeGameplayTag("InputAction.MyTrajectoryToggle");
-    InputTags[static_cast<uint8>(EInputAction::Zoom                   )] = GTM.AddNativeGameplayTag("InputAction.Zoom"            );
-    InputTags[static_cast<uint8>(EInputAction::Select                 )] = GTM.AddNativeGameplayTag("InputAction.Select"          );
-    
-    GTM.DoneAddingNativeTags();
-}
-
 FPhysics UMyState::GetPhysics(const AMyGameState* GS)
 {
     return GS->RP_Physics;

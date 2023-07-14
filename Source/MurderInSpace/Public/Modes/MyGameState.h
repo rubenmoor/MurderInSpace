@@ -28,13 +28,13 @@ public:
 	UFUNCTION(BlueprintPure)
 	ABlackhole* GetBlackhole() const;
     
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	TSubclassOf<AActor> BlackholeClass;
-
 	// game world parameters to be edited in blueprint and to be used in game
 	UPROPERTY(ReplicatedUsing=OnRep_Physics, EditAnywhere, BlueprintReadWrite)
 	FPhysics RP_Physics = PhysicsEditorDefault;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TSubclassOf<AActor> BlackholeClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double GyrationOmegaInitial = 0.1;

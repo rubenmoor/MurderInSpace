@@ -4,6 +4,7 @@
 #include "Components/SplineComponent.h"
 #include "GameFramework/Actor.h"
 #include "Modes/MyState.h"
+
 #include "Orbit.generated.h"
 
 struct FInitialOrbitParams;
@@ -162,7 +163,7 @@ struct FInitialOrbitParams
 
     // the velocity is only relevant when H = 0
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FVector VecVelocity = FVector(0., 0., 1.);
+	FVector VecVelocity = FVector(0., 0., 0.);
 };
 
 UCLASS()
@@ -275,9 +276,6 @@ public:
     }
 
     UFUNCTION(BlueprintCallable)
-    void ToggleIsChanging() { bIsChanging = !bIsChanging; }
-
-    UFUNCTION(BlueprintCallable)
     void DestroyTempSplineMeshes();
 
     UFUNCTION(BlueprintCallable)
@@ -285,6 +283,10 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void SetEnabled(bool InEnabled);
+    
+    // server only
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    bool bIsChanging = false;
 
 protected:
 
@@ -409,10 +411,6 @@ protected:
 
     UFUNCTION()
     void OnRep_Body();
-
-    // server only
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-    bool bIsChanging = false;
 
     // custom event handlers
     

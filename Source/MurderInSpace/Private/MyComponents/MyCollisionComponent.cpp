@@ -107,20 +107,19 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 		break;
 	}
 
-	auto* MyState = GEngine->GetEngineSubsystem<UMyState>();
 	const auto* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
 	const auto* GS = GetWorld()->GetGameState<AMyGameState>();
-	const FPhysics Physics = MyState->GetPhysics(GS);
-	const FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
-	
-	Orbit1->Update(VecDeltaV1, Physics, InstanceUI);
-	Orbit2->Update(VecDeltaV2, Physics, InstanceUI);
+
+	Orbit1->Update(VecDeltaV1, GS->RP_Physics, GI->InstanceUI);
+	Orbit2->Update(VecDeltaV2, GS->RP_Physics, GI->InstanceUI);
 }
 
 double UMyCollisionComponent::GetMyMass()
 {
-	checkf(bMassInitialized, TEXT("%s: mass not initialized"), *GetFullName())
-	return bOverrideMass ? MassOverride : MyMass;
+	checkf(bMassInitialized || bOverrideMass, TEXT("%s: mass must be initialized, or overridden"), *GetFullName())
+	const double Mass = bOverrideMass ? MassOverride : MyMass;
+	check(Mass != 0)
+	return Mass;
 }
 
 #if WITH_EDITOR
@@ -148,5 +147,6 @@ void UMyCollisionComponent::PostEditChangeChainProperty(FPropertyChangedChainEve
 void UMyCollisionComponent::UpdateMass(double Radius)
 {
 	MyMass = Density * pow(Radius, DensityExponent) * FPhysics::MassScaleFactor;
+	checkf(MyMass != 0., TEXT("%s: mass zero"), *GetFullName())
 	bMassInitialized = true;
 }

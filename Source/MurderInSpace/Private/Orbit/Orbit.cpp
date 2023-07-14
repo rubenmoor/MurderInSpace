@@ -221,7 +221,6 @@ void AOrbit::Tick(float DeltaTime)
     const auto* GS = GetWorld()->GetGameState<AMyGameState>();
     auto* MyState = GEngine->GetEngineSubsystem<UMyState>();
     const auto Physics = MyState->GetPhysics(GS);
-    const FVector VecRKepler = GetVecRKepler(Physics);
     auto* Blackhole = GS->GetBlackhole();
 
     FVector NewVecRKepler;
@@ -318,6 +317,8 @@ void AOrbit::Tick(float DeltaTime)
 
 void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
 {
+    check(!DeltaVecV.ContainsNaN())
+    check(!VecVelocity.ContainsNaN())
     const FVector VecR = GetVecR();
 
     // transform location vector r to Kepler coordinates, where F1 is the origin
@@ -604,6 +605,8 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
             , InstanceUI
             );
     }
+
+    checkf(Spline->GetSplineLength() != 0., TEXT("%s: Update"), *GetFullName())
 }
 
 void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)

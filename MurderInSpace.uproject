@@ -12,7 +12,8 @@
 				"Engine",
 				"UMG",
 				"CommonUI",
-				"EnhancedInput"
+				"EnhancedInput",
+				"AnimGraph"
 			]
 		},
 		{
