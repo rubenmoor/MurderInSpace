@@ -71,7 +71,7 @@ void AMyPlayerController::ClientRPC_LeaveSession_Implementation()
 void AMyPlayerController::ServerRPC_RotateTowards_Implementation(FQuat Quat)
 {
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-    MyCharacter->RP_RotationAim = Quat;
+    MyCharacter->SetRotationAim(Quat);
 }
 
 void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Action)
@@ -354,7 +354,7 @@ void AMyPlayerController::Tick(float DeltaSeconds)
     
     // reacting to mouse movement
     const FVector VecMouseDirection = GetMouseDirection();
-    const FQuat Quat = FQuat::FindBetween(FVector(1, 0, 0), VecMouseDirection);
+    const FQuat Quat = FQuat::FindBetween(FVector::UnitX(), VecMouseDirection);
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
     if
         (  MyCharacter->RP_ActionState.State == EActionState::Idle
@@ -362,7 +362,7 @@ void AMyPlayerController::Tick(float DeltaSeconds)
         || MyCharacter->RP_ActionState.State == EActionState::RotatingCCW
         )
     {
-        const double AngleDelta = // TODO FQuat:AngularDistance
+        const double AngleDelta =
               Quat.GetTwistAngle(FVector(0, 0, 1))
             - MyCharacter->GetActorQuat().GetTwistAngle(FVector(0, 0, 1));
         if(abs(AngleDelta) > 15. / 180. * PI)
@@ -377,7 +377,7 @@ void AMyPlayerController::Tick(float DeltaSeconds)
             if(GetLocalRole() == ROLE_AutonomousProxy)
             {
                 // "movement prediction"
-                MyCharacter->RP_RotationAim = Quat;
+                MyCharacter->SetRotationAim(Quat);
             }
         }
         else

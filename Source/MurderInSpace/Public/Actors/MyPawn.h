@@ -49,14 +49,7 @@ public:
 	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
 	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
 
-	// angular velocity in radients per second
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
-	double Omega = 60. * PI / 180.;
-
-	// the rotation towards which the pawn is currently rotating
-	// TODO: remove OnRep
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
-    FQuat RP_RotationAim;
+	void SetRotationAim(const FQuat& Quat);
 
 protected:
     // event handlers
@@ -92,10 +85,33 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Orbit")
 	FInitialOrbitParams InitialOrbitParams;
 
+	// angular velocity in radians per second
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	double Omega = 0.;
+
+	// maximum angular velocity
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	double RP_OmegaMax = 60. * PI / 180.;
+
+	// angular acceleration in radians per second squared
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	double Alpha = 0.;
+
+	// angular acceleration in radians per second squared
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
+	double RP_AlphaMax = 60. * PI / 180.;
+
+	// the rotation towards which the pawn is currently rotating
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
+    FQuat RP_RotationAim = FQuat::Identity;
+
 	// private methods
 
 	UFUNCTION()
 	void OnRep_Orbit();
 
 	void SetReadyFlags(EMyPawnReady ReadyFlags);
+
+	// debugging
+	int32 NTicks = 0;
 };

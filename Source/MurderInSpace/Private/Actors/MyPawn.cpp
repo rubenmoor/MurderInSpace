@@ -26,6 +26,11 @@ void AMyPawn::UpdateLookTarget(FVector Target)
 	// TODO
 }
 
+void AMyPawn::SetRotationAim(const FQuat& Quat)
+{
+	RP_RotationAim = Quat;
+}
+
 void AMyPawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -66,14 +71,53 @@ void AMyPawn::Tick(float DeltaSeconds)
 
 	// rotating towards `RP_RotationAim` at speed `Omega`
 
-	// rotation angle
-	const double Theta = Omega * DeltaSeconds;
-	
 	const FQuat MyQuat = GetActorQuat();
-	const double Delta = RP_RotationAim.GetTwistAngle(FVector::UnitZ()) - MyQuat.GetTwistAngle(FVector::UnitZ());
-	if(FMath::Abs(Delta) > Theta)
+	const double RemainingTheta = (RP_RotationAim * MyQuat.Inverse()).GetTwistAngle(FVector::UnitZ());
+
+	const double BreakingDistance = FMath::Pow(Omega, 2) / 2. / RP_AlphaMax;
+	if(Omega == 0. && FMath::Abs(RemainingTheta) > 1. * PI / 180)
 	{
-		SetActorRotation(MyQuat * FQuat::MakeFromRotationVector(FVector::UnitZ() * Theta * FMath::Sign(Delta)));
+		// start acceleration in the direction of `RP_RotationAim`
+		Alpha = FMath::Sign(RemainingTheta) * RP_AlphaMax;
+	}
+	else // if(Omega != 0.)
+	{
+		const double NewOmega = Omega + Alpha * DeltaSeconds;
+		
+		// automatically start decelaration when approaching `RotationAim`
+		if(RemainingTheta * Omega > 0. && FMath::Abs(RemainingTheta) <= BreakingDistance)
+		{
+			Alpha = -FMath::Sign(Omega) * RP_AlphaMax;
+		}
+		else if(Alpha != 0.)
+		{
+			if(FMath::Abs(NewOmega) >= RP_OmegaMax)
+			{
+				// reached maximum angular velocity
+				Alpha = 0.;
+				Omega = FMath::Sign(Omega) * RP_OmegaMax;
+			}
+			else if(NewOmega * Omega < 0.)
+			{
+				// change of sign => (over-)reached zero angular velocity
+				Alpha = 0.;
+				Omega = 0.;
+			}
+		}
+	}
+	Omega += Alpha * DeltaSeconds;
+	const double DeltaTheta = Omega * DeltaSeconds;
+	SetActorRotation(MyQuat * FQuat::MakeFromRotationVector(FVector::UnitZ() * DeltaTheta));
+
+	if(++NTicks % 20 == 0)
+	{
+	UE_LOG(LogMyGame, Display, TEXT("DeltaTheta: %f, Omega: %f, Alpha: %f, Remaining Theta: %f, BreakingDistance: %f")
+		, DeltaTheta * 180. / PI
+		, Omega * 180. / PI
+		, Alpha * 180. / PI
+		, RemainingTheta * 180. / PI
+		, BreakingDistance * 180. / PI
+		)
 	}
 }
 
@@ -81,9 +125,9 @@ void AMyPawn::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 	
-    if  (
+	if  (
 		// Only the server spawns orbits
-    	   GetLocalRole()        == ROLE_Authority
+		   GetLocalRole()        == ROLE_Authority
     	   
 		// avoid orbit spawning when editing and compiling blueprint
 		&& GetWorld()->WorldType != EWorldType::EditorPreview
@@ -94,9 +138,10 @@ void AMyPawn::OnConstruction(const FTransform& Transform)
 		// according to the actor location
 		&& (!HasAnyFlags(RF_Transient) || Cast<AMyCharacter>(this))
 		)
-    {
+	{
 		OrbitSetup(this);
-    }
+	}
+	RP_RotationAim = GetActorQuat();
 }
 
 void AMyPawn::BeginPlay()
@@ -172,6 +217,8 @@ void AMyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	//DOREPLIFETIME_CONDITION(APawnInSpace, RP_BodyRotation   , COND_SkipOwner)
 	// just removing the COND_SkipOwner makes sure that the client's authority doesn't last more than a couple of frames
 	DOREPLIFETIME(AMyPawn, RP_RotationAim)
+	DOREPLIFETIME(AMyPawn, RP_AlphaMax)
+	DOREPLIFETIME(AMyPawn, RP_OmegaMax)
 
 	// in case of acceleration: full server-control: the client won't react to the key press until the action has
 	// round-tripped, i.e. there is no movement prediction
