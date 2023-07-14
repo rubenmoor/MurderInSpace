@@ -80,13 +80,18 @@ void AMyPawn::Tick(float DeltaSeconds)
 		// start acceleration in the direction of `RP_RotationAim`
 		Alpha = FMath::Sign(RemainingTheta) * RP_AlphaMax;
 	}
-	else // if(Omega != 0.)
+	else
 	{
 		const double NewOmega = Omega + Alpha * DeltaSeconds;
-		
-		// automatically start decelaration when approaching `RotationAim`
-		if(RemainingTheta * Omega > 0. && FMath::Abs(RemainingTheta) <= BreakingDistance)
+
+		if(RemainingTheta * Omega < 0.)
 		{
+			// moving away from `RotationAim`? turn around!
+			Alpha = FMath::Sign(RemainingTheta) * RP_AlphaMax;
+		}
+		else if(FMath::Abs(RemainingTheta) <= BreakingDistance)
+		{
+			// decelarate when approaching `RotationAim`
 			Alpha = -FMath::Sign(Omega) * RP_AlphaMax;
 		}
 		else if(Alpha != 0.)
