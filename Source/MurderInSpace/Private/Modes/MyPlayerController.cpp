@@ -357,9 +357,14 @@ void AMyPlayerController::Tick(float DeltaSeconds)
     }
     
     // reacting to mouse movement
-    const FQuat Quat = FQuat::FindBetween(FVector(1, 0, 0), GetMouseDirection());
+    const FVector VecMouseDirection = GetMouseDirection();
+    const FQuat Quat = FQuat::FindBetween(FVector(1, 0, 0), VecMouseDirection);
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-    if(MyCharacter->RP_ActionState.State == EActionState::Idle)
+    if
+        (  MyCharacter->RP_ActionState.State == EActionState::Idle
+        || MyCharacter->RP_ActionState.State == EActionState::RotatingCW
+        || MyCharacter->RP_ActionState.State == EActionState::RotatingCCW
+        )
     {
         const double AngleDelta = Quat.GetTwistAngle
             ( FVector(0, 0, 1)) -
@@ -381,13 +386,18 @@ void AMyPlayerController::Tick(float DeltaSeconds)
                 MyCharacter->OnRep_Rotation();
             }
         }
+        else
+        {
+            MyCharacter->RP_ActionState.State = EActionState::Idle;
+        }
     }
     else if(MyCharacter->RP_ActionState.State == EActionState::KickPositioning)
     {
         // TODO:
     }
     // debugging direction
-    //DrawDebugDirectionalArrow(GetWorld(), VecMe, VecP, 20, FColor::Red);
+    const FVector VecMe = MyCharacter->GetActorLocation();
+    DrawDebugDirectionalArrow(GetWorld(), VecMe, VecMe + VecMouseDirection, 20, FColor::Red);
 }
 
 // server-only
@@ -455,8 +465,12 @@ void AMyPlayerController::AcknowledgePossession(APawn* P)
     }
     else
     {
-        UE_LOG(LogNet, Error, TEXT("%s: Couldn't determine current level: %s"), *GetFullName(), *LevelName)
-        CurrentLevel = ECurrentLevel::MainMenu;
+        UE_LOG
+            (LogNet, Warning, TEXT("%s: Couldn't determine current level: %s, setting to 'any test map'")
+            , *GetFullName()
+            , *LevelName
+            )
+        CurrentLevel = ECurrentLevel::AnyTestMap;
     }
     auto* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
     LocalPlayer->CurrentLevel = CurrentLevel;
