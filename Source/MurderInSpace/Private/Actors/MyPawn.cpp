@@ -54,14 +54,26 @@ void AMyPawn::Tick(float DeltaSeconds)
 	{
 		const auto VecVCircle = RP_Orbit->GetCircleVelocity(Physics);
 		const auto VecTarget = std::copysign(1., RP_Orbit->GetVecVelocity().Dot(VecVCircle)) * VecVCircle;
-		RP_Rotation = FQuat::FindBetween(FVector(1., 0., 0.), VecTarget);
-		SetActorRotation(RP_Rotation);
+		RP_RotationAim = FQuat::FindBetween(FVector(1., 0., 0.), VecTarget);
+		SetActorRotation(RP_RotationAim);
 		const FVector VecDelta = VecTarget - RP_Orbit->GetVecVelocity();
 		const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
 		if(VecDelta.Length() > DeltaV)
 		{
 			RP_Orbit->Update(VecDelta.GetSafeNormal() * DeltaV, Physics, InstanceUI);
 		}
+	}
+
+	// rotating towards `RP_RotationAim` at speed `Omega`
+
+	// rotation angle
+	const double Theta = Omega * DeltaSeconds;
+	
+	const FQuat MyQuat = GetActorQuat();
+	const double Delta = RP_RotationAim.GetTwistAngle(FVector::UnitZ()) - MyQuat.GetTwistAngle(FVector::UnitZ());
+	if(FMath::Abs(Delta) > Theta)
+	{
+		SetActorRotation(MyQuat * FQuat::MakeFromRotationVector(FVector::UnitZ() * Theta * FMath::Sign(Delta)));
 	}
 }
 
@@ -159,7 +171,7 @@ void AMyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	// in case this goes out of syn (COND_SkipOwner prevents re-sync), the player looks into the wrong direction for a while;
 	//DOREPLIFETIME_CONDITION(APawnInSpace, RP_BodyRotation   , COND_SkipOwner)
 	// just removing the COND_SkipOwner makes sure that the client's authority doesn't last more than a couple of frames
-	DOREPLIFETIME(AMyPawn, RP_Rotation)
+	DOREPLIFETIME(AMyPawn, RP_RotationAim)
 
 	// in case of acceleration: full server-control: the client won't react to the key press until the action has
 	// round-tripped, i.e. there is no movement prediction

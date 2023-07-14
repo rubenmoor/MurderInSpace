@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Modes/MyPlayerController.h"
 
 #include <algorithm>
@@ -71,11 +68,10 @@ void AMyPlayerController::ClientRPC_LeaveSession_Implementation()
     GetGameInstance()->GetSubsystem<UMySessionManager>()->LeaveSession();
 }
 
-void AMyPlayerController::ServerRPC_LookAt_Implementation(FQuat Quat)
+void AMyPlayerController::ServerRPC_RotateTowards_Implementation(FQuat Quat)
 {
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-    MyCharacter->RP_Rotation = Quat;
-    MyCharacter->OnRep_Rotation();
+    MyCharacter->RP_RotationAim = Quat;
 }
 
 void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Action)
@@ -366,10 +362,9 @@ void AMyPlayerController::Tick(float DeltaSeconds)
         || MyCharacter->RP_ActionState.State == EActionState::RotatingCCW
         )
     {
-        const double AngleDelta = Quat.GetTwistAngle
-            ( FVector(0, 0, 1)) -
-                MyCharacter->GetActorQuat().GetTwistAngle(FVector(0, 0, 1)
-            );
+        const double AngleDelta = // TODO FQuat:AngularDistance
+              Quat.GetTwistAngle(FVector(0, 0, 1))
+            - MyCharacter->GetActorQuat().GetTwistAngle(FVector(0, 0, 1));
         if(abs(AngleDelta) > 15. / 180. * PI)
         {
             MyCharacter->RP_ActionState.State = AngleDelta > 0
@@ -377,13 +372,12 @@ void AMyPlayerController::Tick(float DeltaSeconds)
                 : EActionState::RotatingCW;
 
             // server-only
-            ServerRPC_LookAt(Quat);
+            ServerRPC_RotateTowards(Quat);
             
             if(GetLocalRole() == ROLE_AutonomousProxy)
             {
                 // "movement prediction"
-                MyCharacter->RP_Rotation = Quat;
-                MyCharacter->OnRep_Rotation();
+                MyCharacter->RP_RotationAim = Quat;
             }
         }
         else

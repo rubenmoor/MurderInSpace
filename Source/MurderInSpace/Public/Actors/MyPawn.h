@@ -48,13 +48,16 @@ public:
 	virtual void 				SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
 	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
 	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
-	
-    UPROPERTY(ReplicatedUsing=OnRep_Rotation, VisibleAnywhere, BlueprintReadOnly)
-    FQuat RP_Rotation;
 
-    UFUNCTION()
-    void OnRep_Rotation() { SetActorRotation(RP_Rotation); }
-	
+	// angular velocity in radients per second
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	double Omega = 60. * PI / 180.;
+
+	// the rotation towards which the pawn is currently rotating
+	// TODO: remove OnRep
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
+    FQuat RP_RotationAim;
+
 protected:
     // event handlers
     

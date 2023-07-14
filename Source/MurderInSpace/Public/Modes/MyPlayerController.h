@@ -79,7 +79,7 @@ protected:
 	void Zoom(float Delta);
 	
 	UFUNCTION(Server, Reliable)
-	void ServerRPC_LookAt(FQuat Quat);
+	void ServerRPC_RotateTowards(FQuat Quat);
 	
 private:
 	template<EInputAction InputAction>
