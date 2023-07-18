@@ -7,15 +7,6 @@
 #include "Lib/FunctionLib.h"
 #include "Net/UnrealNetwork.h"
 
-AMyGameState::AMyGameState()
-{
-    //InitialAttributeValues = NewObject<UDataTable>(this);
-    InitialAttributeValues = CreateDefaultSubobject<UDataTable>(FName("InitialAttributeValues"));
-    InitialAttributeValues->RowStruct = FMyAttributeMetaData::StaticStruct();
-    AddInitialAttributeValue(FName("AttrSetTorque.Torque"), {60., 10., 600., "", true});
-    AddInitialAttributeValue(FName("AttrSetTorque.OmegaMax"), {60., 10., 600., "", true});
-}
-
 ABlackhole* AMyGameState::GetBlackhole() const
 {
     // not ideal, but if I don't use `UGameplayStatics` to get the black hole,
@@ -39,11 +30,6 @@ void AMyGameState::OnRep_Physics()
             (*IOrbit)->Update(MyState->GetPhysics(this), InstanceUI);
         });
     }
-}
-
-void AMyGameState::AddInitialAttributeValue(FName Name, const FMyAttributeMetaData& Data) const
-{
-    InitialAttributeValues->AddRow(Name, Data);
 }
 
 #if WITH_EDITOR

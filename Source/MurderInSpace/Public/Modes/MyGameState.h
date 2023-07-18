@@ -3,30 +3,10 @@
 #include "CoreMinimal.h"
 #include "MyState.h"
 #include "GameFramework/GameState.h"
-#include "AttributeSet.h"
 
 #include "MyGameState.generated.h"
 
 class ABlackhole;
-
-USTRUCT(BlueprintType)
-struct FMyAttributeMetaData : public FAttributeMetaData
-{
-	GENERATED_BODY()
-
-	FMyAttributeMetaData()
-	{
-	}
-	
-	FMyAttributeMetaData(float InBaseValue, float InMinValue, float InMaxValue, FString InDerivedAttributeInfo, bool InBCanStack)
-	{
-		BaseValue = InBaseValue;
-		MinValue = InMinValue;
-		MaxValue = InMaxValue;
-		DerivedAttributeInfo = InDerivedAttributeInfo;
-		bCanStack = InBCanStack;
-	}
-};
 
 UCLASS()
 class MURDERINSPACE_API AMyGameState : public AGameState
@@ -35,7 +15,6 @@ class MURDERINSPACE_API AMyGameState : public AGameState
 
 	friend class UMyState;
 
-	AMyGameState();
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bEnableGyration = true;
@@ -53,10 +32,6 @@ public:
 	UPROPERTY(ReplicatedUsing=OnRep_Physics, EditAnywhere, BlueprintReadWrite)
 	FPhysics RP_Physics = PhysicsEditorDefault;
 
-	// TODO: read from csv file
-	UPROPERTY(EditDefaultsOnly, Category="Gameplay Ability System")
-	TObjectPtr<UDataTable> InitialAttributeValues;
-
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TSubclassOf<AActor> BlackholeClass;
@@ -68,15 +43,12 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	#if WITH_EDITOR
+#if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-	#endif
+#endif
 
 	// replication
 	
 	UFUNCTION()
 	void OnRep_Physics();
-
-	// private methods
-	void AddInitialAttributeValue(FName Name, const FMyAttributeMetaData& Data) const;
 };

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Orbit/Orbit.h"
 #include "GameFramework/Pawn.h"
+
 #include "MyPawn.generated.h"
 
 class UAttrSetTorque;
@@ -103,21 +104,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	double Omega = 0.;
 
-	// maximum angular velocity
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
-	double RP_OmegaMax = 60. * PI / 180.;
-
 	// angular acceleration in radians per second squared
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	double Alpha = 0.;
 
-	// angular acceleration in radians per second squared
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite)
-	double RP_AlphaMax = 60. * PI / 180.;
-
 	// the rotation towards which the pawn is currently rotating
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
-    FQuat RP_RotationAim = FQuat::Identity;
+    FQuat RP_QuatRotationAim = FQuat::Identity;
 
 	// private methods
 

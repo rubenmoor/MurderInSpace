@@ -2,7 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
+
 #include "MyDeveloperSettings.generated.h"
+
+struct FMyAttributeRow;
 
 /**
  * 
@@ -15,4 +18,6 @@ class MURDERINSPACE_API UMyDeveloperSettings : public UDeveloperSettings
 public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Attributes initial values", AdvancedDisplay)
 	TSoftObjectPtr<UDataTable> InitialAttributeValues;
+
+	static void AddRowUnlessExists(UDataTable* Table, FName RowName, const FTableRowBase& RowData);
 };

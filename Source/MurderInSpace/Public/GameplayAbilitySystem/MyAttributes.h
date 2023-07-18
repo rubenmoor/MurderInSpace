@@ -3,8 +3,9 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
 #include "AttributeSet.h"
+#include "MyAttributeSetBase.h"
 
-#include "Attributes.generated.h"
+#include "MyAttributes.generated.h"
 
 // Uses macros from AttributeSet.h
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
@@ -17,15 +18,16 @@ GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
  * 
  */
 UCLASS()
-class MURDERINSPACE_API UAttrSetTorque : public UAttributeSet
+class MURDERINSPACE_API UAttrSetTorque : public UMyAttributeSetBase
 {
 	GENERATED_BODY()
 
-public:	
 //protected:
-	UPROPERTY(BlueprintReadOnly, Category = "Torque", ReplicatedUsing = OnRep_Torque)
-	FGameplayAttributeData Torque;
-	ATTRIBUTE_ACCESSORS(UAttrSetTorque, Torque)
+public:
+	// torque when rotating
+	UPROPERTY(BlueprintReadOnly, Category = "TorqueMax", ReplicatedUsing = OnRep_TorqueMax)
+	FGameplayAttributeData TorqueMax;
+	ATTRIBUTE_ACCESSORS(UAttrSetTorque, TorqueMax)
 
 	// maximal angular velocity
 	UPROPERTY(BlueprintReadOnly, Category = "Torque", ReplicatedUsing = OnRep_OmegaMax)
@@ -33,12 +35,11 @@ public:
 	ATTRIBUTE_ACCESSORS(UAttrSetTorque, OmegaMax)
 
 	UFUNCTION()
-	virtual void OnRep_Torque(const FGameplayAttributeData& OldTorque);
+	virtual void OnRep_TorqueMax(const FGameplayAttributeData& OldTorqueMax);
 	
 	UFUNCTION()
 	virtual void OnRep_OmegaMax(const FGameplayAttributeData& OldOmegaMax);
 
-	// event handlers
-
-	virtual void PostInitProperties() override;
+private:
+	virtual TArray<FMyAttributeRow> GetAttributeInitialValueRows() override;
 };

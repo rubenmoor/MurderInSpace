@@ -1,7 +1,7 @@
 #include "Actors/MyPawn.h"
 
 #include "Actors/MyCharacter.h"
-#include "GameplayAbilitySystem/Attributes.h"
+#include "GameplayAbilitySystem/MyAttributes.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "HUD/MyHUD.h"
 #include "Modes/MyGameInstance.h"
@@ -36,10 +36,7 @@ void AMyPawn::UpdateLookTarget(FVector Target)
 
 void AMyPawn::SetRotationAim(const FQuat& Quat)
 {
-	RP_RotationAim = Quat;
-	const float Torque = AbilitySystemComponent->GetNumericAttribute(UAttrSetTorque::GetTorqueAttribute());
-	UE_LOG(LogMyGame, Warning, TEXT("%s: get attribute: torque: %f")
-		, *GetFullName(), Torque)
+	RP_QuatRotationAim = Quat;
 }
 
 void AMyPawn::Tick(float DeltaSeconds)
@@ -70,8 +67,8 @@ void AMyPawn::Tick(float DeltaSeconds)
 	{
 		const auto VecVCircle = RP_Orbit->GetCircleVelocity(Physics);
 		const auto VecTarget = std::copysign(1., RP_Orbit->GetVecVelocity().Dot(VecVCircle)) * VecVCircle;
-		RP_RotationAim = FQuat::FindBetween(FVector(1., 0., 0.), VecTarget);
-		SetActorRotation(RP_RotationAim);
+		RP_QuatRotationAim = FQuat::FindBetween(FVector(1., 0., 0.), VecTarget);
+		SetActorRotation(RP_QuatRotationAim);
 		const FVector VecDelta = VecTarget - RP_Orbit->GetVecVelocity();
 		const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
 		if(VecDelta.Length() > DeltaV)
@@ -83,13 +80,14 @@ void AMyPawn::Tick(float DeltaSeconds)
 	// rotating towards `RP_RotationAim` at speed `Omega`
 
 	const FQuat MyQuat = GetActorQuat();
-	const double RemainingTheta = (RP_RotationAim * MyQuat.Inverse()).GetTwistAngle(FVector::UnitZ());
+	const double RemainingTheta = (RP_QuatRotationAim * MyQuat.Inverse()).GetTwistAngle(FVector::UnitZ());
 
-	const double BreakingDistance = FMath::Pow(Omega, 2) / 2. / RP_AlphaMax;
+	const float TorqueMax = AbilitySystemComponent->GetNumericAttribute(UAttrSetTorque::GetTorqueMaxAttribute());
+	const double BreakingDistance = FMath::Pow(Omega, 2) / 2. / TorqueMax;
 	if(Omega == 0. && FMath::Abs(RemainingTheta) > 1. * PI / 180)
 	{
 		// start acceleration in the direction of `RP_RotationAim`
-		Alpha = FMath::Sign(RemainingTheta) * RP_AlphaMax;
+		Alpha = FMath::Sign(RemainingTheta) * TorqueMax;
 	}
 	else
 	{
@@ -98,20 +96,21 @@ void AMyPawn::Tick(float DeltaSeconds)
 		if(RemainingTheta * Omega < 0.)
 		{
 			// moving away from `RotationAim`? turn around!
-			Alpha = FMath::Sign(RemainingTheta) * RP_AlphaMax;
+			Alpha = FMath::Sign(RemainingTheta) * TorqueMax;
 		}
 		else if(FMath::Abs(RemainingTheta) <= BreakingDistance)
 		{
 			// decelarate when approaching `RotationAim`
-			Alpha = -FMath::Sign(Omega) * RP_AlphaMax;
+			Alpha = -FMath::Sign(Omega) * TorqueMax;
 		}
 		else if(Alpha != 0.)
 		{
-			if(FMath::Abs(NewOmega) >= RP_OmegaMax)
+			const float OmegaMax = AbilitySystemComponent->GetNumericAttribute(UAttrSetTorque::GetOmegaMaxAttribute());
+			if(FMath::Abs(NewOmega) >= OmegaMax)
 			{
 				// reached maximum angular velocity
 				Alpha = 0.;
-				Omega = FMath::Sign(Omega) * RP_OmegaMax;
+				Omega = FMath::Sign(Omega) * OmegaMax;
 			}
 			else if(NewOmega * Omega < 0.)
 			{
@@ -146,7 +145,7 @@ void AMyPawn::OnConstruction(const FTransform& Transform)
 	{
 		OrbitSetup(this);
 	}
-	RP_RotationAim = GetActorQuat();
+	RP_QuatRotationAim = GetActorQuat();
 }
 
 void AMyPawn::BeginPlay()
@@ -227,9 +226,7 @@ void AMyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	// in case this goes out of syn (COND_SkipOwner prevents re-sync), the player looks into the wrong direction for a while;
 	//DOREPLIFETIME_CONDITION(APawnInSpace, RP_BodyRotation   , COND_SkipOwner)
 	// just removing the COND_SkipOwner makes sure that the client's authority doesn't last more than a couple of frames
-	DOREPLIFETIME(AMyPawn, RP_RotationAim)
-	DOREPLIFETIME(AMyPawn, RP_AlphaMax)
-	DOREPLIFETIME(AMyPawn, RP_OmegaMax)
+	DOREPLIFETIME(AMyPawn, RP_QuatRotationAim)
 
 	// in case of acceleration: full server-control: the client won't react to the key press until the action has
 	// round-tripped, i.e. there is no movement prediction
