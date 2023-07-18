@@ -13,6 +13,7 @@ public class MurderInSpace : ModuleRules
 			{ "Core"
 			, "CommonUI"
 			, "CoreUObject"
+			, "UE5Coro"
 			, "Engine"
 			, "FastNoiseGenerator"
 			, "FastNoise"
@@ -28,7 +29,9 @@ public class MurderInSpace : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new []
 			{ "Chaos"
 			, "EnhancedInput"
+			, "GameplayAbilities"
 			, "GameplayTags"
+			, "GameplayTasks"
 			, "OnlineSubsystem"
 			, "OnlineSubsystemNull"
 			, "OnlineSubsystemUtils"

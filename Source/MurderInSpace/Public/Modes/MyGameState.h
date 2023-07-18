@@ -1,13 +1,32 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "MyState.h"
 #include "GameFramework/GameState.h"
+#include "AttributeSet.h"
+
 #include "MyGameState.generated.h"
 
 class ABlackhole;
+
+USTRUCT(BlueprintType)
+struct FMyAttributeMetaData : public FAttributeMetaData
+{
+	GENERATED_BODY()
+
+	FMyAttributeMetaData()
+	{
+	}
+	
+	FMyAttributeMetaData(float InBaseValue, float InMinValue, float InMaxValue, FString InDerivedAttributeInfo, bool InBCanStack)
+	{
+		BaseValue = InBaseValue;
+		MinValue = InMinValue;
+		MaxValue = InMaxValue;
+		DerivedAttributeInfo = InDerivedAttributeInfo;
+		bCanStack = InBCanStack;
+	}
+};
 
 UCLASS()
 class MURDERINSPACE_API AMyGameState : public AGameState
@@ -16,6 +35,7 @@ class MURDERINSPACE_API AMyGameState : public AGameState
 
 	friend class UMyState;
 
+	AMyGameState();
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bEnableGyration = true;
@@ -29,8 +49,13 @@ public:
 	ABlackhole* GetBlackhole() const;
     
 	// game world parameters to be edited in blueprint and to be used in game
+	// TODO: move base values to datatable
 	UPROPERTY(ReplicatedUsing=OnRep_Physics, EditAnywhere, BlueprintReadWrite)
 	FPhysics RP_Physics = PhysicsEditorDefault;
+
+	// TODO: read from csv file
+	UPROPERTY(EditDefaultsOnly, Category="Gameplay Ability System")
+	TObjectPtr<UDataTable> InitialAttributeValues;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -51,4 +76,7 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_Physics();
+
+	// private methods
+	void AddInitialAttributeValue(FName Name, const FMyAttributeMetaData& Data) const;
 };

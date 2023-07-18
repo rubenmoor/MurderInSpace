@@ -2,19 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "MyGameplayTags.generated.h"
 
-enum class EInputAction : uint8;
-
-struct MURDERINSPACE_API FMyGameplayTags
-{
-    FMyGameplayTags();
-    static const FMyGameplayTags& Get() { return MyGameplayTags; }
-    const FGameplayTag& GetInputActionTag(EInputAction InputAction) const;
-private:
-    TArray<FGameplayTag> InputActionTags;
-    static FMyGameplayTags MyGameplayTags;
-};
+#include "MyTaggedInputAction.generated.h"
 
 class UInputAction;
 /**

@@ -1,6 +1,8 @@
 #include "Actors/MyPawn.h"
 
 #include "Actors/MyCharacter.h"
+#include "GameplayAbilitySystem/Attributes.h"
+#include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "HUD/MyHUD.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
@@ -19,6 +21,12 @@ AMyPawn::AMyPawn()
 
     Root = CreateDefaultSubobject<USceneComponent>("Root");
     SetRootComponent(Root);
+
+	AbilitySystemComponent = CreateDefaultSubobject<UMyAbilitySystemComponent>("AbilitySystemComponent");
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
+	
+	AttrSetTorque = CreateDefaultSubobject<UAttrSetTorque>("AttributeSetTorque");
 }
 
 void AMyPawn::UpdateLookTarget(FVector Target)
@@ -29,6 +37,9 @@ void AMyPawn::UpdateLookTarget(FVector Target)
 void AMyPawn::SetRotationAim(const FQuat& Quat)
 {
 	RP_RotationAim = Quat;
+	const float Torque = AbilitySystemComponent->GetNumericAttribute(UAttrSetTorque::GetTorqueAttribute());
+	UE_LOG(LogMyGame, Warning, TEXT("%s: get attribute: torque: %f")
+		, *GetFullName(), Torque)
 }
 
 void AMyPawn::Tick(float DeltaSeconds)
@@ -113,17 +124,6 @@ void AMyPawn::Tick(float DeltaSeconds)
 	Omega += Alpha * DeltaSeconds;
 	const double DeltaTheta = Omega * DeltaSeconds;
 	SetActorRotation(MyQuat * FQuat::MakeFromRotationVector(FVector::UnitZ() * DeltaTheta));
-
-	if(++NTicks % 20 == 0)
-	{
-	UE_LOG(LogMyGame, Display, TEXT("DeltaTheta: %f, Omega: %f, Alpha: %f, Remaining Theta: %f, BreakingDistance: %f")
-		, DeltaTheta * 180. / PI
-		, Omega * 180. / PI
-		, Alpha * 180. / PI
-		, RemainingTheta * 180. / PI
-		, BreakingDistance * 180. / PI
-		)
-	}
 }
 
 void AMyPawn::OnConstruction(const FTransform& Transform)
@@ -161,6 +161,12 @@ void AMyPawn::BeginPlay()
     {
         SetReadyFlags(EMyPawnReady::InternalReady);
     }
+}
+
+void AMyPawn::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 }
 
 #if WITH_EDITOR

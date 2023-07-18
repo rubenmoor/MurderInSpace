@@ -5,6 +5,9 @@
 #include "GameFramework/Pawn.h"
 #include "MyPawn.generated.h"
 
+class UAttrSetTorque;
+class UMyAbilitySystemComponent;
+
 UENUM(meta=(Bitflags))
 enum class EMyPawnReady : uint8
 {
@@ -57,6 +60,9 @@ protected:
     virtual void Tick(float DeltaSeconds) override;
     virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
+	
+    // server-only
+    virtual void PossessedBy(AController* NewController) override;
     
 #if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
@@ -85,6 +91,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Orbit")
 	FInitialOrbitParams InitialOrbitParams;
 
+    // gameplay ability system
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    TObjectPtr<UMyAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UAttrSetTorque> AttrSetTorque;
+
 	// angular velocity in radians per second
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	double Omega = 0.;
@@ -111,7 +125,4 @@ protected:
 	void OnRep_Orbit();
 
 	void SetReadyFlags(EMyPawnReady ReadyFlags);
-
-	// debugging
-	int32 NTicks = 0;
 };

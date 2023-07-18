@@ -5,6 +5,8 @@
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/KismetRenderingLibrary.h"
+#include "AbilitySystemInterface.h"
+
 #include "MyCharacter.generated.h"
 
 class UCameraComponent;
@@ -22,7 +24,7 @@ class UNiagaraComponent;
  * 
  */
 UCLASS()
-class MURDERINSPACE_API AMyCharacter final : public AMyPawn_Humanoid
+class MURDERINSPACE_API AMyCharacter final : public AMyPawn_Humanoid, public IAbilitySystemInterface
 {
     GENERATED_BODY()
 
@@ -78,9 +80,15 @@ protected:
     // event handlers
     virtual void OnConstruction(const FTransform& Transform) override;
     virtual void BeginPlay() override;
+    
 
 #if WITH_EDITOR
     virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+
+public:
+    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return static_cast<UAbilitySystemComponent*>(AbilitySystemComponent); }
+
+protected:
 #endif
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite)

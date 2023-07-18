@@ -13,7 +13,9 @@
 				"UMG",
 				"CommonUI",
 				"EnhancedInput",
-				"AnimGraph"
+				"AnimGraph",
+				"GameplayAbilities",
+				"DeveloperSettings"
 			]
 		},
 		{
@@ -132,6 +134,14 @@
 			"Name": "FastNoiseGenerator",
 			"Enabled": true,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/527737f42da544e9abf8607a40495fbd"
+		},
+		{
+			"Name": "UE5Coro",
+			"Enabled": true
+		},
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

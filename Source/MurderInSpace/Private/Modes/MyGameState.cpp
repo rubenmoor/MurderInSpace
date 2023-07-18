@@ -1,11 +1,20 @@
 #include "Modes/MyGameState.h"
 
+#include "AttributeSet.h"
 #include "Actors/Blackhole.h"
 #include "Kismet/GameplayStatics.h"
 #include "Orbit/Orbit.h"
 #include "Lib/FunctionLib.h"
-#include "Modes/MyGameInstance.h"
 #include "Net/UnrealNetwork.h"
+
+AMyGameState::AMyGameState()
+{
+    //InitialAttributeValues = NewObject<UDataTable>(this);
+    InitialAttributeValues = CreateDefaultSubobject<UDataTable>(FName("InitialAttributeValues"));
+    InitialAttributeValues->RowStruct = FMyAttributeMetaData::StaticStruct();
+    AddInitialAttributeValue(FName("AttrSetTorque.Torque"), {60., 10., 600., "", true});
+    AddInitialAttributeValue(FName("AttrSetTorque.OmegaMax"), {60., 10., 600., "", true});
+}
 
 ABlackhole* AMyGameState::GetBlackhole() const
 {
@@ -30,6 +39,11 @@ void AMyGameState::OnRep_Physics()
             (*IOrbit)->Update(MyState->GetPhysics(this), InstanceUI);
         });
     }
+}
+
+void AMyGameState::AddInitialAttributeValue(FName Name, const FMyAttributeMetaData& Data) const
+{
+    InitialAttributeValues->AddRow(Name, Data);
 }
 
 #if WITH_EDITOR

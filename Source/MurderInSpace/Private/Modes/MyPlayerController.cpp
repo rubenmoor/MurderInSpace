@@ -2,18 +2,20 @@
 
 #include <algorithm>
 
+#include "AbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Actors/MyCharacter.h"
 #include "Actors/MyPlayerStart.h"
 #include "MyComponents/GyrationComponent.h"
 #include "HUD/MyHUD.h"
-#include "Input/MyGameplayTags.h"
+#include "GameplayAbilitySystem/MyGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyLocalPlayer.h"
 #include "Modes/MySessionManager.h"
 #include "Modes/MyGameState.h"
+#include "Input/MyTaggedInputAction.h"
 
 AMyPlayerController::AMyPlayerController()
 {
@@ -444,6 +446,7 @@ void AMyPlayerController::AcknowledgePossession(APawn* P)
     auto* MyState = UMyState::Get();
     auto InstanceUI = MyState->GetInstanceUI(GI);
     AMyCharacter* MyCharacter = Cast<AMyCharacter>(P);
+    MyCharacter->GetAbilitySystemComponent()->InitAbilityActorInfo(MyCharacter, MyCharacter);
     MyCharacter->UpdateSpringArm(CameraPosition);
     MyCharacter->ShowEffects();
     
