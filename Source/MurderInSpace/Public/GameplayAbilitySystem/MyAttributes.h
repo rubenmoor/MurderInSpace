@@ -18,22 +18,29 @@ GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
  * 
  */
 UCLASS()
-class MURDERINSPACE_API UAttrSetTorque : public UMyAttributeSetBase
+class MURDERINSPACE_API UAttrSetAcceleration : public UMyAttributeSetBase
 {
 	GENERATED_BODY()
 
-//protected:
 public:
+    // Acceleration in m / s^2
+	UPROPERTY(BlueprintReadOnly, Category = "TorqueMax", ReplicatedUsing = OnRep_TorqueMax)
+	FGameplayAttributeData AccelerationSIMax;
+	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, AccelerationSIMax)
+	
 	// torque when rotating
 	UPROPERTY(BlueprintReadOnly, Category = "TorqueMax", ReplicatedUsing = OnRep_TorqueMax)
 	FGameplayAttributeData TorqueMax;
-	ATTRIBUTE_ACCESSORS(UAttrSetTorque, TorqueMax)
+	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, TorqueMax)
 
 	// maximal angular velocity
 	UPROPERTY(BlueprintReadOnly, Category = "Torque", ReplicatedUsing = OnRep_OmegaMax)
 	FGameplayAttributeData OmegaMax;
-	ATTRIBUTE_ACCESSORS(UAttrSetTorque, OmegaMax)
+	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, OmegaMax)
 
+	UFUNCTION()
+	virtual void OnRep_AccelerationSIMax(const FGameplayAttributeData& OldTorqueMax);
+	
 	UFUNCTION()
 	virtual void OnRep_TorqueMax(const FGameplayAttributeData& OldTorqueMax);
 	

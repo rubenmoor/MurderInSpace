@@ -1,12 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "Orbit/Orbit.h"
 #include "GameFramework/Pawn.h"
 
 #include "MyPawn.generated.h"
 
-class UAttrSetTorque;
+class UMyGameplayAbilityBase;
+class UAttrSetAcceleration;
 class UMyAbilitySystemComponent;
 
 UENUM(meta=(Bitflags))
@@ -25,6 +27,7 @@ class MURDERINSPACE_API AMyPawn
 	: public APawn
 	, public IHasOrbit
 	, public IHasOrbitColor
+	, public IAbilitySystemInterface
 {
     GENERATED_BODY()
 
@@ -35,16 +38,6 @@ public:
     UFUNCTION(BlueprintCallable)
     void UpdateLookTarget(FVector Target);
 
-    // Acceleration in m / s^2
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    double AccelerationSI = 1.0;
-
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
-    bool RP_bIsAccelerating = false;
-
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
-    bool RP_bTowardsCircle = false;
-
     // IOrbit interface
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
 	virtual FLinearColor        GetOrbitColor()  override { return OrbitColor; }
@@ -52,6 +45,7 @@ public:
 	virtual void 				SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
 	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
 	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
+    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return static_cast<UAbilitySystemComponent*>(AbilitySystemComponent); }
 
 	void SetRotationAim(const FQuat& Quat);
 
@@ -78,6 +72,9 @@ protected:
     
 	// members
 
+	UPROPERTY(EditAnywhere)
+	TArray<TSubclassOf<UMyGameplayAbilityBase>> Abilities;
+
 	UPROPERTY(ReplicatedUsing=OnRep_Orbit, VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
 	AOrbit* RP_Orbit = nullptr;
 	
@@ -93,12 +90,12 @@ protected:
 	FInitialOrbitParams InitialOrbitParams;
 
     // gameplay ability system
-    
+	
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UMyAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UAttrSetTorque> AttrSetTorque;
+	TObjectPtr<UAttrSetAcceleration> AttrSetAcceleration;
 
 	// angular velocity in radians per second
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)

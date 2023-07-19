@@ -1,8 +1,10 @@
 #include "Actors/MyPawn.h"
 
 #include "Actors/MyCharacter.h"
+#include "GameplayAbilitySystem/GA_Accelerate.h"
 #include "GameplayAbilitySystem/MyAttributes.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
+#include "GameplayAbilitySystem/MyGameplayTags.h"
 #include "HUD/MyHUD.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
@@ -26,7 +28,7 @@ AMyPawn::AMyPawn()
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
 	
-	AttrSetTorque = CreateDefaultSubobject<UAttrSetTorque>("AttributeSetTorque");
+	AttrSetAcceleration = CreateDefaultSubobject<UAttrSetAcceleration>("AttributeSetTorque");
 }
 
 void AMyPawn::UpdateLookTarget(FVector Target)
@@ -57,14 +59,17 @@ void AMyPawn::Tick(float DeltaSeconds)
 	const FPhysics Physics = MyState->GetPhysics(GS);
 	const auto* GI = GetGameInstance<UMyGameInstance>();
 	const FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
-	
-	if(RP_bIsAccelerating)
+	const auto Tag = FMyGameplayTags::Get();
+
+	if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.IsAccelerating))
 	{
+		const float AccelerationSI = AttrSetAcceleration->AccelerationSIMax.GetCurrentValue();
 		const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
 		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics, InstanceUI);
 	}
-	else if(RP_bTowardsCircle)
+	else if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.IsMovingTowardsCircle))
 	{
+		const float AccelerationSI = AttrSetAcceleration->AccelerationSIMax.GetCurrentValue();
 		const auto VecVCircle = RP_Orbit->GetCircleVelocity(Physics);
 		const auto VecTarget = std::copysign(1., RP_Orbit->GetVecVelocity().Dot(VecVCircle)) * VecVCircle;
 		RP_QuatRotationAim = FQuat::FindBetween(FVector(1., 0., 0.), VecTarget);
@@ -82,7 +87,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 	const FQuat MyQuat = GetActorQuat();
 	const double RemainingTheta = (RP_QuatRotationAim * MyQuat.Inverse()).GetTwistAngle(FVector::UnitZ());
 
-	const float TorqueMax = AbilitySystemComponent->GetNumericAttribute(UAttrSetTorque::GetTorqueMaxAttribute());
+	const float TorqueMax = AttrSetAcceleration->TorqueMax.GetCurrentValue();
 	const double BreakingDistance = FMath::Pow(Omega, 2) / 2. / TorqueMax;
 	if(Omega == 0. && FMath::Abs(RemainingTheta) > 1. * PI / 180)
 	{
@@ -105,7 +110,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 		}
 		else if(Alpha != 0.)
 		{
-			const float OmegaMax = AbilitySystemComponent->GetNumericAttribute(UAttrSetTorque::GetOmegaMaxAttribute());
+			const float OmegaMax = AttrSetAcceleration->OmegaMax.GetCurrentValue();
 			if(FMath::Abs(NewOmega) >= OmegaMax)
 			{
 				// reached maximum angular velocity
@@ -165,7 +170,12 @@ void AMyPawn::BeginPlay()
 void AMyPawn::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	for(TSubclassOf<UMyGameplayAbilityBase> Ability : Abilities)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability));
+	}
 }
 
 #if WITH_EDITOR
@@ -227,9 +237,4 @@ void AMyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	//DOREPLIFETIME_CONDITION(APawnInSpace, RP_BodyRotation   , COND_SkipOwner)
 	// just removing the COND_SkipOwner makes sure that the client's authority doesn't last more than a couple of frames
 	DOREPLIFETIME(AMyPawn, RP_QuatRotationAim)
-
-	// in case of acceleration: full server-control: the client won't react to the key press until the action has
-	// round-tripped, i.e. there is no movement prediction
-	DOREPLIFETIME(AMyPawn, RP_bIsAccelerating)
-	DOREPLIFETIME(AMyPawn, RP_bTowardsCircle)
 }

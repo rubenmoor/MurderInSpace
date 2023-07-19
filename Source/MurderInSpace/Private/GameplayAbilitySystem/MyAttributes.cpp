@@ -3,27 +3,33 @@
 #include "Net/UnrealNetwork.h"
 
 
-void UAttrSetTorque::OnRep_TorqueMax(const FGameplayAttributeData& OldTorqueMax)
+void UAttrSetAcceleration::OnRep_AccelerationSIMax(const FGameplayAttributeData& OldAccelerationSIMax)
 {
-    GAMEPLAYATTRIBUTE_REPNOTIFY(UAttrSetTorque, TorqueMax, OldTorqueMax)
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAttrSetAcceleration, AccelerationSIMax, OldAccelerationSIMax)
 }
 
-void UAttrSetTorque::OnRep_OmegaMax(const FGameplayAttributeData& OldOmegaMax)
+void UAttrSetAcceleration::OnRep_TorqueMax(const FGameplayAttributeData& OldTorqueMax)
 {
-    GAMEPLAYATTRIBUTE_REPNOTIFY(UAttrSetTorque, OmegaMax, OldOmegaMax)
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAttrSetAcceleration, TorqueMax, OldTorqueMax)
 }
 
-TArray<FMyAttributeRow> UAttrSetTorque::GetAttributeInitialValueRows()
+void UAttrSetAcceleration::OnRep_OmegaMax(const FGameplayAttributeData& OldOmegaMax)
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAttrSetAcceleration, OmegaMax, OldOmegaMax)
+}
+
+TArray<FMyAttributeRow> UAttrSetAcceleration::GetAttributeInitialValueRows()
 {
     return
-        { { "AttrSetTorque.TorqueMax", 60. * PI / 180. }
-        , { "AttrSetTorque.OmegaMax" , 60. * PI / 180. } 
+        { { "AttrSetAcceleration.TorqueMax"     , 60. * PI / 180. }
+        , { "AttrSetAcceleration.OmegaMax"         , 60. * PI / 180. }
+        , { "AttrSetAcceleration.AccelerationSIMax", 1.              }
         };
 }
 
-void UAttrSetTorque::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UAttrSetAcceleration::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    DOREPLIFETIME_CONDITION_NOTIFY(UAttrSetTorque, TorqueMax, COND_None, REPNOTIFY_Always);
-    DOREPLIFETIME_CONDITION_NOTIFY(UAttrSetTorque, OmegaMax , COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UAttrSetAcceleration, TorqueMax, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UAttrSetAcceleration, OmegaMax , COND_None, REPNOTIFY_Always);
 }

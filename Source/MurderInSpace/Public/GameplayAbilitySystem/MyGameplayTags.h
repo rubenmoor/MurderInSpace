@@ -9,7 +9,12 @@ struct MURDERINSPACE_API FMyGameplayTags
 {
     FMyGameplayTags();
     static const FMyGameplayTags& Get() { return MyGameplayTags; }
+    
     const FGameplayTag& GetInputActionTag(EInputAction InputAction) const;
+
+    FGameplayTag IsAccelerating;
+    FGameplayTag Accelerate;
+    FGameplayTag IsMovingTowardsCircle;
     
     // initial values for gameplay attributes
     FGameplayTag TagInitialHealth;

@@ -5,8 +5,6 @@
 
 #include "MyDeveloperSettings.generated.h"
 
-struct FMyAttributeRow;
-
 /**
  * 
  */

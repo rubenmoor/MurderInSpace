@@ -26,6 +26,9 @@ FMyGameplayTags::FMyGameplayTags()
 			InputActionTags[static_cast<uint8>(Zoom                   )] = GTM.AddNativeGameplayTag("InputAction.Zoom"            );
 			InputActionTags[static_cast<uint8>(Select                 )] = GTM.AddNativeGameplayTag("InputAction.Select"          );
 		}
+		IsAccelerating = GTM.AddNativeGameplayTag("AttrSetAcceleration.IsAccelerating");
+		Accelerate = GTM.AddNativeGameplayTag("Ability.Accelerate");
+		IsMovingTowardsCircle = GTM.AddNativeGameplayTag("AttrSetAcceleration.IsMovingTowardsCircle");
 	});
 }
 

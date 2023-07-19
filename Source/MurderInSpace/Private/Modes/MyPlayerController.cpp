@@ -6,6 +6,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "Actors/MyCharacter.h"
 #include "Actors/MyPlayerStart.h"
+#include "GameplayAbilitySystem/GA_Accelerate.h"
+#include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "MyComponents/GyrationComponent.h"
 #include "HUD/MyHUD.h"
 #include "GameplayAbilitySystem/MyGameplayTags.h"
@@ -87,17 +89,33 @@ void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Act
     // `bPressedReleased` is true for pressed, false for released
     // for any action that doesn't have a value of type bool, `bPressedReleased` doesn't make sense
     const bool bPressedReleased = Value.Get<bool>();
+    const auto Tag = FMyGameplayTags::Get();
     
     switch (Action)
     {
     using enum EInputAction;
     case AccelerateBeginEnd:
-        Orbit->bIsChanging              = bPressedReleased;
-        MyCharacter->RP_bIsAccelerating = bPressedReleased;
+        Orbit->bIsChanging = bPressedReleased;
+        if(bPressedReleased)
+        {
+            UMyAbilitySystemComponent::Get(MyCharacter)->TryActivateAbilityByClass(UGA_Accelerate::StaticClass());
+        }
+        else
+        {
+            const FGameplayTagContainer GameplayTagContainer = FGameplayTagContainer(Tag.Accelerate);
+            UMyAbilitySystemComponent::Get(MyCharacter)->CancelAbilities(&GameplayTagContainer);
+        }
         break;
     case TowardsCircleBeginEnd:
-        Orbit->bIsChanging             = bPressedReleased;
-        MyCharacter->RP_bTowardsCircle = bPressedReleased;
+        Orbit->bIsChanging = bPressedReleased;
+        if(bPressedReleased)
+        {
+            UMyAbilitySystemComponent::Get(MyCharacter)->ApplyGE_MoveTowardsCircle();
+        }
+        else
+        {
+            UMyAbilitySystemComponent::Get(MyCharacter)->RemoveGE_MoveTowardsCircle();
+        }
         break;
     case EmbraceBeginEnd:
         if(bPressedReleased)

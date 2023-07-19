@@ -24,7 +24,7 @@ class UNiagaraComponent;
  * 
  */
 UCLASS()
-class MURDERINSPACE_API AMyCharacter final : public AMyPawn_Humanoid, public IAbilitySystemInterface
+class MURDERINSPACE_API AMyCharacter final : public AMyPawn_Humanoid
 {
     GENERATED_BODY()
 
@@ -84,9 +84,6 @@ protected:
 
 #if WITH_EDITOR
     virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-
-public:
-    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return static_cast<UAbilitySystemComponent*>(AbilitySystemComponent); }
 
 protected:
 #endif
