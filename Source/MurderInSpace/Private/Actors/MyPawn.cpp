@@ -55,7 +55,6 @@ void AMyPawn::SetRotationAim(const FQuat& InQuat)
 		{
 			TorqueTag = Tag.HasTorqueCW;
 		}
-		AbilitySystemComponent->CancelAbilities(&Tag.HasTorque.GetSingleTagContainer());
 		AbilitySystemComponent->TryActivateAbilitiesByTag(TorqueTag.GetSingleTagContainer());
 	}
 }
@@ -118,8 +117,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 	{
 		Alpha = 0.;
 	}
-	//const double NewOmega = Omega + Alpha * DeltaSeconds;
-	NewOmega = Omega + Alpha * DeltaSeconds;
+	double NewOmega = Omega + Alpha * DeltaSeconds;
 	const FQuat MyQuat = GetActorQuat();
 	const double RemainingTheta = (RP_QuatRotationAim * MyQuat.Inverse()).GetTwistAngle(FVector::UnitZ());
 
@@ -138,7 +136,6 @@ void AMyPawn::Tick(float DeltaSeconds)
 			{
 				TorqueTag = Tag.HasTorqueCW;
 			}
-			AbilitySystemComponent->CancelAbilities(&Tag.HasTorque.GetSingleTagContainer());
 			AbilitySystemComponent->TryActivateAbilitiesByTag(TorqueTag.GetSingleTagContainer());
 		}
 		else if(AbilitySystemComponent->FindTag(Tag.HasTorque).IsValid())

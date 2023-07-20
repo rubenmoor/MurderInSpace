@@ -102,10 +102,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	double Omega = 0.;
 
-	// debugging
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	double NewOmega = 0.;
-
 	// the rotation towards which the pawn is currently rotating
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
     FQuat RP_QuatRotationAim = FQuat::Identity;
