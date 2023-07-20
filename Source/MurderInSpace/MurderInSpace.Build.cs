@@ -14,6 +14,7 @@ public class MurderInSpace : ModuleRules
 			, "CommonUI"
 			, "CoreUObject"
 			, "UE5Coro"
+			, "UE5CoroGAS"
 			, "Engine"
 			, "FastNoiseGenerator"
 			, "FastNoise"

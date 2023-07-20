@@ -14,4 +14,5 @@ UCLASS()
 class MURDERINSPACE_API UMyEnhancedInputComponent : public UEnhancedInputComponent
 {
 	GENERATED_BODY()
+
 };

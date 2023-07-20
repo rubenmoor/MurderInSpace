@@ -109,28 +109,28 @@ private:
 
 	// for any input action, call 'LocallyHandleAction' and make the RPC only if necessary
 	template<EInputAction InputAction>
-	void HandleInputAction()
+	void HandleInputAction(const FInputActionInstance& IAInstance)
 	{
 		// 'MinPureUI' marks the enumerator where UI-only actions begin
 		// those have only local execution
 		// TODO: ? if(InputAction < EInputAction::MinPureUI || GetLocalRole() == ROLE_Authority)
 		if(InputAction < EInputAction::MinPureUI)
 		{
-			ServerRPC_HandleAction(InputAction);
+			ServerRPC_HandleAction(InputAction, IAInstance);
 		}
 		
 		// input action prediction tbd. here
 		// TODO: ? if(GetLocalRole() == ROLE_AutonomousProxy)
 		
-		LocallyHandleAction(InputAction);
+		LocallyHandleAction(InputAction, IAInstance);
 	}
 
 	// for gameplay input actions, execute their effects
 	UFUNCTION(Server, Reliable)
-	void ServerRPC_HandleAction(EInputAction Action);
+	void ServerRPC_HandleAction(EInputAction Action, const FInputActionInstance& IAInstance);
 
 	// for gameplay input actions AND mere UI interactions: execute their local effects
-	void LocallyHandleAction(EInputAction Action);
+	void LocallyHandleAction(EInputAction Action, const FInputActionInstance& IAInstance);
 
 	// private members
 
@@ -152,10 +152,6 @@ private:
 	
 	UFUNCTION(BlueprintCallable)
 	FVector GetMouseDirection();
-	
-	// get the value of the InputAction asset given the `EInputAction`
-	UFUNCTION(BlueprintCallable)
-	FInputActionValue GetInputActionValue(EInputAction InputAction);
 	
 	// get the InputAction asset given the `EInputAction`
 	UFUNCTION(BlueprintCallable)

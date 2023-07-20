@@ -140,6 +140,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "UE5CoroGAS",
+			"Enabled": true
+		},
+		{
 			"Name": "GameplayAbilities",
 			"Enabled": true
 		}

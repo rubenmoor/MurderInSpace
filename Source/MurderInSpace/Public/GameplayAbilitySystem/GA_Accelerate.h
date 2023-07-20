@@ -1,31 +1,20 @@
-
-
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayAbilitySystem/MyGameplayAbilityBase.h"
+#include "MyInputGameplayAbility.h"
 #include "GA_Accelerate.generated.h"
 
+class UInputAction;
 /**
  * 
  */
 UCLASS()
-class MURDERINSPACE_API UGA_Accelerate : public UMyGameplayAbilityBase
+class MURDERINSPACE_API UGA_Accelerate : public UMyInputGameplayAbility
 {
 	GENERATED_BODY()
 
     UGA_Accelerate();
-    
+
 protected:
-    UPROPERTY(EditDefaultsOnly)
-    TSubclassOf<UGameplayEffect> GameplayEffect;
-    
-    FActiveGameplayEffectHandle GameplayEffectHandle;
-
     virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-    virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-    
-    // event handlers
-
-    virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 };

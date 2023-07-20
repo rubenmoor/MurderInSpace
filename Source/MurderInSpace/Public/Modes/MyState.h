@@ -13,6 +13,28 @@ class UMyGameInstance;
 class ABlackhole;
 DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, All, All);
 
+/**
+ * https://x157.github.io/UE5/Dev/DebuggingTips#BuildTarget_Debug_Editor
+ * XIST_ULOG
+ *
+ *   You can use this macro in any code where `this` evaluates to a valid UObject.
+ *   The log will print with the __FUNCTION__ and __LINE__ where you write the macro,
+ *   and will report `this` identity as [OwnerName]->[ThisName] in the log message.
+ *   The message that you pass in (fmt, ...) is appended to the rest of the log info.
+ *
+ *   This gets sent to the `LogXist` log with verbosity level `Log`.
+ *   You should make related macros like `XIST_ULOG_WARNING`, `XIST_ULOG_ERROR`,
+ *   etc as needed.
+ */
+// #define XIST_ULOG(fmt, ...) \
+// 	UE_LOG(LogMyGame, Log, \
+// 		TEXT("[%s] %s:%i [%s]->[%s] %s"), \
+// 		*XistGetClientServerContextString(this), \
+// 		*FString(__FUNCTION__), __LINE__, \
+// 		*GetNameSafe(GetOwner()), *GetNameSafe(this), \
+// 		*FString::Printf(fmt, ##__VA_ARGS__) \
+// 	)
+
 /*
  * everything stateful pertaining to the physics
  */

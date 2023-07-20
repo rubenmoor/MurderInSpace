@@ -49,7 +49,6 @@ void AMyPlayerController::SetupInputComponent()
     
     // gameplay actions
     BindAction<TowardsCircleBeginEnd>();
-    BindAction<AccelerateBeginEnd   >();
     BindAction<EmbraceBeginEnd      >();
     BindAction<KickPositionExecute  >();
 }
@@ -78,33 +77,21 @@ void AMyPlayerController::ServerRPC_RotateTowards_Implementation(FQuat Quat)
     MyCharacter->SetRotationAim(Quat);
 }
 
-void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Action)
+void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Action, const FInputActionInstance& IAInstance)
 {
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
     AOrbit* Orbit = MyCharacter->GetOrbit();
     
-    const auto Value = GetInputActionValue(Action);
-
     // so far all game play action are keys that rely on the triggers pressed and released
     // `bPressedReleased` is true for pressed, false for released
     // for any action that doesn't have a value of type bool, `bPressedReleased` doesn't make sense
-    const bool bPressedReleased = Value.Get<bool>();
+    const bool bPressedReleased = IAInstance.GetValue().Get<bool>();
     const auto Tag = FMyGameplayTags::Get();
     
     switch (Action)
     {
     using enum EInputAction;
     case AccelerateBeginEnd:
-        Orbit->bIsChanging = bPressedReleased;
-        if(bPressedReleased)
-        {
-            UMyAbilitySystemComponent::Get(MyCharacter)->TryActivateAbilityByClass(UGA_Accelerate::StaticClass());
-        }
-        else
-        {
-            const FGameplayTagContainer GameplayTagContainer = FGameplayTagContainer(Tag.Accelerate);
-            UMyAbilitySystemComponent::Get(MyCharacter)->CancelAbilities(&GameplayTagContainer);
-        }
         break;
     case TowardsCircleBeginEnd:
         Orbit->bIsChanging = bPressedReleased;
@@ -152,26 +139,25 @@ void AMyPlayerController::ServerRPC_HandleAction_Implementation(EInputAction Act
     }
 }
 
-void AMyPlayerController::LocallyHandleAction(EInputAction Action)
+void AMyPlayerController::LocallyHandleAction(EInputAction Action, const FInputActionInstance& IAInstance)
 {
     auto* GI = GetGameInstance<UMyGameInstance>();
     const AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
     AOrbit* Orbit = MyCharacter->GetOrbit();
     UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
     
-    // polymorphic value, templated access via `Get<T>() -> T`
-    auto Value = GetInputActionValue(Action);
-    
     // well-defined but not meaningful for non-bool input action values
-    auto bPressedReleased = Value.Get<bool>();
+    //auto bPressedReleased = Value.Get<bool>();
+    auto bPressedReleased = IAInstance.GetValue().Get<bool>();
     // `FInputActionValue::Axis1D` is a type alias for `float`
-    auto Axis1DValue = Value.Get<FInputActionValue::Axis1D>();
+    auto Axis1DValue = IAInstance.GetValue().Get<FInputActionValue::Axis1D>();
     
     switch (Action)
     {
     using enum EInputAction;
     case AccelerateBeginEnd:
     case TowardsCircleBeginEnd:
+        // TODO: move to local gameplay cue
         Orbit->bIsVisibleAccelerating = bPressedReleased;
         if(bPressedReleased)
         {
@@ -312,11 +298,6 @@ FVector AMyPlayerController::GetMouseDirection()
     {
         return FVector(1., 0., 0.);
     }       
-}
-
-FInputActionValue AMyPlayerController::GetInputActionValue(EInputAction InputAction)
-{
-    return Input->GetPlayerInput()->GetActionValue(GetInputAction(InputAction));
 }
 
 UInputAction* AMyPlayerController::GetInputAction(EInputAction InputAction)

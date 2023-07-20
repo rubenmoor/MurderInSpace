@@ -13,8 +13,9 @@ struct MURDERINSPACE_API FMyGameplayTags
     const FGameplayTag& GetInputActionTag(EInputAction InputAction) const;
 
     FGameplayTag IsAccelerating;
-    FGameplayTag Accelerate;
     FGameplayTag IsMovingTowardsCircle;
+    FGameplayTag HasTorqueCCW;
+    FGameplayTag HasTorqueCW;
     
     // initial values for gameplay attributes
     FGameplayTag TagInitialHealth;

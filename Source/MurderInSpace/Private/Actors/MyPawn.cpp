@@ -157,9 +157,14 @@ void AMyPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	for(const auto Ability : Abilities)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability));
+	}
+	
     if(GetLocalRole() == ROLE_Authority)
     {
-        SetActorTickEnabled(true);
+		Initialize();
     }
     else
     {
@@ -172,10 +177,6 @@ void AMyPawn::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-	for(TSubclassOf<UMyGameplayAbilityBase> Ability : Abilities)
-	{
-		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability));
-	}
 }
 
 #if WITH_EDITOR
@@ -220,8 +221,13 @@ void AMyPawn::SetReadyFlags(EMyPawnReady ReadyFlags)
 	MyPawnReady |= ReadyFlags;
 	if(MyPawnReady == EMyPawnReady::All)
 	{
-		SetActorTickEnabled(true);
+		Initialize();
 	}
+}
+
+void AMyPawn::Initialize()
+{
+	SetActorTickEnabled(true);
 }
 
 void AMyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

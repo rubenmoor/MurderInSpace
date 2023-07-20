@@ -7,7 +7,7 @@
 
 #include "MyPawn.generated.h"
 
-class UMyGameplayAbilityBase;
+class UMyInputGameplayAbility;
 class UAttrSetAcceleration;
 class UMyAbilitySystemComponent;
 
@@ -73,7 +73,7 @@ protected:
 	// members
 
 	UPROPERTY(EditAnywhere)
-	TArray<TSubclassOf<UMyGameplayAbilityBase>> Abilities;
+	TArray<TSubclassOf<UGameplayAbility>> Abilities;
 
 	UPROPERTY(ReplicatedUsing=OnRep_Orbit, VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
 	AOrbit* RP_Orbit = nullptr;
@@ -115,4 +115,5 @@ protected:
 	void OnRep_Orbit();
 
 	void SetReadyFlags(EMyPawnReady ReadyFlags);
+	void Initialize();
 };
