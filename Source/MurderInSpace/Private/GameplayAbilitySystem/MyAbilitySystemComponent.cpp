@@ -34,26 +34,11 @@ void UMyAbilitySystemComponent::RemoveGE_MoveTowardsCircle()
     RemoveActiveGameplayEffect(GE_MoveTowardsCircleHandle);
 }
 
-void UMyAbilitySystemComponent::AddGameplayTag(const FGameplayTag InTag)
+FGameplayTag UMyAbilitySystemComponent::FindTag(FGameplayTag InTag)
 {
-    const auto GameplayEffectClass = GetDefault<UMyDeveloperSettings>()->GameplayEffectInfiniteClass;
-    const FGameplayEffectSpecHandle SpecHandle =
-        MakeOutgoingSpec(GameplayEffectClass, 1., MakeEffectContext());
-    FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
-    Spec->DynamicGrantedTags.AddTag(InTag);
-    ApplyGameplayEffectSpecToSelf(*Spec);
-}
-
-void UMyAbilitySystemComponent::RemoveGameplayTag(const FGameplayTag InTag)
-{
-	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(FGameplayTagContainer(InTag));
-	RemoveActiveEffects(Query);
-}
-
-void UMyAbilitySystemComponent::BeginPlay()
-{
-    Super::BeginPlay();
-    check(IsValid(GetDefault<UMyDeveloperSettings>()->GameplayEffectInfiniteClass))
+	FGameplayTagContainer MyTags;
+	GetOwnedGameplayTags(MyTags);
+	return MyTags.Filter(InTag.GetSingleTagContainer()).First();
 }
 
 void UMyAbilitySystemComponent::OnGiveAbility(FGameplayAbilitySpec& AbilitySpec)

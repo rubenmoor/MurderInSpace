@@ -27,10 +27,7 @@ public:
     void RemoveGE_MoveTowardsCircle();
 
     UFUNCTION(BlueprintCallable)
-	void AddGameplayTag(FGameplayTag InTag);
-    
-    UFUNCTION(BlueprintCallable)
-	void RemoveGameplayTag(FGameplayTag InTag);
+    FGameplayTag FindTag(FGameplayTag InTag);
     
     /*
      * local gameplay cues TODO: should I use these for UI?
@@ -48,7 +45,6 @@ public:
     
     // event handlers
 
-    virtual void BeginPlay() override;
     virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
     void HandleInputAction(const FInputActionInstance& InputActionInstance);
 

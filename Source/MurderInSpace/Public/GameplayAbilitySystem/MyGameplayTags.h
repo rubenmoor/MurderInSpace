@@ -14,6 +14,8 @@ struct MURDERINSPACE_API FMyGameplayTags
 
     FGameplayTag IsAccelerating;
     FGameplayTag IsMovingTowardsCircle;
+    
+    FGameplayTag HasTorque;
     FGameplayTag HasTorqueCCW;
     FGameplayTag HasTorqueCW;
     

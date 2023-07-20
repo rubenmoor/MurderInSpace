@@ -1,7 +1,6 @@
 #include "GameplayAbilitySystem/GA_Accelerate.h"
 
 #include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
-#include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "GameplayAbilitySystem/MyGameplayTags.h"
 #include "Orbit/Orbit.h"
 
@@ -18,15 +17,12 @@ void UGA_Accelerate::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-    const auto TagIsAccelerating = FMyGameplayTags::Get().IsAccelerating;
-    UMyAbilitySystemComponent::Get(ActorInfo)->AddGameplayTag(TagIsAccelerating);
     auto* Orbit = Cast<IHasOrbit>(ActorInfo->OwnerActor)->GetOrbit();
     Orbit->bIsChanging = true;
     BindOnRelease([=]
     {
         // TODO: requires instanced ability
         //UAbilityTask_NetworkSyncPoint::WaitNetSync(this, EAbilityTaskNetSyncType::OnlyServerWait);
-        UMyAbilitySystemComponent::Get(ActorInfo)->RemoveGameplayTag(TagIsAccelerating);
         Orbit->bIsChanging = false;
         EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
     });

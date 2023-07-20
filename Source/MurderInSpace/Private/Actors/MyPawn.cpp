@@ -36,9 +36,28 @@ void AMyPawn::UpdateLookTarget(FVector Target)
 	// TODO
 }
 
-void AMyPawn::SetRotationAim(const FQuat& Quat)
+void AMyPawn::SetRotationAim(const FQuat& InQuat)
 {
-	RP_QuatRotationAim = Quat;
+	RP_QuatRotationAim = InQuat;
+	const FQuat MyQuat = GetActorQuat();
+	const double RemainingTheta = (RP_QuatRotationAim * MyQuat.Inverse()).GetTwistAngle(FVector::UnitZ());
+	const auto Tag = FMyGameplayTags::Get();
+	// initiate rotation or adjust direction
+	if(Omega == 0. || RemainingTheta * Omega < 0.)
+	{
+		// start acceleration in the direction of `RP_RotationAim`
+		FGameplayTag TorqueTag;
+		if(RemainingTheta > 0.)
+		{
+			TorqueTag = Tag.HasTorqueCCW;
+		}
+		else
+		{
+			TorqueTag = Tag.HasTorqueCW;
+		}
+		AbilitySystemComponent->CancelAbilities(&Tag.HasTorque.GetSingleTagContainer());
+		AbilitySystemComponent->TryActivateAbilitiesByTag(TorqueTag.GetSingleTagContainer());
+	}
 }
 
 void AMyPawn::Tick(float DeltaSeconds)
@@ -84,48 +103,62 @@ void AMyPawn::Tick(float DeltaSeconds)
 
 	// rotating towards `RP_RotationAim` at speed `Omega`
 
-	const FQuat MyQuat = GetActorQuat();
-	const double RemainingTheta = (RP_QuatRotationAim * MyQuat.Inverse()).GetTwistAngle(FVector::UnitZ());
-
 	const float TorqueMax = AttrSetAcceleration->TorqueMax.GetCurrentValue();
-	const double BreakingDistance = FMath::Pow(Omega, 2) / 2. / TorqueMax;
-	if(Omega == 0. && FMath::Abs(RemainingTheta) > 1. * PI / 180)
+	float Alpha;
+	const auto MaybeTorqueTag = AbilitySystemComponent->FindTag(Tag.HasTorque);
+	if(MaybeTorqueTag == Tag.HasTorqueCCW)
 	{
-		// start acceleration in the direction of `RP_RotationAim`
-		Alpha = FMath::Sign(RemainingTheta) * TorqueMax;
+		Alpha = TorqueMax;
+	}
+	else if(MaybeTorqueTag == Tag.HasTorqueCW)
+	{
+		Alpha = -TorqueMax;
 	}
 	else
 	{
-		const double NewOmega = Omega + Alpha * DeltaSeconds;
+		Alpha = 0.;
+	}
+	//const double NewOmega = Omega + Alpha * DeltaSeconds;
+	NewOmega = Omega + Alpha * DeltaSeconds;
+	const FQuat MyQuat = GetActorQuat();
+	const double RemainingTheta = (RP_QuatRotationAim * MyQuat.Inverse()).GetTwistAngle(FVector::UnitZ());
 
-		if(RemainingTheta * Omega < 0.)
-		{
-			// moving away from `RotationAim`? turn around!
-			Alpha = FMath::Sign(RemainingTheta) * TorqueMax;
-		}
-		else if(FMath::Abs(RemainingTheta) <= BreakingDistance)
+	const double BreakingDistance = FMath::Pow(Omega, 2) / 2. / TorqueMax;
+	if(Omega != 0.) 
+	{
+		if(FMath::Abs(RemainingTheta) <= BreakingDistance)
 		{
 			// decelarate when approaching `RotationAim`
-			Alpha = -FMath::Sign(Omega) * TorqueMax;
+			FGameplayTag TorqueTag;
+			if(Omega < 0.)
+			{
+				TorqueTag = Tag.HasTorqueCCW;
+			}
+			else
+			{
+				TorqueTag = Tag.HasTorqueCW;
+			}
+			AbilitySystemComponent->CancelAbilities(&Tag.HasTorque.GetSingleTagContainer());
+			AbilitySystemComponent->TryActivateAbilitiesByTag(TorqueTag.GetSingleTagContainer());
 		}
-		else if(Alpha != 0.)
+		else if(AbilitySystemComponent->FindTag(Tag.HasTorque).IsValid())
 		{
 			const float OmegaMax = AttrSetAcceleration->OmegaMax.GetCurrentValue();
 			if(FMath::Abs(NewOmega) >= OmegaMax)
 			{
 				// reached maximum angular velocity
-				Alpha = 0.;
-				Omega = FMath::Sign(Omega) * OmegaMax;
+				AbilitySystemComponent->CancelAbilities(&Tag.HasTorque.GetSingleTagContainer());
+				NewOmega = FMath::Sign(Omega) * OmegaMax;
 			}
 			else if(NewOmega * Omega < 0.)
 			{
 				// change of sign => (over-)reached zero angular velocity
-				Alpha = 0.;
-				Omega = 0.;
+				AbilitySystemComponent->CancelAbilities(&Tag.HasTorque.GetSingleTagContainer());
+				NewOmega = 0.;
 			}
 		}
 	}
-	Omega += Alpha * DeltaSeconds;
+	Omega = NewOmega;
 	const double DeltaTheta = Omega * DeltaSeconds;
 	SetActorRotation(MyQuat * FQuat::MakeFromRotationVector(FVector::UnitZ() * DeltaTheta));
 }

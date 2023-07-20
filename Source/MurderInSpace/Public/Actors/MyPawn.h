@@ -7,6 +7,7 @@
 
 #include "MyPawn.generated.h"
 
+class UGameplayAbility;
 class UMyInputGameplayAbility;
 class UAttrSetAcceleration;
 class UMyAbilitySystemComponent;
@@ -47,7 +48,7 @@ public:
 	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return static_cast<UAbilitySystemComponent*>(AbilitySystemComponent); }
 
-	void SetRotationAim(const FQuat& Quat);
+	void SetRotationAim(const FQuat& InQuat);
 
 protected:
     // event handlers
@@ -101,9 +102,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	double Omega = 0.;
 
-	// angular acceleration in radians per second squared
+	// debugging
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	double Alpha = 0.;
+	double NewOmega = 0.;
 
 	// the rotation towards which the pawn is currently rotating
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
