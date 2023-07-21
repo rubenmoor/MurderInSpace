@@ -44,7 +44,8 @@ FGameplayTag UMyAbilitySystemComponent::FindTag(FGameplayTag InTag)
 void UMyAbilitySystemComponent::OnGiveAbility(FGameplayAbilitySpec& AbilitySpec)
 {
     Super::OnGiveAbility(AbilitySpec);
-    
+
+    // TODO: move to player controller input initialization
     // bind the pressed/released actions to gameplay abilities of type `InputGameplayAbilities`
     const auto* MyAbility = Cast<UMyInputGameplayAbility>(AbilitySpec.Ability);
     if(IsValid(MyAbility))

@@ -11,12 +11,12 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags
     FMyGameplayTags();
     static FMyGameplayTags& Get() { return MyGameplayTags; }
     
-    const FGameplayTag& GetInputActionTag(EInputAction InputAction) const;
-
     FGameplayTag Acceleration;
     FGameplayTag AccelerationTranslational;
     FGameplayTag AccelerationRotational;
     FGameplayTag AccelerationRotationalDuration;
+    FGameplayTag AccelerationRotationalCCW;
+    FGameplayTag AccelerationRotationalCW;
     
     FGameplayTag Ability;
     // translational acceleration ability
@@ -24,17 +24,10 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags
     // rotate to look at mouse ability
     FGameplayTag AbilityRotate;
     FGameplayTag AbilityMoveTowardsCircle;
-
-    // deprecated
-    FGameplayTag HasTorque;
-    FGameplayTag HasTorqueCCW;
-    FGameplayTag HasTorqueCW;
     
-    // initial values for gameplay attributes
-    FGameplayTag TagInitialHealth;
+	FGameplayTag GiveInitiallyToMyPawn;
+    
 private:
-    TArray<FGameplayTag> InputActionTags;
-    
     static FMyGameplayTags MyGameplayTags;
 };
 
