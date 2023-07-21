@@ -4,7 +4,7 @@
 
 UGA_Torque::UGA_Torque()
 {
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
 void UGA_Torque::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,

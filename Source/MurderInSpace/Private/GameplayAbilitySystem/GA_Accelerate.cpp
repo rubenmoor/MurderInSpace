@@ -1,12 +1,13 @@
 #include "GameplayAbilitySystem/GA_Accelerate.h"
 
 #include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
-#include "GameplayAbilitySystem/MyGameplayTags.h"
+#include "MyGameplayTags.h"
 #include "Orbit/Orbit.h"
 
 UGA_Accelerate::UGA_Accelerate()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
+    ActivationOwnedTags.AddTag(FMyGameplayTags::Get().AbilityAccelerate);
     // TODO
     //ActivationBlockedTags =
 }

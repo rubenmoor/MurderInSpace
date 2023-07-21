@@ -32,6 +32,7 @@ public class MurderInSpace : ModuleRules
 			, "EnhancedInput"
 			, "GameplayAbilities"
 			, "GameplayTags"
+			, "MyGameplayTags"
 			, "GameplayTasks"
 			, "OnlineSubsystem"
 			, "OnlineSubsystemNull"

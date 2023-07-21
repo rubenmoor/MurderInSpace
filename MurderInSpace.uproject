@@ -15,13 +15,19 @@
 				"EnhancedInput",
 				"AnimGraph",
 				"GameplayAbilities",
-				"DeveloperSettings"
+				"DeveloperSettings",
+				"UE5CoroGAS"
 			]
 		},
 		{
 			"Name": "LoadingScreen",
 			"Type": "ClientOnly",
 			"LoadingPhase": "PreLoadingScreen"
+		},
+		{
+			"Name": "MyGameplayTags",
+			"Type": "RuntimeAndProgram",
+			"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [

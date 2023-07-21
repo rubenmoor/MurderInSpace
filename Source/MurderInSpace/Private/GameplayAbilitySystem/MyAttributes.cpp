@@ -22,6 +22,7 @@ TArray<FMyAttributeRow> UAttrSetAcceleration::GetAttributeInitialValueRows()
 {
     return
         { { "AttrSetAcceleration.TorqueMax"     , 60. * PI / 180. }
+        , { "AttrSetAcceleration.Torque"           , 0. }
         , { "AttrSetAcceleration.OmegaMax"         , 60. * PI / 180. }
         , { "AttrSetAcceleration.AccelerationSIMax", 1.              }
         };

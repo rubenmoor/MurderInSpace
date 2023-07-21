@@ -24,14 +24,19 @@ class MURDERINSPACE_API UAttrSetAcceleration : public UMyAttributeSetBase
 
 public:
     // Acceleration in m / s^2
-	UPROPERTY(BlueprintReadOnly, Category = "TorqueMax", ReplicatedUsing = OnRep_TorqueMax)
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_TorqueMax)
 	FGameplayAttributeData AccelerationSIMax;
 	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, AccelerationSIMax)
 	
-	// torque when rotating
-	UPROPERTY(BlueprintReadOnly, Category = "TorqueMax", ReplicatedUsing = OnRep_TorqueMax)
+	// max value for torque
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_TorqueMax)
 	FGameplayAttributeData TorqueMax;
 	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, TorqueMax)
+
+	// currently applied value for torque
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_TorqueMax)
+	FGameplayAttributeData Torque;
+	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, Torque)
 
 	// maximal angular velocity
 	UPROPERTY(BlueprintReadOnly, Category = "Torque", ReplicatedUsing = OnRep_OmegaMax)

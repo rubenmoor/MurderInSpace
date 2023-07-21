@@ -4,7 +4,7 @@
 #include "GameplayAbilitySystem/GA_Accelerate.h"
 #include "GameplayAbilitySystem/MyAttributes.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
-#include "GameplayAbilitySystem/MyGameplayTags.h"
+#include "MyGameplayTags.h"
 #include "HUD/MyHUD.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
@@ -79,13 +79,13 @@ void AMyPawn::Tick(float DeltaSeconds)
 	const FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
 	const auto Tag = FMyGameplayTags::Get();
 
-	if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.IsAccelerating))
+	if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AbilityAccelerate))
 	{
 		const float AccelerationSI = AttrSetAcceleration->AccelerationSIMax.GetCurrentValue();
 		const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
 		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics, InstanceUI);
 	}
-	else if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.IsMovingTowardsCircle))
+	else if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AbilityMoveTowardsCircle))
 	{
 		const float AccelerationSI = AttrSetAcceleration->AccelerationSIMax.GetCurrentValue();
 		const auto VecVCircle = RP_Orbit->GetCircleVelocity(Physics);

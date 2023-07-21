@@ -10,7 +10,7 @@
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "MyComponents/GyrationComponent.h"
 #include "HUD/MyHUD.h"
-#include "GameplayAbilitySystem/MyGameplayTags.h"
+#include "MyGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
 #include "Modes/MyGameInstance.h"

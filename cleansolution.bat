@@ -18,7 +18,3 @@ set MyFullPath="%cd%\MurderInSpace"
 %MyUVS% /projectfiles %MyFullPath%.uproject
 
 %MyUBT% Development Win64 -Project=%MyFullPath%.uproject -TargetType=Editor -Progress -NoEngineChanges -NoHotReloadFromIDE
-
-%MyFullPath%.uproject
-
-%MyFullPath%.sln

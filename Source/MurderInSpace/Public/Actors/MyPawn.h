@@ -73,6 +73,7 @@ protected:
     
 	// members
 
+	// this abilities will be given to the pawn in BeginPlay
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<UGameplayAbility>> Abilities;
 

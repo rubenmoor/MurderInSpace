@@ -1,6 +1,7 @@
 #include "GameplayAbilitySystem/MyAttributeSetBase.h"
 
 #include "GameplayAbilitySystem/MyDeveloperSettings.h"
+#include "Logging/StructuredLog.h"
 #include "Modes/MyState.h"
 
 TArray<FMyAttributeRow> UMyAttributeSetBase::GetAttributeInitialValueRows()
@@ -30,7 +31,7 @@ void UMyAttributeSetBase::PostInitProperties()
             UMyDeveloperSettings::AddRowUnlessExists(Table, Name, Data);
         }
 
-    	// pass through the table to set all attributes in the set
+    	// pass through all attributes in the set to initialize
 		for( TFieldIterator<FProperty> It(GetClass(), EFieldIteratorFlags::IncludeSuper); It; ++It)
 		{
 			FProperty* Property = *It;
@@ -52,6 +53,10 @@ void UMyAttributeSetBase::PostInitProperties()
 				check(DataPtr);
 				DataPtr->SetBaseValue(InitializationData->Value);
 				DataPtr->SetCurrentValue(InitializationData->Value);
+			}
+			else
+			{
+				UE_LOGFMT(LogMyGame, Error, "{THIS}: missing attribute initial value for {ATTR}", GetFullName(), RowNameStr);
 			}
 		}
     }
