@@ -261,9 +261,13 @@ public:
     UFUNCTION(BlueprintCallable)
     FVector GetVecR() const { return RP_Body->GetActorLocation(); }
 
+    // TODO deprecated
     // whenever a spline mesh merely changes visibility:
     UFUNCTION(BlueprintCallable)
     void UpdateVisibility(const FInstanceUI& InstanceUI);
+
+    UFUNCTION(BlueprintCallable)
+    void SetVisibility(bool InShow);
 
     // object interaction
     

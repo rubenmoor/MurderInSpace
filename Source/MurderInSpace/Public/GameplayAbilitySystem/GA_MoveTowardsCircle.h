@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayAbilitySystem/MyInputGameplayAbility.h"
+#include "MyGameplayAbility.h"
 #include "GA_MoveTowardsCircle.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MURDERINSPACE_API UGA_MoveTowardsCircle : public UMyInputGameplayAbility
+class MURDERINSPACE_API UGA_MoveTowardsCircle : public UMyGameplayAbility
 {
 	GENERATED_BODY()
 	

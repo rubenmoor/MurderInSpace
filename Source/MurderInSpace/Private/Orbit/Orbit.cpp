@@ -791,6 +791,11 @@ void AOrbit::UpdateVisibility(const FInstanceUI& InstanceUI)
     SplineMeshParent->SetVisibility(bVisibility, true);
 }
 
+void AOrbit::SetVisibility(bool InShow)
+{
+    SplineMeshParent->SetVisibility(InShow, true);
+}
+
 void AOrbit::SpawnSplineMesh
     ( FLinearColor Color
     , ESplineMeshParentSelector ParentSelector

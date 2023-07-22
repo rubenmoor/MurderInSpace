@@ -8,32 +8,34 @@
 #include "Input/MyEnhancedInputComponent.h"
 #include "MyPlayerController.generated.h"
 
+class UMyAbilitySystemComponent;
 struct FGameplayTag;
 class UTaggedInputActionData;
-/**
- * 
- */
-UENUM()
-enum class EInputAction : uint8
-{
-	// given your current orientation, use the main rocket engine to accelerate
-	  AccelerateBeginEnd      UMETA(DisplayName = "accelerate")
-	, TowardsCircleBeginEnd   UMETA(DisplayName = "accelerate towards circular orbit")
-	, EmbraceBeginEnd         UMETA(DisplayName = "use arms to embrace a thing, e.g. an asteroid")
-	, KickPositionExecute     UMETA(DisplayName = "use legs to kick something away")
-	, KickCancel              UMETA(DisplayName = "cancel the kick")
 
-	// pure UI actions
-	, IngameMenuToggle        UMETA(DisplayName = "toggle in-game menu")
-	, MyTrajectoryShowHide    UMETA(DisplayName = "show my trajectory")
-	, AllTrajectoriesShowHide UMETA(DisplayName = "show all trajectories")
-	, MyTrajectoryToggle      UMETA(DisplayName = "toggle my trajectories visibility")
-	, Zoom                    UMETA(DisplayName = "zoom the camera in or out")
-	, Select                  UMETA(DisplayName = "deselect any selected body")
-	
-	, MinPureUI = IngameMenuToggle
-	, Last = Select
-};
+// / //**
+//  * 
+//  */
+// UENUM()
+// enum class EInputAction : uint8
+// {
+// 	// given your current orientation, use the main rocket engine to accelerate
+// 	  AccelerateBeginEnd      UMETA(DisplayName = "accelerate")
+// 	, TowardsCircleBeginEnd   UMETA(DisplayName = "accelerate towards circular orbit")
+// 	, EmbraceBeginEnd         UMETA(DisplayName = "use arms to embrace a thing, e.g. an asteroid")
+// 	, KickPositionExecute     UMETA(DisplayName = "use legs to kick something away")
+// 	, KickCancel              UMETA(DisplayName = "cancel the kick")
+// 
+// 	// pure UI actions
+// 	, IngameMenuToggle        UMETA(DisplayName = "toggle in-game menu")
+// 	, MyTrajectoryShowHide    UMETA(DisplayName = "show my trajectory")
+// 	, AllTrajectoriesShowHide UMETA(DisplayName = "show all trajectories")
+// 	, MyTrajectoryToggle      UMETA(DisplayName = "toggle my trajectories visibility")
+// 	, Zoom                    UMETA(DisplayName = "zoom the camera in or out")
+// 	, Select                  UMETA(DisplayName = "deselect any selected body")
+// 	
+// 	, MinPureUI = IngameMenuToggle
+// 	, Last = Select
+// };
 
 /**
  * 
@@ -74,6 +76,15 @@ protected:
 	virtual void BeginPlay() override;
 
 	// input events
+	UFUNCTION()
+	void HandlePressed(const FInputActionInstance& InputActionInstance);
+	
+	UFUNCTION()
+	void HandleReleased(const FInputActionInstance& InputActionInstance);
+	
+	UFUNCTION()
+	void HandleTapped(const FInputActionInstance& InputActionInstance);
+	
 	
 	// change the zoom level continuously
 	void Zoom(float Delta);
@@ -81,56 +92,8 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_RotateTowards(FQuat Quat);
 	
-private:
-	template<EInputAction InputAction>
-	void BindAction()
-	{
-		const auto* IA = GetInputAction(InputAction);
-		if (IsValid(IA))
-		{
-			Cast<UMyEnhancedInputComponent>(InputComponent)->BindAction
-				( IA
-				, ETriggerEvent::Triggered
-				, this
-				, &AMyPlayerController::HandleInputAction<InputAction>
-				);
-		}
-		else
-		{
-			UE_LOG
-				( LogMyGame
-				, Error
-				, TEXT("%s: couldn't find input action asset for %s")
-				, *GetFullName()
-				, *UEnum::GetValueAsString(InputAction)
-				)
-		}
-	}
-
-	// for any input action, call 'LocallyHandleAction' and make the RPC only if necessary
-	template<EInputAction InputAction>
-	void HandleInputAction(const FInputActionInstance& IAInstance)
-	{
-		// 'MinPureUI' marks the enumerator where UI-only actions begin
-		// those have only local execution
-		// TODO: ? if(InputAction < EInputAction::MinPureUI || GetLocalRole() == ROLE_Authority)
-		if(InputAction < EInputAction::MinPureUI)
-		{
-			ServerRPC_HandleAction(InputAction, IAInstance);
-		}
-		
-		// input action prediction tbd. here
-		// TODO: ? if(GetLocalRole() == ROLE_AutonomousProxy)
-		
-		LocallyHandleAction(InputAction, IAInstance);
-	}
-
-	// for gameplay input actions, execute their effects
-	UFUNCTION(Server, Reliable)
-	void ServerRPC_HandleAction(EInputAction Action, const FInputActionInstance& IAInstance);
-
 	// for gameplay input actions AND mere UI interactions: execute their local effects
-	void LocallyHandleAction(EInputAction Action, const FInputActionInstance& IAInstance);
+	//void LocallyHandleAction(EInputAction Action, const FInputActionInstance& IAInstance);
 
 	// private members
 
@@ -138,23 +101,24 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSoftObjectPtr<UInputMappingContext> IMC_InGame;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UTaggedInputActionData> MyInputActionsData;
-
 	UPROPERTY(VisibleAnywhere)
     TObjectPtr<UEnhancedInputLocalPlayerSubsystem> Input;
 
+	// TODO probably delete, no need to use my action enum anymore
 	// input action values for input actions that don't have an InputAction asset
 	// e.g. input actions that are triggered by mouse movement
-	TMap<EInputAction, FInputActionValue> CustomInputActionValues;
+	//TMap<EInputAction, FInputActionValue> CustomInputActionValues;
 
 	// private methods
 	
 	UFUNCTION(BlueprintCallable)
 	FVector GetMouseDirection();
-	
-	// get the InputAction asset given the `EInputAction`
+
+	// convenience access to the AbilitySystemComponent of the possessed pawn
+	// only used by client to process input
+	UPROPERTY(BlueprintReadOnly)
+	UMyAbilitySystemComponent* AbilitySystemComponent;
+
 	UFUNCTION(BlueprintCallable)
-	UInputAction* GetInputAction(EInputAction InputAction);
-	
+	UMyEnhancedInputComponent* GetInputComponent() { return Cast<UMyEnhancedInputComponent>(InputComponent); }
 };

@@ -17,8 +17,15 @@ FMyGameplayTags::FMyGameplayTags()
 	AbilityAccelerate        = GTM.AddNativeGameplayTag("Ability.Accelerate");
 	AbilityRotate            = GTM.AddNativeGameplayTag("Ability.Rotate");
 	AbilityMoveTowardsCircle = GTM.AddNativeGameplayTag("Ability.MoveTowardsCircle");
+	AbilityEmbrace           = GTM.AddNativeGameplayTag("Ability.Embrace");
+	AbilityKick              = GTM.AddNativeGameplayTag("Ability.Kick");
 
 	GiveInitiallyToMyPawn    = GTM.AddNativeGameplayTag("GiveTo.Initial.MyPawn");
+
+	GameplayCue          = GTM.AddNativeGameplayTag("GameplayCue");
+    CueOrbitShow         = GTM.AddNativeGameplayTag("GameplayCue.Orbit.Show");
+    CueHoverOutlineShow  = GTM.AddNativeGameplayTag("GameplayCue.HoverOutline.Show");
+    CueSelectOutlineShow = GTM.AddNativeGameplayTag("GameplayCue.SelectOutline.Show");
 }
 
 FMyGameplayTags FMyGameplayTags::MyGameplayTags;

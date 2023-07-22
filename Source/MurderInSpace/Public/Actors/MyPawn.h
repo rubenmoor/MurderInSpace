@@ -8,7 +8,7 @@
 #include "MyPawn.generated.h"
 
 class UGameplayAbility;
-class UMyInputGameplayAbility;
+class UMyGameplayAbility;
 class UAttrSetAcceleration;
 class UMyAbilitySystemComponent;
 
@@ -48,8 +48,6 @@ public:
 	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return static_cast<UAbilitySystemComponent*>(AbilitySystemComponent); }
 
-	void SetRotationAim(const FQuat& InQuat);
-
 protected:
     // event handlers
     
@@ -75,7 +73,7 @@ protected:
 
 	// this abilities will be given to the pawn in BeginPlay
 	UPROPERTY(EditAnywhere)
-	TArray<TSubclassOf<UGameplayAbility>> Abilities;
+	TArray<TSubclassOf<UMyGameplayAbility>> Abilities;
 
 	UPROPERTY(ReplicatedUsing=OnRep_Orbit, VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
 	AOrbit* RP_Orbit = nullptr;

@@ -6,18 +6,18 @@
 
 UGA_Accelerate::UGA_Accelerate()
 {
+    const auto Tag = FMyGameplayTags::Get();
     InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
-    ActivationOwnedTags.AddTag(FMyGameplayTags::Get().AbilityAccelerate);
+    AbilityTags.AddTag(Tag.AbilityAccelerate);
+    ActivationOwnedTags.AddTag(Tag.AccelerationTranslational);
     // TODO
     //ActivationBlockedTags =
 }
 
-void UGA_Accelerate::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-                                     const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-                                     const FGameplayEventData* TriggerEventData)
+UE5Coro::GAS::FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
+    const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo,
+    const FGameplayEventData* TriggerEventData)
 {
-    Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
     auto* Orbit = Cast<IHasOrbit>(ActorInfo->OwnerActor)->GetOrbit();
     Orbit->bIsChanging = true;
     BindOnRelease([=]
@@ -25,8 +25,6 @@ void UGA_Accelerate::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
         // TODO: requires instanced ability
         //UAbilityTask_NetworkSyncPoint::WaitNetSync(this, EAbilityTaskNetSyncType::OnlyServerWait);
         Orbit->bIsChanging = false;
-        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
     });
+    co_return;
 }
-
-

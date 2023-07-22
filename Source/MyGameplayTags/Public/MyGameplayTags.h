@@ -9,6 +9,7 @@ enum class EInputAction : uint8;
 struct MYGAMEPLAYTAGS_API FMyGameplayTags
 {
     FMyGameplayTags();
+    
     static FMyGameplayTags& Get() { return MyGameplayTags; }
     
     FGameplayTag Acceleration;
@@ -17,16 +18,23 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags
     FGameplayTag AccelerationRotationalDuration;
     FGameplayTag AccelerationRotationalCCW;
     FGameplayTag AccelerationRotationalCW;
-    
+
     FGameplayTag Ability;
     // translational acceleration ability
     FGameplayTag AbilityAccelerate;
     // rotate to look at mouse ability
     FGameplayTag AbilityRotate;
     FGameplayTag AbilityMoveTowardsCircle;
+    FGameplayTag AbilityEmbrace;
+    FGameplayTag AbilityKick;
     
 	FGameplayTag GiveInitiallyToMyPawn;
-    
+
+    // TODO: maybe redundant
+    FGameplayTag GameplayCue;
+    FGameplayTag CueOrbitShow;
+    FGameplayTag CueHoverOutlineShow;
+    FGameplayTag CueSelectOutlineShow;
 private:
     static FMyGameplayTags MyGameplayTags;
 };
