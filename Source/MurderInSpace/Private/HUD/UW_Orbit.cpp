@@ -10,6 +10,8 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "HUD/MyHUD.h"
 #include "Kismet/GameplayStatics.h"
+#include "Logging/StructuredLog.h"
+#include "Modes/MyPlayerController.h"
 
 int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
                              const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
@@ -18,7 +20,12 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
     const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry();
 	const auto FGColor = InWidgetStyle.GetForegroundColor();
 
-    auto* PC = GetOwningPlayer();
+    auto* PC = Cast<AMyPlayerController>(GetOwningPlayer());
+    if(!IsValid(PC))
+    {
+        UE_LOGFMT(LogMyGame, Error, "{THIS}: {FUNCTION}: Player Controller invalid, shouldn't be ticking", *GetFullName(), __FUNCTION__);
+        return LayerId;
+    }
     const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
 
     if(F1Marker.bShow)
@@ -35,13 +42,12 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
             );
     }
 
-    const FInstanceUI InstanceUI = GEngine->GetEngineSubsystem<UMyState>()->GetInstanceUIAny(this);
-    AOrbit* OrbitHovered = InstanceUI.Hovered.Orbit;
-    if(IsValid(OrbitHovered))
+    const auto Hovered = PC->GetHovered();
+    if(IsValid(Hovered.Orbit))
     {
         FVector ScreenPos;
         PC->ProjectWorldLocationToScreenWithDistance
-            ( OrbitHovered->GetVecR()
+            ( Hovered.Orbit->GetVecR()
             , ScreenPos
             , true
             );
@@ -50,7 +56,7 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
             , LayerId
             , PG
             , FVector2D(ScreenPos) / ViewportScale
-            , 1000. / ScreenPos.Z * InstanceUI.Hovered.Size
+            , 1000. / ScreenPos.Z * Hovered.Size
             , 30.
             , 3.
             , ESlateDrawEffect::None
@@ -58,12 +64,12 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
             );
     }
 
-    AOrbit* OrbitSelected = InstanceUI.Selected.Orbit;
-    if(IsValid(OrbitSelected))
+    const auto Selected = PC->GetSelected();
+    if(IsValid(Selected.Orbit))
     {
         FVector ScreenPos;
         PC->ProjectWorldLocationToScreenWithDistance
-            ( OrbitSelected->GetVecR()
+            ( Selected.Orbit->GetVecR()
             , ScreenPos
             , true
             );
@@ -72,7 +78,7 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
             , LayerId
             , PG
             , FVector2D(ScreenPos) / ViewportScale
-            , 0.9 * 1000. / ScreenPos.Z * InstanceUI.Selected.Size
+            , 0.9 * 1000. / ScreenPos.Z * Selected.Size
             , 1.
             , ESlateDrawEffect::None
             , FGColor

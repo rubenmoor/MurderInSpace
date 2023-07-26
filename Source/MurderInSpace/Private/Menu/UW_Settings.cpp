@@ -34,7 +34,7 @@ void UUW_Settings::NativeOnInitialized()
     Resolutions.Add("3840x2160", {3840, 2160 });
     Resolutions.Add("custom"   , { 0  , 0    });
 
-    for(const auto Res : Resolutions)
+    for(const auto& Res : Resolutions)
     {
         ComboBoxResolution->AddOption(Res.Key.ToString());
     }

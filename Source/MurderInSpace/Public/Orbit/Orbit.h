@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/Actor.h"
-#include "Modes/MyState.h"
+#include "Modes/MyGameState.h"
 
 #include "Orbit.generated.h"
 
@@ -185,11 +185,11 @@ public:
     bool GetIsInitialized() const { return bIsInitialized; }
 
     UFUNCTION(BlueprintCallable)
-    void UpdateByInitialParams(FPhysics Physics, FInstanceUI InstanceUI);
+    void UpdateByInitialParams(FPhysics Physics);
 
     // requires call to `Update` afterwards
     UFUNCTION(BlueprintCallable)
-    void SetVelocity(FVector VecV, FPhysics Physics) { VecVelocity = VecV; }
+    void SetVelocity(FVector VecV) { VecVelocity = VecV; }
 
     UFUNCTION(BlueprintCallable)
     void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
@@ -203,10 +203,9 @@ public:
     void Update
         ( FVector DeltaVecV
         , FPhysics Physics
-        , FInstanceUI InstanceUI
         );
 
-    void Update(FPhysics Physics, FInstanceUI InstanceUI);
+    void Update(FPhysics Physics);
 
     UFUNCTION(BlueprintCallable)
     void UpdateControlParams(FPhysics Physics);
@@ -215,7 +214,6 @@ public:
     void SpawnSplineMesh
         ( FLinearColor Color
         , ESplineMeshParentSelector ParentSelector
-        , FInstanceUI InstanceUI
         );
     
     // user interface
@@ -224,20 +222,8 @@ public:
     void UpdateSplineMeshScale(double InScaleFactor);
     
     UPROPERTY(BlueprintReadWrite)
-    bool bIsVisibleAccelerating = false;
-
-    // this is true, when
-    //   * an actor receives the mouse over event
-    //   * the pawn of the player does ShowMyTrajectory
-    UPROPERTY(BlueprintReadWrite)
-    bool bIsVisibleMouseover = false;
-
-    UPROPERTY(BlueprintReadWrite)
-    bool bIsVisibleShowMyTrajectory = false;
-
-    UPROPERTY(BlueprintReadWrite)
-    bool bIsVisibleToggleMyTrajectory = false;
-
+    int32 VisibilityCount = 0;
+    
 #if WITH_EDITORONLY_DATA
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     bool bIsVisibleInEditor = false;
@@ -261,13 +247,8 @@ public:
     UFUNCTION(BlueprintCallable)
     FVector GetVecR() const { return RP_Body->GetActorLocation(); }
 
-    // TODO deprecated
-    // whenever a spline mesh merely changes visibility:
     UFUNCTION(BlueprintCallable)
-    void UpdateVisibility(const FInstanceUI& InstanceUI);
-
-    UFUNCTION(BlueprintCallable)
-    void SetVisibility(bool InShow);
+    void UpdateVisibility(bool InShow);
 
     // object interaction
     
@@ -287,10 +268,6 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void SetEnabled(bool InEnabled);
-    
-    // server only
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-    bool bIsChanging = false;
 
 protected:
 
@@ -398,9 +375,6 @@ protected:
     // as long as we don't scale or rotate the spline, this is fine
     UFUNCTION(BlueprintCallable)
     void AddPointsToSpline(TArray<FSplinePoint> SplinePoints);
-
-    UFUNCTION(BlueprintPure)
-    bool GetVisibility(const FInstanceUI& InstanceUI) const;
 
     // replication
 

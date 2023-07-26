@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "Actors/DynamicAsteroid.h"
 #include "Components/SphereComponent.h"
+#include "Modes/MyGameState.h"
 
 #include "AsteroidBelt.generated.h"
 

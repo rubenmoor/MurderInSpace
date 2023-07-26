@@ -65,14 +65,14 @@ void AMyActor_StaticMesh::PostEditChangeChainProperty(FPropertyChangedChainEvent
     {
         if(IsValid(RP_Orbit))
         {
-            RP_Orbit->Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+            RP_Orbit->Update(FPhysics());
         }
     }
     else if(Name == FNameInitialParams)
     {
         if(IsValid(RP_Orbit))
         {
-            RP_Orbit->UpdateByInitialParams(PhysicsEditorDefault, InstanceUIEditorDefault);
+            RP_Orbit->UpdateByInitialParams(FPhysics());
         }
     }
 }

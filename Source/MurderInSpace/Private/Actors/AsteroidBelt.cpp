@@ -4,10 +4,10 @@
 #include "Actors/DynamicAsteroid.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Materials/MaterialInstanceDynamic.h"
 #include "Modes/MyGameInstance.h"
+#include "Modes/MyGameState.h"
 
-AAsteroidBelt::AAsteroidBelt()
+AAsteroidBelt::AAsteroidBelt(): AActor()
 {
     PrimaryActorTick.bCanEverTick = false;
     bNetLoadOnClient = false;
@@ -18,7 +18,7 @@ AAsteroidBelt::AAsteroidBelt()
 
     Root = CreateDefaultSubobject<USceneComponent>("Root");
     Root->SetMobility(EComponentMobility::Static);
-	SetRootComponent(Root);
+    SetRootComponent(Root);
 
     Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
     Sphere->SetupAttachment(Root);
@@ -26,7 +26,7 @@ AAsteroidBelt::AAsteroidBelt()
 
     NS_Fog = CreateDefaultSubobject<UNiagaraComponent>("NS_Fog");
     NS_Fog->SetupAttachment(Root);
-    
+
     RandomStream.Initialize(GetFName());
 }
 
@@ -114,8 +114,8 @@ void AAsteroidBelt::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prop
 void AAsteroidBelt::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
-    auto* MyState = UMyState::Get();
-    const auto Physics = MyState->GetPhysicsAny(this);
+    auto* GS = AMyGameState::Get(this);
+    const auto Physics = IsValid(GS) ? GS->RP_Physics : FPhysics();
     
     const FVector VecR = Transform.GetLocation();
     Sphere->SetWorldLocation(FVector::Zero());
@@ -156,9 +156,9 @@ void AAsteroidBelt::BuildAsteroids()
     
     auto* World = GetWorld();
     check(World->WorldType != EWorldType::EditorPreview)
-    
-    auto* MyState = UMyState::Get();
-    const FPhysics Physics = MyState->GetPhysicsAny(this);
+
+    auto* GS = AMyGameState::Get(this);
+    const FPhysics Physics = IsValid(GS) ? GS->RP_Physics : FPhysics();
 
     const FVector VecR = GetActorLocation();
     for(int i = 0; i < NumAsteroids; i++)

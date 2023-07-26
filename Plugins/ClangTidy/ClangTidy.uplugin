@@ -1,0 +1,23 @@
+{
+  "FileVersion": 3,
+  "Version": 16774341931,
+  "VersionName": "2023.02.26-5.1-02147d17",
+  "FriendlyName": "clang-tidy",
+  "Description": "Integrates clang-tidy into the Unreal Engine build system.",
+  "Category": "Other",
+  "CreatedBy": "Redpoint Games",
+  "CreatedByURL": "https://redpoint.games/",
+  "DocsURL": "https://redpointgames.gitlab.io/clang-tidy-for-unreal-engine/",
+  "MarketplaceURL": "",
+  "SupportURL": "https://redpoint.games/support/",
+  "IsBetaVersion": false,
+  "IsExperimentalVersion": false,
+  "Installed": true,
+  "PreBuildSteps": {
+    "Win64": [
+      "\"$(PluginDir)\\Resources\\InstallClangTidyIntoEngine.bat\" \"$(ProjectDir)\""
+    ]
+  },
+  "EngineVersion": "5.1.0",
+  "EnabledByDefault": false
+}

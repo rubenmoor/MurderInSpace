@@ -9,8 +9,11 @@ using namespace UE5Coro::GAS;
 
 UGA_LookAt::UGA_LookAt()
 {
+    const auto Tag = FMyGameplayTags::Get();
     InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
-    // TODO: set policy to cancel other active abilities of same type
+    AbilityTags.AddTag(Tag.AbilityLookAt);
+    // cancel any active LookAt ability
+    CancelAbilitiesWithTag.AddTag(Tag.AbilityLookAt);
 }
 
 FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
@@ -24,15 +27,15 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     // TODO: calculate timing depending on current Theta, Omega, and Alpha
     auto T2 = Latent::Seconds(2.);
     auto Tag = FMyGameplayTags::Get();
-    auto Accelerate = MakeOutgoingGameplayEffectSpec(GE_TorqueCCW);
+    auto Torque1 = MakeOutgoingGameplayEffectSpec(GE_TorqueCCW);
     //ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, )
-    Accelerate.Data.Get()->SetDuration(1., true);
-    auto Decelerate = MakeOutgoingGameplayEffectSpec(GE_TorqueCW);
-    Decelerate.Data.Get()->SetDuration(1., true);
+    Torque1.Data.Get()->SetDuration(1., true);
+    auto Torque2 = MakeOutgoingGameplayEffectSpec(GE_TorqueCW);
+    Torque2.Data.Get()->SetDuration(1., true);
     
-    ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, Accelerate);
+    ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, Torque1);
     co_await T2;
-    ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, Decelerate);
+    ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, Torque2);
 }
 
 void UGA_LookAt::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)

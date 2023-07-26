@@ -5,6 +5,7 @@
 #include "Actors/Blackhole.h"
 #include "Actors/MyCharacter.h"
 #include "Components/SplineMeshComponent.h"
+#include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "HUD/MyHUD.h"
 #include "Lib/FunctionLib.h"
 #include "Logging/LogMacros.h"
@@ -34,42 +35,42 @@ void IHasOrbit::OrbitSetup(AActor* Actor)
         }));
     }
 #endif
-    
-    const FPhysics Physics = MyState->GetPhysicsAny(Actor);
-    const FInstanceUI InstanceUI = MyState->GetInstanceUIAny(Actor);
+
+    auto* GS = AMyGameState::Get(Actor);
+    FPhysics Physics = IsValid(GS) ? GS->RP_Physics : FPhysics();
 
     if(IsValid(GetOrbit()))
     {
         // this only ever gets executed when creating objects in the editor (and dragging them around)
-        GetOrbit()->UpdateByInitialParams(Physics, InstanceUI);
+        GetOrbit()->UpdateByInitialParams(Physics);
     }
     else
     {
         check(IsValid(GetOrbitClass()))
 
         FActorSpawnParameters Params;
-        Params.CustomPreSpawnInitalization = [Actor, Physics, InstanceUI] (AActor* ActorOrbit)
+        Params.CustomPreSpawnInitalization = [Actor, Physics] (AActor* ActorOrbit)
         {
             auto* Orbit = Cast<AOrbit>(ActorOrbit);
             Orbit->RP_Body = Actor;
             Orbit->SetEnableVisibility(Actor->Implements<UHasOrbitColor>());
-            Orbit->UpdateByInitialParams(Physics, InstanceUI);
+            Orbit->UpdateByInitialParams(Physics);
         };
         AOrbit* NewOrbit = Actor->GetWorld()->SpawnActor<AOrbit>(GetOrbitClass(), Params);
         SetOrbit(NewOrbit);
     }
 }
 
-AOrbit::AOrbit()
+AOrbit::AOrbit(): AActor()
 {
     PrimaryActorTick.bCanEverTick = true;
     PrimaryActorTick.bStartWithTickEnabled = false;
-    
+
     bNetLoadOnClient = false;
     bReplicates = true;
     bAlwaysRelevant = true;
     AActor::SetReplicateMovement(false);
-    
+
     Root = CreateDefaultSubobject<USceneComponent>("Root");
     Root->SetMobility(EComponentMobility::Stationary);
     SetRootComponent(Root);
@@ -77,7 +78,6 @@ AOrbit::AOrbit()
     Spline = CreateDefaultSubobject<USplineComponent>("Orbit");
     Spline->SetMobility(EComponentMobility::Stationary);
     Spline->SetupAttachment(Root);
-    Spline->SetIsReplicated(true);
 
     SplineMeshParent = CreateDefaultSubobject<USceneComponent>("SplineMeshes");
     SplineMeshParent->SetupAttachment(Root);
@@ -100,9 +100,8 @@ void AOrbit::DestroyTempSplineMeshes()
 
 void AOrbit::SetEnabled(bool InEnabled)
 {
-    SetActorTickEnabled(bEnabled);
-    SetEnableVisibility(bEnabled);
-    UpdateVisibility(InstanceUIEditorDefault);
+    SetActorTickEnabled(InEnabled);
+    SetEnableVisibility(InEnabled);
 }
 
 void AOrbit::OnConstruction(const FTransform& Transform)
@@ -119,17 +118,9 @@ void AOrbit::OnConstruction(const FTransform& Transform)
 void AOrbit::Initialize()
 {
     UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-    const auto* GI = GetGameInstance<UMyGameInstance>();
-    const auto* GS = GetWorld()->GetGameState<AMyGameState>();
-    const auto InstanceUI = MyState->GetInstanceUI(GI);
-    const auto Physics = MyState->GetPhysics(GS);
+    const auto* GS = AMyGameState::Get(this);
+    const auto Physics = GS->RP_Physics;
 
-    if(!IsValid(RP_Body))
-    {
-        UE_LOG(LogMyGame, Error, TEXT("%s: body invalid"), *GetFullName())
-        return;
-    }
-    
     if(RP_Body->GetLocalRole() == ROLE_AutonomousProxy)
     {
         Cast<AMyCharacter>(RP_Body)->GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->SetReadyFlags(EHUDReady::OrbitReady);
@@ -138,7 +129,7 @@ void AOrbit::Initialize()
     if(GetLocalRole() == ROLE_Authority)
     {
         // for the server, the initial params are valid
-        UpdateByInitialParams(Physics, InstanceUI);
+        UpdateByInitialParams(Physics);
     }
     else
     {
@@ -149,7 +140,7 @@ void AOrbit::Initialize()
         
         // make sure the orbit has the game physics, instead of the editor default physics from construction
         // the initial params aren't valid anymore, when there have been interaction before this client joined
-        Update(Physics, InstanceUI);
+        Update(Physics);
     }
 
     bIsInitialized = true;
@@ -170,8 +161,6 @@ void AOrbit::BeginPlay()
 {
     Super::BeginPlay();
 
-    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-    
     bool bHasProblems = false;
 
     // Only care for spline static mesh and material if this orbit is meant to be visible
@@ -193,16 +182,6 @@ void AOrbit::BeginPlay()
         return;
     }
 
-    // ignore any of the visibility booleans set in the editor
-    bIsVisibleMouseover = false;
-    bIsVisibleShowMyTrajectory = false;
-    bIsVisibleToggleMyTrajectory = false;
-
-    MyState->WithInstanceUI(this, [this] (FInstanceUI& InstanceUI)
-    {
-        UpdateVisibility(InstanceUI);
-    });
-
     if(GetLocalRole() == ROLE_Authority)
     {
         Initialize();
@@ -212,15 +191,22 @@ void AOrbit::BeginPlay()
         SetReadyFlags(EOrbitReady::InternalReady);
     }
 
+    for(auto ItPlayers = GetGameInstance()->GetLocalPlayerIterator(); ItPlayers; ++ItPlayers)
+    {
+        auto* PC = Cast<AMyPlayerController>((*ItPlayers)->GetPlayerController(GetWorld()));
+        PC->ShowAllOrbitsDelegate.AddLambda([this] (bool bShowHide)
+        {
+            UpdateVisibility(bShowHide);
+        });
+    }
 }
 
 void AOrbit::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    const auto* GS = GetWorld()->GetGameState<AMyGameState>();
-    auto* MyState = GEngine->GetEngineSubsystem<UMyState>();
-    const auto Physics = MyState->GetPhysics(GS);
+    const auto* GS = AMyGameState::Get(this);
+    const auto Physics = GS->RP_Physics;
     auto* Blackhole = GS->GetBlackhole();
 
     FVector NewVecRKepler;
@@ -315,7 +301,7 @@ void AOrbit::Tick(float DeltaTime)
     UpdateControlParams(Physics);
 }
 
-void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
+void AOrbit::Update(FVector DeltaVecV, FPhysics Physics)
 {
     check(!DeltaVecV.ContainsNaN())
     check(!VecVelocity.ContainsNaN())
@@ -602,16 +588,15 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics, FInstanceUI InstanceUI)
         SpawnSplineMesh
             ( Cast<IHasOrbitColor>(RP_Body)->GetOrbitColor()
             , ESplineMeshParentSelector::Permanent
-            , InstanceUI
             );
     }
 
     checkf(Spline->GetSplineLength() != 0., TEXT("%s: Update"), *GetFullName())
 }
 
-void AOrbit::Update(FPhysics Physics, FInstanceUI InstanceUI)
+void AOrbit::Update(FPhysics Physics)
 {
-    Update(FVector::Zero(), Physics, InstanceUI);
+    Update(FVector::Zero(), Physics);
 }
 
 void AOrbit::UpdateControlParams(FPhysics Physics)
@@ -660,28 +645,9 @@ void AOrbit::AddPointsToSpline(TArray<FSplinePoint> SplinePoints)
     Spline->AddPoints(SplinePoints, false);
 }
 
-bool AOrbit::GetVisibility(const FInstanceUI& InstanceUI) const
-{
-    bool bIsVisibleInEditorActive = false;
-#if WITH_EDITOR
-    if(GetWorld()->WorldType == EWorldType::Editor)
-    {
-        bIsVisibleInEditorActive = bIsVisibleInEditor;
-    }
-#endif
-    
-    return
-           bIsVisibleInEditorActive
-        || bIsVisibleMouseover
-        || bIsVisibleShowMyTrajectory != bIsVisibleToggleMyTrajectory
-        || bIsVisibleAccelerating
-        || InstanceUI.bShowAllTrajectories
-        || InstanceUI.Selected.Orbit == this;
-}
-
 FString AOrbit::GetParamsString()
 {
-    FString StrOrbitType;
+    FString StrOrbitType = "";
     switch(Params.OrbitType)
     {
     case EOrbitType::CIRCLE:
@@ -756,12 +722,8 @@ void AOrbit::OnRep_OrbitState()
         VecVelocity = RP_OrbitState.VecVelocity;
         RP_Body->SetActorLocation(RP_OrbitState.VecR);
 
-        UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-        const auto* GI = GetGameInstance<UMyGameInstance>();
-        const auto* GS = GetWorld()->GetGameState<AMyGameState>();
-        const auto InstanceUI = MyState->GetInstanceUI(GI);
-        const auto Physics = MyState->GetPhysics(GS);
-        Update(Physics, InstanceUI);
+        const auto* GS = AMyGameState::Get(this);
+        Update(GS->RP_Physics);
     }
 }
 
@@ -771,7 +733,7 @@ void AOrbit::OnRep_Body()
     SetReadyFlags(EOrbitReady::BodyReady);
 }
 
-void AOrbit::UpdateByInitialParams(FPhysics Physics, FInstanceUI InstanceUI)
+void AOrbit::UpdateByInitialParams(FPhysics Physics)
 {
     const FInitialOrbitParams Initial = Cast<IHasOrbit>(RP_Body)->GetInitialOrbitParams();
     SetVelocity
@@ -781,25 +743,19 @@ void AOrbit::UpdateByInitialParams(FPhysics Physics, FInstanceUI InstanceUI)
             , Initial.VecHNorm
             , Physics.Alpha
             , Initial.VecVelocity
-        ) , Physics);
-    Update(Physics, InstanceUI);
+        ));
+    Update(Physics);
 }
 
-void AOrbit::UpdateVisibility(const FInstanceUI& InstanceUI)
+void AOrbit::UpdateVisibility(bool InShow)
 {
-    const bool bVisibility = GetVisibility(InstanceUI);
-    SplineMeshParent->SetVisibility(bVisibility, true);
-}
-
-void AOrbit::SetVisibility(bool InShow)
-{
-    SplineMeshParent->SetVisibility(InShow, true);
+    VisibilityCount += InShow ? 1 : -1;
+    SplineMeshParent->SetVisibility(bTrajectoryShowSpline && VisibilityCount > 0, true);
 }
 
 void AOrbit::SpawnSplineMesh
     ( FLinearColor Color
     , ESplineMeshParentSelector ParentSelector
-    , FInstanceUI InstanceUI
     )
 {
     if(!StaticMesh)
@@ -849,7 +805,7 @@ void AOrbit::SpawnSplineMesh
         TWeakObjectPtr<USplineMeshComponent> SplineMesh = NewObject<USplineMeshComponent>(this);
         
         SplineMesh->SetMobility(EComponentMobility::Stationary);
-        SplineMesh->SetVisibility(GetVisibility(InstanceUI));
+        SplineMesh->SetVisibility(VisibilityCount > 0);
         
         // if I dont register here, the spline mesh doesn't render
         SplineMesh->RegisterComponent();
@@ -908,9 +864,6 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
 
     static const FName FNameBTrajectoryShowSpline = GET_MEMBER_NAME_CHECKED(AOrbit, bTrajectoryShowSpline);
     static const FName FNameVisibleInEditor       = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleInEditor   );
-    static const FName FNameBVisibleMouseOver     = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleMouseover  );
-    static const FName FNameBVisibleShowMy        = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleShowMyTrajectory);
-    static const FName FNameBVisibleToggleMy      = GET_MEMBER_NAME_CHECKED(AOrbit, bIsVisibleToggleMyTrajectory);
     static const FName FNameSplineMeshLength      = GET_MEMBER_NAME_CHECKED(AOrbit, SplineMeshLength     );
     static const FName FNameScalarVelocity        = GET_MEMBER_NAME_CHECKED(AOrbit, ScalarVelocity       );
     static const FName FNameVelocityVCircle       = GET_MEMBER_NAME_CHECKED(AOrbit, VelocityVCircle      );
@@ -925,12 +878,9 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     
     if(
            Name == FNameVisibleInEditor
-        || Name == FNameBVisibleMouseOver
-        || Name == FNameBVisibleShowMy
-        || Name == FNameBVisibleToggleMy
         )
     {
-        UpdateVisibility(InstanceUIEditorDefault);
+        VisibilityCount += bIsVisibleInEditor ? 1 : -1;
     }
     else if
         (  Name == FNameSplineMeshLength
@@ -952,15 +902,15 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
 
         if(Name == FNameScalarVelocity)
         {
-            SetVelocity(ScalarVelocity * VelocityNormal, PhysicsEditorDefault);
+            SetVelocity(ScalarVelocity * VelocityNormal);
         }
         else if(Name == FNameVelocityVCircle)
         {
-            SetVelocity(GetCircleVelocity(PhysicsEditorDefault).Length() * VelocityVCircle * VelocityNormal, PhysicsEditorDefault);
+            SetVelocity(GetCircleVelocity(FPhysics()).Length() * VelocityVCircle * VelocityNormal);
         }
         else if(Name == FNameVecVelocity)
         {
-            SetVelocity(VecVelocity, PhysicsEditorDefault);
+            SetVelocity(VecVelocity);
         }
         bIsVisibleInEditor = false;
         bOrbitDirty = true;
@@ -982,7 +932,7 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
     {
         if(IsValid(RP_Body))
         {
-            Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+            Update(FPhysics());
             Cast<IHasOrbit>(RP_Body)->SetInitialOrbitParams(
                 { Params.VecE
                 , Params.VecH.GetSafeNormal()

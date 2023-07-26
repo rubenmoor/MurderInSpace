@@ -1,6 +1,5 @@
 #include "Modes/MyGameState.h"
 
-#include "AttributeSet.h"
 #include "Actors/Blackhole.h"
 #include "Kismet/GameplayStatics.h"
 #include "Orbit/Orbit.h"
@@ -16,7 +15,6 @@ ABlackhole* AMyGameState::GetBlackhole() const
 
 void AMyGameState::OnRep_Physics()
 {
-    UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
     UWorld* World = GetWorld();
     auto Filter = [this, World] (const AOrbit* Orbit)
     {
@@ -25,10 +23,7 @@ void AMyGameState::OnRep_Physics()
     };
     for(TMyObjectIterator<AOrbit> IOrbit(Filter); IOrbit; ++IOrbit)
     {
-        MyState->WithInstanceUI(this, [this, MyState, IOrbit] (FInstanceUI& InstanceUI)
-        {
-            (*IOrbit)->Update(MyState->GetPhysics(this), InstanceUI);
-        });
+        (*IOrbit)->Update(RP_Physics);
     }
 }
 
@@ -53,7 +48,7 @@ void AMyGameState::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prope
         for(TMyObjectIterator<AOrbit> IOrbit; IOrbit; ++IOrbit)
         {
             auto* Orbit = *IOrbit;
-            Orbit->UpdateByInitialParams(RP_Physics, InstanceUIEditorDefault);
+            Orbit->UpdateByInitialParams(RP_Physics);
         }
     }
 }

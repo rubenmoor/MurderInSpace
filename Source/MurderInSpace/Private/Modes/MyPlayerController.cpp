@@ -8,17 +8,19 @@
 #include "Actors/MyCharacter.h"
 #include "Actors/MyPlayerStart.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
-#include "GameplayAbilitySystem/MyDeveloperSettings.h"
-#include "GameplayAbilitySystem/MyGameplayAbility.h"
 #include "MyComponents/GyrationComponent.h"
 #include "HUD/MyHUD.h"
 #include "Input/MyInputAction.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
+#include "Logging/StructuredLog.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyLocalPlayer.h"
 #include "Modes/MySessionManager.h"
 #include "Modes/MyGameState.h"
+#include "EnhancedInputComponent.h"
+#include "GameplayAbilitySystem/MyGameplayAbility.h"
+#include "Input/MyInputActions.h"
 
 AMyPlayerController::AMyPlayerController()
 {
@@ -30,40 +32,15 @@ void AMyPlayerController::SetupInputComponent()
     Super::SetupInputComponent();
 
     Input = GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-    Input->AddMappingContext(IMC_InGame.LoadSynchronous(), 0);
+    auto Tag = FMyGameplayTags::Get();
 
-    for(auto Ptr : GetDefault<UMyDeveloperSettings>()->MyInputActions)
+    auto* IMC = NewObject<UInputMappingContext>(this, "InputMappingContext");
+    for(auto [Name, InputActionSet] : MyInputActions->Map)
     {
-        auto InputAction = Ptr.LoadSynchronous();
-        for(auto Trigger : InputAction->Triggers)
-        {
-            if(Trigger.IsA(UInputTriggerPressed::StaticClass()))
-            {
-                GetInputComponent()->BindAction(InputAction, ETriggerEvent::Triggered, this, &AMyPlayerController::HandlePressed);
-            }
-            else if(Trigger.IsA(UInputTriggerReleased::StaticClass()))
-            {
-                GetInputComponent()->BindAction(InputAction, ETriggerEvent::Triggered, this, &AMyPlayerController::HandleReleased);
-            }
-            else if(Trigger.IsA(UInputTriggerTap::StaticClass()))
-            {
-                GetInputComponent()->BindAction(InputAction, ETriggerEvent::Triggered, this, &AMyPlayerController::HandleTapped);
-            }
-        }
-    };
-}
-
-void AMyPlayerController::Zoom(float Delta)
-{
-    if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
-    {
-        if(abs(Delta) > 0)
-        {
-            CameraPosition = std::clamp<int8>(CameraPosition - Delta, 0, MaxCameraPosition);
-            GetPawn<AMyCharacter>()->UpdateSpringArm(CameraPosition);
-            // TODO: at `CameraPosition = 0` lookAt mouse doesn't work anymore
-        }		
+        InputActionSet->BindActions(this, IMC);
     }
+    
+    Input->AddMappingContext(IMC, 0);
 }
 
 void AMyPlayerController::ClientRPC_LeaveSession_Implementation()
@@ -76,143 +53,6 @@ void AMyPlayerController::ServerRPC_RotateTowards_Implementation(FQuat Quat)
     AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
     //MyCharacter->SetRotationAim(Quat);
 }
-
-// void AMyPlayerController::LocallyHandleAction(EInputAction Action, const FInputActionInstance& IAInstance)
-// {
-//     auto* GI = GetGameInstance<UMyGameInstance>();
-//     const AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-//     AOrbit* Orbit = MyCharacter->GetOrbit();
-//     UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
-//     
-//     // well-defined but not meaningful for non-bool input action values
-//     //auto bPressedReleased = Value.Get<bool>();
-//     auto bPressedReleased = IAInstance.GetValue().Get<bool>();
-//     // `FInputActionValue::Axis1D` is a type alias for `float`
-//     auto Axis1DValue = IAInstance.GetValue().Get<FInputActionValue::Axis1D>();
-//     
-//     switch (Action)
-//     {
-//     using enum EInputAction;
-//     case AccelerateBeginEnd:
-//     case TowardsCircleBeginEnd:
-//         // TODO: move to local gameplay cue
-//         Orbit->bIsVisibleAccelerating = bPressedReleased;
-//         if(bPressedReleased)
-//         {
-//             Orbit->SpawnSplineMesh
-//                 ( MyCharacter->GetTempSplineMeshColor()
-//                 , ESplineMeshParentSelector::Temporary
-//                 , GI->InstanceUI
-//                 );
-//             Orbit->UpdateVisibility(GI->InstanceUI);
-//         }
-//         else
-//         {
-//             Orbit->DestroyTempSplineMeshes();
-//             Orbit->UpdateVisibility(GI->InstanceUI);
-//         }
-//         break;
-//     case EmbraceBeginEnd:
-//         // maybe nothing? motion prediction?
-//         break;
-//     case KickPositionExecute:
-//         // maybe nothing? motion prediction?
-//         break;
-// 
-//     // UI
-//     case IngameMenuToggle:
-//         switch(LocalPlayer->InGame)
-//         {
-//         case EInGame::IngameMenu:   
-//             GetHUD<AMyHUD>()->InGameMenuHide();
-//             CurrentMouseCursor = EMouseCursor::Crosshairs;
-//             LocalPlayer->InGame = EInGame::IngamePlaying;
-//             break;
-//         case EInGame::IngamePlaying:
-//             GetHUD<AMyHUD>()->InGameMenuShow();
-//             CurrentMouseCursor = EMouseCursor::Default;
-//             LocalPlayer->InGame = EInGame::IngameMenu;
-//         case EInGame::IngameJoining:
-//         case EInGame::IngameUndefined:
-//             break;
-//         }
-//         break;
-//         
-//     case MyTrajectoryShowHide:
-//         Orbit->bIsVisibleShowMyTrajectory = bPressedReleased;
-//         Orbit->UpdateVisibility(GI->InstanceUI);
-//         break;
-//         
-//     case AllTrajectoriesShowHide:
-//         GI->InstanceUI.bShowAllTrajectories = bPressedReleased;
-//         for(TMyObjectIterator<AOrbit> IOrbit(GetWorld()); IOrbit; ++IOrbit)
-//         {
-//             (*IOrbit)->UpdateVisibility(GI->InstanceUI);
-//         }
-//         break;
-//         
-//     case MyTrajectoryToggle:
-//         Orbit->bIsVisibleToggleMyTrajectory ^= true;
-//         Orbit->UpdateVisibility(GI->InstanceUI);
-//         break;
-//     case Zoom:
-//         if(!Cast<UMyLocalPlayer>(Player)->GetIsInMainMenu())
-//         {
-//             if(abs(Axis1DValue) > 0)
-//             {
-//                 CameraPosition = std::clamp<int8>(CameraPosition - Axis1DValue, 0, MaxCameraPosition);
-//                 GetPawn<AMyCharacter>()->UpdateSpringArm(CameraPosition);
-//                 // TODO: at `CameraPosition = 0` lookAt mouse doesn't work anymore
-//             }		
-//         }
-//         break;
-//     case Select:
-//     {
-//         FHitResult HitResult;
-//         GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
-// 
-//         if(HitResult.IsValidBlockingHit())
-//         {
-//             AOrbit* SelectedOrbit = GI->InstanceUI.Selected.Orbit;
-//             if(IsValid(SelectedOrbit))
-//             {
-//                 GI->InstanceUI.Selected.Orbit = nullptr;
-//                 SelectedOrbit->UpdateVisibility(GI->InstanceUI);
-//             }
-//             if(HitResult.GetActor()->Implements<UHasOrbit>())
-//             {
-//                 auto* ClickedOrbit = Cast<IHasOrbit>(HitResult.GetActor())->GetOrbit();
-//                 if(SelectedOrbit != ClickedOrbit)
-//                 {
-//                     double Size = Cast<IHasMesh>(HitResult.GetActor())->GetBounds().SphereRadius;
-//                     GI->InstanceUI.Selected = {ClickedOrbit, Size };
-//                 }
-//                 else
-//                 {
-//                     // deselect selected orbit
-//                     GI->InstanceUI.Selected.Orbit = nullptr;
-//                 }
-//                 ClickedOrbit->UpdateVisibility(GI->InstanceUI);
-//             }
-//         }
-//         else
-//         {
-//             auto* SelectedOrbit = GI->InstanceUI.Selected.Orbit;
-//             if(IsValid(SelectedOrbit))
-//             {
-//                 // deselect any selected orbit
-//                 GI->InstanceUI.Selected.Orbit = nullptr;
-//                 SelectedOrbit->UpdateVisibility(GI->InstanceUI);
-//             }
-//         }
-//         break;
-//     }
-// case KickCancel:
-//     // TODO
-//     break;
-// default: ;
-//     }
-// }
 
 FVector AMyPlayerController::GetMouseDirection()
 {
@@ -238,6 +78,93 @@ FVector AMyPlayerController::GetMouseDirection()
     }       
 }
 
+UEnhancedInputComponent* AMyPlayerController::GetInputComponent()
+{
+     return Cast<UEnhancedInputComponent>(InputComponent);
+}
+
+void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActionTags, EInputTrigger InputTrigger,
+    const FInputActionInstance& InputActionInstance)
+{
+    auto Tag = FMyGameplayTags::Get();
+    const auto AbilityTags = InputActionTags.Filter(Tag.Ability.GetSingleTagContainer());
+    auto Cues = InputActionTags.Filter(Tag.GameplayCue.GetSingleTagContainer());
+    const auto CustomInputBindingTags = InputActionTags.Filter(Tag.InputBindingCustom.GetSingleTagContainer());
+
+    for(auto CustomInputBindingTag : CustomInputBindingTags)
+    {
+        RunCustomInputAction(CustomInputBindingTag, InputTrigger, InputActionInstance);
+    }
+    
+    if(!AbilityTags.IsEmpty())
+    {
+        TArray<FGameplayAbilitySpec*> Specs;
+        switch(InputTrigger)
+        {
+        case EInputTrigger::Down:
+        case EInputTrigger::Pressed:
+        case EInputTrigger::Hold:
+            AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(AbilityTags, Specs, false);
+            for(auto Spec : Specs)
+            {
+                check(!Spec->IsActive())
+                AbilitySystemComponent->TryActivateAbility(Spec->Handle);
+            }
+
+            for(const auto Cue : Cues)
+            {
+                FGameplayCueParameters Parameters;
+                AbilitySystemComponent->AddGameplayCueLocal(Cue, Parameters);
+            }
+            break;
+        case EInputTrigger::Released:
+        case EInputTrigger::HoldAndRelease:
+            for(auto Spec : AbilitySystemComponent->GetActiveAbilities(&AbilityTags))
+            {
+                Cast<UMyGameplayAbility>(Spec.Ability)->SetReleased();
+            }
+
+            for(auto Cue : Cues)
+            {
+                FGameplayCueParameters Parameters;
+                AbilitySystemComponent->RemoveGameplayCueLocal(Cue, Parameters);
+            }
+            break;
+        case EInputTrigger::Tap:
+            AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(AbilityTags, Specs, false);
+            for(auto Spec : Specs)
+            {
+                if(Spec->IsActive())
+                {
+                    Cast<UMyGameplayAbility>(Spec->Ability)->SetReleased();
+                }
+                else
+                {
+                    AbilitySystemComponent->TryActivateAbility(Spec->Handle);
+                }
+            }
+            
+            for(auto Cue : Cues)
+            {
+                FGameplayCueParameters Parameters;
+                if(AbilitySystemComponent->IsGameplayCueActive(Cue))
+                {
+                    AbilitySystemComponent->RemoveGameplayCueLocal(Cue, Parameters);
+                }
+                else
+                {
+                    AbilitySystemComponent->AddGameplayCueLocal(Cue, Parameters);
+                }
+            }
+            break;
+        case EInputTrigger::Pulse:
+        case EInputTrigger::ChordAction:
+            UE_LOGFMT(LogMyGame, Error, "{THIS}: Input triggers Pulse and Chord not implemented.", GetFName());
+            break;
+        }
+    }
+}
+
 void AMyPlayerController::Tick(float DeltaSeconds)
 {
     // only ticking for player controller that controls local pawn
@@ -255,8 +182,6 @@ void AMyPlayerController::Tick(float DeltaSeconds)
     }
     // react to mouse movement
     
-    auto* GI = GetGameInstance<UMyGameInstance>();
-    
     // hovering
     FHitResult HitResult;
     GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
@@ -266,22 +191,24 @@ void AMyPlayerController::Tick(float DeltaSeconds)
         && Body->Implements<UHasMesh>()
         )
     {
+        if(IsValid(Hovered.Orbit))
+        {
+            // un-hover previously hovered orbit
+            Hovered.Orbit->UpdateVisibility(false);
+        }
         // begin mouse over
         auto* Orbit = Cast<IHasOrbit>(Body)->GetOrbit();
         const double Size = Cast<IHasMesh>(Body)->GetBounds().SphereRadius;
-        GI->InstanceUI.Hovered = {Orbit, Size };
-        Orbit->bIsVisibleMouseover = true;
-        Orbit->UpdateVisibility(GI->InstanceUI);
+        Hovered = {Orbit, Size};
+        Orbit->UpdateVisibility(true);
     }
     else
     {
         // end mouse over
-        auto* HoveredOrbit = GI->InstanceUI.Hovered.Orbit;
-        if(IsValid(HoveredOrbit))
+        if(IsValid(Hovered.Orbit))
         {
-            GI->InstanceUI.Hovered.Orbit = nullptr;
-            HoveredOrbit->bIsVisibleMouseover = false;
-            HoveredOrbit->UpdateVisibility(GI->InstanceUI);
+            Hovered.Orbit->UpdateVisibility(false);
+            Hovered.Orbit = nullptr;
         }
     }
     
@@ -335,16 +262,12 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     auto* PawnWithOrbit = Cast<IHasOrbit>(InPawn);
     AOrbit* Orbit = PawnWithOrbit->GetOrbit();
 
-    auto* MyState = UMyState::Get();
-    auto* GI = GetGameInstance<UMyGameInstance>();
-    auto* GS = GetWorld()->GetGameState<AMyGameState>();
-    const FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
-    const FPhysics Physics = MyState->GetPhysics(GS);
+    const auto* GS = GetWorld()->GetGameState<AMyGameState>();
+    const FPhysics Physics = GS->RP_Physics;
+    
     PawnWithOrbit->SetInitialOrbitParams(MyPlayerStart->GetInitialOrbitParams());
-    Orbit->UpdateByInitialParams(Physics, InstanceUI);
-
+    Orbit->UpdateByInitialParams(Physics);
     Orbit->SetEnableVisibility(true);
-    //PawnWithOrbit->SetInitialOrbitParams({FVector::Zero(), FVector(0., 0., 1.)});
 
     // exclude the case of the server-player possessing their pawn
     if(!InPawn->IsLocallyControlled())
@@ -367,15 +290,26 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
             (*IGyration)->FreezeState();
         }
     }
+
+    // trigger orbit replication when tag AccelerateTranslational is removed
+    const auto Tag = FMyGameplayTags::Get();
+    AbilitySystemComponent->RegisterGameplayTagEvent
+        ( Tag.AccelerationTranslational
+        , EGameplayTagEventType::NewOrRemoved
+        ).AddLambda([this, Orbit] (const FGameplayTag Tag, int32 Count)
+        {
+            UE_LOGFMT(LogMyGame, Display, "{THIS} Tag changed: {TAG}, new count: {COUNT}", GetFullName(), Tag.GetTagName(), Count);
+            if(Count == 0)
+            {
+                Orbit->FreezeOrbitState();
+            }
+        });
 }
 
 void AMyPlayerController::AcknowledgePossession(APawn* P)
 {
     Super::AcknowledgePossession(P);
 
-    auto* GI = GetGameInstance<UMyGameInstance>();
-    auto* MyState = UMyState::Get();
-    auto InstanceUI = MyState->GetInstanceUI(GI);
     AMyCharacter* MyCharacter = Cast<AMyCharacter>(P);
 
     AbilitySystemComponent = UMyAbilitySystemComponent::Get(MyCharacter);
@@ -414,70 +348,101 @@ void AMyPlayerController::BeginPlay()
 
     if(IMC_InGame.IsNull())
     {
-        UE_LOG(LogMyGame, Error, TEXT("%s: IMC_InGame null"), *GetFullName())
+        UE_LOG(LogMyGame, Error, TEXT("%s: IMC_InGame1 null"), *GetFullName())
     }
     
     const FInputModeGameAndUI InputModeGameAndUI;
     SetInputMode(InputModeGameAndUI);
 }
 
-void AMyPlayerController::HandlePressed(const FInputActionInstance& InputActionInstance)
+void AMyPlayerController::RunCustomInputAction(FGameplayTag CustomBindingTag, EInputTrigger InputTrigger, const FInputActionInstance& InputActionInstance)
 {
-    if(InputActionInstance.GetValue().Get<bool>())
-    {
-        const auto InputActionTags = Cast<UMyInputAction>(InputActionInstance.GetSourceAction())->Tags;
-        AbilitySystemComponent->TryActivateAbilitiesByTag(InputActionTags);
-
-        const auto Tag = FMyGameplayTags::Get();
-        auto Cues = InputActionTags.Filter(Tag.GameplayCue.GetSingleTagContainer());
-        for(const auto Cue : Cues)
-        {
-            FGameplayCueParameters Parameters;
-            AbilitySystemComponent->AddGameplayCueLocal(Cue, Parameters);
-        }
-    }
-}
-
-void AMyPlayerController::HandleReleased(const FInputActionInstance& InputActionInstance)
-{
-    if(!InputActionInstance.GetValue().Get<bool>())
-    {
-        const auto InputActionTags = Cast<UMyInputAction>(InputActionInstance.GetSourceAction())->Tags;
-        for(auto Spec : AbilitySystemComponent->GetActiveAbilities(&InputActionTags))
-        {
-            Cast<UMyGameplayAbility>(Spec.Ability)->OnReleaseDelegate.Execute();
-        }
-
-        const auto Tag = FMyGameplayTags::Get();
-        auto Cues = InputActionTags.Filter(Tag.GameplayCue.GetSingleTagContainer());
-        for(auto Cue : Cues)
-        {
-            FGameplayCueParameters Parameters;
-            AbilitySystemComponent->RemoveGameplayCueLocal(Cue, Parameters);
-        }
-    }
-}
-
-void AMyPlayerController::HandleTapped(const FInputActionInstance& InputActionInstance)
-{
-    const auto InputActionTags = Cast<UMyInputAction>(InputActionInstance.GetSourceAction())->Tags;
-    if(!AbilitySystemComponent->TryActivateAbilitiesByTag(InputActionTags))
-    {
-        AbilitySystemComponent->CancelAbilities(&InputActionTags);
-    }
-
     const auto Tag = FMyGameplayTags::Get();
-    auto Cues = InputActionTags.Filter(Tag.GameplayCue.GetSingleTagContainer());
-    for(auto Cue : Cues)
+
+    // select
+    if(CustomBindingTag == Tag.InputBindingCustomSelect)
     {
-        FGameplayCueParameters Parameters;
-        if(AbilitySystemComponent->IsGameplayCueActive(Cue))
+         FHitResult HitResult;
+         GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+
+         if(HitResult.IsValidBlockingHit() && HitResult.GetActor()->Implements<UHasOrbit>())
+         {
+             auto* ClickedOrbit = Cast<IHasOrbit>(HitResult.GetActor())->GetOrbit();
+             if(Selected.Orbit != ClickedOrbit)
+             {
+                 if(IsValid(Selected.Orbit))
+                 { // deselect selected orbit
+                     Selected.Orbit->UpdateVisibility(false);
+                     Selected.Orbit = nullptr;
+                 }
+                 double Size = Cast<IHasMesh>(HitResult.GetActor())->GetBounds().SphereRadius;
+                 Selected = {ClickedOrbit, Size };
+                 Selected.Orbit->UpdateVisibility(true);
+             }
+         }
+         else if(IsValid(Selected.Orbit))
+         {
+             Selected.Orbit->UpdateVisibility(false);
+             Selected.Orbit = nullptr;
+         }
+    }
+    
+    // zoom
+    else if(CustomBindingTag == Tag.InputBindingCustomZoom)
+    {
+        const auto Delta = InputActionInstance.GetValue().Get<FInputActionValue::Axis1D>();
+        if(abs(Delta) > 0)
         {
-            AbilitySystemComponent->RemoveGameplayCueLocal(Cue, Parameters);
+            CameraPosition = std::clamp<int8>(CameraPosition - Delta, 0, MaxCameraPosition);
+            GetPawn<AMyCharacter>()->UpdateSpringArm(CameraPosition);
+        }		
+    }
+
+    // all orbits show/hide
+    else if(CustomBindingTag == Tag.InputBindingCustomAllOrbitsShowHide)
+    {
+        ShowAllOrbitsDelegate.Broadcast(InputActionInstance.GetValue().Get<bool>());
+    }
+
+    // my orbit show/hide
+    else if(CustomBindingTag == Tag.InputBindingCustomMyOrbitShowHide)
+    {
+        const auto Orbit = Cast<IHasOrbit>(GetPawn())->GetOrbit();
+        switch(InputTrigger)
+        {
+        case EInputTrigger::Down:
+        case EInputTrigger::Pressed:
+        case EInputTrigger::Hold:
+            Orbit->UpdateVisibility(true);
+            break;
+        case EInputTrigger::Released:
+        case EInputTrigger::HoldAndRelease:
+            Orbit->UpdateVisibility(false);
+            break;
+        case EInputTrigger::Tap:
+            Orbit->UpdateVisibility(bMyOrbitShowHide ^= true);
+            break;
+        case EInputTrigger::Pulse:
+        case EInputTrigger::ChordAction:
+            UE_LOGFMT(LogMyGame, Error, "{THIS}: Input triggers Pulse and Chord not implemented.", GetFName());
+            break;
+        }
+    }
+
+    else if(CustomBindingTag == Tag.InputBindingCustomIngameMenuToggle)
+    {
+        auto* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
+        if(LocalPlayer->InGame == EInGame::IngameMenu)
+        {
+            GetHUD<AMyHUD>()->InGameMenuHide();
+            CurrentMouseCursor = EMouseCursor::Crosshairs;
+            LocalPlayer->InGame = EInGame::IngamePlaying;
         }
         else
         {
-            AbilitySystemComponent->AddGameplayCueLocal(Cue, Parameters);
+            GetHUD<AMyHUD>()->InGameMenuShow();
+            CurrentMouseCursor = EMouseCursor::Default;
+            LocalPlayer->InGame = EInGame::IngameMenu;
         }
     }
 }

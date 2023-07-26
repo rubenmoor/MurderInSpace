@@ -1,36 +1,30 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Actors/WorldBoundaries.h"
 
-#include "Modes/MyState.h"
+#include "Modes/MyGameState.h"
 
 // Sets default values
-AWorldBoundaries::AWorldBoundaries()
+AWorldBoundaries::AWorldBoundaries(): AActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	AActor::SetActorHiddenInGame(true);
-	
-    Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
-    Sphere->SetMobility(EComponentMobility::Stationary);
+
+	Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
+	Sphere->SetMobility(EComponentMobility::Stationary);
 	SetRootComponent(Sphere);
 }
 
 void AWorldBoundaries::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	Sphere->SetSphereRadius(PhysicsEditorDefault.WorldRadius);
+	Sphere->SetSphereRadius(FPhysics::MAX_WORLDRADIUS_UU);
 }
 
 // Called when the game starts or when spawned
 void AWorldBoundaries::BeginPlay()
 {
 	Super::BeginPlay();
-	UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
-	MyState->WithPhysics(this, [this] (FPhysics& Physics)
-	{
-		Sphere->SetSphereRadius(Physics.WorldRadius);
-	});
+	auto* GS = AMyGameState::Get(this);
+	Sphere->SetSphereRadius(GS->RP_Physics.WorldRadius);
 }
 
 // Called every frame

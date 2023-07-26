@@ -5,37 +5,42 @@
 #include "InputMappingContext.h"
 #include "Orbit/Orbit.h"
 #include "GameFramework/PlayerController.h"
-#include "Input/MyEnhancedInputComponent.h"
+
 #include "MyPlayerController.generated.h"
 
+class UMyInputActionSet;
+class UMyInputActions;
 class UMyAbilitySystemComponent;
 struct FGameplayTag;
 class UTaggedInputActionData;
 
-// / //**
-//  * 
-//  */
-// UENUM()
-// enum class EInputAction : uint8
-// {
-// 	// given your current orientation, use the main rocket engine to accelerate
-// 	  AccelerateBeginEnd      UMETA(DisplayName = "accelerate")
-// 	, TowardsCircleBeginEnd   UMETA(DisplayName = "accelerate towards circular orbit")
-// 	, EmbraceBeginEnd         UMETA(DisplayName = "use arms to embrace a thing, e.g. an asteroid")
-// 	, KickPositionExecute     UMETA(DisplayName = "use legs to kick something away")
-// 	, KickCancel              UMETA(DisplayName = "cancel the kick")
-// 
-// 	// pure UI actions
-// 	, IngameMenuToggle        UMETA(DisplayName = "toggle in-game menu")
-// 	, MyTrajectoryShowHide    UMETA(DisplayName = "show my trajectory")
-// 	, AllTrajectoriesShowHide UMETA(DisplayName = "show all trajectories")
-// 	, MyTrajectoryToggle      UMETA(DisplayName = "toggle my trajectories visibility")
-// 	, Zoom                    UMETA(DisplayName = "zoom the camera in or out")
-// 	, Select                  UMETA(DisplayName = "deselect any selected body")
-// 	
-// 	, MinPureUI = IngameMenuToggle
-// 	, Last = Select
-// };
+UENUM(BlueprintType)
+enum class EInputTrigger : uint8
+{
+      Down
+    , Pressed
+    , Released
+    , Hold
+    , HoldAndRelease
+    , Tap
+    , Pulse
+    , ChordAction
+};
+
+USTRUCT(BlueprintType)
+struct FHighlight
+{
+	GENERATED_BODY()
+
+	FHighlight(): Orbit(nullptr), Size(0) {}
+	FHighlight(class AOrbit* InOrbit, double InSize) : Orbit(InOrbit), Size(InSize) {}
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	AOrbit* Orbit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	double Size;
+};
 
 /**
  * 
@@ -46,6 +51,10 @@ class MURDERINSPACE_API AMyPlayerController : public APlayerController
 	GENERATED_BODY()
 
 	AMyPlayerController();
+
+	// setup defaults for my input actions:
+	// * bind them to gameplay abilities/cues by tag
+	// * or give special treatment
 	virtual void SetupInputComponent() override;
 
 public:
@@ -54,6 +63,26 @@ public:
 
     UPROPERTY(VisibleAnywhere)
     TObjectPtr<class AMyPlayerStart> MyPlayerStart;
+	
+    DECLARE_MULTICAST_DELEGATE_OneParam(FShowAllOrbitsDelegate, bool)
+
+	/*
+	 * broadcast to change orbit visibility for all orbits
+	 * bool bShowHide: true = show, false = hide
+	 */
+	FShowAllOrbitsDelegate ShowAllOrbitsDelegate;
+
+	UFUNCTION(BlueprintCallable)
+	FHighlight GetHovered() { return Hovered; }
+	
+	UFUNCTION(BlueprintCallable)
+	FHighlight GetSelected() { return Selected; }
+	
+	UFUNCTION(BlueprintCallable)
+	UEnhancedInputComponent* GetInputComponent();
+
+	UFUNCTION(BlueprintCallable)
+	void RunInputAction(const FGameplayTagContainer& InputActionTags, EInputTrigger InputTrigger, const FInputActionInstance& InputActionInstance);
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -76,18 +105,17 @@ protected:
 	virtual void BeginPlay() override;
 
 	// input events
-	UFUNCTION()
-	void HandlePressed(const FInputActionInstance& InputActionInstance);
+
+	/*
+	 * deal with input actions bindings apart from gameplay ability or cue
+	 * (an input action can have any combination of bindings to custom, ability, cue
+	*/
+	//UFUNCTION() TODO
+	void RunCustomInputAction(FGameplayTag CustomBindingTag, EInputTrigger InputTrigger, const FInputActionInstance& InputActionInstance);
 	
-	UFUNCTION()
-	void HandleReleased(const FInputActionInstance& InputActionInstance);
-	
-	UFUNCTION()
-	void HandleTapped(const FInputActionInstance& InputActionInstance);
-	
-	
-	// change the zoom level continuously
-	void Zoom(float Delta);
+	// state for tap input action
+	UPROPERTY(VisibleAnywhere)
+	bool bMyOrbitShowHide = false;
 	
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_RotateTowards(FQuat Quat);
@@ -98,8 +126,12 @@ protected:
 	// private members
 
 	// input mapping context: in-game
+	// TODO: deprecated
 	UPROPERTY(EditAnywhere)
 	TSoftObjectPtr<UInputMappingContext> IMC_InGame;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UMyInputActions> MyInputActions;
 
 	UPROPERTY(VisibleAnywhere)
     TObjectPtr<UEnhancedInputLocalPlayerSubsystem> Input;
@@ -119,6 +151,11 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	UMyAbilitySystemComponent* AbilitySystemComponent;
 
-	UFUNCTION(BlueprintCallable)
-	UMyEnhancedInputComponent* GetInputComponent() { return Cast<UMyEnhancedInputComponent>(InputComponent); }
+	// the selected body and its orbit
+	UPROPERTY()
+	FHighlight Selected;
+	
+	// the hovered body and its orbit, based on mouse movement
+	UPROPERTY()
+	FHighlight Hovered;
 };

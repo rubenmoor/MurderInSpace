@@ -1,9 +1,9 @@
 #include "Actors/MyPawn.h"
 
 #include "Actors/MyCharacter.h"
-#include "GameplayAbilitySystem/GA_Accelerate.h"
 #include "GameplayAbilitySystem/MyAttributes.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
+#include "GameplayAbilitySystem/MyGameplayAbility.h"
 #include "MyGameplayTags.h"
 #include "HUD/MyHUD.h"
 #include "Modes/MyGameInstance.h"
@@ -11,23 +11,23 @@
 #include "Modes/MyPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
-AMyPawn::AMyPawn()
+AMyPawn::AMyPawn(): APawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	bNetLoadOnClient = false;
 	bReplicates = true;
 	// TODO: not sure if necessary, but not harmful either
-    bAlwaysRelevant = true;
+	bAlwaysRelevant = true;
 	AActor::SetReplicateMovement(false);
 
-    Root = CreateDefaultSubobject<USceneComponent>("Root");
-    SetRootComponent(Root);
+	Root = CreateDefaultSubobject<USceneComponent>("Root");
+	SetRootComponent(Root);
 
 	AbilitySystemComponent = CreateDefaultSubobject<UMyAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
-	
+
 	AttrSetAcceleration = CreateDefaultSubobject<UAttrSetAcceleration>("AttributeSetTorque");
 }
 
@@ -74,16 +74,15 @@ void AMyPawn::Tick(float DeltaSeconds)
 	UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
 	const UWorld* World = GetWorld();
 	const auto* GS = World->GetGameState<AMyGameState>();
-	const FPhysics Physics = MyState->GetPhysics(GS);
+	const FPhysics Physics = GS->RP_Physics;
 	const auto* GI = GetGameInstance<UMyGameInstance>();
-	const FInstanceUI InstanceUI = MyState->GetInstanceUI(GI);
 	const auto Tag = FMyGameplayTags::Get();
 
 	if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AccelerationTranslational))
 	{
 		const float AccelerationSI = AttrSetAcceleration->GetAccelerationSIMax();
 		const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
-		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics, InstanceUI);
+		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics);
 	}
 	else if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AbilityMoveTowardsCircle))
 	{
@@ -96,7 +95,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 		const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
 		if(VecDelta.Length() > DeltaV)
 		{
-			RP_Orbit->Update(VecDelta.GetSafeNormal() * DeltaV, Physics, InstanceUI);
+			RP_Orbit->Update(VecDelta.GetSafeNormal() * DeltaV, Physics);
 		}
 	}
 
@@ -223,7 +222,7 @@ void AMyPawn::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCh
 	{
 		if(IsValid(RP_Orbit))
 		{
-			RP_Orbit->Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+			RP_Orbit->Update(FPhysics());
 		}
 	}
 }

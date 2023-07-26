@@ -21,10 +21,6 @@ void AMyDebris::BeginPlay()
 {
 	Super::BeginPlay();
 
-	const auto MyState = UMyState::Get();
-	const auto GS = GetWorld()->GetGameState<AMyGameState>();
-	const auto Physics = MyState->GetPhysics(GS);
-	
 	FRandomStream RandomStream;
 	IndividualVelocities.SetNum(Num);
 	TArray<FTransform> Transforms;
@@ -57,9 +53,8 @@ void AMyDebris::Tick(float DeltaSeconds)
 		return;
 	}
 
-	const auto MyState = UMyState::Get();
-	const auto GS = GetWorld()->GetGameState<AMyGameState>();
-	const auto Physics = MyState->GetPhysics(GS);
+	const auto GS = AMyGameState::Get(this);
+	const auto Physics = GS->RP_Physics;
 	const auto Blackhole = GS->GetBlackhole();
 
 	TArray<int32> InstanceToKill;

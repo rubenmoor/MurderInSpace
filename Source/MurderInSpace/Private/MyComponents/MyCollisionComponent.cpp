@@ -107,11 +107,9 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 		break;
 	}
 
-	const auto* GI = GetWorld()->GetGameInstance<UMyGameInstance>();
 	const auto* GS = GetWorld()->GetGameState<AMyGameState>();
-
-	Orbit1->Update(VecDeltaV1, GS->RP_Physics, GI->InstanceUI);
-	Orbit2->Update(VecDeltaV2, GS->RP_Physics, GI->InstanceUI);
+	Orbit1->Update(VecDeltaV1, GS->RP_Physics);
+	Orbit2->Update(VecDeltaV2, GS->RP_Physics);
 }
 
 double UMyCollisionComponent::GetMyMass()

@@ -15,17 +15,21 @@ FMyGameplayTags::FMyGameplayTags()
 	
 	Ability                  = GTM.AddNativeGameplayTag("Ability");
 	AbilityAccelerate        = GTM.AddNativeGameplayTag("Ability.Accelerate");
-	AbilityRotate            = GTM.AddNativeGameplayTag("Ability.Rotate");
+	AbilityLookAt            = GTM.AddNativeGameplayTag("Ability.LookAt");
 	AbilityMoveTowardsCircle = GTM.AddNativeGameplayTag("Ability.MoveTowardsCircle");
 	AbilityEmbrace           = GTM.AddNativeGameplayTag("Ability.Embrace");
 	AbilityKick              = GTM.AddNativeGameplayTag("Ability.Kick");
 
 	GiveInitiallyToMyPawn    = GTM.AddNativeGameplayTag("GiveTo.Initial.MyPawn");
 
-	GameplayCue          = GTM.AddNativeGameplayTag("GameplayCue");
-    CueOrbitShow         = GTM.AddNativeGameplayTag("GameplayCue.Orbit.Show");
-    CueHoverOutlineShow  = GTM.AddNativeGameplayTag("GameplayCue.HoverOutline.Show");
-    CueSelectOutlineShow = GTM.AddNativeGameplayTag("GameplayCue.SelectOutline.Show");
+	GameplayCue              = GTM.AddNativeGameplayTag("GameplayCue");
+	
+	InputBindingCustom                  = GTM.AddNativeGameplayTag("InputBinding.Custom");
+	InputBindingCustomZoom              = GTM.AddNativeGameplayTag("InputBinding.Custom.Zoom");
+	InputBindingCustomSelect            = GTM.AddNativeGameplayTag("InputBinding.Custom.Select");
+	InputBindingCustomAllOrbitsShowHide = GTM.AddNativeGameplayTag("InputBinding.Custom.AllOrbits.ShowHide");
+	InputBindingCustomMyOrbitShowHide   = GTM.AddNativeGameplayTag("InputBinding.Custom.MyOrbit.ShowHide");
+	InputBindingCustomIngameMenuToggle  = GTM.AddNativeGameplayTag("InputBinding.Custom.IngameMenu.Toggle");
 }
 
 FMyGameplayTags FMyGameplayTags::MyGameplayTags;

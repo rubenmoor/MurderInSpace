@@ -169,7 +169,8 @@ void AMyHUD::Tick(float DeltaSeconds)
 	
 	const APlayerController* PC = GetOwningPlayerController();
 
-	const FPhysics Physics = GEngine->GetEngineSubsystem<UMyState>()->GetPhysicsAny(this);
+	const auto* GS = AMyGameState::Get(this);
+	const FPhysics Physics = IsValid(GS) ? GS->RP_Physics : FPhysics();
 	AOrbit* Orbit = MyCharacter->GetOrbit();
 	const float Velocity = Orbit->GetScalarVelocity();
 

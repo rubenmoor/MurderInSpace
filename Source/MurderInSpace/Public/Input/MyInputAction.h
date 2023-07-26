@@ -12,8 +12,11 @@ UCLASS()
 class MURDERINSPACE_API UMyInputAction : public UInputAction
 {
     GENERATED_BODY()
+
+    UMyInputAction();
     
 public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     FGameplayTagContainer Tags;
+    
 };

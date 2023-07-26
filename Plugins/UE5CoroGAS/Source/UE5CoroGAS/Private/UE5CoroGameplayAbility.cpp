@@ -161,6 +161,9 @@ void UUE5CoroGameplayAbility::EndAbility(
 	                  bWasCanceled);
 
 	auto PredictionKey = ActivationInfo.GetActivationPredictionKey();
+	if (!PredictionKey.IsValidKey())
+		return;
+
 	TAbilityPromise<ThisClass>* Promise;
 	bool bFound = Activations->RemoveAndCopyValue(PredictionKey, Promise);
 
@@ -183,6 +186,8 @@ void UUE5CoroGameplayAbility::CoroutineStarting(TAbilityPromise<ThisClass>* Prom
 {
 	checkf(IsInGameThread(),
 	       TEXT("Internal error: expected coroutine on the game thread"));
+	checkf(GCurrentPredictionKey.IsValidKey(),
+	       TEXT("Attempting to start ability with invalid prediction key"));
 	// Promise is not fully-constructed yet, but its address is known
 	Activations->Add(GCurrentPredictionKey, Promise);
 }

@@ -2,7 +2,8 @@
 
 #include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
 #include "MyGameplayTags.h"
-#include "Orbit/Orbit.h"
+#include "Modes/MyPlayerController.h"
+#include "UE5Coro/LatentAwaiters.h"
 
 UGA_Accelerate::UGA_Accelerate()
 {
@@ -14,17 +15,16 @@ UGA_Accelerate::UGA_Accelerate()
     //ActivationBlockedTags =
 }
 
-UE5Coro::GAS::FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
+FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo,
     const FGameplayEventData* TriggerEventData)
 {
-    auto* Orbit = Cast<IHasOrbit>(ActorInfo->OwnerActor)->GetOrbit();
-    Orbit->bIsChanging = true;
-    BindOnRelease([=]
+    if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
     {
-        // TODO: requires instanced ability
-        //UAbilityTask_NetworkSyncPoint::WaitNetSync(this, EAbilityTaskNetSyncType::OnlyServerWait);
-        Orbit->bIsChanging = false;
-    });
-    co_return;
+        co_await Latent::Cancel();
+    }
+    auto* Orbit = Cast<IHasOrbit>(ActorInfo->OwnerActor)->GetOrbit();
+    Orbit->UpdateVisibility(true);
+    co_await Latent::Until([this] { return bReleased; });
+    Orbit->UpdateVisibility(false);
 }

@@ -4,6 +4,7 @@
 #include "MyComponents/MyCollisionComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Orbit/MyDebris.h"
+#include "Modes/MyGameState.h"
 
 AMyActor_RealtimeMesh::AMyActor_RealtimeMesh()
 {
@@ -84,14 +85,14 @@ void AMyActor_RealtimeMesh::PostEditChangeChainProperty(FPropertyChangedChainEve
     {
         if(IsValid(RP_Orbit))
         {
-            RP_Orbit->Update(PhysicsEditorDefault, InstanceUIEditorDefault);
+            RP_Orbit->Update(FPhysics());
         }
     }
     else if(Name == FNameInitialParams)
     {
         if(IsValid(RP_Orbit))
         {
-            RP_Orbit->UpdateByInitialParams(PhysicsEditorDefault, InstanceUIEditorDefault);
+            RP_Orbit->UpdateByInitialParams(FPhysics());
         }
     }
 }

@@ -8,6 +8,7 @@ public class MurderInSpaceTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.Latest;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
 		ExtraModuleNames.AddRange( new [] { "MurderInSpace" } );
+		AdditionalCompilerArguments = "-Wno-deprecated-enum-enum-conversion";
 		RegisterModulesCreatedByRider();
 	}
 

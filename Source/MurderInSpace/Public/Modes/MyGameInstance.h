@@ -5,6 +5,8 @@
 #include "Engine/GameInstance.h"
 #include "MyGameInstance.generated.h"
 
+struct FLocalPlayerContext;
+
 UENUM(BlueprintType)
 enum class EGameMode : uint8
 {
@@ -80,9 +82,6 @@ public:
 		//UE_LOG(LogMyGame, Display, TEXT("Global number of spline points: %d"), GlobalNumSplinePoints)
 	}
 
-	UPROPERTY(BlueprintReadWrite)
-	FInstanceUI InstanceUI;
-	
 protected:
 	// event handlers
 

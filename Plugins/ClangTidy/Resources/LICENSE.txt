@@ -1,0 +1,146 @@
+END USER LICENSE AGREEMENT – "CLANG TIDY"
+
+This is the end user licence agreement for June Rhodes t/a Redpoint Games (ABN: 67 144 773 753)
+defined here as "Redpoint" or "We".
+
+This software product entitled "clang-tidy for Unreal Engine" ("Software") is owned and controlled by
+Redpoint, and is protected under local copyright law, international copyright treaties and other
+intellectual property principles. This Software is licensed, not sold to you. This Software is provided under
+the following license which defines what you may do with the Software and contains usage restrictions
+and limitations on warranties and/or remedies.
+
+You must read the terms and conditions of this End User Licence Agreement (the "Agreement") carefully
+before downloading, installing, or otherwise using the Software. By downloading, installing, using, or
+otherwise accessing the Software, you acknowledge that you have read this Agreement, that you
+understand it, that you agree to be bound by its terms and conditions.
+
+1) LICENCE
+
+a)  Subject to the terms and limitations set forth herein, Redpoint grants you a limited non-exclusive
+    license to use the Software in accordance with the terms of this Agreement. All rights not expressly
+    stated herein are reserved by Redpoint, and Redpoint disclaims any and all implied licenses. The
+    copyright and all other rights in and to the Software will remain with Redpoint.
+
+b)  The Software is a plugin for Unreal Engine. Unreal Engine is a software engine owned and controlled
+    by Epic Games, Inc ("Epic"). The Software integrates into the Unreal Engine build system to perform
+    additional checks when compiling and building your game. Redpoint has no affiliation or partnership
+    with Epic and all users must read and understand all Unreal Engine terms of service. Redpoint makes
+    no warranties about any of the Unreal suite of software services and/ or products.
+
+2) GRANT OF LICENCE
+
+a)  Redpoint grants you a non-exclusive revocable licence to install and use the Software on compatible
+    devices you own or control for use in accordance with this Agreement.
+
+b)  Custom Licence holders may modify the parts of the Software for which source code is provided,
+    exclusively for your own use with Unreal Engine. For the avoidance of doubt, you are not permitted to
+    integrate the Software, or any modifications made by you into an externally distributed product
+    created by you or another third party. Free Edition license holders may not modify or adapt the
+    Software in any way.
+
+c)  You acknowledge that Redpoint owns all right, title and interest, including without limitation all
+    intellectual property rights, in and to the Software and that you will not acquire any right, title or
+    interest in or to the Software or Software, except the limited license expressly set forth in clause 2 a)
+    above.
+
+3) TIERS OF SERVICE
+
+There are two tiers of service for the Software. The Free Edition and Custom Licenses.
+
+a) **The Free Edition** is defined as applying to:
+    i)   Individual Users, where there are 5 or fewer individuals working on an Unreal Engine project
+         over the entire life of that project; and
+    ii)  Corporate Users with 5 or fewer employees
+    iii) For the Free Edition, users are permitted to use the Software with their Unreal Engine
+         projects, but are not permitted to modify any of the build integration code. Redpoint will not
+         provide any support to Free Edition users.
+    iv)  Users of the Free Edition must upgrade to a Custom Licence as soon as they become aware
+         that they are in breach of the Free Edition terms, in accordance with clause 3b) below.
+
+b)  **Custom License** Any Users that are not eligible for the Free Edition must contact
+    sales@redpoint.games to negotiate terms of use, and a support package that will apply to your
+    organisation or collective. The terms in this agreement also govern Custom License Users, but a
+    further written agreement will operate to accommodate any specific needs.
+
+4) LIMITATION OF LICENCE
+
+a) All Users must not:
+    i) make copies of the Software except as expressly permitted in this Agreement;
+    ii) translate, reverse engineer, decompile, or disassemble the Software;
+    iii) remove or alter any copyright, trademark or other proprietary rights notices contained in the
+    Software or any other Redpoint content;
+    iv) rent, lease, loan, sub-license, distribute, assign, or transfer the Software;
+    v) use the Software for any unauthorized purpose or in violation of any applicable laws or
+    regulations;
+
+b)  If you do not have a lawfully obtained, current and valid license to the Software (as per Section 3) you
+    must as a material term of this agreement, immediately and permanently delete any and all copies of
+    these Software-related binaries and files listed at i) through xiii) below. Any use of these items other
+    than as expressly permitted under these terms is strictly prohibited and constitutes an immediate
+    material breach of these terms. For the avoidance of doubt, All Users with a lawfully obtained, current
+    and valid Custom Licence are excluded from the restriction in this clause b).
+    i) - clang.exe
+    ii) - clang++.exe
+    iii) - clang-ast-dump.exe
+    iv) - clang-cl.exe
+    v) - clang-cpp.exe
+    vi) - clang-offload-bundler.exe
+    vii) - clang-offload-wrapper.exe
+    viii) - clang-query.exe
+    ix) - clang-tblgen.exe
+    x) - clang-tidy.exe
+    xi) - llvm-lit.py
+    xii) - llvm-tblgen.exe
+    xiii) - ClangTidySystem.lua
+
+5) TERM
+
+This License will continue for as long as you use the Software. However, this License will terminate
+automatically without notice from Redpoint if you fail to comply with any of its terms or conditions.
+Upon termination you must immediately cease using the Software and remove the Software from your
+personal device(s) and network. The Limitations of Warranties and Liability set out below will continue in
+force even after any termination.
+
+6) LIMITATION OF WARRANTIES AND LIABILITY
+
+The Software is provided on an "as is" basis, without any warranties or conditions, express or implied,
+including, but not limited to, any implied warranty of merchantability or fitness for a particular purpose,
+or any warranty arising by law, statute, usage of trade, or course of dealing. You assume all responsibility
+and risk for the use of the Software and for the use of any third-party website or service, and Redpoint
+disclaims all liability for any loss, injury or damage resulting from use of the Software and any third-party
+website, whether direct or indirect.
+
+In no event will Redpoint have any liability to you or any other person or entity for any compensatory,
+indirect, incidental, special, consequential or exemplary damages whatsoever, including, but not limited
+to, loss of revenue or profit, lost or damaged data or other commercial or economic loss. Redpoint's total
+aggregate liability with respect to its obligations under this agreement or otherwise with respect to the
+product or the software will not exceed $AUD1.00. The limitations in this section will apply whether or
+not the alleged breach or default is a breach of a fundamental condition or term or a fundamental
+breach.
+
+7) THIRD PARTY AGREEMENTS
+
+Nothing contained in this Agreement shall purport to govern or change, in any way, your relationship
+with any third party under applicable agreements, including any terms of use or any other applicable
+agreement. Redpoint disclaims any obligation or liability on the part of any third party to provide support
+or other services to the end user.
+
+8) INDEMNITY
+
+You agree to indemnify and hold harmless Redpoint, and its subsidiaries, affiliates, officers, agents, and
+employees, advertisers, licensors, and partners, from and against any third party claim arising from or in
+any way related to your use of the Software, violation of this Agreement or any other actions connected
+with use of any content, including any liability or expense arising from all claims, losses, damages (actual
+and consequential), suits, judgments, litigation costs and attorneys' fees, of every kind and nature.
+
+9) PRIVACY
+
+We do not collect any personally identifiable information. For more information on privacy, see our
+policy at https://redpoint.games/privacy-policy/.
+
+10) GENERAL
+
+This Agreement is the entire agreement between us with respect to the subject matter hereof,
+superseding any other agreement or discussions, oral or written, and may not be changed except by a
+signed agreement. This Agreement will be governed by and construed in accordance with the laws of
+Victoria, Australia. You agree to be bound by the laws of that jurisdiction.

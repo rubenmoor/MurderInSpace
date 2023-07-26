@@ -1,12 +1,17 @@
 #include "GameplayAbilitySystem/MyGameplayAbility.h"
 
-#include "GameplayAbilitySystem/MyDeveloperSettings.h"
+#include "Logging/StructuredLog.h"
+#include "Modes/MyState.h"
+#include "UE5Coro/Cancellation.h"
+#include "UE5Coro/LatentAwaiters.h"
 
-void UMyGameplayAbility::BindOnRelease(std::function<void()> Callback)
+FAbilityCoroutine UMyGameplayAbility::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
+    const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo,
+    const FGameplayEventData* TriggerEventData)
 {
-    OnReleaseDelegate.BindLambda([=]
+    if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
     {
-        Callback();
-        OnReleaseDelegate.Unbind();
-    });
+        co_await Latent::Cancel();
+    }
+    co_await Latent::Until([this] { return bReleased; });
 }

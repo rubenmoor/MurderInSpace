@@ -1,15 +1,12 @@
 #pragma once
 
-#include <functional>
-
 #include "CoreMinimal.h"
 #include "UE5CoroGAS/UE5CoroGameplayAbility.h"
 
 #include "MyGameplayAbility.generated.h"
 
-struct FInputActionInstance;
-class AMyPlayerController;
-class UMyAbilitySystemComponent;
+using namespace UE5Coro::GAS;
+using namespace UE5Coro;
 
 /**
  *  My base class for any ability that uses keys
@@ -19,11 +16,12 @@ class MURDERINSPACE_API UMyGameplayAbility : public UUE5CoroGameplayAbility
 {
 	GENERATED_BODY()
 
+protected:
+    bool bReleased = false;
+    
 public:
-    DECLARE_DELEGATE(FOnReleaseDelegate)
-
-    FOnReleaseDelegate OnReleaseDelegate;
+    void SetReleased() { bReleased = true; }
 
 protected:
-    void BindOnRelease(std::function<void()> Callback);
+    virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 };
