@@ -9,6 +9,7 @@
 #include "HUD/MyHUD.h"
 #include "Lib/FunctionLib.h"
 #include "Logging/LogMacros.h"
+#include "Logging/StructuredLog.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Modes/MyPlayerController.h"
 #include "Modes/MyGameState.h"
@@ -168,12 +169,12 @@ void AOrbit::BeginPlay()
     {
         if(!SplineMeshMaterial)
         {
-            UE_LOG(LogMyGame, Warning, TEXT("%s: spline mesh material not set"), *GetFullName())
+            UE_LOGFMT(LogMyGame, Warning, "{}: spline mesh material not set", GetFName());
             bHasProblems = true;
         }
         if(!StaticMesh)
         {
-            UE_LOG(LogMyGame, Warning, TEXT("%s: static mesh for trajectory not set"), *GetFullName())
+            UE_LOGFMT(LogMyGame, Warning, "{}: static mesh for trajectory not set", GetFName());
             bHasProblems = true;
         }
     }
@@ -265,7 +266,7 @@ void AOrbit::Tick(float DeltaTime)
         auto PrimitiveComponents = Cast<IHasMesh>(RP_Body)->GetPrimitiveComponents();
         if(PrimitiveComponents.IsEmpty())
         {
-            UE_LOG(LogMyGame, Error, TEXT("%s: GetMeshComponents: empty") , *GetFullName())
+            UE_LOGFMT(LogMyGame, Error, "{}: GetMeshComponents: empty" , GetFName());
             SetActorTickEnabled(false);
             return;
         }
@@ -292,8 +293,8 @@ void AOrbit::Tick(float DeltaTime)
     {
         if(!RP_Body->SetActorLocation(NewVecR))
         {
-            UE_LOG(LogMyGame, Error, TEXT("%s: SetActorLocation: false, no Root component"),
-                *GetFullName())
+            UE_LOGFMT(LogMyGame, Error, "{}: SetActorLocation: false, no Root component",
+                GetFName());
             SetActorTickEnabled(false);
         }
     }
@@ -591,7 +592,7 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics)
             );
     }
 
-    checkf(Spline->GetSplineLength() != 0., TEXT("%s: Update"), *GetFullName())
+    checkf(Spline->GetSplineLength() != 0., TEXT("%s: Update"), *GetFName().ToString())
 }
 
 void AOrbit::Update(FPhysics Physics)
@@ -697,19 +698,19 @@ void AOrbit::SetReadyFlags(EOrbitReady ReadyFlags)
     OrbitReady |= ReadyFlags;
     if(OrbitReady == EOrbitReady::All)
     {
-        UE_LOG(LogMyGame, Display, TEXT("%s: Orbit ready"), *GetFullName())
+        UE_LOGFMT(LogMyGame, Display, "{}: Orbit ready", GetFName());
         Initialize();
     }
     else
     {
-        UE_LOG
+        UE_LOGFMT
             ( LogMyGame
             , Display
-            , TEXT("%s: Internal %s, Body %s")
-            , *GetFullName()
+            , "{}: Internal {}, Body {}"
+            , GetFName()
             , !(OrbitReady & EOrbitReady::InternalReady  ) ? TEXT("waiting") : TEXT("ready")
             , !(OrbitReady & EOrbitReady::BodyReady      ) ? TEXT("waiting") : TEXT("ready")
-            )
+            );
     }
 }
 
@@ -760,22 +761,22 @@ void AOrbit::SpawnSplineMesh
 {
     if(!StaticMesh)
     {
-        UE_LOG
+        UE_LOGFMT
         ( LogMyGame
         , Warning
-        , TEXT("%s: AOrbit::SpawnSplineMesh: SMSplineMesh null, skipping")
-        , *GetFullName()
-        )
+        , "{}: AOrbit::SpawnSplineMesh: SMSplineMesh null, skipping"
+        , GetFName()
+        );
         return;
     }
     if(!SplineMeshMaterial)
     {
-        UE_LOG
+        UE_LOGFMT
         ( LogMyGame
         , Warning
-        , TEXT("%s: AOrbit::SpawnSplineMesh: MSplineMesh null, skipping")
-        , *GetFullName()
-        )
+        , "{}: AOrbit::SpawnSplineMesh: MSplineMesh null, skipping"
+        , GetFName()
+        );
         return;
     }
 
@@ -941,12 +942,12 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         }
         else
         {
-            UE_LOG
+            UE_LOGFMT
                 ( LogMyGame
                 , Warning
-                , TEXT("%s: PostEditChangedChainProperty: body invalid")
-                , *GetFullName()
-                )
+                , "{}: PostEditChangedChainProperty: body invalid"
+                , GetFName()
+                );
         }
     }
 }

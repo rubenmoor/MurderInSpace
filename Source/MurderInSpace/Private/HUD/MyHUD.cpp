@@ -12,10 +12,12 @@
 #include "Components/CanvasPanelSlot.h"
 #include "HUD/UW_HUD.h"
 #include "HUD/UW_MenuInGame.h"
+#include "Logging/StructuredLog.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Menu/UW_MenuBackground.h"
 #include "Menu/UW_Settings.h"
 #include "Modes/MyPlayerController.h"
+#include "Modes/MyState.h"
 
 #if WITH_EDITOR
 #include "Editor.h"
@@ -40,25 +42,25 @@ void AMyHUD::SetReadyFlags(EHUDReady ReadyFlags)
 	HUDReady |= ReadyFlags;
 	if(HUDReady == EHUDReady::All)
 	{
-		UE_LOG
+		UE_LOGFMT
 			( LogMyGame
 			, Display
-			, TEXT("%s: HUD ready")
-			, *GetFullName()
-			)
+			, "{0}: HUD ready"
+			, GetFName()
+			);
 		SetActorTickEnabled(true);
 	}
 	else
 	{
-		UE_LOG
+		UE_LOGFMT
 			( LogMyGame
 			, Display
-			, TEXT("%s: Internal %s, Orbit %s, Pawn->GetOrbit %s")
-			, *GetFullName()
+			, "{0}: Internal {1}, Orbit {2}, Pawn->GetOrbit {3}"
+			, GetFName()
 			, !(HUDReady & EHUDReady::InternalReady ) ? TEXT("waiting") : TEXT("ready")
-			, !(HUDReady & EHUDReady::OrbitReady) ? TEXT("waiting") : TEXT("ready")
-			, !(HUDReady & EHUDReady::PawnOrbitReady    ) ? TEXT("waiting") : TEXT("ready")
-			)
+			, !(HUDReady & EHUDReady::OrbitReady    ) ? TEXT("waiting") : TEXT("ready")
+			, !(HUDReady & EHUDReady::PawnOrbitReady) ? TEXT("waiting") : TEXT("ready")
+			);
 	}
 }
 
@@ -68,7 +70,7 @@ void AMyHUD::SetOrbitMaterial(UTextureRenderTarget2D* InRenderTarget)
 	MIOrbit->SetTextureParameterValue("RenderTarget", InRenderTarget);
 	WidgetHUD->ImgOrbit->SetBrushFromMaterial(MIOrbit);
 	const FSlateBrush SlateBrush = WidgetHUD->ImgOrbit->Brush;
-	UE_LOG(LogMyGame, Warning, TEXT("%s"), *SlateBrush.GetResourceName().ToString())
+	UE_LOGFMT(LogMyGame, Warning, "{0}", SlateBrush.GetResourceName());
 	
 	//FSlateBrush SlateBrush;
 	//SlateBrush.DrawAs = ESlateBrushDrawType::Image;
@@ -91,7 +93,7 @@ void AMyHUD::BeginPlay()
 	const AMyPlayerController* PC = Cast<AMyPlayerController>(GetOwningPlayerController());
 	if(!PC)
 	{
-		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginPlay: no player controller"), *GetFullName())
+		UE_LOGFMT(LogMyGame, Warning, "{0}: BeginPlay: no player controller", GetFName());
 		bHasProblems = true;
 	}
 	
@@ -100,14 +102,9 @@ void AMyHUD::BeginPlay()
 	MyCharacter = Cast<AMyCharacter>(GetOwningPawn());
 	if(!IsValid(MyCharacter))
 	{
-		UE_LOG(LogMyGame, Warning, TEXT("%s: BeginPlay: no pawn"), *GetFullName())
+		UE_LOGFMT(LogMyGame, Warning, "{0}: BeginPlay: no pawn", GetFName());
 		bHasProblems = true;
 	}
-	// at BeginPlay, the orbit hasn't replicated to the client yet,
-	//else if(MyCharacter->Children.IsEmpty())
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("%s: BeginPlay: orbit actor null"), *GetFullName())
-	//}
 
 	UGameInstance* GI = GetGameInstance();
 	
@@ -124,7 +121,7 @@ void AMyHUD::BeginPlay()
 	}
 	else
 	{
-		UE_LOG(LogMyGame, Error, TEXT("%s: WidgetHUDClass null"), *GetFullName())
+		UE_LOGFMT(LogMyGame, Error, "{0}: WidgetHUDClass null", GetFName());
 		bHasProblems = true;
 	}
 	// set up in-game menu
@@ -137,7 +134,7 @@ void AMyHUD::BeginPlay()
 	}
 	else
 	{
-		UE_LOG(LogMyGame, Error, TEXT("%s: WidgetInGameClass null"), *GetFullName())
+		UE_LOGFMT(LogMyGame, Error, "{0}: WidgetInGameClass null", GetFName());
 		bHasProblems = true;
 	}
 	// WidgetSettings is set in parent class
@@ -159,7 +156,7 @@ void AMyHUD::BeginPlay()
 	}
 	else
 	{
-		UE_LOG(LogMyGame, Error, TEXT("%s: there were problems, not ticking"), *GetFullName())
+		UE_LOGFMT(LogMyGame, Error, "{0}: there were problems, not ticking", GetFName());
 	}
 }
 
@@ -214,7 +211,7 @@ void AMyHUD::Tick(float DeltaSeconds)
 		if(!PC->ProjectWorldLocationToScreen(VecF1InViewportPlane, ScreenLocation))
 		{
 			// If the manual projection fails, too, we're out of options
-			UE_LOG(LogMyGame, Error, TEXT("AMyHUD::Tick: couldn't project Center of mass to screen"))
+			UE_LOGFMT(LogMyGame, Error, "AMyHUD::Tick: couldn't project Center of mass to screen");
 		}
 		// only we have to make sure that this manually conceived screen location doesn't accidentally
 		// end up on screen

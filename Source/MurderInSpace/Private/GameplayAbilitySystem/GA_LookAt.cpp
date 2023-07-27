@@ -11,7 +11,10 @@ UGA_LookAt::UGA_LookAt()
 {
     const auto Tag = FMyGameplayTags::Get();
     InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
+    
     AbilityTags.AddTag(Tag.AbilityLookAt);
+    AbilityTags.AddTag(Tag.InputBindingAbilityLookAt);
+    
     // cancel any active LookAt ability
     CancelAbilitiesWithTag.AddTag(Tag.AbilityLookAt);
 }

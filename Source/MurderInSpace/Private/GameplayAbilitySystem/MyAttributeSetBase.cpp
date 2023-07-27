@@ -16,7 +16,7 @@ void UMyAttributeSetBase::PostInitProperties()
     auto* Settings = GetDefault<UMyDeveloperSettings>();
     if(Settings->InitialAttributeValues.IsNull())
     {
-        UE_LOG(LogMyGame, Error, TEXT("%s: Data Table initial attribute values: not set; can't load defaults"), *GetFullName())
+        UE_LOGFMT(LogMyGame, Error, "{0}: Data Table initial attribute values: not set; can't load defaults", GetFName());
     }
     else
     {
@@ -56,7 +56,7 @@ void UMyAttributeSetBase::PostInitProperties()
 			}
 			else
 			{
-				UE_LOGFMT(LogMyGame, Error, "{THIS}: missing attribute initial value for {ATTR}", GetFullName(), RowNameStr);
+				UE_LOGFMT(LogMyGame, Error, "{0}: missing attribute initial value for {1}", GetFName(), RowNameStr);
 			}
 		}
     }

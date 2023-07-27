@@ -84,7 +84,7 @@ void AMyPawn::Tick(float DeltaSeconds)
 		const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
 		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics);
 	}
-	else if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AbilityMoveTowardsCircle))
+	else if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AccelerationMoveTowardsCircle))
 	{
 		const float AccelerationSI = AttrSetAcceleration->AccelerationSIMax.GetCurrentValue();
 		const auto VecVCircle = RP_Orbit->GetCircleVelocity(Physics);

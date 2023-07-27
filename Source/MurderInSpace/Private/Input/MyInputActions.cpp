@@ -15,5 +15,6 @@ void UMyInputActions::RefreshMyInputActions()
         auto* Asset = Cast<UMyInputActionSet>(AssetDatum.GetAsset());
         Map.Add(Asset->GetFName(), Asset);
     }
+    GetPackage()->MarkPackageDirty();
 }
 #endif

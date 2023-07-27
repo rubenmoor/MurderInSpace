@@ -6,6 +6,7 @@
 #include "OnlineSubsystemUtils.h"
 #include "OnlineSessionSettings.h"
 #include "HUD/MyHUDMenu.h"
+#include "Logging/StructuredLog.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyLocalPlayer.h"
 #include "Modes/MyPlayerState.h"
@@ -35,12 +36,12 @@ bool UMySessionManager::CreateSession(const FLocalPlayerContext& LPC, FHostSessi
 
 	if(SI->GetNamedSession(NAME_GameSession))
 	{
-		UE_LOG
+		UE_LOGFMT
 			( LogNet
 			, Warning
-			, TEXT("%s: Destroying existing session")
-			, *GetFullName()
-			)
+			, "{}: Destroying existing session"
+			, GetFName()
+			);
 		LeaveSession([this, Callback, LPC] (FName SessionName, bool bSuccess)
 		{
 			if(bSuccess)
@@ -60,7 +61,7 @@ bool UMySessionManager::CreateSession(const FLocalPlayerContext& LPC, FHostSessi
 
 	if(SI->OnCreateSessionCompleteDelegates.IsBound())
 	{
-		UE_LOG(LogNet, Warning, TEXT("%s: OnCreateSessionCompleteDelegates: was bound, clearing"), *GetFullName())
+		UE_LOGFMT(LogNet, Warning, "{}: OnCreateSessionCompleteDelegates: was bound, clearing", GetFName());
 		SI->OnCreateSessionCompleteDelegates.Clear();
 	}
 	// debugging: create session without subsequent call to StartSession
@@ -73,7 +74,7 @@ bool UMySessionManager::CreateSession(const FLocalPlayerContext& LPC, FHostSessi
 		{
 			 if(!StartSession(Callback))
 			 {
-			 	UE_LOG(LogNet, Error, TEXT("%s: couldn't start session"), *GetFullName())
+			 	UE_LOGFMT(LogNet, Error, "{}: couldn't start session", GetFName());
 			 	Callback(SessionName, false);
 			 }
 		}
@@ -94,7 +95,7 @@ void UMySessionManager::LeaveSession(std::function<void(FName, bool)> Callback)
 	{
 		if(SI->OnDestroySessionCompleteDelegates.IsBound())
 		{
-			UE_LOG(LogNet, Warning, TEXT("%s: OnDestroySessionCompleteDelegates: was bound, clearing"), *GetFullName())
+			UE_LOGFMT(LogNet, Warning, "{}: OnDestroySessionCompleteDelegates: was bound, clearing", GetFName());
 			SI->OnDestroySessionCompleteDelegates.Clear();
 		}
 		SI->OnDestroySessionCompleteDelegates.AddLambda([this, SI, Callback] (FName SessionName, bool bSuccess)
@@ -103,12 +104,12 @@ void UMySessionManager::LeaveSession(std::function<void(FName, bool)> Callback)
 			// Unfortunately, I regularly encounter the case where `bSuccess` is true, but the session isn't destroyed.
 			if(SI->GetNamedSession(NAME_GameSession))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("%s: Failed to destroy session, trying again ..."), *GetFullName())
+				UE_LOGFMT(LogTemp, Warning, "{}: Failed to destroy session, trying again ...", GetFName());
 				SI->DestroySession(NAME_GameSession);
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("%s: Session destroyed."), *GetFullName())
+				UE_LOGFMT(LogTemp, Warning, "{}: Session destroyed.", GetFName());
 				Callback(SessionName, bSuccess);
 			}
 		});
@@ -129,7 +130,7 @@ bool UMySessionManager::StartSession(std::function<void(FName, bool)> Callback)
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	if(SI->OnStartSessionCompleteDelegates.IsBound())
 	{
-		UE_LOG(LogNet, Warning, TEXT("%s: OnStartSessionCompleteDelegates: was bound, clearing"), *GetFullName())
+		UE_LOGFMT(LogNet, Warning, "{}: OnStartSessionCompleteDelegates: was bound, clearing", GetFName());
 		SI->OnStartSessionCompleteDelegates.Clear();
 	}
 	SI->OnStartSessionCompleteDelegates.AddLambda(Callback);
@@ -146,7 +147,7 @@ bool UMySessionManager::FindSessions(const FLocalPlayerContext& LPC, std::functi
 
 	if(SI->OnFindSessionsCompleteDelegates.IsBound())
 	{
-		UE_LOG(LogNet, Warning, TEXT("%s: OnFindSessionsCompleteDelegates: was bound, clearing"), *GetFullName())
+		UE_LOGFMT(LogNet, Warning, "{}: OnFindSessionsCompleteDelegates: was bound, clearing", GetFName());
 		SI->OnFindSessionsCompleteDelegates.Clear();
 	}
 	SI->OnFindSessionsCompleteDelegates.AddLambda(Callback);
@@ -158,12 +159,12 @@ bool UMySessionManager::JoinSession(const FLocalPlayerContext& LPC, const FOnlin
 	const IOnlineSessionPtr SI = GetSessionInterface();
 	if(SI->GetNamedSession(NAME_GameSession))
 	{
-		UE_LOG
+		UE_LOGFMT
 			( LogNet
 			, Warning
-			, TEXT("%s: Destroying existing session")
-			, *GetFullName()
-			)
+			, "{}: Destroying existing session"
+			, GetFName()
+			);
 		LeaveSession([this, Callback, LPC, Result] (FName SessionName, bool bSuccess)
 		{
 			if(bSuccess)
@@ -183,7 +184,7 @@ bool UMySessionManager::JoinSession(const FLocalPlayerContext& LPC, const FOnlin
 	
 	if(SI->OnJoinSessionCompleteDelegates.IsBound())
 	{
-		UE_LOG(LogNet, Warning, TEXT("%s: OnJoinSessionCompleteDelegates: was bound, clearing"), *GetFullName())
+		UE_LOGFMT(LogNet, Warning, "{}: OnJoinSessionCompleteDelegates: was bound, clearing", GetFName());
 		SI->OnJoinSessionCompleteDelegates.Clear();
 	}
 	SI->OnJoinSessionCompleteDelegates.AddLambda(Callback);
@@ -230,19 +231,19 @@ void UMySessionManager::Initialize(FSubsystemCollectionBase& Collection)
 	
 	if(OSSIdentity->OnLoginCompleteDelegates->IsBound())
 	{
-		UE_LOG(LogNet, Warning, TEXT("%s: OnLoginCompleteDelegates: was bound, clearing"), *GetFullName())
+		UE_LOGFMT(LogNet, Warning, "{}: OnLoginCompleteDelegates: was bound, clearing", GetFName());
 		OSSIdentity->OnLoginCompleteDelegates->Clear();
 	}
 	OSSIdentity->OnLoginCompleteDelegates->AddLambda([this] (int32 LocalUserNum, bool bSuccess, const FUniqueNetId& NewUNI, const FString& Error)
 	{
-		UE_LOG
+		UE_LOGFMT
 			( LogNet
 			, Display
-			, TEXT("%s: Login of player num %d: %s")
-			, *GetFullName()
+			, "{}: Login of player num {}: {}"
+			, GetFName()
 			, LocalUserNum
-			, bSuccess ? TEXT("success") : TEXT("failure")
-			)
+			, bSuccess
+			);
 
 		UMyLocalPlayer* LocalPlayer = Cast<UMyLocalPlayer>(GetGameInstance()->GetLocalPlayerByIndex(LocalUserNum));
 		AMyHUDMenu* HUDMenu = LocalPlayer->GetPlayerController(GetWorld())->GetHUD<AMyHUDMenu>();
@@ -268,7 +269,7 @@ void UMySessionManager::Initialize(FSubsystemCollectionBase& Collection)
 	
 	if(OSSIdentity->OnLogoutCompleteDelegates->IsBound())
 	{
-		UE_LOG(LogNet, Warning, TEXT("%s: OnLogoutCompleteDelegates: was bound, clearing"), *GetFullName())
+		UE_LOGFMT(LogNet, Warning, "{}: OnLogoutCompleteDelegates: was bound, clearing", GetFName());
 		OSSIdentity->OnLogoutCompleteDelegates->Clear();
 	}
 	OSSIdentity->OnLogoutCompleteDelegates->AddLambda([this] (int32 PlayerNum, bool bSuccess)
@@ -277,14 +278,14 @@ void UMySessionManager::Initialize(FSubsystemCollectionBase& Collection)
 		{
 			Cast<UMyLocalPlayer>(GetGameInstance()->GetLocalPlayerByIndex(PlayerNum))->IsLoggedIn = false;
 		}
-		UE_LOG
+		UE_LOGFMT
 			( LogNet
 			, Display
-			, TEXT("%s: Player %d log out: %s")
-			, *GetFullName()
+			, "{}: Player {} log out: {}"
+			, GetFName()
 			, PlayerNum
-			, bSuccess ? TEXT("success") : TEXT("failure")
-			)
+			, bSuccess
+			);
 	});
 }
 

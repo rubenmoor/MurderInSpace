@@ -7,6 +7,7 @@
 #include "OnlineSubsystem.h"
 #include "Blueprint/UserWidget.h"
 #include "Lib/FunctionLib.h"
+#include "Logging/StructuredLog.h"
 #include "Menu/UW_HostGame.h"
 #include "Menu/UW_LoadingScreen.h"
 #include "Menu/UW_MenuMain.h"
@@ -35,7 +36,7 @@ void AMyHUDMenu::BeginPlay()
 
 	if(!WidgetMenuMainClass)
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: WidgetMainMenuClass null"), *GetFullName())
+		UE_LOGFMT(LogSlate, Error, "{0}: WidgetMainMenuClass null", GetFName());
 		return;
 	}
 
@@ -46,7 +47,7 @@ void AMyHUDMenu::BeginPlay()
 
 	if(!WidgetMenuSoloClass)
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: WidgetMenuMultiplayerClass null"), *GetFullName())
+		UE_LOGFMT(LogSlate, Error, "{0}: WidgetMenuMultiplayerClass null", GetFName());
 		return;
 	}
 	WidgetMenuSolo = CreateWidget<UUW_MenuSolo>(GI, WidgetMenuSoloClass, "Menu Solo");
@@ -57,7 +58,7 @@ void AMyHUDMenu::BeginPlay()
 
 	if(!WidgetMenuMultiplayerClass)
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: WidgetMenuMultiplayerClass null"), *GetFullName())
+		UE_LOGFMT(LogSlate, Error, "{0}: WidgetMenuMultiplayerClass null", GetFName());
 		return;
 	}
 	WidgetMenuMultiplayer = CreateWidget<UUW_MenuMultiPlayer>(GI, WidgetMenuMultiplayerClass, "Menu Multiplayer");
@@ -68,12 +69,12 @@ void AMyHUDMenu::BeginPlay()
 	
 	if(!IsValid(WidgetServerListClass))
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: WidgetServerListClass null"), *GetFullName())
+		UE_LOGFMT(LogSlate, Error, "{0}: WidgetServerListClass null", GetFName());
 		return;
 	}
 	if(!IsValid(WidgetServerRowClass))
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: WidgetServerRowClass null"), *GetFullName())
+		UE_LOGFMT(LogSlate, Error, "{0}: WidgetServerRowClass null", GetFName());
 	}
 
 	WidgetServerList = CreateWidget<UUW_ServerList>(GI, WidgetServerListClass, "Server List");
@@ -84,7 +85,7 @@ void AMyHUDMenu::BeginPlay()
 	
 	if(!IsValid(WidgetHostGameClass))
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: WidgetHostGameClass null"), *GetFullName())
+		UE_LOGFMT(LogSlate, Error, "{0}: WidgetHostGameClass null", GetFName());
 		return;
 	}
 	WidgetHostGame = CreateWidget<UUW_HostGame>(GI, WidgetHostGameClass, "Host Game");
@@ -95,7 +96,7 @@ void AMyHUDMenu::BeginPlay()
 	
 	if(!IsValid(WidgetLoadingScreenClass))
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetLoadingScreenClass null"), *GetFullName())
+		UE_LOGFMT(LogSlate, Error, "{0}: UMGWidgetLoadingScreenClass null", GetFName());
 		return;
 	}
 	WidgetLoadingScreen = CreateWidget<UUW_LoadingScreen>(GI, WidgetLoadingScreenClass, "Loading Screen");
@@ -104,7 +105,7 @@ void AMyHUDMenu::BeginPlay()
 
 	if(!IsValid(WidgetMessageClass))
 	{
-		UE_LOG(LogSlate, Error, TEXT("%s: UMGWidgetMessageClass null"), *GetFullName())
+		UE_LOGFMT(LogSlate, Error, "{0}: UMGWidgetMessageClass null", GetFName());
 		return;
 	}
 	WidgetMessage = CreateWidget<UUW_Message>(GI, WidgetMessageClass, "Message");
@@ -132,7 +133,7 @@ void AMyHUDMenu::ServerListRefresh()
 				// debugging
 				if(!IsValid(this))
 				{
-					UE_LOG(LogMyGame, Warning, TEXT("%s: 'this' invalid"))
+					UE_LOGFMT(LogMyGame, Warning, "'this' invalid");
 					return;
 				}
 				WidgetServerList->SetBtnRefreshEnabled(true);
@@ -245,12 +246,12 @@ void AMyHUDMenu::ServerListUpdate()
 			}
 			else
 			{
-				UE_LOG
+				UE_LOGFMT
 				( LogNet
 				, Error
-				, TEXT("%s: couldn't determine whether session is private or public")
-				, *GetFullName()
-				)
+				, "{0}: couldn't determine whether session is private or public"
+				, GetFName()
+				);
 			}
 			Row->SetPlayerNumbers(NumPlayers, MaxNumPlayers);
 			Row->OnIsSelectedChanged().AddLambda([this, i] (bool InIsSelected)

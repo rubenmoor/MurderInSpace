@@ -1,5 +1,7 @@
 #include "HUD/MyCommonButton.h"
 
+#include "Logging/StructuredLog.h"
+
 void UMyCommonButton::NativeOnCurrentTextStyleChanged()
 {
 	Super::NativeOnCurrentTextStyleChanged();
@@ -33,12 +35,12 @@ void UMyCommonButton::SynchronizeProperties()
 	Super::SynchronizeProperties();
 	if(!TextBlockLabel)
 	{
-		UE_LOG
+		UE_LOGFMT
 			( LogSlate
 			, Warning
-			, TEXT("%s: UMyCommonButton::SynchronizeProperties: TextBlockLabel null, skipping")
-			, *GetFullName()
-			)
+			, "{0}: UMyCommonButton::SynchronizeProperties: TextBlockLabel null, skipping"
+			, GetFName()
+			);
 		return;
 	}
 	TextBlockLabel->SetText(Label);

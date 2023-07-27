@@ -8,6 +8,8 @@
 
 #include "MyPlayerController.generated.h"
 
+class UEnhancedInputComponent;
+struct FGameplayTagContainer;
 class UMyInputActionSet;
 class UMyInputActions;
 class UMyAbilitySystemComponent;
@@ -73,10 +75,10 @@ public:
 	FShowAllOrbitsDelegate ShowAllOrbitsDelegate;
 
 	UFUNCTION(BlueprintCallable)
-	FHighlight GetHovered() { return Hovered; }
+	FHighlight GetHovered() const { return Hovered; }
 	
 	UFUNCTION(BlueprintCallable)
-	FHighlight GetSelected() { return Selected; }
+	FHighlight GetSelected() const { return Selected; }
 	
 	UFUNCTION(BlueprintCallable)
 	UEnhancedInputComponent* GetInputComponent();
@@ -124,11 +126,6 @@ protected:
 	//void LocallyHandleAction(EInputAction Action, const FInputActionInstance& IAInstance);
 
 	// private members
-
-	// input mapping context: in-game
-	// TODO: deprecated
-	UPROPERTY(EditAnywhere)
-	TSoftObjectPtr<UInputMappingContext> IMC_InGame;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UMyInputActions> MyInputActions;

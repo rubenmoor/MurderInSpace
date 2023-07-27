@@ -48,7 +48,7 @@ void AMyDebris::Tick(float DeltaSeconds)
 	Age += DeltaSeconds;
 	if(Age >= Lifetime)
 	{
-		//UE_LOG(LogMyGame, Warning, TEXT("%s: TicK: Died of age. Age: %f, Lifetime: %f"), *GetFullName(), Age, Lifetime)
+		//UE_LOG(LogMyGame, Warning, TEXT("%s: TicK: Died of age. Age: %f, Lifetime: %f"), *GetFName(), Age, Lifetime)
 		Destroy();
 		return;
 	}

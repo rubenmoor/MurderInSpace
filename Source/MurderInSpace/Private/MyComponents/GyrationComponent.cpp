@@ -1,6 +1,7 @@
 #include "MyComponents/GyrationComponent.h"
 
 #include "Actors/IHasMesh.h"
+#include "Logging/StructuredLog.h"
 #include "Modes/MyGameState.h"
 #include "Modes/MyState.h"
 #include "Net/UnrealNetwork.h"
@@ -16,7 +17,7 @@ void UGyrationComponent::FreezeState()
 {
     if(!GetOwner<IHasMesh>())
     {
-        UE_LOG(LogTemp, Error, TEXT("GetOwner<IHasMesh>() invalid: %s"), *GetOwner()->GetFullName())
+        UE_LOGFMT(LogTemp, Error, "GetOwner<IHasMesh>() invalid: {}", GetOwner()->GetFName());
     }
     else
     {
@@ -40,7 +41,7 @@ void UGyrationComponent::GyrationSetup()
 
     if(GetOwnerRole() == ROLE_Authority)
     {
-        checkf(GetOwner()->Implements<UHasGyration>(), TEXT("%s: missing interface: IHasGyration"), *GetFullName())
+        checkf(GetOwner()->Implements<UHasGyration>(), TEXT("%s: missing interface: IHasGyration"), *GetFName().ToString())
         // TODO: curve look-up
         const FVector Omega = GetOwner<IHasGyration>()->GetInitialOmega();
         RP_VecL = Omega * VecInertia.Length();

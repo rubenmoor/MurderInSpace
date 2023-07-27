@@ -2,7 +2,9 @@
 
 #include "Actors/MyPlayerStart.h"
 #include "Kismet/GameplayStatics.h"
+#include "Logging/StructuredLog.h"
 #include "Modes/MyPlayerController.h"
+#include "Modes/MyState.h"
 
 #if WITH_EDITOR
 #include "Editor.h"
@@ -46,12 +48,12 @@ AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	});
 	if(Unoccupied.IsEmpty())
 	{
-		UE_LOG
+		UE_LOGFMT
 			( LogNet
 			, Error
-			, TEXT("%s: Many players, few Player Starts, you can't join.")
-			, *GetFullName()
-			)
+			, "{0}: Many players, few Player Starts, you can't join."
+			, GetFName()
+			);
 		Cast<AMyPlayerController>(Player)->ClientRPC_LeaveSession();
 		return Starts.IsEmpty() ? nullptr : Starts[0];
 	}
@@ -68,14 +70,14 @@ AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	auto PlayerStart = Cast<AMyPlayerStart>(StartActor);
 	PlayerStart->bIsOccupied = true;
 	
-	UE_LOG
+	UE_LOGFMT
 		( LogMyGame
 		, Display
-		, TEXT("Player %d gets Start %d: %s")
+		, "Numplayers: {0}, {1} gets Start {2}"
 		, NumPlayers
-		, NumPlayers
-		, *StartActor->GetName()
-		)
+		, Player->GetFName()
+		, PlayerStart->GetFName()
+		);
 	Cast<AMyPlayerController>(Player)->MyPlayerStart = PlayerStart;
 	return StartActor;
 }

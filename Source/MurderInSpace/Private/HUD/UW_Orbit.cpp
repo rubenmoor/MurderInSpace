@@ -23,7 +23,7 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
     auto* PC = Cast<AMyPlayerController>(GetOwningPlayer());
     if(!IsValid(PC))
     {
-        UE_LOGFMT(LogMyGame, Error, "{THIS}: {FUNCTION}: Player Controller invalid, shouldn't be ticking", *GetFullName(), __FUNCTION__);
+        UE_LOGFMT(LogMyGame, Error, "{THIS}: {FUNCTION}: Player Controller invalid, shouldn't be ticking", GetFName(), __FUNCTION__);
         return LayerId;
     }
     const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());

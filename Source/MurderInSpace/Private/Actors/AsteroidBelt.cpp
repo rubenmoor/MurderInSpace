@@ -4,6 +4,7 @@
 #include "Actors/DynamicAsteroid.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Logging/StructuredLog.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
 
@@ -39,18 +40,18 @@ void AAsteroidBelt::Destroyed()
         {
             if(!Asteroids[0]->Destroy())
             {
-                UE_LOG(LogMyGame, Warning, TEXT("%s: Destroyed: Failed to destroy asteroid %s.")
-                    , *GetFullName()
-                    , *Asteroids[0]->GetName()
-                    )
+                UE_LOGFMT(LogMyGame, Warning, "{0}: Destroyed: Failed to destroy asteroid {1}."
+                    , GetFName()
+                    , Asteroids[0]->GetName()
+                    );
                 Asteroids.RemoveAt(0);
             }
         }
         else
         {
             Asteroids.RemoveAt(0);
-            UE_LOG(LogMyGame, Warning, TEXT("%s: invalid asteroid in Asteroids. Removing from array")
-                , *GetFullName())
+            UE_LOGFMT(LogMyGame, Warning, "{0}: invalid asteroid in Asteroids. Removing from array"
+                , GetFName());
         }
     }
 }

@@ -7,6 +7,7 @@
 #include "HUD/MyHUDMenu.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Logging/StructuredLog.h"
 #include "Modes/MySessionManager.h"
 #include "Modes/MyLocalPlayer.h"
 
@@ -38,7 +39,7 @@ void UMyGameInstance::HostGame(const FLocalPlayerContext& LPC)
 					( "CreateSessionOnlineSubsystemFailure", "the online subsystem returned with failure")
 					, [&LPC] () { LPC.GetHUD<AMyHUDMenu>()->MenuMainShow(); }
 					);
-				UE_LOG(LogNet, Error, TEXT("%s: create session call returned with failure"), *GetFullName())
+				UE_LOGFMT(LogNet, Error, "{}: create session call returned with failure", GetFName());
 			}
 		});
 	
@@ -58,7 +59,7 @@ void UMyGameInstance::HostGame(const FLocalPlayerContext& LPC)
 			( "CreateSessionReturnedFailure", "call to create session returned failure" )
 			, [HUDMenu] () { HUDMenu->MenuMainShow(); }
 			);
-		UE_LOG(LogNet, Error, TEXT("%s: couldn't create session"), *GetFullName())
+		UE_LOGFMT(LogNet, Error, "{}: couldn't create session", GetFName());
 	}
 }
 
@@ -92,7 +93,7 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 	FLocalPlayerContext LPC = FLocalPlayerContext(LocalPlayer);
 	return GetSubsystem<UMySessionManager>()->JoinSession(LPC, SearchResult, [this, LPC] (FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 	{
-		const std::function GotoServerList = [LPC] ()
+		const std::function GotoServerList = [this, LPC] ()
 		{
 			AMyHUDMenu* HUDMenu = LPC.GetHUD<AMyHUDMenu>();
 			if(IsValid(HUDMenu))
@@ -101,7 +102,7 @@ bool UMyGameInstance::JoinSession(ULocalPlayer* LocalPlayer, const FOnlineSessio
 			}
 			else
 			{
-				UE_LOG(LogNet, Warning, TEXT("%s: OnJoinSessionComplete/GotoServerList: Menu HUD invalid."))
+				UE_LOGFMT(LogNet, Warning, "{}: OnJoinSessionComplete/GotoServerList: Menu HUD invalid.", GetFName());
 			}
 		};
 

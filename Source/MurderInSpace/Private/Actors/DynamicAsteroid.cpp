@@ -7,6 +7,8 @@
 #include "FastNoiseWrapper.h"
 #include "ProceduralMeshComponent.h"
 #include "Actors/AsteroidBelt.h"
+#include "Logging/StructuredLog.h"
+#include "Modes/MyState.h"
 #include "Net/UnrealNetwork.h"
 
 ADynamicAsteroid::ADynamicAsteroid()
@@ -198,7 +200,7 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
 
     if(AsteroidTypes.IsEmpty())
     {
-        UE_LOG(LogMyGame, Warning, TEXT("%s: AsteroidTypes empty"), *GetFullName())
+        UE_LOGFMT(LogMyGame, Warning, "{0}: AsteroidTypes empty", GetFName());
     }
     else
     {
@@ -206,7 +208,7 @@ void ADynamicAsteroid::OnGenerateMesh_Implementation()
         {
             if(!IsValid(AsteroidType.Material))
             {
-                UE_LOG(LogMyGame, Warning, TEXT("%s: Invalid material in AsteroidTypes"), *GetFullName())
+                UE_LOGFMT(LogMyGame, Warning, "{0}: Invalid material in AsteroidTypes", GetFName());
             }
         }
         auto [MaterialInstance, CoR] = SelectAsteroidType();
@@ -303,7 +305,7 @@ FSelectedAsteroidType ADynamicAsteroid::SelectAsteroidType()
     }
     if(ValidAsteroidTypes.IsEmpty())
     {
-        UE_LOG(LogMyGame, Warning, TEXT("%s: No valid material in Materials"), *GetFullName())
+        UE_LOGFMT(LogMyGame, Warning, "{0}: No valid material in Materials", GetFName());
         return {};
     }
     return ValidAsteroidTypes[RandomStream.RandRange(0, ValidAsteroidTypes.Num() - 1)];

@@ -176,19 +176,16 @@ void AMyPlayerController::Tick(float DeltaSeconds)
         return;
     }
     
-    if(MyPlayer->GetIsInMainMenu())
-    {
-        return;
-    }
     // react to mouse movement
     
     // hovering
     FHitResult HitResult;
     GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
     auto* Body = HitResult.GetActor();
-    if (   HitResult.IsValidBlockingHit()
+    if  (  HitResult.IsValidBlockingHit()
         && Body->Implements<UHasOrbit>()
         && Body->Implements<UHasMesh>()
+        && Body != GetPawn()
         )
     {
         if(IsValid(Hovered.Orbit))
@@ -215,7 +212,7 @@ void AMyPlayerController::Tick(float DeltaSeconds)
     // reacting to mouse movement
     const FVector VecMouseDirection = GetMouseDirection();
     const FQuat Quat = FQuat::FindBetween(FVector::UnitX(), VecMouseDirection);
-    AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
+    auto MyCharacter = GetPawn<AMyCharacter>();
     if
         (  MyCharacter->RP_ActionState.State == EActionState::Idle
         || MyCharacter->RP_ActionState.State == EActionState::RotatingCW
@@ -298,7 +295,7 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
         , EGameplayTagEventType::NewOrRemoved
         ).AddLambda([this, Orbit] (const FGameplayTag Tag, int32 Count)
         {
-            UE_LOGFMT(LogMyGame, Display, "{THIS} Tag changed: {TAG}, new count: {COUNT}", GetFullName(), Tag.GetTagName(), Count);
+            UE_LOGFMT(LogMyGame, Display, "{THIS} Tag changed: {TAG}, new count: {COUNT}", GetFName(), Tag.GetTagName(), Count);
             if(Count == 0)
             {
                 Orbit->FreezeOrbitState();
@@ -330,11 +327,11 @@ void AMyPlayerController::AcknowledgePossession(APawn* P)
     }
     else
     {
-        UE_LOG
-            (LogNet, Warning, TEXT("%s: Couldn't determine current level: %s, setting to 'any test map'")
-            , *GetFullName()
-            , *LevelName
-            )
+        UE_LOGFMT
+            (LogNet, Warning, "{0}: Couldn't determine current level: {0}, setting to 'any test map'"
+            , GetFName()
+            , LevelName
+            );
         CurrentLevel = ECurrentLevel::AnyTestMap;
     }
     auto* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
@@ -346,11 +343,6 @@ void AMyPlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
-    if(IMC_InGame.IsNull())
-    {
-        UE_LOG(LogMyGame, Error, TEXT("%s: IMC_InGame1 null"), *GetFullName())
-    }
-    
     const FInputModeGameAndUI InputModeGameAndUI;
     SetInputMode(InputModeGameAndUI);
 }
@@ -365,7 +357,11 @@ void AMyPlayerController::RunCustomInputAction(FGameplayTag CustomBindingTag, EI
          FHitResult HitResult;
          GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
 
-         if(HitResult.IsValidBlockingHit() && HitResult.GetActor()->Implements<UHasOrbit>())
+         if  (
+                HitResult.IsValidBlockingHit()
+             && HitResult.GetActor()->Implements<UHasOrbit>()
+             && HitResult.GetActor() != GetPawn()
+             )
          {
              auto* ClickedOrbit = Cast<IHasOrbit>(HitResult.GetActor())->GetOrbit();
              if(Selected.Orbit != ClickedOrbit)
@@ -390,10 +386,10 @@ void AMyPlayerController::RunCustomInputAction(FGameplayTag CustomBindingTag, EI
     // zoom
     else if(CustomBindingTag == Tag.InputBindingCustomZoom)
     {
-        const auto Delta = InputActionInstance.GetValue().Get<FInputActionValue::Axis1D>();
+        const auto Delta = static_cast<int8>(InputActionInstance.GetValue().Get<FInputActionValue::Axis1D>());
         if(abs(Delta) > 0)
         {
-            CameraPosition = std::clamp<int8>(CameraPosition - Delta, 0, MaxCameraPosition);
+            CameraPosition = std::clamp<uint8>(CameraPosition - Delta, 0, MaxCameraPosition);
             GetPawn<AMyCharacter>()->UpdateSpringArm(CameraPosition);
         }		
     }
@@ -401,7 +397,15 @@ void AMyPlayerController::RunCustomInputAction(FGameplayTag CustomBindingTag, EI
     // all orbits show/hide
     else if(CustomBindingTag == Tag.InputBindingCustomAllOrbitsShowHide)
     {
-        ShowAllOrbitsDelegate.Broadcast(InputActionInstance.GetValue().Get<bool>());
+        using enum EInputTrigger;
+        if(InputTrigger == Pressed || InputTrigger == Released)
+        {
+            ShowAllOrbitsDelegate.Broadcast(InputActionInstance.GetValue().Get<bool>());
+        }
+        else
+        {
+            UE_LOGFMT(LogMyGame, Warning, "{0} Unsupported trigger: {1}", GetFName(), UEnum::GetValueAsString(InputTrigger));
+        }
     }
 
     // my orbit show/hide

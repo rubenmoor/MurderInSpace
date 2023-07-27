@@ -16,12 +16,12 @@ class MURDERINSPACE_API UMyGameplayAbility : public UUE5CoroGameplayAbility
 {
 	GENERATED_BODY()
 
-protected:
-    bool bReleased = false;
-    
 public:
     void SetReleased() { bReleased = true; }
 
 protected:
     virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+    Private::FLatentAwaiter UntilReleased();
+
+    bool bReleased = false;
 };

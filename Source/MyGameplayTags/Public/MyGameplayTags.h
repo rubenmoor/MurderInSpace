@@ -24,14 +24,20 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags
     FGameplayTag AccelerationRotationalCCW;
     FGameplayTag AccelerationRotationalCW;
 
-    FGameplayTag Ability;
+    // TODO: what is this tag for?
+    FGameplayTag AccelerationMoveTowardsCircle;
+
+    FGameplayTag InputBindingAbility;
     // translational acceleration ability
-    FGameplayTag AbilityAccelerate;
+    FGameplayTag InputBindingAbilityAccelerate;
     // rotate to look at mouse ability
+    FGameplayTag InputBindingAbilityLookAt;
+    FGameplayTag InputBindingAbilityMoveTowardsCircle;
+    FGameplayTag InputBindingAbilityEmbrace;
+    FGameplayTag InputBindingAbilityKick;
+
+    FGameplayTag Ability;
     FGameplayTag AbilityLookAt;
-    FGameplayTag AbilityMoveTowardsCircle;
-    FGameplayTag AbilityEmbrace;
-    FGameplayTag AbilityKick;
 
 	FGameplayTag GiveInitiallyToMyPawn;
 

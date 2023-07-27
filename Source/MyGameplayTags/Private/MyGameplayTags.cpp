@@ -13,13 +13,18 @@ FMyGameplayTags::FMyGameplayTags()
 	AccelerationRotationalCCW      = GTM.AddNativeGameplayTag("Acceleration.Rotational.CCW");
 	AccelerationRotationalCW       = GTM.AddNativeGameplayTag("Acceleration.Rotational.CW");
 	
-	Ability                  = GTM.AddNativeGameplayTag("Ability");
-	AbilityAccelerate        = GTM.AddNativeGameplayTag("Ability.Accelerate");
-	AbilityLookAt            = GTM.AddNativeGameplayTag("Ability.LookAt");
-	AbilityMoveTowardsCircle = GTM.AddNativeGameplayTag("Ability.MoveTowardsCircle");
-	AbilityEmbrace           = GTM.AddNativeGameplayTag("Ability.Embrace");
-	AbilityKick              = GTM.AddNativeGameplayTag("Ability.Kick");
+    AccelerationMoveTowardsCircle  = GTM.AddNativeGameplayTag("Acceleration.MoveTowardsCircle");
+	
+	InputBindingAbility                  = GTM.AddNativeGameplayTag("InputBinding.Ability");
+	InputBindingAbilityAccelerate        = GTM.AddNativeGameplayTag("InputBinding.Ability.Accelerate");
+	InputBindingAbilityLookAt            = GTM.AddNativeGameplayTag("InputBinding.Ability.LookAt");
+	InputBindingAbilityMoveTowardsCircle = GTM.AddNativeGameplayTag("InputBinding.Ability.MoveTowardsCircle");
+	InputBindingAbilityEmbrace           = GTM.AddNativeGameplayTag("InputBinding.Ability.Embrace");
+	InputBindingAbilityKick              = GTM.AddNativeGameplayTag("InputBinding.Ability.Kick");
 
+    Ability       = GTM.AddNativeGameplayTag("Ability");
+    AbilityLookAt = GTM.AddNativeGameplayTag("Ability.LookAt");
+	
 	GiveInitiallyToMyPawn    = GTM.AddNativeGameplayTag("GiveTo.Initial.MyPawn");
 
 	GameplayCue              = GTM.AddNativeGameplayTag("GameplayCue");

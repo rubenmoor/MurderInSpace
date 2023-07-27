@@ -1,6 +1,7 @@
 #include "MyComponents/MyCollisionComponent.h"
 
 #include "Actors/IHasMesh.h"
+#include "Logging/StructuredLog.h"
 #include "Orbit/Orbit.h"
 #include "Modes/MyState.h"
 #include "Modes/MyGameInstance.h"
@@ -16,8 +17,8 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	auto* Other = HitResult.GetActor();
 	if(!IsValid(Other))
 	{
-		UE_LOG(LogMyGame, Error, TEXT("%s: Other actor invalid")
-			, *GetFullName())
+		UE_LOGFMT(LogMyGame, Error, "{0}: Other actor invalid"
+			, GetFName());
 		return;
 	}
 
@@ -25,7 +26,7 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	// {
 	// 	// TODO: too many hits are being ignored. have to distinguish between legitimately ignored hits and errors
 	// 	//UE_LOG(LogMyGame, Display, TEXT("%s: Ignoring blocking hit with %s")
-	// 	//	, *GetFullName()
+	// 	//	, *GetFName()
 	// 	//	, *Other->GetName()
 	// 	//	)
 	// 	return;
@@ -34,7 +35,7 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	if(HitResult.bStartPenetrating)
 	{
 		//UE_LOG(LogMyGame, Warning, TEXT("%s: bStartPenetrating, hit due to rotation")
-		//	, *GetFullName()
+		//	, *GetFName()
 		//	)
 		// TODO: deal with hit results due to rotation here
 		const FVector OldR = PrimitiveComponent->GetComponentLocation();
@@ -42,12 +43,12 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 		PrimitiveComponent->SetWorldLocation(OldR, true, &HitResult);
 		if(!HitResult.bBlockingHit)
 		{
-			UE_LOG(LogMyGame, Error, TEXT("%s: bStartPenetrating, no hit after correction"), *GetFullName())
+			UE_LOGFMT(LogMyGame, Error, "{0}: bStartPenetrating, no hit after correction", GetFName());
 			return;
 		}
 		else if(HitResult.bStartPenetrating)
 		{
-			UE_LOG(LogMyGame, Error, TEXT("%s: bStartPenetrating, start penetrating after correction"), *GetFullName())
+			UE_LOGFMT(LogMyGame, Error, "{0}: bStartPenetrating, start penetrating after correction", GetFName());
 			return;
 		}
 	}
@@ -56,7 +57,7 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	// In case two non-capsule shapes collide, I don't know what the value of 'Normal' would be
 
 	// UE_LOG(LogMyGame, Warning, TEXT("%s: Blocking hit with %s")
-	// 	, *GetFullName()
+	// 	, *GetFName()
 	// 	, *Other->GetName()
 	// 	)
 	
@@ -114,7 +115,7 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 
 double UMyCollisionComponent::GetMyMass()
 {
-	checkf(bMassInitialized || bOverrideMass, TEXT("%s: mass must be initialized, or overridden"), *GetFullName())
+	checkf(bMassInitialized || bOverrideMass, TEXT("%s: mass must be initialized, or overridden"), *GetFName().ToString())
 	const double Mass = bOverrideMass ? MassOverride : MyMass;
 	check(Mass != 0)
 	return Mass;
@@ -145,6 +146,6 @@ void UMyCollisionComponent::PostEditChangeChainProperty(FPropertyChangedChainEve
 void UMyCollisionComponent::UpdateMass(double Radius)
 {
 	MyMass = Density * pow(Radius, DensityExponent) * FPhysics::MassScaleFactor;
-	checkf(MyMass != 0., TEXT("%s: mass zero"), *GetFullName())
+	checkf(MyMass != 0., TEXT("%s: mass zero"), *GetFName().ToString())
 	bMassInitialized = true;
 }

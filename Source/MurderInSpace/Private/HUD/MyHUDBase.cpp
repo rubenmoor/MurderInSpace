@@ -13,6 +13,7 @@
 #include "HUD/MyHUD.h"
 #include "HUD/MyHUDMenu.h"
 #include "Lib/FunctionLib.h"
+#include "Logging/StructuredLog.h"
 #include "Menu/UW_MenuBackground.h"
 #include "Menu/UW_Settings.h"
 
@@ -82,7 +83,7 @@ void AMyHUDBase::BeginPlay()
     }
     else
     {
-        UE_LOG(LogMyGame, Error, TEXT("%s: WidgetSettingsClass null"), *GetFullName())
+        UE_LOGFMT(LogMyGame, Error, "{0}: WidgetSettingsClass null", GetFName());
     }
     
     if(IsValid(WidgetBackgroundClass))
@@ -100,7 +101,7 @@ void AMyHUDBase::BeginPlay()
     }
     else
     {
-        UE_LOG(LogMyGame, Error, TEXT("%s: WidgetBackgroundClass null"), *GetFullName())
+        UE_LOGFMT(LogMyGame, Error, "{0}: WidgetBackgroundClass null", GetFName());
     }
 }
 
@@ -123,7 +124,7 @@ void AMyHUDBase::HideViewportParentWidgets()
     }
     else
     {
-        UE_LOG(LogSlate, Warning, TEXT("AMyHUDBase: invalid HUD"))
+        UE_LOGFMT(LogSlate, Warning, "AMyHUDBase: invalid HUD");
     }
 }
 void AMyHUDBase::SettingsShow()

@@ -4,6 +4,7 @@
 #include "GameplayTagContainer.h"
 #include "Modes/MyPlayerController.h"
 #include "InputTriggers.h"
+#include "InputCoreTypes.h"
 
 #include "MyInputActionSet.generated.h"
 
@@ -22,7 +23,7 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSet<EInputTrigger> InputTriggers;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(Categories = "InputBinding"))
     FGameplayTagContainer InputActionTags;
 
     // create and bind an input action for every trigger in `InputTriggers`

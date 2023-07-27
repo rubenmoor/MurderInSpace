@@ -15,3 +15,16 @@ FAbilityCoroutine UMyGameplayAbility::ExecuteAbility(FGameplayAbilitySpecHandle 
     }
     co_await Latent::Until([this] { return bReleased; });
 }
+
+Private::FLatentAwaiter UMyGameplayAbility::UntilReleased()
+{
+    return Latent::Until([this] 
+        {
+            if(bReleased)
+            {
+                bReleased = false;
+                return true;
+            }
+           return false; 
+        });
+}
