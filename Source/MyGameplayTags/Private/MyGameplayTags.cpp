@@ -2,10 +2,10 @@
 
 #include "GameplayTagsManager.h"
 
-FMyGameplayTags::FMyGameplayTags()
-{
-	auto& GTM = UGameplayTagsManager::Get();
+DEFINE_LOG_CATEGORY(LogMyGameplayTags);
 
+FMyGameplayTags::FMyGameplayTags(UGameplayTagsManager& GTM)
+{
 	Acceleration                   = GTM.AddNativeGameplayTag("Acceleration");
 	AccelerationTranslational      = GTM.AddNativeGameplayTag("Acceleration.Translational");
 	AccelerationRotational         = GTM.AddNativeGameplayTag("Acceleration.Rotational");
@@ -37,6 +37,27 @@ FMyGameplayTags::FMyGameplayTags()
 	InputBindingCustomIngameMenuToggle  = GTM.AddNativeGameplayTag("InputBinding.Custom.IngameMenu.Toggle");
 }
 
-FMyGameplayTags FMyGameplayTags::MyGameplayTags;
+void FMyGameplayTags::AddTags(UGameplayTagsManager& GTM)
+{
+	check(Singleton == nullptr)
+	Singleton = new FMyGameplayTags(GTM);
+}
+
+
+void GameplayTagsModule::StartupModule()
+{
+	IModuleInterface::StartupModule();
+	auto& GTM = UGameplayTagsManager::Get();
+	//GTM.OnLastChanceToAddNativeTags().AddRaw(this, &GameplayTagsModule::RegisterNativeGameplayTags);
+	FMyGameplayTags::AddTags(GTM);
+}
+
+void GameplayTagsModule::RegisterNativeGameplayTags()
+{
+	auto& GTM = UGameplayTagsManager::Get();
+	FMyGameplayTags::AddTags(GTM);
+}
+
+const FMyGameplayTags* FMyGameplayTags::Singleton = nullptr;
 
 IMPLEMENT_MODULE(GameplayTagsModule, MyGameplayTags)

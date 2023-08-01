@@ -50,6 +50,7 @@ public:
 	float TapReleaseTimeThreshold = 0.2f;
 
 protected:
+    
     template<EInputTrigger InputTrigger>
     void BindAction(UInputMappingContext* IMC);
 

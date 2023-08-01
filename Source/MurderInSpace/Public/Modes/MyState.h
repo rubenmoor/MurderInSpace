@@ -10,8 +10,6 @@
 class UMyGameInstance;
 class ABlackhole;
 
-DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, All, All);
-
 USTRUCT(BlueprintType)
 struct FRnd
 {

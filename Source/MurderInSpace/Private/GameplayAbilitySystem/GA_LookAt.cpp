@@ -9,10 +9,10 @@ using namespace UE5Coro::GAS;
 
 UGA_LookAt::UGA_LookAt()
 {
-    const auto Tag = FMyGameplayTags::Get();
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
-    
+    const auto& Tag = FMyGameplayTags::Get();
     AbilityTags.AddTag(Tag.AbilityLookAt);
+
+    // TODO: not in use, so maybe delete?
     AbilityTags.AddTag(Tag.InputBindingAbilityLookAt);
     
     // cancel any active LookAt ability
@@ -29,7 +29,7 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     }
     // TODO: calculate timing depending on current Theta, Omega, and Alpha
     auto T2 = Latent::Seconds(2.);
-    auto Tag = FMyGameplayTags::Get();
+    auto& Tag = FMyGameplayTags::Get();
     auto Torque1 = MakeOutgoingGameplayEffectSpec(GE_TorqueCCW);
     //ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, )
     Torque1.Data.Get()->SetDuration(1., true);

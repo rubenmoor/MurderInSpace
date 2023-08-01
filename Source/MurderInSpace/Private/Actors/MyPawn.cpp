@@ -71,12 +71,10 @@ void AMyPawn::Tick(float DeltaSeconds)
 		, FColor::Yellow
 		);
 	
-	UMyState* MyState = GEngine->GetEngineSubsystem<UMyState>();
 	const UWorld* World = GetWorld();
 	const auto* GS = World->GetGameState<AMyGameState>();
 	const FPhysics Physics = GS->RP_Physics;
-	const auto* GI = GetGameInstance<UMyGameInstance>();
-	const auto Tag = FMyGameplayTags::Get();
+	const auto& Tag = FMyGameplayTags::Get();
 
 	if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AccelerationTranslational))
 	{

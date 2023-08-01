@@ -1,9 +1,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MyState.h"
 #include "Engine/GameInstance.h"
 #include "MyGameInstance.generated.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, All, All);
 
 struct FLocalPlayerContext;
 

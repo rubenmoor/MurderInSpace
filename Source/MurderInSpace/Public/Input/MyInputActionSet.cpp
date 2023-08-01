@@ -3,6 +3,8 @@
 
 void UMyInputActionSet::BindActions(AMyPlayerController* InPlayercontroller, UInputMappingContext* IMC)
 {
+    check(!InputActionTags.IsEmpty())
+    
     PC = InPlayercontroller;
     
     using enum EInputTrigger;

@@ -4,19 +4,17 @@
 #include "GameplayTagContainer.h"
 #include "Modules/ModuleManager.h"
 
-#include "MyGameplayTags.generated.h"
+DECLARE_LOG_CATEGORY_EXTERN(LogMyGameplayTags, All, All);
 
 enum class EInputAction : uint8;
 
-USTRUCT(BlueprintType)
-struct MYGAMEPLAYTAGS_API FMyGameplayTags
+struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
 {
-    GENERATED_BODY()
-    
-    FMyGameplayTags();
-    
-    static FMyGameplayTags& Get() { return MyGameplayTags; }
-    
+    friend class GameplayTagsModule;
+
+    static const FMyGameplayTags& Get() { return *Singleton; }
+    FMyGameplayTags(UGameplayTagsManager& GTM);
+
     FGameplayTag Acceleration;
     FGameplayTag AccelerationTranslational;
     FGameplayTag AccelerationRotational;
@@ -30,14 +28,19 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags
     FGameplayTag InputBindingAbility;
     // translational acceleration ability
     FGameplayTag InputBindingAbilityAccelerate;
+    
     // rotate to look at mouse ability
+    // this tag isn't in use. LookAt is triggered by mouse movement
     FGameplayTag InputBindingAbilityLookAt;
+    
     FGameplayTag InputBindingAbilityMoveTowardsCircle;
     FGameplayTag InputBindingAbilityEmbrace;
     FGameplayTag InputBindingAbilityKick;
 
     FGameplayTag Ability;
     FGameplayTag AbilityLookAt;
+    FGameplayTag AbilityEmbrace;
+    FGameplayTag AbilityKick;
 
 	FGameplayTag GiveInitiallyToMyPawn;
 
@@ -50,10 +53,14 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags
     FGameplayTag InputBindingCustomAllOrbitsShowHide;
     FGameplayTag InputBindingCustomMyOrbitShowHide;
     FGameplayTag InputBindingCustomIngameMenuToggle;
+
 private:
-    static FMyGameplayTags MyGameplayTags;
+    static void AddTags(UGameplayTagsManager& GTM);
+    static const FMyGameplayTags* Singleton;
 };
 
 class GameplayTagsModule : public IModuleInterface
 {
+    virtual void StartupModule() override;
+    void RegisterNativeGameplayTags();
 };

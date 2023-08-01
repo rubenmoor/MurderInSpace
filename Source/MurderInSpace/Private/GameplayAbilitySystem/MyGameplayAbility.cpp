@@ -5,9 +5,14 @@
 #include "UE5Coro/Cancellation.h"
 #include "UE5Coro/LatentAwaiters.h"
 
+UMyGameplayAbility::UMyGameplayAbility()
+{
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
+}
+
 FAbilityCoroutine UMyGameplayAbility::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
-    const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo,
-    const FGameplayEventData* TriggerEventData)
+                                                     const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo,
+                                                     const FGameplayEventData* TriggerEventData)
 {
     if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
     {

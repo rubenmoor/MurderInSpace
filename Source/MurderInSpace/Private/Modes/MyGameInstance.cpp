@@ -12,8 +12,9 @@
 #include "Modes/MyLocalPlayer.h"
 
 #define LOCTEXT_NAMESPACE "Menu"
+DEFINE_LOG_CATEGORY(LogMyGame);
 
-UMyGameInstance::UMyGameInstance()
+UMyGameInstance::UMyGameInstance(): UGameInstance()
 {
 }
 

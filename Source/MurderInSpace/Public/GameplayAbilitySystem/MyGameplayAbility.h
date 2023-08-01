@@ -17,6 +17,7 @@ class MURDERINSPACE_API UMyGameplayAbility : public UUE5CoroGameplayAbility
 	GENERATED_BODY()
 
 public:
+    UMyGameplayAbility();
     void SetReleased() { bReleased = true; }
 
 protected:

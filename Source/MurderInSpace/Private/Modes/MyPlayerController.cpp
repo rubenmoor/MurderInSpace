@@ -32,7 +32,7 @@ void AMyPlayerController::SetupInputComponent()
     Super::SetupInputComponent();
 
     Input = GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-    auto Tag = FMyGameplayTags::Get();
+    auto& Tag = FMyGameplayTags::Get();
 
     auto* IMC = NewObject<UInputMappingContext>(this, "InputMappingContext");
     for(auto [Name, InputActionSet] : MyInputActions->Map)
@@ -86,7 +86,7 @@ UEnhancedInputComponent* AMyPlayerController::GetInputComponent()
 void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActionTags, EInputTrigger InputTrigger,
     const FInputActionInstance& InputActionInstance)
 {
-    auto Tag = FMyGameplayTags::Get();
+    auto& Tag = FMyGameplayTags::Get();
     const auto AbilityTags = InputActionTags.Filter(Tag.Ability.GetSingleTagContainer());
     auto Cues = InputActionTags.Filter(Tag.GameplayCue.GetSingleTagContainer());
     const auto CustomInputBindingTags = InputActionTags.Filter(Tag.InputBindingCustom.GetSingleTagContainer());
@@ -289,7 +289,7 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     }
 
     // trigger orbit replication when tag AccelerateTranslational is removed
-    const auto Tag = FMyGameplayTags::Get();
+    const auto& Tag = FMyGameplayTags::Get();
     AbilitySystemComponent->RegisterGameplayTagEvent
         ( Tag.AccelerationTranslational
         , EGameplayTagEventType::NewOrRemoved
@@ -349,7 +349,7 @@ void AMyPlayerController::BeginPlay()
 
 void AMyPlayerController::RunCustomInputAction(FGameplayTag CustomBindingTag, EInputTrigger InputTrigger, const FInputActionInstance& InputActionInstance)
 {
-    const auto Tag = FMyGameplayTags::Get();
+    const auto& Tag = FMyGameplayTags::Get();
 
     // select
     if(CustomBindingTag == Tag.InputBindingCustomSelect)

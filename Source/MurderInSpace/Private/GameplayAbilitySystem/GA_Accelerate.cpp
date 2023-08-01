@@ -7,8 +7,7 @@
 
 UGA_Accelerate::UGA_Accelerate()
 {
-    const auto Tag = FMyGameplayTags::Get();
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
+    const auto& Tag = FMyGameplayTags::Get();
     
     AbilityTags.AddTag(Tag.InputBindingAbilityAccelerate);
     

@@ -17,6 +17,7 @@ class MURDERINSPACE_API UGA_LookAt : public UMyGameplayAbility
 {
 	GENERATED_BODY()
 
+public:
 	UGA_LookAt();
 
 protected:
