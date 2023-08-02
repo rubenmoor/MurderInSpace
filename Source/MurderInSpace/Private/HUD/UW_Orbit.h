@@ -18,7 +18,7 @@ struct FF1Marker
 };
 
 /**
- * 
+ * draw native paints elements for HUD
  */
 UCLASS()
 class UUW_Orbit : public UUserWidget

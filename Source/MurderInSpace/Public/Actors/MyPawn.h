@@ -46,6 +46,8 @@ public:
 	virtual void 				SetOrbit(AOrbit* InOrbit) override { RP_Orbit = InOrbit; };
 	virtual FInitialOrbitParams GetInitialOrbitParams() const override { return InitialOrbitParams; }
 	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
+
+	// ability system interface
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return static_cast<UAbilitySystemComponent*>(AbilitySystemComponent); }
 
 protected:

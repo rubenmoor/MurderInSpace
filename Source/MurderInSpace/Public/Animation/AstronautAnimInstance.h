@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffectTypes.h"
 #include "Animation/AnimInstance.h"
 #include "AstronautAnimInstance.generated.h"
 
@@ -22,12 +23,14 @@ class MURDERINSPACE_API UAstronautAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 
 protected:
-    // if the animation blueprint needs access to Editor Assets of e.g. BP_SomePawn,
-    // I have to add a `TSubclassOf<AMyPawn>` and so on; I don't think that's the case
-    UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
-    TObjectPtr<AMyPawn_Humanoid> MyPawn;
+	UPROPERTY(EditDefaultsOnly)
+	FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
 
     // event handlers
+
+#if WITH_EDITOR
+	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+#endif
 
     virtual void NativeInitializeAnimation() override;
 };

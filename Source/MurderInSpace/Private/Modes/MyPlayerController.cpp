@@ -1,6 +1,7 @@
 #include "Modes/MyPlayerController.h"
 
 #include <algorithm>
+#include <Input/MyInputActionSet.h>
 
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -32,15 +33,61 @@ void AMyPlayerController::SetupInputComponent()
     Super::SetupInputComponent();
 
     Input = GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-    auto& Tag = FMyGameplayTags::Get();
 
+    TArray<FDuplicateKeyBinding> Duplicates;
+    
     auto* IMC = NewObject<UInputMappingContext>(this, "InputMappingContext");
     for(auto [Name, InputActionSet] : MyInputActions->Map)
     {
         InputActionSet->BindActions(this, IMC);
+        CheckForDuplicateKeyBindings(InputActionSet, Duplicates);
+    }
+
+    for(auto [Key, IAS1, IAS2, CommonTriggers] : Duplicates)
+    {
+        FString StrCommonTriggers = "";
+        bool bFirst = true;
+        for(const auto Trigger : CommonTriggers)
+        {
+            if(!bFirst)
+            {
+                StrCommonTriggers += ", ";
+            }
+            StrCommonTriggers += UEnum::GetDisplayValueAsText(Trigger).ToString();
+            bFirst = false;
+        }
+        UE_LOGFMT(LogMyGame, Warning, "Duplicate binding for key {KEY}: {IAS1} - {IAS2}: common triggers: {TRIGGERS}"
+            , Key.GetDisplayName().ToString()
+            , IAS1->GetFName()
+            , IAS2->GetFName()
+            , StrCommonTriggers
+            );
     }
     
     Input->AddMappingContext(IMC, 0);
+}
+
+void AMyPlayerController::CheckForDuplicateKeyBindings(UMyInputActionSet* IAS1, TArray<FDuplicateKeyBinding>& DuplicateKeyBindings)
+{
+    TMap<FKey, TTuple<UMyInputActionSet*, TSet<EInputTrigger>>> KeyMap;
+    
+    for(auto Key : IAS1->Keys)
+    {
+        if(auto* Tuple = KeyMap.Find(Key))
+        {
+            UMyInputActionSet* IAS2;
+            TSet<EInputTrigger> OtherTriggers;
+            Tie(IAS2, OtherTriggers) = *Tuple;
+            if(auto CommonTriggers = OtherTriggers.Intersect(IAS1->InputTriggers); !CommonTriggers.IsEmpty())
+            {
+                DuplicateKeyBindings.Add({ Key, IAS1, IAS2, CommonTriggers});
+            }
+        }
+        else
+        {
+            KeyMap.Add(Key, TTuple<UMyInputActionSet*, TSet<EInputTrigger>>(IAS1, IAS1->InputTriggers));
+        }
+    }
 }
 
 void AMyPlayerController::ClientRPC_LeaveSession_Implementation()

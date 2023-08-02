@@ -11,6 +11,7 @@
 #include "HUD/MyHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Logging/StructuredLog.h"
+#include "Modes/MyGameInstance.h"
 #include "Modes/MyPlayerController.h"
 
 int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
@@ -20,10 +21,17 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
     const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry();
 	const auto FGColor = InWidgetStyle.GetForegroundColor();
 
+    // check if we are in editor
+    if(GetWorld()->WorldType == EWorldType::Editor)
+    {
+        // nothing meaningful to do here
+        return LayerId;
+    }
+        
     auto* PC = Cast<AMyPlayerController>(GetOwningPlayer());
     if(!IsValid(PC))
     {
-        UE_LOGFMT(LogMyGame, Error, "{THIS}: {FUNCTION}: Player Controller invalid, shouldn't be ticking", GetFName(), __FUNCTION__);
+        UE_LOGFMT(LogMyGame, Error, "{THIS}: {FUNCTION}: Player Controller invalid", GetFName(), __FUNCTION__);
         return LayerId;
     }
     const float ViewportScale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
@@ -85,6 +93,7 @@ int32 UUW_Orbit::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGe
             );
     }
 
+    // activate to draw orbit with native paints instead of the render target
     //DrawOrbit(AllottedGeometry, OutDrawElements, LayerId, InWidgetStyle);
     
     const int32 LayerIdNew = LayerId + 1;

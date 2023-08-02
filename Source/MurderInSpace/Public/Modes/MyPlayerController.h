@@ -19,14 +19,14 @@ class UTaggedInputActionData;
 UENUM(BlueprintType)
 enum class EInputTrigger : uint8
 {
-      Down
-    , Pressed
-    , Released
-    , Hold
-    , HoldAndRelease
-    , Tap
-    , Pulse
-    , ChordAction
+      Down			 UMETA(DisplayName="Down"         )
+    , Pressed		 UMETA(DisplayName="Pressed"      )
+    , Released		 UMETA(DisplayName="Released"     )
+    , Hold		     UMETA(DisplayName="Hold"         )
+    , HoldAndRelease UMETA(DisplayName="HoldAndRelase")
+    , Tap		     UMETA(DisplayName="Tap"          )
+    , Pulse		     UMETA(DisplayName="Pulse"        )
+    , ChordAction	 UMETA(DisplayName="ChordAction"  )
 };
 
 USTRUCT(BlueprintType)
@@ -42,6 +42,24 @@ struct FHighlight
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	double Size;
+};
+
+USTRUCT(BlueprintType)
+struct FDuplicateKeyBinding
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FKey Key;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UMyInputActionSet> IAS1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UMyInputActionSet> IAS2;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TSet<EInputTrigger> SetTriggers;
 };
 
 /**
@@ -60,6 +78,9 @@ class MURDERINSPACE_API AMyPlayerController : public APlayerController
 	virtual void SetupInputComponent() override;
 
 public:
+	UFUNCTION(BlueprintCallable)
+	void CheckForDuplicateKeyBindings(UMyInputActionSet* IAS1, TArray<FDuplicateKeyBinding>& DuplicateKeyBindings);
+	
 	UFUNCTION(Client, Reliable)
 	void ClientRPC_LeaveSession();
 

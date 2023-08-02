@@ -20,7 +20,11 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
     FGameplayTag AccelerationRotationalCCW;
     FGameplayTag AccelerationRotationalCW;
 
-    // TODO: what is this tag for?
+    FGameplayTag Embrace;
+    FGameplayTag KickPosition;
+    FGameplayTag KickExecute;
+    
+	// TODO: remove completely, probably
     FGameplayTag AccelerationMoveTowardsCircle;
 
     FGameplayTag InputBindingAbility;
@@ -42,7 +46,12 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
 
 	FGameplayTag GiveInitiallyToMyPawn;
 
+    // gameplay cues
+    
     FGameplayTag GameplayCue;
+    FGameplayTag GameplayCueLocal;
+    FGameplayTag LocalShowMyOrbit;
+    FGameplayTag LocalShowMySnapshotOrbit;
 
     // tags to mark input actions that are not bound to any gameplay ability or gameplay cue
     FGameplayTag InputBindingCustom;

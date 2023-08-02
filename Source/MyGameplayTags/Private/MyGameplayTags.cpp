@@ -13,7 +13,11 @@ FMyGameplayTags::FMyGameplayTags()
 	AccelerationRotationalDuration = GTM.AddNativeGameplayTag("Acceleration.Rotational.Duration");
 	AccelerationRotationalCCW      = GTM.AddNativeGameplayTag("Acceleration.Rotational.CCW");
 	AccelerationRotationalCW       = GTM.AddNativeGameplayTag("Acceleration.Rotational.CW");
-	
+
+	Embrace      = GTM.AddNativeGameplayTag("Embrace"      );
+	KickPosition = GTM.AddNativeGameplayTag("Kick.Position");
+	KickExecute  = GTM.AddNativeGameplayTag("Kick.Execute" );
+
     AccelerationMoveTowardsCircle  = GTM.AddNativeGameplayTag("Acceleration.MoveTowardsCircle");
 	
 	InputBindingAbility                  = GTM.AddNativeGameplayTag("InputBinding.Ability");
@@ -28,7 +32,11 @@ FMyGameplayTags::FMyGameplayTags()
 	
 	GiveInitiallyToMyPawn    = GTM.AddNativeGameplayTag("GiveTo.Initial.MyPawn");
 
+	// still not using those
 	GameplayCue              = GTM.AddNativeGameplayTag("GameplayCue");
+    GameplayCueLocal         = GTM.AddNativeGameplayTag("GameplayCue.Local");
+    LocalShowMyOrbit         = GTM.AddNativeGameplayTag("GameplayCue.Local.ShowMyOrbit");
+    LocalShowMySnapshotOrbit = GTM.AddNativeGameplayTag("GameplayCue.Local.ShowMySnapshotOrbit");
 	
 	InputBindingCustom                  = GTM.AddNativeGameplayTag("InputBinding.Custom");
 	InputBindingCustomZoom              = GTM.AddNativeGameplayTag("InputBinding.Custom.Zoom");

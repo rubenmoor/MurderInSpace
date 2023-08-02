@@ -2,6 +2,8 @@
 
 #include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
 #include "MyGameplayTags.h"
+#include "Actors/MyCharacter.h"
+#include "Actors/MyPawn.h"
 #include "Modes/MyPlayerController.h"
 #include "UE5Coro/LatentAwaiters.h"
 
@@ -12,8 +14,6 @@ UGA_Accelerate::UGA_Accelerate()
     AbilityTags.AddTag(Tag.InputBindingAbilityAccelerate);
     
     ActivationOwnedTags.AddTag(Tag.AccelerationTranslational);
-    // TODO
-    //ActivationBlockedTags =
 }
 
 FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
@@ -24,8 +24,20 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     {
         co_await Latent::Cancel();
     }
-    auto* Orbit = Cast<IHasOrbit>(ActorInfo->OwnerActor)->GetOrbit();
-    Orbit->UpdateVisibility(true);
+    LocallyDo(ActorInfo, [] (AMyCharacter* MyCharacter)
+    {
+        auto* Orbit = MyCharacter->GetOrbit();
+        Orbit->UpdateVisibility(true);
+        Orbit->SpawnSplineMesh
+            ( MyCharacter->GetTempSplineMeshColor()
+            , ESplineMeshParentSelector::Temporary
+            );
+    });
     co_await UntilReleased();
-    Orbit->UpdateVisibility(false);
+    LocallyDo(ActorInfo, [] (AMyCharacter* MyCharacter)
+    {
+        auto* Orbit = MyCharacter->GetOrbit();
+        Orbit->UpdateVisibility(false);
+        Orbit->DestroyTempSplineMeshes();
+    });
 }

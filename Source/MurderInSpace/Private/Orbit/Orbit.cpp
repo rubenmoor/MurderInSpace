@@ -787,7 +787,7 @@ void AOrbit::SpawnSplineMesh
         Indices.push_back(0);
     }
 
-    for(int32 i = 0; i < Indices.size() - 1; i++)
+    for(uint64 i = 0; i < Indices.size() - 1; i++)
     {
         const FVector VecStartPos = Spline->GetLocationAtSplinePoint(Indices[i], ESplineCoordinateSpace::World);
         const FVector VecEndPos = Spline->GetLocationAtSplinePoint(Indices[i + 1], ESplineCoordinateSpace::World);

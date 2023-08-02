@@ -70,7 +70,6 @@ void AMyHUD::SetOrbitMaterial(UTextureRenderTarget2D* InRenderTarget)
 	MIOrbit->SetTextureParameterValue("RenderTarget", InRenderTarget);
 	WidgetHUD->ImgOrbit->SetBrushFromMaterial(MIOrbit);
 	const FSlateBrush SlateBrush = WidgetHUD->ImgOrbit->Brush;
-	UE_LOGFMT(LogMyGame, Warning, "{0}", SlateBrush.GetResourceName());
 	
 	//FSlateBrush SlateBrush;
 	//SlateBrush.DrawAs = ESlateBrushDrawType::Image;
