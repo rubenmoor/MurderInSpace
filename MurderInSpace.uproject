@@ -27,7 +27,7 @@
 		{
 			"Name": "MyGameplayTags",
 			"Type": "RuntimeAndProgram",
-			"LoadingPhase": "PreDefault"
+			"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [

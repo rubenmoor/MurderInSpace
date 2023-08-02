@@ -87,16 +87,16 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
     const FInputActionInstance& InputActionInstance)
 {
     auto& Tag = FMyGameplayTags::Get();
-    const auto AbilityTags = InputActionTags.Filter(Tag.Ability.GetSingleTagContainer());
+    const auto InputAbilityTags = InputActionTags.Filter(Tag.InputBindingAbility.GetSingleTagContainer());
     auto Cues = InputActionTags.Filter(Tag.GameplayCue.GetSingleTagContainer());
-    const auto CustomInputBindingTags = InputActionTags.Filter(Tag.InputBindingCustom.GetSingleTagContainer());
+    const auto InputCustomTags = InputActionTags.Filter(Tag.InputBindingCustom.GetSingleTagContainer());
 
-    for(auto CustomInputBindingTag : CustomInputBindingTags)
+    for(auto InputCustomTag : InputCustomTags)
     {
-        RunCustomInputAction(CustomInputBindingTag, InputTrigger, InputActionInstance);
+        RunCustomInputAction(InputCustomTag, InputTrigger, InputActionInstance);
     }
     
-    if(!AbilityTags.IsEmpty())
+    if(!InputAbilityTags.IsEmpty())
     {
         TArray<FGameplayAbilitySpec*> Specs;
         switch(InputTrigger)
@@ -104,7 +104,7 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
         case EInputTrigger::Down:
         case EInputTrigger::Pressed:
         case EInputTrigger::Hold:
-            AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(AbilityTags, Specs, false);
+            AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(InputAbilityTags, Specs, false);
             for(auto Spec : Specs)
             {
                 check(!Spec->IsActive())
@@ -119,7 +119,7 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
             break;
         case EInputTrigger::Released:
         case EInputTrigger::HoldAndRelease:
-            for(auto Spec : AbilitySystemComponent->GetActiveAbilities(&AbilityTags))
+            for(auto Spec : AbilitySystemComponent->GetActiveAbilities(&InputAbilityTags))
             {
                 Cast<UMyGameplayAbility>(Spec.Ability)->SetReleased();
             }
@@ -131,7 +131,7 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
             }
             break;
         case EInputTrigger::Tap:
-            AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(AbilityTags, Specs, false);
+            AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(InputAbilityTags, Specs, false);
             for(auto Spec : Specs)
             {
                 if(Spec->IsActive())

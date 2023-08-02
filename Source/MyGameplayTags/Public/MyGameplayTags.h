@@ -10,10 +10,8 @@ enum class EInputAction : uint8;
 
 struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
 {
-    friend class GameplayTagsModule;
-
-    static const FMyGameplayTags& Get() { return *Singleton; }
-    FMyGameplayTags(UGameplayTagsManager& GTM);
+    FMyGameplayTags();
+    static const FMyGameplayTags& Get() { return Singleton; }
 
     FGameplayTag Acceleration;
     FGameplayTag AccelerationTranslational;
@@ -55,12 +53,9 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
     FGameplayTag InputBindingCustomIngameMenuToggle;
 
 private:
-    static void AddTags(UGameplayTagsManager& GTM);
-    static const FMyGameplayTags* Singleton;
+    static const FMyGameplayTags Singleton;
 };
 
 class GameplayTagsModule : public IModuleInterface
 {
-    virtual void StartupModule() override;
-    void RegisterNativeGameplayTags();
 };

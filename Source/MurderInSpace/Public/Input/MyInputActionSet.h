@@ -5,6 +5,8 @@
 #include "Modes/MyPlayerController.h"
 #include "InputTriggers.h"
 #include "InputCoreTypes.h"
+#include "Logging/StructuredLog.h"
+#include "Modes/MyGameInstance.h"
 
 #include "MyInputActionSet.generated.h"
 
