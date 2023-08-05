@@ -19,7 +19,7 @@ FAbilityCoroutine UMyGameplayAbility::ExecuteAbility(FGameplayAbilitySpecHandle 
     {
         co_await Latent::Cancel();
     }
-    co_await Latent::Until([this] { return bReleased; });
+    co_await UntilReleased();
 }
 
 void UMyGameplayAbility::LocallyDo(const FGameplayAbilityActorInfo* ActorInfo, std::function<void(AMyCharacter*)> Func)

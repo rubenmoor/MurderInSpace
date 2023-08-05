@@ -8,29 +8,6 @@
 
 #include "MyPawn_Humanoid.generated.h"
 
-UENUM(BlueprintType)
-enum class EActionState : uint8
-{
-      Idle
-    , Embracing
-    , RotatingCW
-    , RotatingCCW
-    , KickPositioning
-};
-
-USTRUCT(BlueprintType)
-struct FActionState
-{
-    GENERATED_BODY()
-    
-    UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
-    EActionState State = EActionState::Idle;
-
-    // determine which transition from `KickPositioning` to `Idle`: `true`: kick, `false` cancel kick
-    UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
-    bool bKickExecuteCancel;
-};
-
 /**
  *  a pawn with a humanoid skeleton, like an astronaut
  */
@@ -49,9 +26,6 @@ public:
     // IHasCollision
     virtual UMyCollisionComponent* GetCollisionComponent() override { return CollisionComponent; }
     
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
-    FActionState RP_ActionState;
-
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<USkeletalMeshComponent> SkeletalMesh;

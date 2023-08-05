@@ -260,39 +260,39 @@ void AMyPlayerController::Tick(float DeltaSeconds)
     const FVector VecMouseDirection = GetMouseDirection();
     const FQuat Quat = FQuat::FindBetween(FVector::UnitX(), VecMouseDirection);
     auto MyCharacter = GetPawn<AMyCharacter>();
-    if
-        (  MyCharacter->RP_ActionState.State == EActionState::Idle
-        || MyCharacter->RP_ActionState.State == EActionState::RotatingCW
-        || MyCharacter->RP_ActionState.State == EActionState::RotatingCCW
-        )
-    {
-        const double AngleDelta =
-              Quat.GetTwistAngle(FVector(0, 0, 1))
-            - MyCharacter->GetActorQuat().GetTwistAngle(FVector(0, 0, 1));
-        if(abs(AngleDelta) > 15. / 180. * PI)
-        {
-            MyCharacter->RP_ActionState.State = AngleDelta > 0
-                ? EActionState::RotatingCCW
-                : EActionState::RotatingCW;
+    // if
+    //     (  MyCharacter->RP_ActionState.State == EActionState::Idle
+    //     || MyCharacter->RP_ActionState.State == EActionState::RotatingCW
+    //     || MyCharacter->RP_ActionState.State == EActionState::RotatingCCW
+    //     )
+    // {
+    //     const double AngleDelta =
+    //           Quat.GetTwistAngle(FVector(0, 0, 1))
+    //         - MyCharacter->GetActorQuat().GetTwistAngle(FVector(0, 0, 1));
+    //     if(abs(AngleDelta) > 15. / 180. * PI)
+    //     {
+    //         MyCharacter->RP_ActionState.State = AngleDelta > 0
+    //             ? EActionState::RotatingCCW
+    //             : EActionState::RotatingCW;
 
-            // server-only
-            ServerRPC_RotateTowards(Quat);
-            
-            if(GetLocalRole() == ROLE_AutonomousProxy)
-            {
-                // "movement prediction"
-                //MyCharacter->SetRotationAim(Quat);
-            }
-        }
-        else
-        {
-            MyCharacter->RP_ActionState.State = EActionState::Idle;
-        }
-    }
-    else if(MyCharacter->RP_ActionState.State == EActionState::KickPositioning)
-    {
-        // TODO:
-    }
+    //         // server-only
+    //         ServerRPC_RotateTowards(Quat);
+    //         
+    //         if(GetLocalRole() == ROLE_AutonomousProxy)
+    //         {
+    //             // "movement prediction"
+    //             //MyCharacter->SetRotationAim(Quat);
+    //         }
+    //     }
+    //     else
+    //     {
+    //         MyCharacter->RP_ActionState.State = EActionState::Idle;
+    //     }
+    // }
+    // else if(MyCharacter->RP_ActionState.State == EActionState::KickPositioning)
+    // {
+    //     // TODO:
+    // }
     // debugging direction
     const FVector VecMe = MyCharacter->GetActorLocation();
     DrawDebugDirectionalArrow(GetWorld(), VecMe, VecMe + VecMouseDirection, 20, FColor::Red);

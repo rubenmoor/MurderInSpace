@@ -28,10 +28,3 @@ void AMyPawn_Humanoid::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 	CollisionComponent->UpdateMass(AMyPawn_Humanoid::GetBounds().SphereRadius);
 }
-
-void AMyPawn_Humanoid::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AMyPawn_Humanoid, RP_ActionState)
-}

@@ -185,7 +185,7 @@ void AMyPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	for(const auto Ability : Abilities)
+	for(const auto Ability : StartupAbilities)
 	{
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability));
 	}
