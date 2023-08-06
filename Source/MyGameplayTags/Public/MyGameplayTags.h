@@ -40,18 +40,16 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
     FGameplayTag InputBindingAbilityKick;
 
     FGameplayTag Ability;
+    FGameplayTag AbilityAccelerate;
     FGameplayTag AbilityLookAt;
     FGameplayTag AbilityEmbrace;
     FGameplayTag AbilityKick;
 
-	FGameplayTag GiveInitiallyToMyPawn;
-
     // gameplay cues
-    
+
     FGameplayTag GameplayCue;
+    FGameplayTag CueAccelerate;
     FGameplayTag GameplayCueLocal;
-    FGameplayTag LocalShowMyOrbit;
-    FGameplayTag LocalShowMySnapshotOrbit;
 
     // tags to mark input actions that are not bound to any gameplay ability or gameplay cue
     FGameplayTag InputBindingCustom;

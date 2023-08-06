@@ -44,6 +44,6 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
 void UGA_LookAt::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
     Super::OnAvatarSet(ActorInfo, Spec);
-    check(GE_TorqueCW)
-    check(GE_TorqueCCW)
+    check(IsValid(GE_TorqueCW))
+    check(IsValid(GE_TorqueCCW))
 }

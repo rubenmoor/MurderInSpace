@@ -23,10 +23,15 @@ class MURDERINSPACE_API UAttrSetAcceleration : public UMyAttributeSetBase
 	GENERATED_BODY()
 
 public:
-    // Acceleration in m / s^2
-	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_TorqueMax)
+    // max value for acceleration in m / s^2
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_AccelerationSIMax)
 	FGameplayAttributeData AccelerationSIMax;
 	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, AccelerationSIMax)
+	
+    // currently applied value for acceleration in m / s^2
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_AccelerationSI)
+	FGameplayAttributeData AccelerationSI;
+	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, AccelerationSI)
 	
 	// max value for torque
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_TorqueMax)
@@ -34,7 +39,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, TorqueMax)
 
 	// currently applied value for torque
-	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_TorqueMax)
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_Torque)
 	FGameplayAttributeData Torque;
 	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, Torque)
 
@@ -44,10 +49,16 @@ public:
 	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, OmegaMax)
 
 	UFUNCTION()
-	virtual void OnRep_AccelerationSIMax(const FGameplayAttributeData& OldTorqueMax);
+	virtual void OnRep_AccelerationSIMax(const FGameplayAttributeData& OldAccelerationSIMax);
+	
+	UFUNCTION()
+	virtual void OnRep_AccelerationSI(const FGameplayAttributeData& OldAccelerationSI);
 	
 	UFUNCTION()
 	virtual void OnRep_TorqueMax(const FGameplayAttributeData& OldTorqueMax);
+	
+	UFUNCTION()
+	virtual void OnRep_Torque(const FGameplayAttributeData& OldTorque);
 	
 	UFUNCTION()
 	virtual void OnRep_OmegaMax(const FGameplayAttributeData& OldOmegaMax);

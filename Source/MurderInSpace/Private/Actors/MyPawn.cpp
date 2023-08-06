@@ -6,7 +6,6 @@
 #include "GameplayAbilitySystem/MyGameplayAbility.h"
 #include "MyGameplayTags.h"
 #include "HUD/MyHUD.h"
-#include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
 #include "Modes/MyPlayerController.h"
 #include "Net/UnrealNetwork.h"
@@ -28,7 +27,7 @@ AMyPawn::AMyPawn(): APawn()
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
 
-	AttrSetAcceleration = CreateDefaultSubobject<UAttrSetAcceleration>("AttributeSetTorque");
+	AttrSetAcceleration = CreateDefaultSubobject<UAttrSetAcceleration>("AttributeSetAcceleration");
 }
 
 void AMyPawn::UpdateLookTarget(FVector Target)
@@ -76,26 +75,29 @@ void AMyPawn::Tick(float DeltaSeconds)
 	const FPhysics Physics = GS->RP_Physics;
 	const auto& Tag = FMyGameplayTags::Get();
 
-	if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AccelerationTranslational))
-	{
-		const float AccelerationSI = AttrSetAcceleration->GetAccelerationSIMax();
-		const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
-		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics);
-	}
-	else if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AccelerationMoveTowardsCircle))
-	{
-		const float AccelerationSI = AttrSetAcceleration->AccelerationSIMax.GetCurrentValue();
-		const auto VecVCircle = RP_Orbit->GetCircleVelocity(Physics);
-		const auto VecTarget = std::copysign(1., RP_Orbit->GetVecVelocity().Dot(VecVCircle)) * VecVCircle;
-		RP_QuatRotationAim = FQuat::FindBetween(FVector(1., 0., 0.), VecTarget);
-		SetActorRotation(RP_QuatRotationAim);
-		const FVector VecDelta = VecTarget - RP_Orbit->GetVecVelocity();
-		const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
-		if(VecDelta.Length() > DeltaV)
-		{
-			RP_Orbit->Update(VecDelta.GetSafeNormal() * DeltaV, Physics);
-		}
-	}
+	const double DeltaV = AttrSetAcceleration->GetAccelerationSI() / FPhysics::LengthScaleFactor * DeltaSeconds;
+	RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics);
+	
+	// if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AccelerationTranslational))
+	// {
+	// 	const float AccelerationSI = AttrSetAcceleration->GetAccelerationSIMax();
+	// 	const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
+	// 	RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics);
+	// }
+	// else if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AccelerationMoveTowardsCircle))
+	// {
+	// 	const float AccelerationSI = AttrSetAcceleration->AccelerationSIMax.GetCurrentValue();
+	// 	const auto VecVCircle = RP_Orbit->GetCircleVelocity(Physics);
+	// 	const auto VecTarget = std::copysign(1., RP_Orbit->GetVecVelocity().Dot(VecVCircle)) * VecVCircle;
+	// 	RP_QuatRotationAim = FQuat::FindBetween(FVector(1., 0., 0.), VecTarget);
+	// 	SetActorRotation(RP_QuatRotationAim);
+	// 	const FVector VecDelta = VecTarget - RP_Orbit->GetVecVelocity();
+	// 	const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
+	// 	if(VecDelta.Length() > DeltaV)
+	// 	{
+	// 		RP_Orbit->Update(VecDelta.GetSafeNormal() * DeltaV, Physics);
+	// 	}
+	// }
 
 	// rotating towards `RP_RotationAim` at speed `Omega`
 

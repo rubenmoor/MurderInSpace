@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "MyGameplayAbility.h"
+
 #include "GA_Accelerate.generated.h"
 
 class UInputAction;
@@ -15,5 +16,11 @@ class MURDERINSPACE_API UGA_Accelerate : public UMyGameplayAbility
 
     UGA_Accelerate();
 
+protected:
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    TSubclassOf<UGameplayEffect> GE_Accelerate;
+    
     virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+    virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+    
 };
