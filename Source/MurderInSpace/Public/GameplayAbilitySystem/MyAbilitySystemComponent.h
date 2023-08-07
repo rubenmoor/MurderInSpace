@@ -7,6 +7,7 @@
 class UMyEnhancedInputComponent;
 struct FInputActionInstance;
 class AMyPawn;
+
 /**
  * 
  */
@@ -23,17 +24,8 @@ public:
     UFUNCTION(BlueprintCallable)
     FGameplayTag FindTag(FGameplayTag InTag);
     
-    /*
-     * https://github.com/tranek/GASDocumentation/tree/19877c6cd777dc059ee1aa6e094eae1f3f2a4cab#483-local-gameplay-cues
-     */
-    UFUNCTION(BlueprintCallable, Category = "GameplayCue", Meta = (AutoCreateRefTerm = "GameplayCueParameters", GameplayTagFilter = "GameplayCue"))
-    void ExecuteGameplayCueLocal(const FGameplayTag GameplayCueTag, const FGameplayCueParameters& GameplayCueParameters);
-
-    UFUNCTION(BlueprintCallable, Category = "GameplayCue", Meta = (AutoCreateRefTerm = "GameplayCueParameters", GameplayTagFilter = "GameplayCue"))
-    void AddGameplayCueLocal(const FGameplayTag GameplayCueTag, const FGameplayCueParameters& GameplayCueParameters);
-
-    UFUNCTION(BlueprintCallable, Category = "GameplayCue", Meta = (AutoCreateRefTerm = "GameplayCueParameters", GameplayTagFilter = "GameplayCue"))
-    void RemoveGameplayCueLocal(const FGameplayTag GameplayCueTag, const FGameplayCueParameters& GameplayCueParameters);
-
     TArray<FGameplayAbilitySpec> GetActiveAbilities(const FGameplayTagContainer* WithTags=nullptr, const FGameplayTagContainer* WithoutTags=nullptr, UGameplayAbility* Ignore=nullptr);
+
+    DECLARE_DELEGATE(FDelegateStateFullyBlended)
+    FDelegateStateFullyBlended OnStateFullyBlended;
 };

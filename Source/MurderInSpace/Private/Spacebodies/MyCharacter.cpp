@@ -180,11 +180,6 @@ void AMyCharacter::GameplayCue_Local_Accelerate_Fire(FGameplayTag Cue, EGameplay
 	switch (Event)
 	{
 	case EGameplayCueEvent::OnActive:
-		RP_Orbit->UpdateVisibility(true);
-		RP_Orbit->SpawnSplineMesh
-			( GetTempSplineMeshColor()
-			, ESplineMeshParentSelector::Temporary
-			);
 		break;
 	case EGameplayCueEvent::WhileActive:
 		break;

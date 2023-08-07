@@ -3,12 +3,10 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
 #include "MyGameplayTags.h"
-#include "Spacebodies/MyCharacter.h"
 #include "Spacebodies/MyPawn.h"
-#include "..\..\Public\GameplayAbilitySystem\GE_AcceleratePosition.h"
+#include "GameplayAbilitySystem/GE_AcceleratePosition.h"
 #include "GameplayAbilitySystem/GE_AccelerateFire.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
-#include "Modes/MyPlayerController.h"
 #include "UE5Coro/LatentAwaiters.h"
 
 using namespace UE5Coro;
@@ -33,21 +31,25 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     {
         co_await Latent::Cancel();
     }
-    const auto GE_Position =
-        ApplyGameplayEffectToOwner
-            ( Handle
-            , ActorInfo
-            , ActivationInfo
-            , GE_AcceleratePosition->GetDefaultObject<UGameplayEffect>()
-            , 1.
-            );
-    
-    // TODO: wait for transition event
-    co_await Latent::Seconds(0.2);
-    
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
     const auto& Tag = FMyGameplayTags::Get();
-    ASC->AddGameplayCueLocal(Tag.LocalCueAccelerateFire, FGameplayCueParameters());
+
+    ASC->AddGameplayCue(Tag.CueAccelerateShowThrusters);
+    ASC->AddGameplayCue(Tag.CuePoseAccelerate);
+
+    co_await Latent::UntilDelegate(ASC->OnStateFullyBlended);
+    //co_await Latent::Seconds(0.2);
+
+    LocallyControlledDo(ActorInfo, [] (AMyCharacter* MyCharacter)
+    {
+        auto* Orbit = MyCharacter->GetOrbit();
+		Orbit->UpdateVisibility(true);
+		Orbit->SpawnSplineMesh
+			( MyCharacter->GetTempSplineMeshColor()
+			, ESplineMeshParentSelector::Temporary
+			);
+    });
+    //ASC->AddGameplayCueLocal(Tag.LocalCueAccelerateFire, FGameplayCueParameters());
     
     const auto GE_Fire =
         ApplyGameplayEffectToOwner
@@ -59,10 +61,17 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
             );
             
     co_await UntilReleased();
-    
+
     ASC->RemoveActiveGameplayEffect(GE_Fire);
-    ASC->RemoveActiveGameplayEffect(GE_Position);
+    ASC->RemoveGameplayCue(Tag.CuePoseAccelerate);
     
-    co_await Latent::Seconds(0.2);
-    ASC->RemoveGameplayCueLocal(Tag.LocalCueAccelerateFire, FGameplayCueParameters());
+    LocallyControlledDo(ActorInfo, [] (AMyCharacter* MyCharacter)
+    {
+        auto* Orbit = MyCharacter->GetOrbit();
+        Orbit->UpdateVisibility(false);
+        Orbit->DestroyTempSplineMeshes();
+    });
+    
+    co_await Latent::UntilDelegate(ASC->OnStateFullyBlended);
+    ASC->RemoveGameplayCue(Tag.CueAccelerateShowThrusters);
 }

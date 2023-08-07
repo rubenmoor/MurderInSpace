@@ -22,6 +22,8 @@ class MURDERINSPACE_API UGA_Accelerate : public UMyGameplayAbility
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UGE_AcceleratePosition> GE_AcceleratePosition;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UGE_AccelerateFire> GE_AccelerateFire;
     
     virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;

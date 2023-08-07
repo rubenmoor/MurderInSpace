@@ -42,21 +42,21 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
     FGameplayTag AbilityEmbrace;
     FGameplayTag AbilityKick;
 
-    FGameplayTag Pose;
-    FGameplayTag PoseAccelerate;
-    FGameplayTag PoseTurnCCW;
-    FGameplayTag PoseTurnCW;
-    FGameplayTag PoseEmbrace;
-    FGameplayTag PoseKickPosition;
-    FGameplayTag PoseKickExecute;
-    
-    // TODO: embrace, kick
-
     // gameplay cues
 
     FGameplayTag GameplayCue;
+    
+    FGameplayTag CuePose;
+    FGameplayTag CuePoseAccelerate;
+    FGameplayTag CuePoseTurnCCW;
+    FGameplayTag CuePoseTurnCW;
+    FGameplayTag CuePoseEmbrace;
+    FGameplayTag CuePoseKickPosition;
+    FGameplayTag CuePoseKickExecute;
+    
     FGameplayTag CueAccelerateShowThrusters;
     FGameplayTag CueAccelerateFire;
+    
     FGameplayTag GameplayCueLocal;
     FGameplayTag LocalCueAccelerateFire;
 

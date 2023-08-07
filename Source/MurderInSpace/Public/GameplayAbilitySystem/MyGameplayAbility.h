@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SpaceBodies/MyCharacter.h"
 #include "UE5CoroGAS/UE5CoroGameplayAbility.h"
 
 #include "MyGameplayAbility.generated.h"
@@ -22,6 +23,7 @@ public:
     UMyGameplayAbility();
     void SetReleased() { bReleased = true; }
 
+    static void LocallyControlledDo(const FGameplayAbilityActorInfo* ActorInfo, std::function<void(AMyCharacter*)> Func);
 protected:
     virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 

@@ -8,6 +8,15 @@ UMyGameplayAbility::UMyGameplayAbility()
     InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
 }
 
+void UMyGameplayAbility::LocallyControlledDo(const FGameplayAbilityActorInfo* ActorInfo,
+    std::function<void(AMyCharacter*)> Func)
+{
+    if(ActorInfo->IsLocallyControlled())
+    {
+        Func(Cast<AMyCharacter>(ActorInfo->AvatarActor));
+    }
+}
+
 FAbilityCoroutine UMyGameplayAbility::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
                                                      const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo,
                                                      const FGameplayEventData* TriggerEventData)

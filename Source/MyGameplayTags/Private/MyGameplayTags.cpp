@@ -29,16 +29,16 @@ FMyGameplayTags::FMyGameplayTags()
 	AbilityEmbrace    = GTM.AddNativeGameplayTag("Ability.Embrace");
 	AbilityKick       = GTM.AddNativeGameplayTag("Ability.Kick");
 
-	Pose             = GTM.AddNativeGameplayTag("Pose");
-	PoseAccelerate   = GTM.AddNativeGameplayTag("Pose.Accelerate");
-	PoseTurnCCW      = GTM.AddNativeGameplayTag("Pose.Turn.CCW");
-	PoseTurnCW       = GTM.AddNativeGameplayTag("Pose.Turn.CW");
-	PoseEmbrace      = GTM.AddNativeGameplayTag("Pose.Embrace"      );
-	PoseKickPosition = GTM.AddNativeGameplayTag("Pose.Kick.Position");
-	PoseKickExecute  = GTM.AddNativeGameplayTag("Pose.Kick.Execute" );
-
-	
 	GameplayCue                = GTM.AddNativeGameplayTag("GameplayCue");
+	
+	CuePose             = GTM.AddNativeGameplayTag("GameplayCue.Pose");
+	CuePoseAccelerate   = GTM.AddNativeGameplayTag("GameplayCue.Pose.Accelerate");
+	CuePoseTurnCCW      = GTM.AddNativeGameplayTag("GameplayCue.Pose.Turn.CCW");
+	CuePoseTurnCW       = GTM.AddNativeGameplayTag("GameplayCue.Pose.Turn.CW");
+	CuePoseEmbrace      = GTM.AddNativeGameplayTag("GameplayCue.Pose.Embrace"      );
+	CuePoseKickPosition = GTM.AddNativeGameplayTag("GameplayCue.Pose.Kick.Position");
+	CuePoseKickExecute  = GTM.AddNativeGameplayTag("GameplayCue.Pose.Kick.Execute" );
+
 	CueAccelerateShowThrusters = GTM.AddNativeGameplayTag("GameplayCue.Accelerate.ShowThrusters");
 	CueAccelerateFire          = GTM.AddNativeGameplayTag("GameplayCue.Accelerate.Fire");
     GameplayCueLocal           = GTM.AddNativeGameplayTag("GameplayCue.Local");

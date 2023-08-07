@@ -135,7 +135,6 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
 {
     auto& Tag = FMyGameplayTags::Get();
     const auto InputAbilityTags = InputActionTags.Filter(Tag.InputBindingAbility.GetSingleTagContainer());
-    auto Cues = InputActionTags.Filter(Tag.GameplayCue.GetSingleTagContainer());
     const auto InputCustomTags = InputActionTags.Filter(Tag.InputBindingCustom.GetSingleTagContainer());
 
     for(auto InputCustomTag : InputCustomTags)
@@ -157,24 +156,12 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
                 check(!Spec->IsActive())
                 AbilitySystemComponent->TryActivateAbility(Spec->Handle);
             }
-
-            for(const auto Cue : Cues)
-            {
-                FGameplayCueParameters Parameters;
-                AbilitySystemComponent->AddGameplayCueLocal(Cue, Parameters);
-            }
             break;
         case EInputTrigger::Released:
         case EInputTrigger::HoldAndRelease:
             for(auto Spec : AbilitySystemComponent->GetActiveAbilities(&InputAbilityTags))
             {
                 Cast<UMyGameplayAbility>(Spec.Ability)->SetReleased();
-            }
-
-            for(auto Cue : Cues)
-            {
-                FGameplayCueParameters Parameters;
-                AbilitySystemComponent->RemoveGameplayCueLocal(Cue, Parameters);
             }
             break;
         case EInputTrigger::Tap:
@@ -188,19 +175,6 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
                 else
                 {
                     AbilitySystemComponent->TryActivateAbility(Spec->Handle);
-                }
-            }
-            
-            for(auto Cue : Cues)
-            {
-                FGameplayCueParameters Parameters;
-                if(AbilitySystemComponent->IsGameplayCueActive(Cue))
-                {
-                    AbilitySystemComponent->RemoveGameplayCueLocal(Cue, Parameters);
-                }
-                else
-                {
-                    AbilitySystemComponent->AddGameplayCueLocal(Cue, Parameters);
                 }
             }
             break;

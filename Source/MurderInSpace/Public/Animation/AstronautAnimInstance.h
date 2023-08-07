@@ -26,6 +26,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
 
+	UFUNCTION(BlueprintCallable)
+	void HandleStateFullyBlended();
+
     // event handlers
 
 #if WITH_EDITOR

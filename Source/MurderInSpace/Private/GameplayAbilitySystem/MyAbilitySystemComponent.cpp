@@ -29,22 +29,6 @@ FGameplayTag UMyAbilitySystemComponent::FindTag(FGameplayTag InTag)
 	return MyTags.Filter(InTag.GetSingleTagContainer()).First();
 }
 
-void UMyAbilitySystemComponent::ExecuteGameplayCueLocal(const FGameplayTag GameplayCueTag, const FGameplayCueParameters & GameplayCueParameters)
-{
-    UAbilitySystemGlobals::Get().GetGameplayCueManager()->HandleGameplayCue(GetOwner(), GameplayCueTag, EGameplayCueEvent::Type::Executed, GameplayCueParameters);
-}
-
-void UMyAbilitySystemComponent::AddGameplayCueLocal(const FGameplayTag GameplayCueTag, const FGameplayCueParameters & GameplayCueParameters)
-{
-    UAbilitySystemGlobals::Get().GetGameplayCueManager()->HandleGameplayCue(GetOwner(), GameplayCueTag, EGameplayCueEvent::Type::OnActive, GameplayCueParameters);
-    UAbilitySystemGlobals::Get().GetGameplayCueManager()->HandleGameplayCue(GetOwner(), GameplayCueTag, EGameplayCueEvent::Type::WhileActive, GameplayCueParameters);
-}
-
-void UMyAbilitySystemComponent::RemoveGameplayCueLocal(const FGameplayTag GameplayCueTag, const FGameplayCueParameters & GameplayCueParameters)
-{
-    UAbilitySystemGlobals::Get().GetGameplayCueManager()->HandleGameplayCue(GetOwner(), GameplayCueTag, EGameplayCueEvent::Type::Removed, GameplayCueParameters);
-}
-
 TArray<FGameplayAbilitySpec> UMyAbilitySystemComponent::GetActiveAbilities(const FGameplayTagContainer* WithTags,
     const FGameplayTagContainer* WithoutTags, UGameplayAbility* Ignore)
 {
