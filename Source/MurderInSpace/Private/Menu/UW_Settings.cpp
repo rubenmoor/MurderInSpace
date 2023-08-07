@@ -1,6 +1,6 @@
 #include "Menu/UW_Settings.h"
 
-#include "Actors/MyCharacter.h"
+#include "Spacebodies/MyCharacter.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/CheckBox.h"
 #include "Components/ComboBoxString.h"

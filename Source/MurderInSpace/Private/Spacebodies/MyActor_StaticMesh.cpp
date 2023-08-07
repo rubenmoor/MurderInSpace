@@ -1,4 +1,4 @@
-#include "Actors/MyActor_StaticMesh.h"
+#include "Spacebodies/MyActor_StaticMesh.h"
 
 #include "MyComponents/GyrationComponent.h"
 #include "MyComponents/MyCollisionComponent.h"

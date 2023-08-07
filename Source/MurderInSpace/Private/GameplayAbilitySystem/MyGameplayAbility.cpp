@@ -1,9 +1,6 @@
 #include "GameplayAbilitySystem/MyGameplayAbility.h"
 
-#include "Actors/MyCharacter.h"
-#include "Logging/StructuredLog.h"
-#include "Modes/MyState.h"
-#include "UE5Coro/Cancellation.h"
+#include "Spacebodies/MyCharacter.h"
 #include "UE5Coro/LatentAwaiters.h"
 
 UMyGameplayAbility::UMyGameplayAbility()
@@ -20,14 +17,6 @@ FAbilityCoroutine UMyGameplayAbility::ExecuteAbility(FGameplayAbilitySpecHandle 
         co_await Latent::Cancel();
     }
     co_await UntilReleased();
-}
-
-void UMyGameplayAbility::LocallyDo(const FGameplayAbilityActorInfo* ActorInfo, std::function<void(AMyCharacter*)> Func)
-{
-    if(Cast<APawn>(ActorInfo->OwnerActor)->IsLocallyControlled())
-    {
-        Func(Cast<AMyCharacter>(ActorInfo->OwnerActor));
-    }
 }
 
 Private::FLatentAwaiter UMyGameplayAbility::UntilReleased()

@@ -4,7 +4,7 @@
 #include "Editor.h"
 #endif
 
-#include "Actors/MyCharacter.h"
+#include "Spacebodies/MyCharacter.h"
 #include "Orbit/Orbit.h"
 #include "Modes/MyState.h"
 #include "Blueprint/WidgetLayoutLibrary.h"

@@ -1,4 +1,4 @@
-#include "Actors/WorldBoundaries.h"
+#include "Spacebodies/WorldBoundaries.h"
 
 #include "Modes/MyGameState.h"
 

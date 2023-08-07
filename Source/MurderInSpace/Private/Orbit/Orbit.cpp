@@ -2,8 +2,8 @@
 
 #include <numeric>
 
-#include "Actors/Blackhole.h"
-#include "Actors/MyCharacter.h"
+#include "Spacebodies/Blackhole.h"
+#include "Spacebodies/MyCharacter.h"
 #include "Components/SplineMeshComponent.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "HUD/MyHUD.h"

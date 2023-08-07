@@ -1,6 +1,6 @@
 #include "MyComponents/MyCollisionComponent.h"
 
-#include "Actors/IHasMesh.h"
+#include "Spacebodies/IHasMesh.h"
 #include "Logging/StructuredLog.h"
 #include "Orbit/Orbit.h"
 #include "Modes/MyState.h"

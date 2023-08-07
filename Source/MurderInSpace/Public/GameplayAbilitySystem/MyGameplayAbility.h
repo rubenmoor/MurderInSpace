@@ -25,8 +25,6 @@ public:
 protected:
     virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-    void LocallyDo(const FGameplayAbilityActorInfo* ActorInfo, std::function<void(AMyCharacter* MyCharacter)> Func);
-    
     Private::FLatentAwaiter UntilReleased();
 
     bool bReleased = false;

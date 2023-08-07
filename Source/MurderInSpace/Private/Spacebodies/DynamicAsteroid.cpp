@@ -1,4 +1,4 @@
-﻿#include "Actors/DynamicAsteroid.h"
+﻿#include "Spacebodies/DynamicAsteroid.h"
 
 #include "KismetProceduralMeshLibrary.h"
 #include "RealtimeMesh.h"
@@ -6,7 +6,7 @@
 #include "RealtimeMeshSimple.h"
 #include "FastNoiseWrapper.h"
 #include "ProceduralMeshComponent.h"
-#include "Actors/AsteroidBelt.h"
+#include "Spacebodies/AsteroidBelt.h"
 #include "Logging/StructuredLog.h"
 #include "Modes/MyState.h"
 #include "Net/UnrealNetwork.h"

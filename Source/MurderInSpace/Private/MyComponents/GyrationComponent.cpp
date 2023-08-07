@@ -1,6 +1,6 @@
 #include "MyComponents/GyrationComponent.h"
 
-#include "Actors/IHasMesh.h"
+#include "Spacebodies/IHasMesh.h"
 #include "Logging/StructuredLog.h"
 #include "Modes/MyGameState.h"
 #include "Modes/MyState.h"

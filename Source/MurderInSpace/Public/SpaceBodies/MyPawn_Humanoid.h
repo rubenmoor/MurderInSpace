@@ -8,6 +8,8 @@
 
 #include "MyPawn_Humanoid.generated.h"
 
+class AHandThruster;
+
 /**
  *  a pawn with a humanoid skeleton, like an astronaut
  */
@@ -36,7 +38,24 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UMyCollisionComponent> CollisionComponent;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    TObjectPtr<AHandThruster> HandThrusterLeft;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    TObjectPtr<AHandThruster> HandThrusterRight;
+
     // event handlers
 
     void OnConstruction(const FTransform& Transform) override;
+    virtual void BeginPlay() override;
+
+    // handle gameplay cues
+
+	// handle gameplay cues
+
+	UFUNCTION()
+	void GameplayCue_Accelerate_ShowThrusters(FGameplayTag Cue, EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters);
+    
+	UFUNCTION()
+    void GameplayCue_Accelerate_Fire(FGameplayTag Cue, EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters);
 };

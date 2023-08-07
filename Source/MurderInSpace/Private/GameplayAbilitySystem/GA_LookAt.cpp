@@ -2,6 +2,8 @@
 
 #include "GameplayAbilitySystem/MyAttributes.h"
 #include "MyGameplayTags.h"
+#include "GameplayAbilitySystem/GE_TorqueCCW.h"
+#include "GameplayAbilitySystem/GE_TorqueCW.h"
 #include "UE5Coro/LatentAwaiters.h"
 
 using namespace UE5Coro;
@@ -17,6 +19,9 @@ UGA_LookAt::UGA_LookAt()
     
     // cancel any active LookAt ability
     CancelAbilitiesWithTag.AddTag(Tag.AbilityLookAt);
+
+    GE_TorqueCCW = UGE_TorqueCCW::StaticClass();
+    GE_TorqueCW = UGE_TorqueCW::StaticClass();
 }
 
 FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,

@@ -1,11 +1,14 @@
-#include "Actors/MyPawn.h"
+#include "Spacebodies/MyPawn.h"
 
-#include "Actors/MyCharacter.h"
+#include "Spacebodies/MyCharacter.h"
 #include "GameplayAbilitySystem/MyAttributes.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "GameplayAbilitySystem/MyGameplayAbility.h"
 #include "MyGameplayTags.h"
+#include "GameplayAbilitySystem/MyDeveloperSettings.h"
 #include "HUD/MyHUD.h"
+#include "Logging/StructuredLog.h"
+#include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
 #include "Modes/MyPlayerController.h"
 #include "Net/UnrealNetwork.h"
@@ -26,8 +29,6 @@ AMyPawn::AMyPawn(): APawn()
 	AbilitySystemComponent = CreateDefaultSubobject<UMyAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
-
-	AttrSetAcceleration = CreateDefaultSubobject<UAttrSetAcceleration>("AttributeSetAcceleration");
 }
 
 void AMyPawn::UpdateLookTarget(FVector Target)
@@ -186,8 +187,9 @@ void AMyPawn::OnConstruction(const FTransform& Transform)
 void AMyPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	for(const auto Ability : StartupAbilities)
+
+	auto* Settings = GetDefault<UMyDeveloperSettings>();
+	for(const auto Ability : Settings->StartupAbilities)
 	{
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability));
 	}
@@ -200,6 +202,12 @@ void AMyPawn::BeginPlay()
     {
         SetReadyFlags(EMyPawnReady::InternalReady);
     }
+}
+
+void AMyPawn::PreInitializeComponents()
+{
+	Super::PreInitializeComponents();
+	AttrSetAcceleration = NewObject<UAttrSetAcceleration>(this, "AttrSetAcceleration");
 }
 
 void AMyPawn::PossessedBy(AController* NewController)

@@ -44,7 +44,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, Torque)
 
 	// maximal angular velocity
-	UPROPERTY(BlueprintReadOnly, Category = "Torque", ReplicatedUsing = OnRep_OmegaMax)
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_OmegaMax)
 	FGameplayAttributeData OmegaMax;
 	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, OmegaMax)
 

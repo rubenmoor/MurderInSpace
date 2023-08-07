@@ -2,7 +2,7 @@
 
 #include "GameplayAbilitySystem/MyDeveloperSettings.h"
 #include "Logging/StructuredLog.h"
-#include "Modes/MyState.h"
+#include "Modes/MyGameInstance.h"
 
 TArray<FMyAttributeRow> UMyAttributeSetBase::GetAttributeInitialValueRows()
 {
@@ -47,10 +47,10 @@ void UMyAttributeSetBase::PostInitProperties()
 					);
 			if (InitializationData)
 			{
-				const FStructProperty* StructProperty = CastField<FStructProperty>(Property);
-				check(StructProperty);
-				FGameplayAttributeData* DataPtr = StructProperty->ContainerPtrToValuePtr<FGameplayAttributeData>(this);
-				check(DataPtr);
+				const auto* StructProperty = CastField<FStructProperty>(Property);
+				check(StructProperty)
+				auto* DataPtr = StructProperty->ContainerPtrToValuePtr<FGameplayAttributeData>(this);
+				check(DataPtr)
 				DataPtr->SetBaseValue(InitializationData->Value);
 				DataPtr->SetCurrentValue(InitializationData->Value);
 			}

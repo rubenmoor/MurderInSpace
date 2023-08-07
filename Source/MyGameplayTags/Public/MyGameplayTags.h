@@ -20,10 +20,6 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
     FGameplayTag AccelerationRotationalCCW;
     FGameplayTag AccelerationRotationalCW;
 
-    FGameplayTag Embrace;
-    FGameplayTag KickPosition;
-    FGameplayTag KickExecute;
-    
 	// TODO: remove completely, probably
     FGameplayTag AccelerationMoveTowardsCircle;
 
@@ -39,17 +35,30 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
     FGameplayTag InputBindingAbilityEmbrace;
     FGameplayTag InputBindingAbilityKick;
 
+    // TODO: not currently used
     FGameplayTag Ability;
     FGameplayTag AbilityAccelerate;
     FGameplayTag AbilityLookAt;
     FGameplayTag AbilityEmbrace;
     FGameplayTag AbilityKick;
 
+    FGameplayTag Pose;
+    FGameplayTag PoseAccelerate;
+    FGameplayTag PoseTurnCCW;
+    FGameplayTag PoseTurnCW;
+    FGameplayTag PoseEmbrace;
+    FGameplayTag PoseKickPosition;
+    FGameplayTag PoseKickExecute;
+    
+    // TODO: embrace, kick
+
     // gameplay cues
 
     FGameplayTag GameplayCue;
-    FGameplayTag CueAccelerate;
+    FGameplayTag CueAccelerateShowThrusters;
+    FGameplayTag CueAccelerateFire;
     FGameplayTag GameplayCueLocal;
+    FGameplayTag LocalCueAccelerateFire;
 
     // tags to mark input actions that are not bound to any gameplay ability or gameplay cue
     FGameplayTag InputBindingCustom;

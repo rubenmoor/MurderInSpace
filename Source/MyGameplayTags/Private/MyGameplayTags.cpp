@@ -14,10 +14,6 @@ FMyGameplayTags::FMyGameplayTags()
 	AccelerationRotationalCCW      = GTM.AddNativeGameplayTag("Acceleration.Rotational.CCW");
 	AccelerationRotationalCW       = GTM.AddNativeGameplayTag("Acceleration.Rotational.CW");
 
-	Embrace      = GTM.AddNativeGameplayTag("Embrace"      );
-	KickPosition = GTM.AddNativeGameplayTag("Kick.Position");
-	KickExecute  = GTM.AddNativeGameplayTag("Kick.Execute" );
-
     AccelerationMoveTowardsCircle  = GTM.AddNativeGameplayTag("Acceleration.MoveTowardsCircle");
 	
 	InputBindingAbility                  = GTM.AddNativeGameplayTag("InputBinding.Ability");
@@ -32,10 +28,21 @@ FMyGameplayTags::FMyGameplayTags()
     AbilityLookAt     = GTM.AddNativeGameplayTag("Ability.LookAt");
 	AbilityEmbrace    = GTM.AddNativeGameplayTag("Ability.Embrace");
 	AbilityKick       = GTM.AddNativeGameplayTag("Ability.Kick");
+
+	Pose             = GTM.AddNativeGameplayTag("Pose");
+	PoseAccelerate   = GTM.AddNativeGameplayTag("Pose.Accelerate");
+	PoseTurnCCW      = GTM.AddNativeGameplayTag("Pose.Turn.CCW");
+	PoseTurnCW       = GTM.AddNativeGameplayTag("Pose.Turn.CW");
+	PoseEmbrace      = GTM.AddNativeGameplayTag("Pose.Embrace"      );
+	PoseKickPosition = GTM.AddNativeGameplayTag("Pose.Kick.Position");
+	PoseKickExecute  = GTM.AddNativeGameplayTag("Pose.Kick.Execute" );
+
 	
-	GameplayCue      = GTM.AddNativeGameplayTag("GameplayCue");
-	CueAccelerate    = GTM.AddNativeGameplayTag("GameplayCue.Accelerate");
-    GameplayCueLocal = GTM.AddNativeGameplayTag("GameplayCue.Local");
+	GameplayCue                = GTM.AddNativeGameplayTag("GameplayCue");
+	CueAccelerateShowThrusters = GTM.AddNativeGameplayTag("GameplayCue.Accelerate.ShowThrusters");
+	CueAccelerateFire          = GTM.AddNativeGameplayTag("GameplayCue.Accelerate.Fire");
+    GameplayCueLocal           = GTM.AddNativeGameplayTag("GameplayCue.Local");
+	LocalCueAccelerateFire     = GTM.AddNativeGameplayTag("GameplayCue.Local.Accelerate.Fire");
 	
 	InputBindingCustom                  = GTM.AddNativeGameplayTag("InputBinding.Custom");
 	InputBindingCustomZoom              = GTM.AddNativeGameplayTag("InputBinding.Custom.Zoom");

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayCueInterface.h"
 #include "Orbit/Orbit.h"
 #include "GameFramework/Pawn.h"
 
@@ -29,6 +30,7 @@ class MURDERINSPACE_API AMyPawn
 	, public IHasOrbit
 	, public IHasOrbitColor
 	, public IAbilitySystemInterface
+	, public IGameplayCueInterface
 {
     GENERATED_BODY()
 
@@ -56,6 +58,7 @@ protected:
     virtual void Tick(float DeltaSeconds) override;
     virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
+	virtual void PreInitializeComponents() override;
 	
     // server-only
     virtual void PossessedBy(AController* NewController) override;
@@ -72,10 +75,6 @@ protected:
     TObjectPtr<USceneComponent> Root;
     
 	// members
-
-	// this abilities will be given to the pawn in BeginPlay
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TArray<TSubclassOf<UMyGameplayAbility>> StartupAbilities;
 
 	UPROPERTY(ReplicatedUsing=OnRep_Orbit, VisibleAnywhere, BlueprintReadOnly, Category="Orbit")
 	AOrbit* RP_Orbit = nullptr;
@@ -96,7 +95,7 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UMyAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY()
 	TObjectPtr<UAttrSetAcceleration> AttrSetAcceleration;
 
 	// angular velocity in radians per second
@@ -114,4 +113,6 @@ protected:
 
 	void SetReadyFlags(EMyPawnReady ReadyFlags);
 	void Initialize();
+
+	
 };

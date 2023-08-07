@@ -1,6 +1,6 @@
 #include "Animation/AstronautAnimInstance.h"
 
-#include "Actors/MyPawn_Humanoid.h"
+#include "Spacebodies/MyPawn_Humanoid.h"
 #include "Logging/StructuredLog.h"
 #include "Modes/MyGameInstance.h"
 

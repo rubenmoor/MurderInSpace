@@ -1,10 +1,9 @@
 #include "Modes/MyGameMode.h"
 
-#include "Actors/MyPlayerStart.h"
+#include "Spacebodies/MyPlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Logging/StructuredLog.h"
 #include "Modes/MyPlayerController.h"
-#include "Modes/MyState.h"
 
 #if WITH_EDITOR
 #include "Editor.h"

@@ -1,6 +1,6 @@
 #include "Modes/MyGameState.h"
 
-#include "Actors/Blackhole.h"
+#include "Spacebodies/Blackhole.h"
 #include "Kismet/GameplayStatics.h"
 #include "Orbit/Orbit.h"
 #include "Lib/FunctionLib.h"

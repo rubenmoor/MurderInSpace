@@ -5,10 +5,10 @@
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/KismetRenderingLibrary.h"
-#include "AbilitySystemInterface.h"
 
 #include "MyCharacter.generated.h"
 
+class AHandThruster;
 class UCameraComponent;
 class USpringArmComponent;
 class UNiagaraComponent;
@@ -138,4 +138,9 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
     uint8 CameraPosition = 2;
+
+    // handle local gameplay cues, i.e. they affect the user interface
+
+    UFUNCTION()
+    void GameplayCue_Local_Accelerate_Fire(FGameplayTag Cue, EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters);
 };

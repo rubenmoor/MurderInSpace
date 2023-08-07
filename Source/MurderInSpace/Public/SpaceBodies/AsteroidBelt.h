@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Actors/DynamicAsteroid.h"
+#include "Spacebodies/DynamicAsteroid.h"
 #include "Components/SphereComponent.h"
 #include "Modes/MyGameState.h"
 

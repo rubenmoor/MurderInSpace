@@ -3,6 +3,7 @@
 
 #include "Modes/MyGameInstance.h"
 
+#include "AbilitySystemGlobals.h"
 #include "LoadingScreenModule.h"
 #include "HUD/MyHUDMenu.h"
 #include "Kismet/GameplayStatics.h"
@@ -190,6 +191,7 @@ void UMyGameInstance::Init()
 	{
 		LoadingScreenModule().StopIngameLoadingScreen();
 	});
+    UAbilitySystemGlobals::Get().InitGlobalData();
 }
 
 

@@ -3,9 +3,8 @@
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayCueManager.h"
-#include "Actors/MyPawn.h"
+#include "Spacebodies/MyPawn.h"
 #include "GameplayAbilitySystem/MyGameplayAbility.h"
-#include "Modes/MyPlayerController.h"
 
 UMyAbilitySystemComponent::UMyAbilitySystemComponent()
 {

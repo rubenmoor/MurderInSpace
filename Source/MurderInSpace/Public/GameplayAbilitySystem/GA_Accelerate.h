@@ -5,7 +5,10 @@
 
 #include "GA_Accelerate.generated.h"
 
+class UGE_AccelerateFire;
+class UGE_AcceleratePosition;
 class UInputAction;
+
 /**
  * 
  */
@@ -18,9 +21,8 @@ class MURDERINSPACE_API UGA_Accelerate : public UMyGameplayAbility
 
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    TSubclassOf<UGameplayEffect> GE_Accelerate;
+    TSubclassOf<UGE_AcceleratePosition> GE_AcceleratePosition;
+    TSubclassOf<UGE_AccelerateFire> GE_AccelerateFire;
     
     virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-    virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-    
 };

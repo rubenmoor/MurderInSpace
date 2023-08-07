@@ -3,10 +3,15 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
 #include "MyGameplayTags.h"
-#include "Actors/MyCharacter.h"
-#include "Actors/MyPawn.h"
+#include "Spacebodies/MyCharacter.h"
+#include "Spacebodies/MyPawn.h"
+#include "..\..\Public\GameplayAbilitySystem\GE_AcceleratePosition.h"
+#include "GameplayAbilitySystem/GE_AccelerateFire.h"
+#include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "Modes/MyPlayerController.h"
 #include "UE5Coro/LatentAwaiters.h"
+
+using namespace UE5Coro;
 
 UGA_Accelerate::UGA_Accelerate()
 {
@@ -14,7 +19,10 @@ UGA_Accelerate::UGA_Accelerate()
     
     AbilityTags.AddTag(Tag.InputBindingAbilityAccelerate);
     
-    ActivationOwnedTags.AddTag(Tag.AbilityAccelerate);
+    //ActivationOwnedTags.AddTag(Tag.AbilityAccelerate);
+    
+    GE_AcceleratePosition = UGE_AcceleratePosition::StaticClass();
+    GE_AccelerateFire = UGE_AccelerateFire::StaticClass();
 }
 
 FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
@@ -25,36 +33,36 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     {
         co_await Latent::Cancel();
     }
-    co_await Latent::Seconds(0.2);
-    const auto GE_Handle =
+    const auto GE_Position =
         ApplyGameplayEffectToOwner
             ( Handle
             , ActorInfo
             , ActivationInfo
-            , GE_Accelerate->GetDefaultObject<UGameplayEffect>()
+            , GE_AcceleratePosition->GetDefaultObject<UGameplayEffect>()
             , 1.
             );
-    LocallyDo(ActorInfo, [] (AMyCharacter* MyCharacter)
-    {
-        auto* Orbit = MyCharacter->GetOrbit();
-        Orbit->UpdateVisibility(true);
-        Orbit->SpawnSplineMesh
-            ( MyCharacter->GetTempSplineMeshColor()
-            , ESplineMeshParentSelector::Temporary
+    
+    // TODO: wait for transition event
+    co_await Latent::Seconds(0.2);
+    
+    auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
+    const auto& Tag = FMyGameplayTags::Get();
+    ASC->AddGameplayCueLocal(Tag.LocalCueAccelerateFire, FGameplayCueParameters());
+    
+    const auto GE_Fire =
+        ApplyGameplayEffectToOwner
+            ( Handle
+            , ActorInfo
+            , ActivationInfo
+            , GE_AccelerateFire->GetDefaultObject<UGameplayEffect>()
+            , 1.
             );
-    });
+            
     co_await UntilReleased();
-    BP_RemoveGameplayEffectFromOwnerWithHandle(GE_Handle);
-    LocallyDo(ActorInfo, [] (AMyCharacter* MyCharacter)
-    {
-        auto* Orbit = MyCharacter->GetOrbit();
-        Orbit->UpdateVisibility(false);
-        Orbit->DestroyTempSplineMeshes();
-    });
-}
-
-void UGA_Accelerate::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
-{
-    Super::OnAvatarSet(ActorInfo, Spec);
-    check(IsValid(GE_Accelerate))
+    
+    ASC->RemoveActiveGameplayEffect(GE_Fire);
+    ASC->RemoveActiveGameplayEffect(GE_Position);
+    
+    co_await Latent::Seconds(0.2);
+    ASC->RemoveGameplayCueLocal(Tag.LocalCueAccelerateFire, FGameplayCueParameters());
 }

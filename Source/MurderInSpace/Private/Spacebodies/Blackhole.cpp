@@ -1,4 +1,4 @@
-#include "Actors/Blackhole.h"
+#include "Spacebodies/Blackhole.h"
 
 #include "NiagaraComponent.h"
 #include "Components/PointLightComponent.h"

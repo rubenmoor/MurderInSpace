@@ -1,16 +1,15 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "Actors/MyCharacter.h"
+#include "Spacebodies/MyCharacter.h"
 
 #include "NiagaraComponent.h"
-#include "Actors/MyPlayerStart.h"
+#include "Spacebodies/MyPlayerStart.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "GameFramework/GameUserSettings.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "HUD/MyHUD.h"
 #include "Lib/FunctionLib.h"
+#include "Logging/StructuredLog.h"
+#include "Modes/MyGameInstance.h"
 #include "Modes/MyPlayerController.h"
 
 AMyCharacter::AMyCharacter()
@@ -143,7 +142,8 @@ void AMyCharacter::OnConstruction(const FTransform& Transform)
 void AMyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	auto Res = GEngine->GetGameUserSettings()->GetScreenResolution();
+
+	const auto Res = GEngine->GetGameUserSettings()->GetScreenResolution();
     auto* RenderTarget = SetNewRenderTarget(Res.X, Res.Y);
 	GetController<AMyPlayerController>()->GetHUD<AMyHUD>()->SetOrbitMaterial(RenderTarget);
 }
@@ -174,3 +174,26 @@ void AMyCharacter::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prope
 	}
 }
 #endif
+
+void AMyCharacter::GameplayCue_Local_Accelerate_Fire(FGameplayTag Cue, EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters)
+{
+	switch (Event)
+	{
+	case EGameplayCueEvent::OnActive:
+		RP_Orbit->UpdateVisibility(true);
+		RP_Orbit->SpawnSplineMesh
+			( GetTempSplineMeshColor()
+			, ESplineMeshParentSelector::Temporary
+			);
+		break;
+	case EGameplayCueEvent::WhileActive:
+		break;
+	case EGameplayCueEvent::Executed:
+		UE_LOGFMT(LogMyGame, Error, "Handle GameplayCue: {CUE}, Executed: Path not implemented", Cue.GetTagName().ToString());
+		break;
+	case EGameplayCueEvent::Removed:
+		RP_Orbit->UpdateVisibility(false);
+		RP_Orbit->DestroyTempSplineMeshes();
+		break;
+	}
+}

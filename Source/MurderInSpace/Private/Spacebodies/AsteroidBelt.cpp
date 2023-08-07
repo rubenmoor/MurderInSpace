@@ -1,7 +1,7 @@
-﻿#include "Actors/AsteroidBelt.h"
+﻿#include "Spacebodies/AsteroidBelt.h"
 
 #include "NiagaraComponent.h"
-#include "Actors/DynamicAsteroid.h"
+#include "Spacebodies/DynamicAsteroid.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Logging/StructuredLog.h"

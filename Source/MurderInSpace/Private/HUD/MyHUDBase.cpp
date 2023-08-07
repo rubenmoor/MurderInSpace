@@ -3,14 +3,12 @@
 
 #include "HUD/MyHUDBase.h"
 
-#include "Actors/MyCharacter.h"
 #include "Blueprint/UserWidget.h"
 #include "HUD/UW_WidgetHUDBorder.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Border.h"
 #include "Components/CanvasPanelSlot.h"
-#include "HUD/MyHUD.h"
 #include "HUD/MyHUDMenu.h"
 #include "Lib/FunctionLib.h"
 #include "Logging/StructuredLog.h"
