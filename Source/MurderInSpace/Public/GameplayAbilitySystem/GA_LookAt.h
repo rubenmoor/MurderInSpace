@@ -6,6 +6,9 @@
 
 #include "GA_LookAt.generated.h"
 
+class UGE_TorqueCW;
+class UGE_TorqueCCW;
+
 using namespace UE5Coro;
 using namespace UE5Coro::GAS;
 	
@@ -22,11 +25,10 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<UGameplayEffect> GE_TorqueCCW;
+	TSubclassOf<UGE_TorqueCCW> GE_TorqueCCW;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<UGameplayEffect> GE_TorqueCW;
+	TSubclassOf<UGE_TorqueCW> GE_TorqueCW;
 	
 	virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 };

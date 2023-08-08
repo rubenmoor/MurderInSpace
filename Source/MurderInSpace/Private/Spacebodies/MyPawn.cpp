@@ -215,6 +215,7 @@ void AMyPawn::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	SetOwner(NewController);
 }
 
 #if WITH_EDITOR

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <Input/MyInputActionSet.h>
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "MyGameplayTags.h"
@@ -20,6 +21,7 @@
 #include "Modes/MySessionManager.h"
 #include "Modes/MyGameState.h"
 #include "EnhancedInputComponent.h"
+#include "GameplayAbilitySystem/GA_LookAt.h"
 #include "GameplayAbilitySystem/MyGameplayAbility.h"
 #include "Input/MyInputActions.h"
 
@@ -232,41 +234,21 @@ void AMyPlayerController::Tick(float DeltaSeconds)
     
     // reacting to mouse movement
     const FVector VecMouseDirection = GetMouseDirection();
-    const FQuat Quat = FQuat::FindBetween(FVector::UnitX(), VecMouseDirection);
+    const FQuat MouseQuat = FQuat::FindBetween(FVector::UnitX(), VecMouseDirection);
+    
     auto MyCharacter = GetPawn<AMyCharacter>();
-    // if
-    //     (  MyCharacter->RP_ActionState.State == EActionState::Idle
-    //     || MyCharacter->RP_ActionState.State == EActionState::RotatingCW
-    //     || MyCharacter->RP_ActionState.State == EActionState::RotatingCCW
-    //     )
-    // {
-    //     const double AngleDelta =
-    //           Quat.GetTwistAngle(FVector(0, 0, 1))
-    //         - MyCharacter->GetActorQuat().GetTwistAngle(FVector(0, 0, 1));
-    //     if(abs(AngleDelta) > 15. / 180. * PI)
-    //     {
-    //         MyCharacter->RP_ActionState.State = AngleDelta > 0
-    //             ? EActionState::RotatingCCW
-    //             : EActionState::RotatingCW;
-
-    //         // server-only
-    //         ServerRPC_RotateTowards(Quat);
-    //         
-    //         if(GetLocalRole() == ROLE_AutonomousProxy)
-    //         {
-    //             // "movement prediction"
-    //             //MyCharacter->SetRotationAim(Quat);
-    //         }
-    //     }
-    //     else
-    //     {
-    //         MyCharacter->RP_ActionState.State = EActionState::Idle;
-    //     }
-    // }
-    // else if(MyCharacter->RP_ActionState.State == EActionState::KickPositioning)
-    // {
-    //     // TODO:
-    // }
+    
+    const double AngleDelta =
+          MouseQuat.GetTwistAngle(FVector(0, 0, 1))
+        - MyCharacter->GetActorQuat().GetTwistAngle(FVector(0, 0, 1));
+    if(abs(AngleDelta) > 15. / 180. * PI)
+    {
+        auto& Tag = FMyGameplayTags::Get();
+        FGameplayEventData Payload;
+        Payload.EventMagnitude = AngleDelta;
+        UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(MyCharacter, Tag.AbilityLookAt, Payload);
+    }
+    
     // debugging direction
     const FVector VecMe = MyCharacter->GetActorLocation();
     DrawDebugDirectionalArrow(GetWorld(), VecMe, VecMe + VecMouseDirection, 20, FColor::Red);
@@ -328,11 +310,24 @@ void AMyPlayerController::AcknowledgePossession(APawn* P)
 {
     Super::AcknowledgePossession(P);
 
-    AMyCharacter* MyCharacter = Cast<AMyCharacter>(P);
+    auto* MyCharacter = Cast<AMyCharacter>(P);
 
     AbilitySystemComponent = UMyAbilitySystemComponent::Get(MyCharacter);
+    bool bFoundAbility = false;
+    for(auto& Spec : AbilitySystemComponent->GetActivatableAbilities())
+    {
+        if(Spec.Ability.IsA(UGA_LookAt::StaticClass()))
+        {
+            GASpecLookAt = Spec;
+            bFoundAbility = true;
+        }
+    }
+    if(!bFoundAbility)
+    {
+        UE_LOGFMT(LogMyGame, Error, "AMyPlayerController: Could not find LookAt Gameplay Ability");
+    }
     
-    MyCharacter->GetAbilitySystemComponent()->InitAbilityActorInfo(MyCharacter, MyCharacter);
+   AbilitySystemComponent->InitAbilityActorInfo(MyCharacter, MyCharacter);
     MyCharacter->UpdateSpringArm(CameraPosition);
     MyCharacter->ShowEffects();
     

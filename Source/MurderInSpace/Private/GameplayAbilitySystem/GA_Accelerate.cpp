@@ -50,15 +50,10 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
 			);
     });
     //ASC->AddGameplayCueLocal(Tag.LocalCueAccelerateFire, FGameplayCueParameters());
-    
+
+    const auto GE_FireSpec = MakeOutgoingGameplayEffectSpec(GE_AccelerateFire);
     const auto GE_Fire =
-        ApplyGameplayEffectToOwner
-            ( Handle
-            , ActorInfo
-            , ActivationInfo
-            , GE_AccelerateFire->GetDefaultObject<UGameplayEffect>()
-            , 1.
-            );
+        ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, GE_FireSpec);
             
     co_await UntilReleased();
 

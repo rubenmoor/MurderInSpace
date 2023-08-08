@@ -2,12 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "EnhancedInputSubsystems.h"
+#include "GameplayAbilitySpec.h"
 #include "InputMappingContext.h"
 #include "Orbit/Orbit.h"
 #include "GameFramework/PlayerController.h"
 
 #include "MyPlayerController.generated.h"
 
+class UMyGameplayAbility;
 class UEnhancedInputComponent;
 struct FGameplayTagContainer;
 class UMyInputActionSet;
@@ -176,4 +178,6 @@ protected:
 	// the hovered body and its orbit, based on mouse movement
 	UPROPERTY()
 	FHighlight Hovered;
+
+	FGameplayAbilitySpec GASpecLookAt;
 };
