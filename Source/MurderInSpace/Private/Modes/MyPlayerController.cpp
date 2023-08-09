@@ -255,27 +255,15 @@ void AMyPlayerController::Tick(float DeltaSeconds)
             {
                 auto& Tag = FMyGameplayTags::Get();
                 auto Specs = AbilitySystemComponent->GetActiveAbilities(&Tag.AbilityLookAt.GetSingleTagContainer());
-                auto Retrigger = [this] (UGameplayAbility* Ability)
-                     {
-                        auto& Tag = FMyGameplayTags::Get();
-                        FGameplayEventData EventData;
-                        EventData.EventMagnitude = MouseAngle;
-                        AbilitySystemComponent->SendGameplayEvent(Tag.AbilityLookAt, EventData);
-                        if(Ability)
-                            Ability->OnGameplayAbilityEnded.Remove(DelegateHandleOnLookAt);
-                     };
-                if(Specs.IsEmpty())
-                {
-                    Retrigger(nullptr);
-                }
-                else
+                
+                if(!Specs.IsEmpty())
                 {
                     check(Specs.Num() == 1)
-                    auto OnLookAtEnded = Specs[0].GetPrimaryInstance()->OnGameplayAbilityEnded;
-                    OnLookAtEnded.Clear();
-                    DelegateHandleOnLookAt = OnLookAtEnded.AddLambda(Retrigger);
                     AbilitySystemComponent->CancelAbilitySpec(Specs[0], nullptr);
                 }
+                FGameplayEventData EventData;
+                EventData.EventMagnitude = MouseAngle;
+                AbilitySystemComponent->SendGameplayEvent(Tag.AbilityLookAt, EventData);
 
                 VecAngle = (FQuat(FVector::UnitZ(), AngleDelta) * MyCharacter->GetActorQuat()).RotateVector(FVector::UnitX());
             }

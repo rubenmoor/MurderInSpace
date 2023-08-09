@@ -14,12 +14,11 @@ using namespace UE5Coro::GAS;
 
 UGA_LookAt::UGA_LookAt()
 {
-    //InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
     
     const auto& Tag = FMyGameplayTags::Get();
 
     AbilityTags.AddTag(Tag.AbilityLookAt);
-    //bRetriggerInstancedAbility = true;
     
     FAbilityTriggerData TriggerData;
     TriggerData.TriggerTag = Tag.AbilityLookAt;
