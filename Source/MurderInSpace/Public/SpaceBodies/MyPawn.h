@@ -52,6 +52,10 @@ public:
 	// ability system interface
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return static_cast<UAbilitySystemComponent*>(AbilitySystemComponent); }
 
+	// get current angular velocity
+	UFUNCTION(BlueprintCallable)
+	double GetOmega() const { return Omega; }
+
 protected:
     // event handlers
     
@@ -59,6 +63,7 @@ protected:
     virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
 	virtual void PreInitializeComponents() override;
+	virtual void PostInitializeComponents() override;
 	
     // server-only
     virtual void PossessedBy(AController* NewController) override;
@@ -102,10 +107,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	double Omega = 0.;
 
-	// the rotation towards which the pawn is currently rotating
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
-    FQuat RP_QuatRotationAim = FQuat::Identity;
-
 	// private methods
 
 	UFUNCTION()
@@ -113,6 +114,4 @@ protected:
 
 	void SetReadyFlags(EMyPawnReady ReadyFlags);
 	void Initialize();
-
-	
 };

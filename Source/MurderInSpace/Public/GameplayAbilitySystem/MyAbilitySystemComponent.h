@@ -2,11 +2,21 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
+#include "UE5CoroGAS/UE5CoroGameplayAbility.h"
+
 #include "MyAbilitySystemComponent.generated.h"
 
 class UMyEnhancedInputComponent;
 struct FInputActionInstance;
 class AMyPawn;
+
+using namespace UE5Coro;
+
+UENUM()
+enum class EPoseCue : uint8
+{
+    Add, Remove
+};
 
 /**
  * 
@@ -28,4 +38,10 @@ public:
 
     DECLARE_DELEGATE(FDelegateStateFullyBlended)
     FDelegateStateFullyBlended OnStateFullyBlended;
+    
+    Private::FLatentAwaiter UntilPoseFullyBlended(FGameplayTag Cue, EPoseCue PoseCueChange);
+
+    void SendGameplayEvent(FGameplayTag Tag, FGameplayEventData EventData);
+
+    using UAbilitySystemComponent::CancelAbilitySpec;
 };

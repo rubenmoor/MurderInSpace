@@ -3,12 +3,9 @@
 #include "Spacebodies/MyCharacter.h"
 #include "GameplayAbilitySystem/MyAttributes.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
-#include "GameplayAbilitySystem/MyGameplayAbility.h"
 #include "MyGameplayTags.h"
 #include "GameplayAbilitySystem/MyDeveloperSettings.h"
 #include "HUD/MyHUD.h"
-#include "Logging/StructuredLog.h"
-#include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
 #include "Modes/MyPlayerController.h"
 #include "Net/UnrealNetwork.h"
@@ -79,86 +76,10 @@ void AMyPawn::Tick(float DeltaSeconds)
 	const double DeltaV = AttrSetAcceleration->GetAccelerationSI() / FPhysics::LengthScaleFactor * DeltaSeconds;
 	RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics);
 	
-	// if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AccelerationTranslational))
-	// {
-	// 	const float AccelerationSI = AttrSetAcceleration->GetAccelerationSIMax();
-	// 	const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
-	// 	RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics);
-	// }
-	// else if(AbilitySystemComponent->HasMatchingGameplayTag(Tag.AccelerationMoveTowardsCircle))
-	// {
-	// 	const float AccelerationSI = AttrSetAcceleration->AccelerationSIMax.GetCurrentValue();
-	// 	const auto VecVCircle = RP_Orbit->GetCircleVelocity(Physics);
-	// 	const auto VecTarget = std::copysign(1., RP_Orbit->GetVecVelocity().Dot(VecVCircle)) * VecVCircle;
-	// 	RP_QuatRotationAim = FQuat::FindBetween(FVector(1., 0., 0.), VecTarget);
-	// 	SetActorRotation(RP_QuatRotationAim);
-	// 	const FVector VecDelta = VecTarget - RP_Orbit->GetVecVelocity();
-	// 	const double DeltaV = AccelerationSI / FPhysics::LengthScaleFactor * DeltaSeconds;
-	// 	if(VecDelta.Length() > DeltaV)
-	// 	{
-	// 		RP_Orbit->Update(VecDelta.GetSafeNormal() * DeltaV, Physics);
-	// 	}
-	// }
-
-	// rotating towards `RP_RotationAim` at speed `Omega`
-
-	// const float TorqueMax = AttrSetAcceleration->TorqueMax.GetCurrentValue();
-	// float Alpha;
-	// const auto MaybeTorqueTag = AbilitySystemComponent->FindTag(Tag.HasTorque);
-	// if(MaybeTorqueTag == Tag.HasTorqueCCW)
-	// {
-	// 	Alpha = TorqueMax;
-	// }
-	// else if(MaybeTorqueTag == Tag.HasTorqueCW)
-	// {
-	// 	Alpha = -TorqueMax;
-	// }
-	// else
-	// {
-	// 	Alpha = 0.;
-	// }
-	// double NewOmega = Omega + Alpha * DeltaSeconds;
-	//const FQuat MyQuat = GetActorQuat();
-	//const double RemainingTheta = (RP_QuatRotationAim * MyQuat.Inverse()).GetTwistAngle(FVector::UnitZ());
-
-	//const double BreakingDistance = FMath::Pow(Omega, 2) / 2. / TorqueMax;
-	//if(Omega != 0.) 
-	//{
-	//	if(FMath::Abs(RemainingTheta) <= BreakingDistance)
-	//	{
-	//		// decelarate when approaching `RotationAim`
-	//		FGameplayTag TorqueTag;
-	//		if(Omega < 0.)
-	//		{
-	//			TorqueTag = Tag.HasTorqueCCW;
-	//		}
-	//		else
-	//		{
-	//			TorqueTag = Tag.HasTorqueCW;
-	//		}
-	//		AbilitySystemComponent->TryActivateAbilitiesByTag(TorqueTag.GetSingleTagContainer());
-	//	}
-	//	else if(AbilitySystemComponent->FindTag(Tag.HasTorque).IsValid())
-	//	{
-	//		const float OmegaMax = AttrSetAcceleration->OmegaMax.GetCurrentValue();
-	//		if(FMath::Abs(NewOmega) >= OmegaMax)
-	//		{
-	//			// reached maximum angular velocity
-	//			AbilitySystemComponent->CancelAbilities(&Tag.HasTorque.GetSingleTagContainer());
-	//			NewOmega = FMath::Sign(Omega) * OmegaMax;
-	//		}
-	//		else if(NewOmega * Omega < 0.)
-	//		{
-	//			// change of sign => (over-)reached zero angular velocity
-	//			AbilitySystemComponent->CancelAbilities(&Tag.HasTorque.GetSingleTagContainer());
-	//			NewOmega = 0.;
-	//		}
-	//	}
-	//}
-	//Omega = NewOmega;
 	Omega += AttrSetAcceleration->GetTorque() * DeltaSeconds;
 	const double DeltaTheta = Omega * DeltaSeconds;
-	SetActorRotation(GetActorQuat() * FQuat::MakeFromRotationVector(FVector::UnitZ() * DeltaTheta));
+	//SetActorRotation(GetActorQuat() * FQuat::MakeFromRotationVector(FVector::UnitZ() * DeltaTheta));
+	SetActorRotation(GetActorQuat() * FQuat(FVector::UnitZ(), DeltaTheta));
 }
 
 void AMyPawn::OnConstruction(const FTransform& Transform)
@@ -181,19 +102,12 @@ void AMyPawn::OnConstruction(const FTransform& Transform)
 	{
 		OrbitSetup(this);
 	}
-	RP_QuatRotationAim = GetActorQuat();
 }
 
 void AMyPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	auto* Settings = GetDefault<UMyDeveloperSettings>();
-	for(const auto Ability : Settings->StartupAbilities)
-	{
-		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability));
-	}
-	
     if(GetLocalRole() == ROLE_Authority)
     {
 		Initialize();
@@ -208,6 +122,17 @@ void AMyPawn::PreInitializeComponents()
 {
 	Super::PreInitializeComponents();
 	AttrSetAcceleration = NewObject<UAttrSetAcceleration>(this, "AttrSetAcceleration");
+}
+
+void AMyPawn::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	auto* Settings = GetDefault<UMyDeveloperSettings>();
+	for(const auto Ability : Settings->StartupAbilities)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability));
+	}
+	
 }
 
 void AMyPawn::PossessedBy(AController* NewController)
@@ -281,5 +206,4 @@ void AMyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	// in case this goes out of syn (COND_SkipOwner prevents re-sync), the player looks into the wrong direction for a while;
 	//DOREPLIFETIME_CONDITION(APawnInSpace, RP_BodyRotation   , COND_SkipOwner)
 	// just removing the COND_SkipOwner makes sure that the client's authority doesn't last more than a couple of frames
-	DOREPLIFETIME(AMyPawn, RP_QuatRotationAim)
 }

@@ -4,7 +4,6 @@
 #include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
 #include "MyGameplayTags.h"
 #include "Spacebodies/MyPawn.h"
-#include "GameplayAbilitySystem/GE_AcceleratePosition.h"
 #include "GameplayAbilitySystem/GE_AccelerateFire.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "UE5Coro/LatentAwaiters.h"
@@ -17,9 +16,6 @@ UGA_Accelerate::UGA_Accelerate()
     
     AbilityTags.AddTag(Tag.InputBindingAbilityAccelerate);
     
-    //ActivationOwnedTags.AddTag(Tag.AbilityAccelerate);
-    
-    GE_AcceleratePosition = UGE_AcceleratePosition::StaticClass();
     GE_AccelerateFire = UGE_AccelerateFire::StaticClass();
 }
 
@@ -35,10 +31,8 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     const auto& Tag = FMyGameplayTags::Get();
 
     ASC->AddGameplayCue(Tag.CueAccelerateShowThrusters);
-    ASC->AddGameplayCue(Tag.CuePoseAccelerate);
 
-    co_await Latent::UntilDelegate(ASC->OnStateFullyBlended);
-    //co_await Latent::Seconds(0.2);
+    co_await ASC->UntilPoseFullyBlended(Tag.CuePoseAccelerate, EPoseCue::Add);
 
     LocallyControlledDo(ActorInfo, [] (AMyCharacter* MyCharacter)
     {
@@ -49,16 +43,13 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
 			, ESplineMeshParentSelector::Temporary
 			);
     });
-    //ASC->AddGameplayCueLocal(Tag.LocalCueAccelerateFire, FGameplayCueParameters());
 
-    const auto GE_FireSpec = MakeOutgoingGameplayEffectSpec(GE_AccelerateFire);
-    const auto GE_Fire =
-        ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, GE_FireSpec);
+    const auto GE_FireSpec   = MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, GE_AccelerateFire);
+    const auto GE_FireHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, GE_FireSpec);
             
     co_await UntilReleased();
 
-    ASC->RemoveActiveGameplayEffect(GE_Fire);
-    ASC->RemoveGameplayCue(Tag.CuePoseAccelerate);
+    verify(RemoveActiveGameplayEffect(GE_FireHandle, *ActorInfo, ActivationInfo))
     
     LocallyControlledDo(ActorInfo, [] (AMyCharacter* MyCharacter)
     {
@@ -66,7 +57,8 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
         Orbit->UpdateVisibility(false);
         Orbit->DestroyTempSplineMeshes();
     });
+
+    co_await ASC->UntilPoseFullyBlended(Tag.CuePoseAccelerate, EPoseCue::Remove);
     
-    co_await Latent::UntilDelegate(ASC->OnStateFullyBlended);
     ASC->RemoveGameplayCue(Tag.CueAccelerateShowThrusters);
 }

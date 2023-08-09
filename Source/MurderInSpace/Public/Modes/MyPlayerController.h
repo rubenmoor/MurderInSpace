@@ -142,9 +142,6 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	bool bMyOrbitShowHide = false;
 	
-	UFUNCTION(Server, Reliable)
-	void ServerRPC_RotateTowards(FQuat Quat);
-	
 	// for gameplay input actions AND mere UI interactions: execute their local effects
 	//void LocallyHandleAction(EInputAction Action, const FInputActionInstance& IAInstance);
 
@@ -179,5 +176,12 @@ protected:
 	UPROPERTY()
 	FHighlight Hovered;
 
-	FGameplayAbilitySpec GASpecLookAt;
+	// the rotation angle in radians between UnitX and the vector pointing from screen center to mouse position
+	UPROPERTY()
+	float MouseAngle = 0.;
+
+	// debugging
+	FVector VecAngle = FVector::Zero();
+
+	FDelegateHandle DelegateHandleOnLookAt;
 };

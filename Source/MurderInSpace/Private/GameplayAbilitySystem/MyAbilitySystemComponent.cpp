@@ -5,6 +5,7 @@
 #include "GameplayCueManager.h"
 #include "Spacebodies/MyPawn.h"
 #include "GameplayAbilitySystem/MyGameplayAbility.h"
+#include "UE5Coro/LatentAwaiters.h"
 
 UMyAbilitySystemComponent::UMyAbilitySystemComponent()
 {
@@ -50,3 +51,30 @@ TArray<FGameplayAbilitySpec> UMyAbilitySystemComponent::GetActiveAbilities(const
     }
     return ActiveAbilities;
 }
+
+Private::FLatentAwaiter UMyAbilitySystemComponent::UntilPoseFullyBlended(FGameplayTag Cue, EPoseCue PoseCueChange)
+{
+    switch (PoseCueChange)
+    {
+    case EPoseCue::Add:
+        if(!HasMatchingGameplayTag(Cue))
+        {
+            AddGameplayCue(Cue);
+            return Latent::UntilDelegate(OnStateFullyBlended);
+        }
+    case EPoseCue::Remove:
+        if(HasMatchingGameplayTag(Cue))
+        {
+            RemoveGameplayCue(Cue);
+            return Latent::UntilDelegate(OnStateFullyBlended);
+        }
+    }
+    return Private::FLatentAwaiter(nullptr, [] (void*, bool bCleanup){ return !bCleanup; });
+}
+
+void UMyAbilitySystemComponent::SendGameplayEvent(FGameplayTag EventTag, FGameplayEventData EventData)
+{
+    FScopedPredictionWindow NewScopedWindow(this, true);
+    HandleGameplayEvent(EventTag, &EventData);
+}
+

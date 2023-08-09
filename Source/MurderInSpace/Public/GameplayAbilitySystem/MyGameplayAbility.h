@@ -21,11 +21,16 @@ class MURDERINSPACE_API UMyGameplayAbility : public UUE5CoroGameplayAbility
 
 public:
     UMyGameplayAbility();
-    void SetReleased() { bReleased = true; }
+
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_SetReleased();
 
     static void LocallyControlledDo(const FGameplayAbilityActorInfo* ActorInfo, std::function<void(AMyCharacter*)> Func);
 protected:
     virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = GameplayEffects)
+    bool RemoveActiveGameplayEffect(FActiveGameplayEffectHandle Handle, const FGameplayAbilityActorInfo& ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, int32 StacksToRemove = -1);
 
     Private::FLatentAwaiter UntilReleased();
 

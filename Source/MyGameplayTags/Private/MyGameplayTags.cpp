@@ -10,7 +10,6 @@ FMyGameplayTags::FMyGameplayTags()
 	Acceleration                   = GTM.AddNativeGameplayTag("Acceleration");
 	AccelerationTranslational      = GTM.AddNativeGameplayTag("Acceleration.Translational");
 	AccelerationRotational         = GTM.AddNativeGameplayTag("Acceleration.Rotational");
-	AccelerationRotationalDuration = GTM.AddNativeGameplayTag("Acceleration.Rotational.Duration");
 	AccelerationRotationalCCW      = GTM.AddNativeGameplayTag("Acceleration.Rotational.CCW");
 	AccelerationRotationalCW       = GTM.AddNativeGameplayTag("Acceleration.Rotational.CW");
 
@@ -18,7 +17,6 @@ FMyGameplayTags::FMyGameplayTags()
 	
 	InputBindingAbility                  = GTM.AddNativeGameplayTag("InputBinding.Ability");
 	InputBindingAbilityAccelerate        = GTM.AddNativeGameplayTag("InputBinding.Ability.Accelerate");
-	InputBindingAbilityLookAt            = GTM.AddNativeGameplayTag("InputBinding.Ability.LookAt");
 	InputBindingAbilityMoveTowardsCircle = GTM.AddNativeGameplayTag("InputBinding.Ability.MoveTowardsCircle");
 	InputBindingAbilityEmbrace           = GTM.AddNativeGameplayTag("InputBinding.Ability.Embrace");
 	InputBindingAbilityKick              = GTM.AddNativeGameplayTag("InputBinding.Ability.Kick");
@@ -33,6 +31,7 @@ FMyGameplayTags::FMyGameplayTags()
 	
 	CuePose             = GTM.AddNativeGameplayTag("GameplayCue.Pose");
 	CuePoseAccelerate   = GTM.AddNativeGameplayTag("GameplayCue.Pose.Accelerate");
+	CuePoseTurn         = GTM.AddNativeGameplayTag("GameplayCue.Pose.Turn");
 	CuePoseTurnCCW      = GTM.AddNativeGameplayTag("GameplayCue.Pose.Turn.CCW");
 	CuePoseTurnCW       = GTM.AddNativeGameplayTag("GameplayCue.Pose.Turn.CW");
 	CuePoseEmbrace      = GTM.AddNativeGameplayTag("GameplayCue.Pose.Embrace"      );

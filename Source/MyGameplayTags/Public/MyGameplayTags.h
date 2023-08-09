@@ -16,7 +16,6 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
     FGameplayTag Acceleration;
     FGameplayTag AccelerationTranslational;
     FGameplayTag AccelerationRotational;
-    FGameplayTag AccelerationRotationalDuration;
     FGameplayTag AccelerationRotationalCCW;
     FGameplayTag AccelerationRotationalCW;
 
@@ -24,12 +23,9 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
     FGameplayTag AccelerationMoveTowardsCircle;
 
     FGameplayTag InputBindingAbility;
+    
     // translational acceleration ability
     FGameplayTag InputBindingAbilityAccelerate;
-    
-    // rotate to look at mouse ability
-    // this tag isn't in use. LookAt is triggered by mouse movement
-    FGameplayTag InputBindingAbilityLookAt;
     
     FGameplayTag InputBindingAbilityMoveTowardsCircle;
     FGameplayTag InputBindingAbilityEmbrace;
@@ -48,6 +44,7 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
     
     FGameplayTag CuePose;
     FGameplayTag CuePoseAccelerate;
+    FGameplayTag CuePoseTurn;
     FGameplayTag CuePoseTurnCCW;
     FGameplayTag CuePoseTurnCW;
     FGameplayTag CuePoseEmbrace;

@@ -24,6 +24,7 @@
 #include "GameplayAbilitySystem/GA_LookAt.h"
 #include "GameplayAbilitySystem/MyGameplayAbility.h"
 #include "Input/MyInputActions.h"
+#include "UE5Coro/LatentAwaiters.h"
 
 AMyPlayerController::AMyPlayerController()
 {
@@ -97,12 +98,6 @@ void AMyPlayerController::ClientRPC_LeaveSession_Implementation()
     GetGameInstance()->GetSubsystem<UMySessionManager>()->LeaveSession();
 }
 
-void AMyPlayerController::ServerRPC_RotateTowards_Implementation(FQuat Quat)
-{
-    AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
-    //MyCharacter->SetRotationAim(Quat);
-}
-
 FVector AMyPlayerController::GetMouseDirection()
 {
     const AMyCharacter* MyCharacter = GetPawn<AMyCharacter>();
@@ -114,16 +109,15 @@ FVector AMyPlayerController::GetMouseDirection()
         const double X = Position.X - Direction.X * Position.Z / Direction.Z;
         const double Y = Position.Y - Direction.Y * Position.Z / Direction.Z;
         const double Z = MyCharacter->GetActorLocation().Z;
-        // TODO: physical rotation/animation instead
 
         const FVector VecP(X, Y, Z);
         
         const FVector VecMe = MyCharacter->GetActorLocation();
-        return VecP - VecMe;
+        return (VecP - VecMe).GetSafeNormal();
     }
     else
     {
-        return FVector(1., 0., 0.);
+        return FVector::ZeroVector;
     }       
 }
 
@@ -155,15 +149,21 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
             AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(InputAbilityTags, Specs, false);
             for(auto Spec : Specs)
             {
-                check(!Spec->IsActive())
-                AbilitySystemComponent->TryActivateAbility(Spec->Handle);
+                if(!Spec->IsActive())
+                    AbilitySystemComponent->TryActivateAbility(Spec->Handle);
             }
             break;
         case EInputTrigger::Released:
         case EInputTrigger::HoldAndRelease:
             for(auto Spec : AbilitySystemComponent->GetActiveAbilities(&InputAbilityTags))
             {
-                Cast<UMyGameplayAbility>(Spec.Ability)->SetReleased();
+                // InstancingPolicy: InstancedPerActor
+                auto* AbilityInstance = Spec.GetPrimaryInstance();
+                if(!AbilityInstance)
+                    // InstancingPolicy: NonInstanced (Get the CDO)
+                    AbilityInstance = Spec.Ability;
+                // TODO: InstancedPerExecution doesn't make sense in this setup
+                Cast<UMyGameplayAbility>(AbilityInstance)->ServerRPC_SetReleased();
             }
             break;
         case EInputTrigger::Tap:
@@ -172,7 +172,13 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
             {
                 if(Spec->IsActive())
                 {
-                    Cast<UMyGameplayAbility>(Spec->Ability)->SetReleased();
+                    // InstancingPolicy: InstancedPerActor
+                    auto* AbilityInstance = Spec->GetPrimaryInstance();
+                    if(!AbilityInstance)
+                        // InstancingPolicy: NonInstanced (Get the CDO)
+                        AbilityInstance = Spec->Ability;
+                    // TODO: InstancedPerExecution doesn't make sense in this setup
+                    Cast<UMyGameplayAbility>(AbilityInstance)->ServerRPC_SetReleased();
                 }
                 else
                 {
@@ -234,24 +240,52 @@ void AMyPlayerController::Tick(float DeltaSeconds)
     
     // reacting to mouse movement
     const FVector VecMouseDirection = GetMouseDirection();
-    const FQuat MouseQuat = FQuat::FindBetween(FVector::UnitX(), VecMouseDirection);
-    
-    auto MyCharacter = GetPawn<AMyCharacter>();
-    
-    const double AngleDelta =
-          MouseQuat.GetTwistAngle(FVector(0, 0, 1))
-        - MyCharacter->GetActorQuat().GetTwistAngle(FVector(0, 0, 1));
-    if(abs(AngleDelta) > 15. / 180. * PI)
+    if(!VecMouseDirection.IsZero())
     {
-        auto& Tag = FMyGameplayTags::Get();
-        FGameplayEventData Payload;
-        Payload.EventMagnitude = AngleDelta;
-        UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(MyCharacter, Tag.AbilityLookAt, Payload);
+        auto MyCharacter = GetPawn<AMyCharacter>();
+        const FVector VecMe = MyCharacter->GetActorLocation();
+        
+        const double MouseAngleNew = FQuat::FindBetween(FVector::UnitX(), VecMouseDirection).GetTwistAngle(FVector::UnitZ());
+
+        if(FMath::Abs(MouseAngle - MouseAngleNew) > 0.1)
+        {
+            MouseAngle = MouseAngleNew;
+            const float AngleDelta = FQuat::FindBetween(MyCharacter->GetActorForwardVector(), VecMouseDirection).GetTwistAngle(FVector::UnitZ());
+            if(abs(AngleDelta) > 15. / 180. * PI)
+            {
+                auto& Tag = FMyGameplayTags::Get();
+                auto Specs = AbilitySystemComponent->GetActiveAbilities(&Tag.AbilityLookAt.GetSingleTagContainer());
+                auto Retrigger = [this] (UGameplayAbility* Ability)
+                     {
+                        auto& Tag = FMyGameplayTags::Get();
+                        FGameplayEventData EventData;
+                        EventData.EventMagnitude = MouseAngle;
+                        AbilitySystemComponent->SendGameplayEvent(Tag.AbilityLookAt, EventData);
+                        if(Ability)
+                            Ability->OnGameplayAbilityEnded.Remove(DelegateHandleOnLookAt);
+                     };
+                if(Specs.IsEmpty())
+                {
+                    Retrigger(nullptr);
+                }
+                else
+                {
+                    check(Specs.Num() == 1)
+                    auto OnLookAtEnded = Specs[0].GetPrimaryInstance()->OnGameplayAbilityEnded;
+                    OnLookAtEnded.Clear();
+                    DelegateHandleOnLookAt = OnLookAtEnded.AddLambda(Retrigger);
+                    AbilitySystemComponent->CancelAbilitySpec(Specs[0], nullptr);
+                }
+
+                VecAngle = (FQuat(FVector::UnitZ(), AngleDelta) * MyCharacter->GetActorQuat()).RotateVector(FVector::UnitX());
+            }
+        }
+
+        // debugging angle
+        DrawDebugDirectionalArrow(GetWorld(), VecMe, VecMe + 750. * VecAngle, 80, FColor::Turquoise);
+        // debugging direction
+        DrawDebugDirectionalArrow(GetWorld(), VecMe, VecMe + 500. * VecMouseDirection, 20, FColor::Red);
     }
-    
-    // debugging direction
-    const FVector VecMe = MyCharacter->GetActorLocation();
-    DrawDebugDirectionalArrow(GetWorld(), VecMe, VecMe + VecMouseDirection, 20, FColor::Red);
 }
 
 // server-only
@@ -313,21 +347,8 @@ void AMyPlayerController::AcknowledgePossession(APawn* P)
     auto* MyCharacter = Cast<AMyCharacter>(P);
 
     AbilitySystemComponent = UMyAbilitySystemComponent::Get(MyCharacter);
-    bool bFoundAbility = false;
-    for(auto& Spec : AbilitySystemComponent->GetActivatableAbilities())
-    {
-        if(Spec.Ability.IsA(UGA_LookAt::StaticClass()))
-        {
-            GASpecLookAt = Spec;
-            bFoundAbility = true;
-        }
-    }
-    if(!bFoundAbility)
-    {
-        UE_LOGFMT(LogMyGame, Error, "AMyPlayerController: Could not find LookAt Gameplay Ability");
-    }
-    
-   AbilitySystemComponent->InitAbilityActorInfo(MyCharacter, MyCharacter);
+    AbilitySystemComponent->InitAbilityActorInfo(MyCharacter, MyCharacter);
+
     MyCharacter->UpdateSpringArm(CameraPosition);
     MyCharacter->ShowEffects();
     
@@ -361,6 +382,7 @@ void AMyPlayerController::BeginPlay()
 
     const FInputModeGameAndUI InputModeGameAndUI;
     SetInputMode(InputModeGameAndUI);
+
 }
 
 void AMyPlayerController::RunCustomInputAction(FGameplayTag CustomBindingTag, EInputTrigger InputTrigger, const FInputActionInstance& InputActionInstance)

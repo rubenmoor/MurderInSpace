@@ -6,7 +6,6 @@
 #include "GA_Accelerate.generated.h"
 
 class UGE_AccelerateFire;
-class UGE_AcceleratePosition;
 class UInputAction;
 
 /**
@@ -20,9 +19,6 @@ class MURDERINSPACE_API UGA_Accelerate : public UMyGameplayAbility
     UGA_Accelerate();
 
 protected:
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    TSubclassOf<UGE_AcceleratePosition> GE_AcceleratePosition;
-    
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSubclassOf<UGE_AccelerateFire> GE_AccelerateFire;
     
