@@ -260,10 +260,13 @@ void AMyPlayerController::Tick(float DeltaSeconds)
                 {
                     check(Specs.Num() == 1)
                     AbilitySystemComponent->CancelAbilitySpec(Specs[0], nullptr);
+                    Handle.Cancel();
+                    Handle = ActivateLookAtAfterNextTick();
                 }
-                FGameplayEventData EventData;
-                EventData.EventMagnitude = MouseAngle;
-                AbilitySystemComponent->SendGameplayEvent(Tag.AbilityLookAt, EventData);
+                else
+                {
+                    ActivateLookAt();
+                }
 
                 VecAngle = (FQuat(FVector::UnitZ(), AngleDelta) * MyCharacter->GetActorQuat()).RotateVector(FVector::UnitX());
             }
@@ -274,6 +277,20 @@ void AMyPlayerController::Tick(float DeltaSeconds)
         // debugging direction
         DrawDebugDirectionalArrow(GetWorld(), VecMe, VecMe + 500. * VecMouseDirection, 20, FColor::Red);
     }
+}
+
+TCoroutine<> AMyPlayerController::ActivateLookAtAfterNextTick()
+{
+    co_await Latent::Ticks(2);
+    ActivateLookAt();
+}
+
+void AMyPlayerController::ActivateLookAt()
+{
+    auto& Tag = FMyGameplayTags::Get();
+    FGameplayEventData EventData;
+    EventData.EventMagnitude = MouseAngle;
+    AbilitySystemComponent->SendGameplayEvent(Tag.AbilityLookAt, EventData);
 }
 
 // server-only

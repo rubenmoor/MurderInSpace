@@ -6,6 +6,7 @@
 #include "InputMappingContext.h"
 #include "Orbit/Orbit.h"
 #include "GameFramework/PlayerController.h"
+#include "UE5Coro/Coroutine.h"
 
 #include "MyPlayerController.generated.h"
 
@@ -183,5 +184,7 @@ protected:
 	// debugging
 	FVector VecAngle = FVector::Zero();
 
-	FDelegateHandle DelegateHandleOnLookAt;
+	UE5Coro::TCoroutine<> ActivateLookAtAfterNextTick();
+	void ActivateLookAt();
+	UE5Coro::TCoroutine<> Handle = UE5Coro::TCoroutine<>::CompletedCoroutine;
 };

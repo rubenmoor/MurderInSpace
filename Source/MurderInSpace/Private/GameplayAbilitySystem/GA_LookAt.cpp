@@ -14,7 +14,7 @@ using namespace UE5Coro::GAS;
 
 UGA_LookAt::UGA_LookAt()
 {
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     
     const auto& Tag = FMyGameplayTags::Get();
 
@@ -83,23 +83,20 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
 
     if(TTorque1 > 0)
     {
-        if(ASC->HasMatchingGameplayTag(CuePose2))
-        {
-            // go to idle pose first
-            ASC->RemoveGameplayCue(CuePose2);
-            
-            // make up for movement while changing pose
-            TIdle += TransitionTime;
-            
-            co_await Latent::UntilDelegate(ASC->OnStateFullyBlended);
-        }
-        
-        if(!ASC->HasMatchingGameplayTag(CuePose1))
-        {
-            // idle pose, could have omega unequal zero though
-            ASC->AddGameplayCue(CuePose1);
-            co_await Latent::UntilDelegate(ASC->OnStateFullyBlended);
-        }
+        //if(ASC->HasMatchingGameplayTag(CuePose2))
+        //{
+        //    // go to idle pose first
+        //    ASC->RemoveGameplayCue(CuePose2);
+        //    
+        //    // make up for movement while changing pose
+        //    TIdle += TransitionTime;
+        //    
+        //    co_await Latent::UntilDelegate(ASC->OnStateFullyBlended);
+        //}
+
+        // TODO: allow direct switch from Pose2 to Pose1
+        co_await ASC->UntilPoseFullyBlended(CuePose2, EPoseCue::Remove);
+        co_await ASC->UntilPoseFullyBlended(CuePose1, EPoseCue::Add);
 
         auto SpecTorque1 = MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCCW : GE_TorqueCW);
         TorqueHandle     = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque1);
@@ -109,19 +106,9 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
 
     if(TTorque1 >= 0.)
     {
-        if(ASC->HasMatchingGameplayTag(CuePose1))
-        {
-            ASC->RemoveGameplayCue(CuePose1);
-            co_await Latent::UntilDelegate(ASC->OnStateFullyBlended);
-        }
-        
+        co_await ASC->UntilPoseFullyBlended(CuePose1, EPoseCue::Remove);
         co_await Latent::Seconds(TIdle);
-        
-        if(!ASC->HasMatchingGameplayTag(CuePose2))
-        {
-            ASC->AddGameplayCue(CuePose2);
-            co_await Latent::UntilDelegate(ASC->OnStateFullyBlended);
-        }
+        co_await ASC->UntilPoseFullyBlended(CuePose2, EPoseCue::Add);
     }
     
     const auto SpecTorque2 = MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCW : GE_TorqueCCW);
@@ -130,13 +117,8 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     if(!RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo))
         UE_LOGFMT(LogMyGame, Error, "Could not remove effect Torque1");
 
-    // TODO: how is it possible not being in Pose2 here?
-    //check(ASC->HasMatchingGameplayTag(CuePose2))
-    if(ASC->HasMatchingGameplayTag(CuePose2))
-    {
-        ASC->RemoveGameplayCue(CuePose2);
-        co_await Latent::UntilDelegate(ASC->OnStateFullyBlended);
-    }
+    co_await ASC->UntilPoseFullyBlended(CuePose2, EPoseCue::Remove);
+    co_await ASC->UntilPoseFullyBlended(CuePose1, EPoseCue::Remove);
     
     ASC->RemoveGameplayCue(Tag.CueAccelerateShowThrusters);
 
