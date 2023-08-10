@@ -34,13 +34,13 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
 {
     if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
     {
-        UE_LOGFMT(LogMyGame, Warning, "UGA_LookAt: could not commit ability");
         co_await Latent::Cancel();
     }
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
     const auto& Tag = FMyGameplayTags::Get();
     const float OmegaMax = ASC->GetNumericAttribute(UAttrSetAcceleration::GetOmegaMaxAttribute());
     const float AlphaMax = ASC->GetNumericAttribute(UAttrSetAcceleration::GetTorqueMaxAttribute());
+    
     // time to transition from idle pose to torque pose
     constexpr float TransitionTime = 0.2f;
 
@@ -53,9 +53,19 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     const float Term = AlphaMax * TransitionTime;
     const float OmegaBar = FMath::Min(OmegaMax, FMath::Sqrt(FMath::Pow(Term, 2) + AlphaMax * DeltaThetaAbs) - Term);
     check(OmegaBar > 0)
-    
-    const float TTorque1 = (OmegaBar - FMath::Sign(DeltaTheta) * MyPawn->GetOmega()) / AlphaMax;
-    const float TTorque2 = OmegaBar / AlphaMax + (TTorque1 > 0 ? 0 : -TTorque1);
+
+    // this omega is obsolete after any co_await
+    const float OmegaBegin = MyPawn->GetOmega();
+    // clamp omega to omega max
+    // otherwise sometimes omega overshoots omega max,
+    // resulting in TTorque1 being slightly negative and the pawn hitting the breaks
+    // clamped, TTorque1 will be exactly 0
+    const float OmegaBeginClamped = FMath::Sign(OmegaBegin) * FMath::Min(OmegaMax, FMath::Abs(OmegaBegin));
+    const float TTorque1 = (OmegaBar - FMath::Sign(DeltaTheta) * OmegaBeginClamped) / AlphaMax;
+
+    const float TTorque2 = FMath::Sign(DeltaTheta) * OmegaBegin > OmegaBar
+        ? FMath::Abs(OmegaBegin) / AlphaMax
+        : OmegaBar / AlphaMax;
 
     // TIdle > 0, the values < 0 are small in absolute terms, so it shouldn't matter
     double TIdle = FMath::Max(0., DeltaThetaAbs / OmegaBar - OmegaBar / AlphaMax - 2. * TransitionTime);
@@ -75,50 +85,54 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         , MyPawn->GetOmega()
         );
 
-    if(!ASC->HasMatchingGameplayTag(Tag.CueAccelerateShowThrusters))
-        ASC->AddGameplayCue(Tag.CueAccelerateShowThrusters);
+    // TODO: only remove, when needed; and don't remove where it gets activated again
+    RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
 
-    //if(ASC->GetActiveGameplayEffect(TorqueHandle))
-    //    verify(RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo))
+    ASC->AddGameplayCueUnlessExists(Tag.CueAccelerateShowThrusters);
 
     if(TTorque1 > 0)
     {
-        //if(ASC->HasMatchingGameplayTag(CuePose2))
-        //{
-        //    // go to idle pose first
-        //    ASC->RemoveGameplayCue(CuePose2);
-        //    
-        //    // make up for movement while changing pose
-        //    TIdle += TransitionTime;
-        //    
-        //    co_await Latent::UntilDelegate(ASC->OnStateFullyBlended);
-        //}
-
         // TODO: allow direct switch from Pose2 to Pose1
-        co_await ASC->UntilPoseFullyBlended(CuePose2, EPoseCue::Remove);
-        co_await ASC->UntilPoseFullyBlended(CuePose1, EPoseCue::Add);
 
-        auto SpecTorque1 = MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCCW : GE_TorqueCW);
-        TorqueHandle     = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque1);
+        const bool b1 = ASC->RemoveGameplayCueIfExists(CuePose2);
+        const bool b2 = ASC->AddGameplayCueUnlessExists(CuePose1);
+        if(b1 || b2)
+            co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
+
+        const auto SpecTorque1 =
+            MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCCW : GE_TorqueCW);
+        TorqueHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque1);
         co_await Latent::Seconds(TTorque1);
-        verify(RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo))
+        RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
+
+        const float Omega = MyPawn->GetOmega(); 
+        if(FMath::Abs(Omega - OmegaBar) > 0.01)
+            UE_LOGFMT(LogMyGame, Warning, "target rotation speed not reached: Omega = {OMEGA} ({OMEGABAR})"
+                , Omega, OmegaBar);
     }
 
     if(TTorque1 >= 0.)
     {
-        co_await ASC->UntilPoseFullyBlended(CuePose1, EPoseCue::Remove);
+        ASC->RemoveGameplayCueIfExists(CuePose1);
+        //co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
+        co_await Latent::Seconds(TransitionTime);
+        
         co_await Latent::Seconds(TIdle);
-        co_await ASC->UntilPoseFullyBlended(CuePose2, EPoseCue::Add);
+        
+        if(ASC->AddGameplayCueUnlessExists(CuePose2))
+            co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
     }
     
-    const auto SpecTorque2 = MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCW : GE_TorqueCCW);
+    const auto SpecTorque2 =
+        MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCW : GE_TorqueCCW);
     TorqueHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque2);
     co_await Latent::Seconds(TTorque2);
-    if(!RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo))
-        UE_LOGFMT(LogMyGame, Error, "Could not remove effect Torque1");
+    RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
 
-    co_await ASC->UntilPoseFullyBlended(CuePose2, EPoseCue::Remove);
-    co_await ASC->UntilPoseFullyBlended(CuePose1, EPoseCue::Remove);
+    const bool b3 = ASC->RemoveGameplayCueIfExists(CuePose2);
+    const bool b4 = ASC->RemoveGameplayCueIfExists(CuePose1);
+    if(b3 || b4)
+        co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
     
     ASC->RemoveGameplayCue(Tag.CueAccelerateShowThrusters);
 
@@ -127,13 +141,4 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     else
         UE_LOGFMT(LogMyGame, Error, "Ability LookAt finished, but Omega > 0.001: Omega = {OMEGA}", OmegaLog);
     co_return;
-}
-
-void UGA_LookAt::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-    const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
-{
-    
-    auto bRemoved = RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
-    UE_LOGFMT(LogMyGame, Warning, "Ability cancelled, gameplayeffect removed: {B}", bRemoved);
-    Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }

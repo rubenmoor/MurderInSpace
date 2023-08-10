@@ -56,15 +56,7 @@ public:
     }
 
     UFUNCTION(BlueprintCallable)
-    UTextureRenderTarget2D* SetNewRenderTarget(int32 Width, int32 Height)
-    {
-	    return SceneCapture->TextureTarget = UKismetRenderingLibrary::CreateRenderTarget2D
-            ( this
-            , Width
-            , Height
-            , RTF_RGBA8
-            );
-    }
+    UTextureRenderTarget2D* SetNewRenderTarget(int32 Width, int32 Height);
 
     UFUNCTION(BlueprintCallable)
     void ClearRenderTarget()

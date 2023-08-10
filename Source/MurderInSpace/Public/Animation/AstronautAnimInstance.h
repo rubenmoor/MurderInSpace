@@ -27,7 +27,13 @@ protected:
 	FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
 
 	UFUNCTION(BlueprintCallable)
+	void HandleStateEntered();
+
+	UFUNCTION(BlueprintCallable)
 	void HandleStateFullyBlended();
+
+	UFUNCTION(BlueprintCallable)
+	void HandleStateLeft();
 
     // event handlers
 

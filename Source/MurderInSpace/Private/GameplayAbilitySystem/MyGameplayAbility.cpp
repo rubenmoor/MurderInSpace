@@ -38,23 +38,25 @@ bool UMyGameplayAbility::RemoveActiveGameplayEffect(FActiveGameplayEffectHandle 
 {
     if(HasAuthority(&ActivationInfo))
     {
-        return UMyAbilitySystemComponent::Get(&ActorInfo)->RemoveActiveGameplayEffect(Handle);
+        auto* ASC = UMyAbilitySystemComponent::Get(&ActorInfo);
+        if(ASC->GetActiveGameplayEffect(Handle))
+            return ASC->RemoveActiveGameplayEffect(Handle);
     }
-    else
-    {
-        return false;
-    }
+    return false;
 }
 
 Private::FLatentAwaiter UMyGameplayAbility::UntilReleased()
 {
-    return Latent::Until([this] 
+    return Private::FLatentAwaiter(&bReleased, [] (void* State, bool bCleanUp) -> bool
+    {
+        auto* ptrBReleased = static_cast<bool*>(State);
+        if(bCleanUp)
+            return false;
+        if(*ptrBReleased)
         {
-            if(bReleased)
-            {
-                bReleased = false;
-                return true;
-            }
-           return false; 
-        });
+            *ptrBReleased = false;
+            return true;
+        }
+        return false;
+    });
 }

@@ -10,6 +10,7 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "HUD/MyHUD.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Logging/StructuredLog.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyPlayerController.h"

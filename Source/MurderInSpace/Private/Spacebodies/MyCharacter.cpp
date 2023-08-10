@@ -40,6 +40,7 @@ AMyCharacter::AMyCharacter()
 
 	SceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>("SceneCapture");
 	SceneCapture->SetupAttachment(Camera);
+	SceneCapture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 
 	Visor = CreateDefaultSubobject<UStaticMeshComponent>("Visor");
 	Visor->SetupAttachment(Camera);
@@ -121,6 +122,16 @@ void AMyCharacter::SetVisibility(bool bVisibility)
 float AMyCharacter::GetSpringArmLength() const
 {
 	return SpringArm->TargetArmLength;
+}
+
+UTextureRenderTarget2D* AMyCharacter::SetNewRenderTarget(int32 Width, int32 Height)
+{
+	return SceneCapture->TextureTarget = UKismetRenderingLibrary::CreateRenderTarget2D
+	( this
+	  , Width
+	  , Height
+	  , RTF_RGBA8
+	);
 }
 
 void AMyCharacter::OnConstruction(const FTransform& Transform)

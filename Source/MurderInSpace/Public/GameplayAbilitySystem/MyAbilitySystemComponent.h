@@ -6,6 +6,7 @@
 
 #include "MyAbilitySystemComponent.generated.h"
 
+class IAbilitySystemInterface;
 class UMyEnhancedInputComponent;
 struct FInputActionInstance;
 class AMyPawn;
@@ -28,7 +29,7 @@ class MURDERINSPACE_API UMyAbilitySystemComponent : public UAbilitySystemCompone
 
     UMyAbilitySystemComponent();
 public:
-    static UMyAbilitySystemComponent* Get(AMyPawn* InPawn);
+    static UMyAbilitySystemComponent* Get(const IAbilitySystemInterface* InPawn);
     static UMyAbilitySystemComponent* Get(const FGameplayAbilityActorInfo* ActorInfo);
 
     UFUNCTION(BlueprintCallable)
@@ -36,12 +37,30 @@ public:
     
     TArray<FGameplayAbilitySpec> GetActiveAbilities(const FGameplayTagContainer* WithTags=nullptr, const FGameplayTagContainer* WithoutTags=nullptr, UGameplayAbility* Ignore=nullptr);
 
-    DECLARE_DELEGATE(FDelegateStateFullyBlended)
-    FDelegateStateFullyBlended OnStateFullyBlended;
-    
-    Private::FLatentAwaiter UntilPoseFullyBlended(FGameplayTag Cue, EPoseCue PoseCueChange);
-
     void SendGameplayEvent(FGameplayTag Tag, FGameplayEventData EventData);
 
     using UAbilitySystemComponent::CancelAbilitySpec;
+    
+    // only add the cue, if the ability system component doesn't have it already
+    // return true if a cue was newly added
+    UFUNCTION(BlueprintCallable)
+    bool AddGameplayCueUnlessExists(FGameplayTag Cue);
+
+    // only try to remove the cue, if the ability system component has it
+    // return true if a cue was actually removed
+    UFUNCTION(BlueprintCallable)
+    bool RemoveGameplayCueIfExists(FGameplayTag Cue);
+
+    DECLARE_DELEGATE(FOnAnimStateFullyBlended)
+    FOnAnimStateFullyBlended OnAnimStateFullyBlended;
+
+    DECLARE_DELEGATE(FOnAnimStateFullyBlended)
+    FOnAnimStateFullyBlended OnAnimStateEntered;
+
+    DECLARE_DELEGATE(FOnAnimStateFullyBlended)
+    FOnAnimStateFullyBlended OnAnimStateLeft;
+
+private:
+    using UAbilitySystemComponent::AddGameplayCue;
+    using UAbilitySystemComponent::RemoveGameplayCue;
 };

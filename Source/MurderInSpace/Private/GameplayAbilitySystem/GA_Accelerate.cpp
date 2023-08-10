@@ -30,9 +30,10 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
     const auto& Tag = FMyGameplayTags::Get();
 
-    ASC->AddGameplayCue(Tag.CueAccelerateShowThrusters);
+    ASC->AddGameplayCueUnlessExists(Tag.CueAccelerateShowThrusters);
 
-    co_await ASC->UntilPoseFullyBlended(Tag.CuePoseAccelerate, EPoseCue::Add);
+    if(ASC->AddGameplayCueUnlessExists(Tag.CuePoseAccelerate))
+        co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
 
     LocallyControlledDo(ActorInfo, [] (AMyCharacter* MyCharacter)
     {
@@ -58,7 +59,8 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
         Orbit->DestroyTempSplineMeshes();
     });
 
-    co_await ASC->UntilPoseFullyBlended(Tag.CuePoseAccelerate, EPoseCue::Remove);
+    if(ASC->RemoveGameplayCueIfExists(Tag.CuePoseAccelerate))
+        co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
     
     ASC->RemoveGameplayCue(Tag.CueAccelerateShowThrusters);
 }

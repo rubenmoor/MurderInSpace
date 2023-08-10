@@ -5,12 +5,25 @@
 #include "Logging/StructuredLog.h"
 #include "Modes/MyGameInstance.h"
 
-#if WITH_EDITOR
 void UAstronautAnimInstance::HandleStateFullyBlended()
 {
-    UMyAbilitySystemComponent::Get(Cast<AMyPawn>(GetOwningActor()))->OnStateFullyBlended.ExecuteIfBound();
+    UMyAbilitySystemComponent::Get(Cast<AMyPawn>(GetOwningActor()))->OnAnimStateFullyBlended.ExecuteIfBound();
 }
 
+void UAstronautAnimInstance::HandleStateLeft()
+{
+    UMyAbilitySystemComponent::Get(Cast<AMyPawn>(GetOwningActor()))->OnAnimStateLeft.ExecuteIfBound();
+}
+
+void UAstronautAnimInstance::HandleStateEntered()
+{
+    if(GetWorld()->WorldType == EWorldType::EditorPreview)
+        return;
+
+    UMyAbilitySystemComponent::Get(Cast<AMyPawn>(GetOwningActor()))->OnAnimStateEntered.ExecuteIfBound();
+}
+
+#if WITH_EDITOR
 EDataValidationResult UAstronautAnimInstance::IsDataValid(TArray<FText>& ValidationErrors)
 {
     Super::IsDataValid(ValidationErrors);
