@@ -8,7 +8,7 @@ UGE_AccelerateFire::UGE_AccelerateFire()
     DurationPolicy = EGameplayEffectDurationType::Infinite;
     
     const auto& Tag = FMyGameplayTags::Get();
-    GameplayCues.Add(FGameplayEffectCue(Tag.CueAccelerateFire, 0., 1.));
+    GameplayCues.Add(FGameplayEffectCue(Tag.CueThrustersFire, 0., 1.));
 
     Modifiers.Add
         (MkAttributeOverrideModifier

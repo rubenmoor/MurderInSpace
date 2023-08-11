@@ -14,7 +14,7 @@ UGA_Accelerate::UGA_Accelerate()
 {
     const auto& Tag = FMyGameplayTags::Get();
     
-    AbilityTags.AddTag(Tag.InputBindingAbilityAccelerate);
+    AbilityTags.AddTag(Tag.AbilityAccelerate);
     
     GE_AccelerateFire = UGE_AccelerateFire::StaticClass();
 }
@@ -30,7 +30,7 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
     const auto& Tag = FMyGameplayTags::Get();
 
-    ASC->AddGameplayCueUnlessExists(Tag.CueAccelerateShowThrusters);
+    ASC->AddGameplayCueUnlessExists(Tag.CueShowThrusters);
 
     if(ASC->AddGameplayCueUnlessExists(Tag.CuePoseAccelerate))
         co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
@@ -62,5 +62,5 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     if(ASC->RemoveGameplayCueIfExists(Tag.CuePoseAccelerate))
         co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
     
-    ASC->RemoveGameplayCue(Tag.CueAccelerateShowThrusters);
+    ASC->RemoveGameplayCue(Tag.CueShowThrusters);
 }

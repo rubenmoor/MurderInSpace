@@ -8,5 +8,5 @@
 UGA_Embrace::UGA_Embrace()
 {
     const auto& Tag = FMyGameplayTags::Get();
-    AbilityTags.AddTag(Tag.InputBindingAbilityEmbrace);
+    AbilityTags.AddTag(Tag.AbilityEmbrace);
 }

@@ -185,21 +185,3 @@ void AMyCharacter::PostEditChangeChainProperty(FPropertyChangedChainEvent& Prope
 	}
 }
 #endif
-
-void AMyCharacter::GameplayCue_Local_Accelerate_Fire(FGameplayTag Cue, EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters)
-{
-	switch (Event)
-	{
-	case EGameplayCueEvent::OnActive:
-		break;
-	case EGameplayCueEvent::WhileActive:
-		break;
-	case EGameplayCueEvent::Executed:
-		UE_LOGFMT(LogMyGame, Error, "Handle GameplayCue: {CUE}, Executed: Path not implemented", Cue.GetTagName().ToString());
-		break;
-	case EGameplayCueEvent::Removed:
-		RP_Orbit->UpdateVisibility(false);
-		RP_Orbit->DestroyTempSplineMeshes();
-		break;
-	}
-}

@@ -130,9 +130,4 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera Configuration")
     uint8 CameraPosition = 2;
-
-    // handle local gameplay cues, i.e. they affect the user interface
-
-    UFUNCTION()
-    void GameplayCue_Local_Accelerate_Fire(FGameplayTag Cue, EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters);
 };

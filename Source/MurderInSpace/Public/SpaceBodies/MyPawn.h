@@ -38,9 +38,6 @@ public:
     // Sets default values for this pawn's properties
     AMyPawn();
 	
-    UFUNCTION(BlueprintCallable)
-    void UpdateLookTarget(FVector Target);
-
     // IOrbit interface
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
 	virtual FLinearColor        GetOrbitColor()  override { return OrbitColor; }

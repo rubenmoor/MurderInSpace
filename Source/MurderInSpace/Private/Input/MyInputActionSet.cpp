@@ -1,4 +1,4 @@
-﻿#include "MyInputActionSet.h"
+﻿#include "Input/MyInputActionSet.h"
 #include "InputTriggers.h"
 
 void UMyInputActionSet::BindActions(AMyPlayerController* InPlayercontroller, UInputMappingContext* IMC)

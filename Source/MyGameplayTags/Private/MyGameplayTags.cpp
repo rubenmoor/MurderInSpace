@@ -7,48 +7,36 @@ DEFINE_LOG_CATEGORY(LogMyGameplayTags);
 FMyGameplayTags::FMyGameplayTags()
 {
 	auto& GTM = UGameplayTagsManager::Get();
-	Acceleration                   = GTM.AddNativeGameplayTag("Acceleration");
-	AccelerationTranslational      = GTM.AddNativeGameplayTag("Acceleration.Translational");
-	AccelerationRotational         = GTM.AddNativeGameplayTag("Acceleration.Rotational");
-	AccelerationRotationalCCW      = GTM.AddNativeGameplayTag("Acceleration.Rotational.CCW");
-	AccelerationRotationalCW       = GTM.AddNativeGameplayTag("Acceleration.Rotational.CW");
 
-    AccelerationMoveTowardsCircle  = GTM.AddNativeGameplayTag("Acceleration.MoveTowardsCircle");
-	
-	InputBindingAbility                  = GTM.AddNativeGameplayTag("InputBinding.Ability");
-	InputBindingAbilityAccelerate        = GTM.AddNativeGameplayTag("InputBinding.Ability.Accelerate");
-	InputBindingAbilityMoveTowardsCircle = GTM.AddNativeGameplayTag("InputBinding.Ability.MoveTowardsCircle");
-	InputBindingAbilityEmbrace           = GTM.AddNativeGameplayTag("InputBinding.Ability.Embrace");
-	InputBindingAbilityKick              = GTM.AddNativeGameplayTag("InputBinding.Ability.Kick");
+	Ability                  = GTM.AddNativeGameplayTag("Ability");
+	AbilityAccelerate        = GTM.AddNativeGameplayTag("Ability.Accelerate");
+	AbilityMoveTowardsCircle = GTM.AddNativeGameplayTag("Ability.MoveTowardsCircle");
+	AbilityEmbrace           = GTM.AddNativeGameplayTag("Ability.Embrace");
+	AbilityKick              = GTM.AddNativeGameplayTag("Ability.Kick");
+    AbilityLookAt            = GTM.AddNativeGameplayTag("Ability.LookAt");
 
-    Ability           = GTM.AddNativeGameplayTag("Ability");
-    AbilityAccelerate = GTM.AddNativeGameplayTag("Ability.Accelerate");
-    AbilityLookAt     = GTM.AddNativeGameplayTag("Ability.LookAt");
-	AbilityEmbrace    = GTM.AddNativeGameplayTag("Ability.Embrace");
-	AbilityKick       = GTM.AddNativeGameplayTag("Ability.Kick");
-
-	GameplayCue                = GTM.AddNativeGameplayTag("GameplayCue");
+	GameplayCue         = GTM.AddNativeGameplayTag("GameplayCue");
 	
 	CuePose             = GTM.AddNativeGameplayTag("GameplayCue.Pose");
 	CuePoseAccelerate   = GTM.AddNativeGameplayTag("GameplayCue.Pose.Accelerate");
-	CuePoseTurn         = GTM.AddNativeGameplayTag("GameplayCue.Pose.Turn");
-	CuePoseTurnCCW      = GTM.AddNativeGameplayTag("GameplayCue.Pose.Turn.CCW");
-	CuePoseTurnCW       = GTM.AddNativeGameplayTag("GameplayCue.Pose.Turn.CW");
+	CuePoseTorque       = GTM.AddNativeGameplayTag("GameplayCue.Pose.Torque");
+	CuePoseTorqueCCW    = GTM.AddNativeGameplayTag("GameplayCue.Pose.Torque.CCW");
+	CuePoseTorqueCW     = GTM.AddNativeGameplayTag("GameplayCue.Pose.Torque.CW");
 	CuePoseEmbrace      = GTM.AddNativeGameplayTag("GameplayCue.Pose.Embrace"      );
 	CuePoseKickPosition = GTM.AddNativeGameplayTag("GameplayCue.Pose.Kick.Position");
 	CuePoseKickExecute  = GTM.AddNativeGameplayTag("GameplayCue.Pose.Kick.Execute" );
 
-	CueAccelerateShowThrusters = GTM.AddNativeGameplayTag("GameplayCue.Accelerate.ShowThrusters");
-	CueAccelerateFire          = GTM.AddNativeGameplayTag("GameplayCue.Accelerate.Fire");
-    GameplayCueLocal           = GTM.AddNativeGameplayTag("GameplayCue.Local");
-	LocalCueAccelerateFire     = GTM.AddNativeGameplayTag("GameplayCue.Local.Accelerate.Fire");
+	CueShowThrusters = GTM.AddNativeGameplayTag("GameplayCue.ShowThrusters");
+	CueThrustersFire = GTM.AddNativeGameplayTag("GameplayCue.ThrustersFire");
 	
-	InputBindingCustom                  = GTM.AddNativeGameplayTag("InputBinding.Custom");
-	InputBindingCustomZoom              = GTM.AddNativeGameplayTag("InputBinding.Custom.Zoom");
-	InputBindingCustomSelect            = GTM.AddNativeGameplayTag("InputBinding.Custom.Select");
-	InputBindingCustomAllOrbitsShowHide = GTM.AddNativeGameplayTag("InputBinding.Custom.AllOrbits.ShowHide");
-	InputBindingCustomMyOrbitShowHide   = GTM.AddNativeGameplayTag("InputBinding.Custom.MyOrbit.ShowHide");
-	InputBindingCustomIngameMenuToggle  = GTM.AddNativeGameplayTag("InputBinding.Custom.IngameMenu.Toggle");
+    GameplayCueLocal    = GTM.AddNativeGameplayTag("GameplayCue.Local");
+	
+	CustomInputBinding                  = GTM.AddNativeGameplayTag("CustomInputBinding");
+	CustomInputBindingZoom              = GTM.AddNativeGameplayTag("CustomInputBinding.Zoom");
+	CustomInputBindingSelect            = GTM.AddNativeGameplayTag("CustomInputBinding.Select");
+	CustomInputBindingAllOrbitsShowHide = GTM.AddNativeGameplayTag("CustomInputBinding.AllOrbits.ShowHide");
+	CustomInputBindingMyOrbitShowHide   = GTM.AddNativeGameplayTag("CustomInputBinding.MyOrbit.ShowHide");
+	CustomInputBindingIngameMenuToggle  = GTM.AddNativeGameplayTag("CustomInputBinding.IngameMenu.Toggle");
 }
 
 const FMyGameplayTags FMyGameplayTags::Singleton;

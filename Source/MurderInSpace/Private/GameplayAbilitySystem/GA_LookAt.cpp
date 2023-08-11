@@ -32,6 +32,7 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
                                              const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo,
                                              const FGameplayEventData* TriggerEventData)
 {
+    checkf(TriggerEventData, TEXT("Use UAbilitySystemComponent::SendGameplayEvent to activate this ability"))
     if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
     {
         co_await Latent::Cancel();
@@ -79,28 +80,18 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         : OmegaBar / AlphaMax;
 
     // TIdle > 0, the values < 0 are small in absolute terms, so it shouldn't matter
-    double TIdle = FMath::Max(0., DeltaThetaAbs / OmegaBar - OmegaBar / AlphaMax - 2. * TransitionTime);
+    const double TIdle = FMath::Max(0., DeltaThetaAbs / OmegaBar - OmegaBar / AlphaMax - 2. * TransitionTime);
     
-    const FGameplayTag CuePose1 = DeltaTheta > 0 ? Tag.CuePoseTurnCCW : Tag.CuePoseTurnCW;
-    const FGameplayTag CuePose2 = DeltaTheta > 0 ? Tag.CuePoseTurnCW : Tag.CuePoseTurnCCW;
-
-    UE_LOGFMT
-        ( LogMyGame
-        , Display
-        , "Ability LookAt Begin: DeltaTheta: {DELTATHETA}, TTorque1: {TTORQUE1}, TIdle: {TIdle}, TTorque2: {TTORQUE2}, OmegaBar: {OMEGABAR}, Omega: {OMEGA}"
-        , DeltaTheta
-        , TTorque1
-        , TIdle
-        , TTorque2
-        , OmegaBar
-        , MyPawn->GetOmega()
-        );
+    const FGameplayTag CuePose1 = DeltaTheta > 0 ? Tag.CuePoseTorqueCCW : Tag.CuePoseTorqueCW;
+    const FGameplayTag CuePose2 = DeltaTheta > 0 ? Tag.CuePoseTorqueCW : Tag.CuePoseTorqueCCW;
 
     // TODO: only remove, when needed; and don't remove where it gets activated again
     RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
 
-    ASC->AddGameplayCueUnlessExists(Tag.CueAccelerateShowThrusters);
+    ASC->AddGameplayCueUnlessExists(Tag.CueShowThrusters);
 
+    // phase 1: get rotation started
+    
     if(TTorque1 > 0)
     {
         // TODO: allow direct switch from Pose2 to Pose1
@@ -115,17 +106,13 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         TorqueHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque1);
         co_await Latent::Seconds(TTorque1);
         RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
-
-        const float Omega = MyPawn->GetOmega(); 
-        if(FMath::Abs(Omega - OmegaBar) > 0.01)
-            UE_LOGFMT(LogMyGame, Warning, "target rotation speed not reached: Omega = {OMEGA} ({OMEGABAR})"
-                , Omega, OmegaBar);
     }
 
+    // phase 2: keep rotating without torque
+    
     if(TTorque1 >= 0.)
     {
         ASC->RemoveGameplayCueIfExists(CuePose1);
-        //co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
         co_await Latent::Seconds(TransitionTime);
         
         co_await Latent::Seconds(TIdle);
@@ -133,6 +120,8 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         if(ASC->AddGameplayCueUnlessExists(CuePose2))
             co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
     }
+
+    // phase 3: stop rotation
     
     const auto SpecTorque2 =
         MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCW : GE_TorqueCCW);
@@ -145,11 +134,5 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     if(b3 || b4)
         co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
     
-    ASC->RemoveGameplayCue(Tag.CueAccelerateShowThrusters);
-
-    if(const auto OmegaLog = Cast<AMyPawn>(ActorInfo->OwnerActor)->GetOmega(); FMath::Abs(OmegaLog) <= 0.001)
-        UE_LOGFMT(LogMyGame, Display, "Ability LookAt finished");
-    else
-        UE_LOGFMT(LogMyGame, Error, "Ability LookAt finished, but Omega > 0.001: Omega = {OMEGA}", OmegaLog);
-    co_return;
+    ASC->RemoveGameplayCueIfExists(Tag.CueShowThrusters);
 }

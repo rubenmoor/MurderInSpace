@@ -8,8 +8,7 @@ UGE_TorqueCCW::UGE_TorqueCCW()
     DurationPolicy = EGameplayEffectDurationType::Infinite;
 
     const auto& Tag = FMyGameplayTags::Get();
-    InheritableGameplayEffectTags.AddTag(Tag.AccelerationRotationalCCW);
-    GameplayCues.Add(FGameplayEffectCue(Tag.CueAccelerateFire, 0., 1.));
+    GameplayCues.Add(FGameplayEffectCue(Tag.CueThrustersFire, 0., 1.));
 
     Modifiers.Add
         (MkAttributeOverrideModifier

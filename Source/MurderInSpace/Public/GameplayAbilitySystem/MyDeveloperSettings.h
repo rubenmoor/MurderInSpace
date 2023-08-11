@@ -7,7 +7,6 @@
 
 class UMyGameplayAbility;
 class AHandThruster;
-class UMyInputAction;
 class UGameplayEffectsMap;
 class UGameplayEffect;
 /**

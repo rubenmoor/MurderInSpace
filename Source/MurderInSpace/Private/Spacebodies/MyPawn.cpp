@@ -28,34 +28,6 @@ AMyPawn::AMyPawn(): APawn()
 	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
 }
 
-void AMyPawn::UpdateLookTarget(FVector Target)
-{
-	// TODO
-}
-
-// void AMyPawn::SetRotationAim(const FQuat& InQuat)
-// {
-// 	RP_QuatRotationAim = InQuat;
-// 	const FQuat MyQuat = GetActorQuat();
-// 	const double RemainingTheta = (RP_QuatRotationAim * MyQuat.Inverse()).GetTwistAngle(FVector::UnitZ());
-// 	const auto Tag = FMyGameplayTags::Get();
-// 	// initiate rotation or adjust direction
-// 	if(Omega == 0. || RemainingTheta * Omega < 0.)
-// 	{
-// 		// start acceleration in the direction of `RP_RotationAim`
-// 		FGameplayTag TorqueTag;
-// 		if(RemainingTheta > 0.)
-// 		{
-// 			TorqueTag = Tag.HasTorqueCCW;
-// 		}
-// 		else
-// 		{
-// 			TorqueTag = Tag.HasTorqueCW;
-// 		}
-// 		AbilitySystemComponent->TryActivateAbilitiesByTag(TorqueTag.GetSingleTagContainer());
-// 	}
-// }
-
 void AMyPawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);

@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <Input/MyInputActionSet.h>
 
-#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "MyGameplayTags.h"
@@ -12,7 +11,6 @@
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "MyComponents/GyrationComponent.h"
 #include "HUD/MyHUD.h"
-#include "Input/MyInputAction.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lib/FunctionLib.h"
 #include "Logging/StructuredLog.h"
@@ -130,8 +128,8 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
     const FInputActionInstance& InputActionInstance)
 {
     auto& Tag = FMyGameplayTags::Get();
-    const auto InputAbilityTags = InputActionTags.Filter(Tag.InputBindingAbility.GetSingleTagContainer());
-    const auto InputCustomTags = InputActionTags.Filter(Tag.InputBindingCustom.GetSingleTagContainer());
+    const auto InputAbilityTags = InputActionTags.Filter(Tag.Ability.GetSingleTagContainer());
+    const auto InputCustomTags = InputActionTags.Filter(Tag.CustomInputBinding.GetSingleTagContainer());
 
     for(auto InputCustomTag : InputCustomTags)
     {
@@ -332,16 +330,12 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 
     // trigger orbit replication when tag AccelerateTranslational is removed
     const auto& Tag = FMyGameplayTags::Get();
-    AbilitySystemComponent->RegisterGameplayTagEvent
-        ( Tag.AccelerationTranslational
-        , EGameplayTagEventType::NewOrRemoved
-        ).AddLambda([this, Orbit] (const FGameplayTag Tag, int32 Count)
+    TArray<FGameplayAbilitySpec*> Specs;
+    AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(Tag.AbilityAccelerate.GetSingleTagContainer(), Specs);
+    Specs[0]->GetPrimaryInstance()->OnGameplayAbilityEnded.AddLambda([this, Orbit] (UGameplayAbility* Ability)
         {
-            UE_LOGFMT(LogMyGame, Display, "{THIS} Tag changed: {TAG}, new count: {COUNT}", GetFName(), Tag.GetTagName(), Count);
-            if(Count == 0)
-            {
-                Orbit->FreezeOrbitState();
-            }
+            UE_LOGFMT(LogMyGame, Display, "{NAME} ended", Ability->GetFName());
+            Orbit->FreezeOrbitState();
         });
 }
 
@@ -387,7 +381,6 @@ void AMyPlayerController::BeginPlay()
 
     const FInputModeGameAndUI InputModeGameAndUI;
     SetInputMode(InputModeGameAndUI);
-
 }
 
 void AMyPlayerController::RunCustomInputAction(FGameplayTag CustomBindingTag, EInputTrigger InputTrigger, const FInputActionInstance& InputActionInstance)
@@ -395,7 +388,7 @@ void AMyPlayerController::RunCustomInputAction(FGameplayTag CustomBindingTag, EI
     const auto& Tag = FMyGameplayTags::Get();
 
     // select
-    if(CustomBindingTag == Tag.InputBindingCustomSelect)
+    if(CustomBindingTag == Tag.CustomInputBindingSelect)
     {
          FHitResult HitResult;
          GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
@@ -427,7 +420,7 @@ void AMyPlayerController::RunCustomInputAction(FGameplayTag CustomBindingTag, EI
     }
     
     // zoom
-    else if(CustomBindingTag == Tag.InputBindingCustomZoom)
+    else if(CustomBindingTag == Tag.CustomInputBindingZoom)
     {
         const auto Delta = static_cast<int8>(InputActionInstance.GetValue().Get<FInputActionValue::Axis1D>());
         if(abs(Delta) > 0)
@@ -438,7 +431,7 @@ void AMyPlayerController::RunCustomInputAction(FGameplayTag CustomBindingTag, EI
     }
 
     // all orbits show/hide
-    else if(CustomBindingTag == Tag.InputBindingCustomAllOrbitsShowHide)
+    else if(CustomBindingTag == Tag.CustomInputBindingAllOrbitsShowHide)
     {
         using enum EInputTrigger;
         if(InputTrigger == Pressed || InputTrigger == Released)
@@ -452,7 +445,7 @@ void AMyPlayerController::RunCustomInputAction(FGameplayTag CustomBindingTag, EI
     }
 
     // my orbit show/hide
-    else if(CustomBindingTag == Tag.InputBindingCustomMyOrbitShowHide)
+    else if(CustomBindingTag == Tag.CustomInputBindingMyOrbitShowHide)
     {
         const auto Orbit = Cast<IHasOrbit>(GetPawn())->GetOrbit();
         switch(InputTrigger)
@@ -476,7 +469,7 @@ void AMyPlayerController::RunCustomInputAction(FGameplayTag CustomBindingTag, EI
         }
     }
 
-    else if(CustomBindingTag == Tag.InputBindingCustomIngameMenuToggle)
+    else if(CustomBindingTag == Tag.CustomInputBindingIngameMenuToggle)
     {
         auto* LocalPlayer = Cast<UMyLocalPlayer>(GetLocalPlayer());
         if(LocalPlayer->InGame == EInGame::IngameMenu)

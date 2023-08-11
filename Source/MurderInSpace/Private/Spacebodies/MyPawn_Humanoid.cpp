@@ -47,7 +47,7 @@ void AMyPawn_Humanoid::BeginPlay()
 	HandThrusterRight->SetActorHiddenInGame(true);
 }
 
-void AMyPawn_Humanoid::GameplayCue_Accelerate_ShowThrusters(FGameplayTag Cue, EGameplayCueEvent::Type Event,
+void AMyPawn_Humanoid::GameplayCue_ShowThrusters(FGameplayTag Cue, EGameplayCueEvent::Type Event,
 	const FGameplayCueParameters& Parameters)
 {
 	switch (Event)
@@ -67,7 +67,7 @@ void AMyPawn_Humanoid::GameplayCue_Accelerate_ShowThrusters(FGameplayTag Cue, EG
 	}
 }
 
-void AMyPawn_Humanoid::GameplayCue_Accelerate_Fire(FGameplayTag Cue, EGameplayCueEvent::Type Event,
+void AMyPawn_Humanoid::GameplayCue_ThrustersFire(FGameplayTag Cue, EGameplayCueEvent::Type Event,
 	const FGameplayCueParameters& Parameters)
 {
 	switch (Event)

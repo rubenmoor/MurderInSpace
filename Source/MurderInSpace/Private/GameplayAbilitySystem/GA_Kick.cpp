@@ -8,5 +8,5 @@
 UGA_Kick::UGA_Kick()
 {
     const auto& Tag = FMyGameplayTags::Get();
-    AbilityTags.AddTag(Tag.InputBindingAbilityKick);
+    AbilityTags.AddTag(Tag.AbilityKick);
 }

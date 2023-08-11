@@ -25,7 +25,7 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TSet<EInputTrigger> InputTriggers;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(Categories = "InputBinding"))
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     FGameplayTagContainer InputActionTags;
 
     // create and bind an input action for every trigger in `InputTriggers`

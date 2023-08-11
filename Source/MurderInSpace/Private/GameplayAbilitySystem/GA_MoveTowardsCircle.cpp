@@ -5,6 +5,5 @@
 UGA_MoveTowardsCircle::UGA_MoveTowardsCircle()
 {
     const auto& Tag = FMyGameplayTags::Get();
-    AbilityTags.AddTag(Tag.InputBindingAbilityMoveTowardsCircle);
-    ActivationOwnedTags.AddTag(Tag.AccelerationMoveTowardsCircle);
+    AbilityTags.AddTag(Tag.AbilityMoveTowardsCircle);
 }
