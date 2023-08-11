@@ -5,8 +5,6 @@
 #include "GameplayAbilitySystem/GE_TorqueCCW.h"
 #include "GameplayAbilitySystem/GE_TorqueCW.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
-#include "Logging/StructuredLog.h"
-#include "Modes/MyGameInstance.h"
 #include "UE5Coro/LatentAwaiters.h"
 
 using namespace UE5Coro;
@@ -84,48 +82,56 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     
     const FGameplayTag CuePose1 = DeltaTheta > 0 ? Tag.CuePoseTorqueCCW : Tag.CuePoseTorqueCW;
     const FGameplayTag CuePose2 = DeltaTheta > 0 ? Tag.CuePoseTorqueCW : Tag.CuePoseTorqueCCW;
-
-    // TODO: only remove, when needed; and don't remove where it gets activated again
-    RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
+    const auto SpecTorque1 =
+        MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCCW : GE_TorqueCW);
+    const auto SpecTorque2 =
+        MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCW : GE_TorqueCCW);
 
     ASC->AddGameplayCueUnlessExists(Tag.CueShowThrusters);
 
     // phase 1: get rotation started
-    
+
     if(TTorque1 > 0)
     {
-        // TODO: allow direct switch from Pose2 to Pose1
-
         const bool b1 = ASC->RemoveGameplayCueIfExists(CuePose2);
         const bool b2 = ASC->AddGameplayCueUnlessExists(CuePose1);
         if(b1 || b2)
             co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
-
-        const auto SpecTorque1 =
-            MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCCW : GE_TorqueCW);
-        TorqueHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque1);
+        
+        const auto* GE = ASC->GetActiveGameplayEffect(TorqueHandle);
+        if(!GE || GE->Spec.Def != SpecTorque1.Data->Def)
+        {
+            if(GE)
+                RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
+            TorqueHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque1);
+        }
         co_await Latent::Seconds(TTorque1);
-        RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
     }
 
     // phase 2: keep rotating without torque
     
     if(TTorque1 >= 0.)
     {
+        RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
+        
         ASC->RemoveGameplayCueIfExists(CuePose1);
         co_await Latent::Seconds(TransitionTime);
         
         co_await Latent::Seconds(TIdle);
-        
-        if(ASC->AddGameplayCueUnlessExists(CuePose2))
-            co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
     }
-
+        
     // phase 3: stop rotation
-    
-    const auto SpecTorque2 =
-        MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCW : GE_TorqueCCW);
-    TorqueHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque2);
+
+    if(ASC->AddGameplayCueUnlessExists(CuePose2))
+        co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
+
+    const auto* GE = ASC->GetActiveGameplayEffect(TorqueHandle);
+    if(!GE || GE->Spec.Def != SpecTorque2.Data->Def)
+    {
+        if(GE)
+            RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
+        TorqueHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque2);
+    }
     co_await Latent::Seconds(TTorque2);
     RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
 

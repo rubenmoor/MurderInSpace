@@ -50,6 +50,7 @@ void AMyPawn_Humanoid::BeginPlay()
 void AMyPawn_Humanoid::GameplayCue_ShowThrusters(FGameplayTag Cue, EGameplayCueEvent::Type Event,
 	const FGameplayCueParameters& Parameters)
 {
+	UE_LOGFMT(LogMyGame, Warning, "GameplayCue_ShowThrusters: {EVENT}", UEnum::GetValueAsString(Event));
 	switch (Event)
 	{
 	case EGameplayCueEvent::OnActive:
@@ -70,6 +71,7 @@ void AMyPawn_Humanoid::GameplayCue_ShowThrusters(FGameplayTag Cue, EGameplayCueE
 void AMyPawn_Humanoid::GameplayCue_ThrustersFire(FGameplayTag Cue, EGameplayCueEvent::Type Event,
 	const FGameplayCueParameters& Parameters)
 {
+	UE_LOGFMT(LogMyGame, Warning, "GameplayCue_ThrustersFire: {EVENT}", UEnum::GetValueAsString(Event));
 	switch (Event)
 	{
 	case EGameplayCueEvent::OnActive:
