@@ -45,8 +45,21 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     constexpr float TransitionTime = 0.2f;
 
     const auto* MyPawn = Cast<AMyPawn>(ActorInfo->OwnerActor);
+    // this omega is obsolete after any co_await
+    const float OmegaBegin = MyPawn->GetOmega();
+    
     const float AngleLookAt = TriggerEventData->EventMagnitude;
-    const float DeltaTheta = (FQuat(FVector::UnitZ(), AngleLookAt) * MyPawn->GetActorQuat().Inverse()).GetTwistAngle(FVector::UnitZ());
+    const float DeltaThetaInEfficient =
+        ( FQuat(FVector::UnitZ(), AngleLookAt) * MyPawn->GetActorQuat().Inverse()
+        ).GetTwistAngle(FVector::UnitZ());
+
+    // get a time-efficient delta theta that allows rotation by |DeltaTheta| > PI,
+    // if current rotation Omega has opposite sign to DeltaTheta
+    const float DeltaTheta =
+          FMath::Sign(OmegaBegin) * DeltaThetaInEfficient
+        < pow(OmegaBegin, 2) / AlphaMax + TransitionTime * FMath::Abs(OmegaBegin) - PI
+            ? DeltaThetaInEfficient + FMath::Sign(OmegaBegin) * TWO_PI
+            : DeltaThetaInEfficient;
     const float DeltaThetaAbs = FMath::Abs(DeltaTheta);
 
     // calculate the maximum radial velocity: for small values of DeltaTheta, it's smaller than OmegaMax
@@ -54,8 +67,6 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     const float OmegaBar = FMath::Min(OmegaMax, FMath::Sqrt(FMath::Pow(Term, 2) + AlphaMax * DeltaThetaAbs) - Term);
     check(OmegaBar > 0)
 
-    // this omega is obsolete after any co_await
-    const float OmegaBegin = MyPawn->GetOmega();
     // clamp omega to omega max
     // otherwise sometimes omega overshoots omega max,
     // resulting in TTorque1 being slightly negative and the pawn hitting the breaks
