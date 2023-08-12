@@ -37,8 +37,8 @@ public:
     FGameplayTag FindTag(FGameplayTag InTag);
     
     TArray<FGameplayAbilitySpec> GetActiveAbilities
-        ( const FGameplayTagContainer* WithTags=nullptr
-        , const FGameplayTagContainer* WithoutTags=nullptr
+        ( const FGameplayTagContainer& WithAnyTag = FGameplayTagContainer()
+        , const FGameplayTagContainer& WithoutTags = FGameplayTagContainer()
         , TArray<FGameplayAbilitySpecHandle> IgnoreList = {}
         );
 

@@ -4,6 +4,8 @@
 #include "Spacebodies/MyCharacter.h"
 #include "UE5Coro/LatentAwaiters.h"
 #include "MyGameplayTags.h"
+#include "Logging/StructuredLog.h"
+#include "Modes/MyGameInstance.h"
 
 UMyGameplayAbility::UMyGameplayAbility()
 {
@@ -70,11 +72,11 @@ FOnGameplayAbilityEnded* UMyGameplayAbility::TurnBlocked(FGameplayAbilitySpecHan
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
     const auto& Tag = FMyGameplayTags::Get();
     
-    // get active ability, ignore active ability that is awaiting its turn
+    // get active ability; ignore active ability that is awaiting its turn, ignore this ability
     auto Specs =
         ASC->GetActiveAbilities
-            (&Tag.BlockingTurn.GetSingleTagContainer()
-            , nullptr
+            ( Tag.BlockingTurn.GetSingleTagContainer()
+            , FGameplayTagContainer()
             , { Handle, ASC->AbilityAwaitingTurn}
             );
     if(!Specs.IsEmpty())
@@ -82,7 +84,12 @@ FOnGameplayAbilityEnded* UMyGameplayAbility::TurnBlocked(FGameplayAbilitySpecHan
         check(Specs.Num() == 1)
         
         // replace other ability that was awaiting its turn
-        ASC->CancelAbilityHandle(ASC->AbilityAwaitingTurn);
+        if(ASC->AbilityAwaitingTurn.IsValid())
+        {
+            UE_LOGFMT(LogMyGame, Error, "going to cancel {NAME}", ASC->GetActivatableAbilities().FilterByPredicate
+                ([ASC] (FGameplayAbilitySpec Spec) { return Spec.Handle == ASC->AbilityAwaitingTurn; })[0].Ability.GetFName());
+            ASC->CancelAbilityHandle(ASC->AbilityAwaitingTurn);
+        } 
         ASC->AbilityAwaitingTurn = Handle;
         return &Specs[0].GetPrimaryInstance()->OnGameplayAbilityEnded;
     }

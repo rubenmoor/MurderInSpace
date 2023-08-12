@@ -155,7 +155,7 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
             break;
         case EInputTrigger::Released:
         case EInputTrigger::HoldAndRelease:
-            for(auto Spec : AbilitySystemComponent->GetActiveAbilities(&InputAbilityTags))
+            for(auto Spec : AbilitySystemComponent->GetActiveAbilities(InputAbilityTags))
             {
                 // InstancingPolicy: InstancedPerActor
                 auto* AbilityInstance = Spec.GetPrimaryInstance();
@@ -254,18 +254,20 @@ void AMyPlayerController::Tick(float DeltaSeconds)
             if(abs(AngleDelta) > 15. / 180. * PI)
             {
                 auto& Tag = FMyGameplayTags::Get();
-                auto Specs = AbilitySystemComponent->GetActiveAbilities(&Tag.AbilityLookAt.GetSingleTagContainer());
+                auto Specs = AbilitySystemComponent->GetActiveAbilities(Tag.AbilityLookAt.GetSingleTagContainer());
                 
-                if(!Specs.IsEmpty())
+                if(Specs.IsEmpty())
                 {
-                    check(Specs.Num() == 1)
-                    AbilitySystemComponent->CancelAbilitySpec(Specs[0], nullptr);
-                    Handle.Cancel();
-                    Handle = ActivateLookAtAfterNextTick();
+                    UE_LOGFMT(LogMyGame, Display, "LookAt not active, activating");
+                    ActivateLookAt();
                 }
                 else
                 {
-                    ActivateLookAt();
+                    check(Specs.Num() == 1)
+                    UE_LOGFMT(LogMyGame, Display, "LookAt active, CancelAbilitySpec LookAt and schedule reactivation");
+                    AbilitySystemComponent->CancelAbilitySpec(Specs[0], nullptr);
+                    Handle.Cancel();
+                    Handle = ActivateLookAtAfterNextTick();
                 }
 
                 VecAngle = (FQuat(FVector::UnitZ(), AngleDelta) * MyCharacter->GetActorQuat()).RotateVector(FVector::UnitX());
@@ -290,6 +292,7 @@ void AMyPlayerController::ActivateLookAt()
     auto& Tag = FMyGameplayTags::Get();
     FGameplayEventData EventData;
     EventData.EventMagnitude = MouseAngle;
+    UE_LOGFMT(LogMyGame, Display, "SendGameplayEvent LookAt");
     AbilitySystemComponent->SendGameplayEvent(Tag.AbilityLookAt, EventData);
 }
 

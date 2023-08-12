@@ -30,8 +30,8 @@ FGameplayTag UMyAbilitySystemComponent::FindTag(FGameplayTag InTag)
 }
 
 TArray<FGameplayAbilitySpec> UMyAbilitySystemComponent::GetActiveAbilities
-    ( const FGameplayTagContainer* WithTags
-    , const FGameplayTagContainer* WithoutTags
+    ( const FGameplayTagContainer& WithAnyTag
+    , const FGameplayTagContainer& WithoutTags
     , TArray<FGameplayAbilitySpecHandle> IgnoreList
     )
 {
@@ -39,16 +39,15 @@ TArray<FGameplayAbilitySpec> UMyAbilitySystemComponent::GetActiveAbilities
     TArray<FGameplayAbilitySpec> ActiveAbilities;
     for(FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
     {
-        if(!Spec.IsActive())
+        if(Spec.IsActive())
         {
-            continue;
-        }
-		const bool WithTagPass = (!WithTags || Spec.Ability->AbilityTags.HasAny(*WithTags));
-		const bool WithoutTagPass = (!WithoutTags || !Spec.Ability->AbilityTags.HasAny(*WithoutTags));
+            const bool WithTagPass = WithAnyTag.IsEmpty() || Spec.Ability->AbilityTags.HasAny(WithAnyTag);
+            const bool WithoutTagPass = WithoutTags.IsEmpty() || !Spec.Ability->AbilityTags.HasAny(WithoutTags);
 
-		if (WithTagPass && WithoutTagPass && !IgnoreList.Contains(Spec.Handle))
-		{
-			ActiveAbilities.Add(Spec);
+            if (WithTagPass && WithoutTagPass && !IgnoreList.Contains(Spec.Handle))
+            {
+                ActiveAbilities.Add(Spec);
+            }
 		}
     }
     return ActiveAbilities;

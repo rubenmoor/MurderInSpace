@@ -5,6 +5,8 @@
 #include "GameplayAbilitySystem/GE_TorqueCCW.h"
 #include "GameplayAbilitySystem/GE_TorqueCW.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
+#include "Logging/StructuredLog.h"
+#include "Modes/MyGameInstance.h"
 #include "UE5Coro/LatentAwaiters.h"
 
 using namespace UE5Coro;
@@ -28,11 +30,17 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
                                              const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo,
                                              const FGameplayEventData* TriggerEventData)
 {
+    UE_LOGFMT(LogMyGame, Display, "ExecuteAbility LookAt");
+    
     if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
         co_await Latent::Cancel();
     
     if(auto* OnBlockingAbilityEnded = TurnBlocked(Handle, ActorInfo))
+    {
+        UE_LOGFMT(LogMyGame, Display, "{NAME} waiting turn", GetFName());
         co_await Latent::UntilDelegate(*OnBlockingAbilityEnded);
+        UE_LOGFMT(LogMyGame, Display, "{NAME} started after waiting turn", GetFName());
+    }
     
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
     ASC->AbilityAwaitingTurn = FGameplayAbilitySpecHandle();
@@ -133,7 +141,7 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         TorqueHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque2);
     }
     co_await Latent::Seconds(TTorque2);
-    RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
+    verify(RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo))
 
     const bool b3 = ASC->RemoveGameplayCueIfExists(CuePose2);
     const bool b4 = ASC->RemoveGameplayCueIfExists(CuePose1);
@@ -141,4 +149,21 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
     
     ASC->RemoveGameplayCueIfExists(Tag.CueShowThrusters);
+
+    const float NewAngleLookAt = MyPawn->GetActorQuat().GetTwistAngle(FVector::UnitZ());
+    const float Diff = FMath::Abs(NewAngleLookAt - AngleLookAt);
+    if(Diff > 0.1)
+        UE_LOGFMT(LogMyGame, Warning, "LookAt ended. NewAngleLookAt: {NEW}, AngleLookAt: {AIM}, Difference: {DIFF}"
+            , NewAngleLookAt, AngleLookAt, Diff);
+    else 
+        UE_LOGFMT(LogMyGame, Display, "LookAt ended. NewAngleLookAt: {NEW}, AngleLookAt: {AIM}, Difference: {DIFF}"
+            , NewAngleLookAt, AngleLookAt, Diff);
+}
+
+void UGA_LookAt::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+    const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+    UE_LOGFMT(LogMyGame, Warning, "LookAt cancelled");
+    RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
+    Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }

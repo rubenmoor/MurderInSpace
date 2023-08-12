@@ -55,7 +55,7 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
             
     co_await UntilReleased();
 
-    verify(RemoveActiveGameplayEffect(GE_FireHandle, *ActorInfo, ActivationInfo))
+    RemoveActiveGameplayEffect(GE_FireHandle, *ActorInfo, ActivationInfo);
     
     LocallyControlledDo(ActorInfo, [] (AMyCharacter* MyCharacter)
     {
