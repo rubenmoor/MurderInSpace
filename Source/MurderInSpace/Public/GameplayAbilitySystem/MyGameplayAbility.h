@@ -35,4 +35,6 @@ protected:
     Private::FLatentAwaiter UntilReleased();
 
     bool bReleased = false;
+
+    virtual FOnGameplayAbilityEnded* TurnBlocked(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo);
 };

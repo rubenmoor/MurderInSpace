@@ -29,8 +29,11 @@ FGameplayTag UMyAbilitySystemComponent::FindTag(FGameplayTag InTag)
 	return MyTags.Filter(InTag.GetSingleTagContainer()).First();
 }
 
-TArray<FGameplayAbilitySpec> UMyAbilitySystemComponent::GetActiveAbilities(const FGameplayTagContainer* WithTags,
-    const FGameplayTagContainer* WithoutTags, UGameplayAbility* Ignore)
+TArray<FGameplayAbilitySpec> UMyAbilitySystemComponent::GetActiveAbilities
+    ( const FGameplayTagContainer* WithTags
+    , const FGameplayTagContainer* WithoutTags
+    , TArray<FGameplayAbilitySpecHandle> IgnoreList
+    )
 {
     ABILITYLIST_SCOPE_LOCK()
     TArray<FGameplayAbilitySpec> ActiveAbilities;
@@ -43,7 +46,7 @@ TArray<FGameplayAbilitySpec> UMyAbilitySystemComponent::GetActiveAbilities(const
 		const bool WithTagPass = (!WithTags || Spec.Ability->AbilityTags.HasAny(*WithTags));
 		const bool WithoutTagPass = (!WithoutTags || !Spec.Ability->AbilityTags.HasAny(*WithoutTags));
 
-		if (WithTagPass && WithoutTagPass && Ignore != Spec.Ability)
+		if (WithTagPass && WithoutTagPass && !IgnoreList.Contains(Spec.Handle))
 		{
 			ActiveAbilities.Add(Spec);
 		}

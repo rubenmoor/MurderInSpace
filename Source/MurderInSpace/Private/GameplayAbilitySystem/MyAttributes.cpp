@@ -31,10 +31,10 @@ void UAttrSetAcceleration::OnRep_OmegaMax(const FGameplayAttributeData& OldOmega
 TArray<FMyAttributeRow> UAttrSetAcceleration::GetAttributeInitialValueRows()
 {
     return
-        { { "AttrSetAcceleration.TorqueMax"     , 60. * PI / 180. }
+        { { "AttrSetAcceleration.TorqueMax"        , 120. * PI / 180. }
         , { "AttrSetAcceleration.Torque"           , 0.              }
-        , { "AttrSetAcceleration.OmegaMax"         , 60. * PI / 180. }
-        , { "AttrSetAcceleration.AccelerationSIMax", 1.              }
+        , { "AttrSetAcceleration.OmegaMax"         , 120. * PI / 180. }
+        , { "AttrSetAcceleration.AccelerationSIMax", 3.              }
         , { "AttrSetAcceleration.AccelerationSI"   , 0.              }
         };
 }

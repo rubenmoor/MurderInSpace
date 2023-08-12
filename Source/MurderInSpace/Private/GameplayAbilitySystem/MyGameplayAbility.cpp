@@ -3,10 +3,14 @@
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "Spacebodies/MyCharacter.h"
 #include "UE5Coro/LatentAwaiters.h"
+#include "MyGameplayTags.h"
 
 UMyGameplayAbility::UMyGameplayAbility()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+    
+    const auto& Tag = FMyGameplayTags::Get();
+    AbilityTags.AddTag(Tag.BlockingTurn);
 }
 
 void UMyGameplayAbility::ServerRPC_SetReleased_Implementation()
@@ -28,10 +32,10 @@ FAbilityCoroutine UMyGameplayAbility::ExecuteAbility(FGameplayAbilitySpecHandle 
                                                      const FGameplayEventData* TriggerEventData)
 {
     if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
-    {
         co_await Latent::Cancel();
-    }
-    co_await UntilReleased();
+    
+    if(auto* OnBlockingAbilityEnded = TurnBlocked(Handle, ActorInfo))
+        co_await Latent::UntilDelegate(*OnBlockingAbilityEnded);
 }
 
 bool UMyGameplayAbility::RemoveActiveGameplayEffect(FActiveGameplayEffectHandle Handle, const FGameplayAbilityActorInfo& ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, int32 StacksToRemove)
@@ -59,4 +63,28 @@ Private::FLatentAwaiter UMyGameplayAbility::UntilReleased()
         }
         return false;
     });
+}
+
+FOnGameplayAbilityEnded* UMyGameplayAbility::TurnBlocked(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo)
+{
+    auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
+    const auto& Tag = FMyGameplayTags::Get();
+    
+    // get active ability, ignore active ability that is awaiting its turn
+    auto Specs =
+        ASC->GetActiveAbilities
+            (&Tag.BlockingTurn.GetSingleTagContainer()
+            , nullptr
+            , { Handle, ASC->AbilityAwaitingTurn}
+            );
+    if(!Specs.IsEmpty())
+    {
+        check(Specs.Num() == 1)
+        
+        // replace other ability that was awaiting its turn
+        ASC->CancelAbilityHandle(ASC->AbilityAwaitingTurn);
+        ASC->AbilityAwaitingTurn = Handle;
+        return &Specs[0].GetPrimaryInstance()->OnGameplayAbilityEnded;
+    }
+    return nullptr;
 }

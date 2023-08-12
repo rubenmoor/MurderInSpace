@@ -19,6 +19,8 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
     FGameplayTag AbilityEmbrace;
     FGameplayTag AbilityKick;
     FGameplayTag AbilityLookAt;
+    
+    FGameplayTag BlockingTurn;
 
     // gameplay cues
 

@@ -32,5 +32,8 @@ protected:
 	
 	virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-	FActiveGameplayEffectHandle TorqueHandle = INDEX_NONE;
+	inline static FActiveGameplayEffectHandle TorqueHandle = INDEX_NONE;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float TransitionTime = 0.2;
 };

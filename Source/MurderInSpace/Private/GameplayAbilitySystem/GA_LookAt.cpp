@@ -12,8 +12,6 @@ using namespace UE5Coro::GAS;
 
 UGA_LookAt::UGA_LookAt()
 {
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-    
     const auto& Tag = FMyGameplayTags::Get();
 
     AbilityTags.AddTag(Tag.AbilityLookAt);
@@ -30,19 +28,20 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
                                              const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo,
                                              const FGameplayEventData* TriggerEventData)
 {
-    checkf(TriggerEventData, TEXT("Use UAbilitySystemComponent::SendGameplayEvent to activate this ability"))
     if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
-    {
         co_await Latent::Cancel();
-    }
+    
+    if(auto* OnBlockingAbilityEnded = TurnBlocked(Handle, ActorInfo))
+        co_await Latent::UntilDelegate(*OnBlockingAbilityEnded);
+    
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
-    const auto& Tag = FMyGameplayTags::Get();
+    ASC->AbilityAwaitingTurn = FGameplayAbilitySpecHandle();
+    
+    checkf(TriggerEventData, TEXT("Use UAbilitySystemComponent::SendGameplayEvent to activate this ability"))
+    
     const float OmegaMax = ASC->GetNumericAttribute(UAttrSetAcceleration::GetOmegaMaxAttribute());
     const float AlphaMax = ASC->GetNumericAttribute(UAttrSetAcceleration::GetTorqueMaxAttribute());
     
-    // time to transition from idle pose to torque pose
-    constexpr float TransitionTime = 0.2f;
-
     const auto* MyPawn = Cast<AMyPawn>(ActorInfo->OwnerActor);
     // this omega is obsolete after any co_await
     const float OmegaBegin = MyPawn->GetOmega();
@@ -80,6 +79,7 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     // TIdle > 0, the values < 0 are small in absolute terms, so it shouldn't matter
     const double TIdle = FMath::Max(0., DeltaThetaAbs / OmegaBar - OmegaBar / AlphaMax - 2. * TransitionTime);
     
+    const auto& Tag = FMyGameplayTags::Get();
     const FGameplayTag CuePose1 = DeltaTheta > 0 ? Tag.CuePoseTorqueCCW : Tag.CuePoseTorqueCW;
     const FGameplayTag CuePose2 = DeltaTheta > 0 ? Tag.CuePoseTorqueCW : Tag.CuePoseTorqueCCW;
     const auto SpecTorque1 =

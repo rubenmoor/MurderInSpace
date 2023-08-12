@@ -54,8 +54,8 @@ protected:
 	// handle gameplay cues
 
 	UFUNCTION()
-	void GameplayCue_ShowThrusters(FGameplayTag Cue, EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters);
+	void GameplayCue_ShowThrusters(EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters);
     
 	UFUNCTION()
-    void GameplayCue_ThrustersFire(FGameplayTag Cue, EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters);
+    void GameplayCue_ThrustersFire(EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters);
 };

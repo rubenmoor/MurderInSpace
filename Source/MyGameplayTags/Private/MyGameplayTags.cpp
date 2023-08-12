@@ -15,6 +15,8 @@ FMyGameplayTags::FMyGameplayTags()
 	AbilityKick              = GTM.AddNativeGameplayTag("Ability.Kick");
     AbilityLookAt            = GTM.AddNativeGameplayTag("Ability.LookAt");
 
+	BlockingTurn = GTM.AddNativeGameplayTag("BlockingTurn");
+
 	GameplayCue         = GTM.AddNativeGameplayTag("GameplayCue");
 	
 	CuePose             = GTM.AddNativeGameplayTag("GameplayCue.Pose");

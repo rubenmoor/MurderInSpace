@@ -15,6 +15,7 @@ UGA_Accelerate::UGA_Accelerate()
     const auto& Tag = FMyGameplayTags::Get();
     
     AbilityTags.AddTag(Tag.AbilityAccelerate);
+    ActivationOwnedTags.AddTag(Tag.AbilityAccelerate);
     
     GE_AccelerateFire = UGE_AccelerateFire::StaticClass();
 }
@@ -24,10 +25,14 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     const FGameplayEventData* TriggerEventData)
 {
     if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
-    {
         co_await Latent::Cancel();
-    }
+
+    if(auto* OnBlockingAbilityEnded = TurnBlocked(Handle, ActorInfo))
+        co_await Latent::UntilDelegate(*OnBlockingAbilityEnded);
+    
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
+    ASC->AbilityAwaitingTurn = FGameplayAbilitySpecHandle();
+    
     const auto& Tag = FMyGameplayTags::Get();
 
     ASC->AddGameplayCueUnlessExists(Tag.CueShowThrusters);
@@ -38,11 +43,11 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     LocallyControlledDo(ActorInfo, [] (AMyCharacter* MyCharacter)
     {
         auto* Orbit = MyCharacter->GetOrbit();
-		Orbit->UpdateVisibility(true);
-		Orbit->SpawnSplineMesh
-			( MyCharacter->GetTempSplineMeshColor()
-			, ESplineMeshParentSelector::Temporary
-			);
+        Orbit->UpdateVisibility(true);
+        Orbit->SpawnSplineMesh
+            ( MyCharacter->GetTempSplineMeshColor()
+            , ESplineMeshParentSelector::Temporary
+            );
     });
 
     const auto GE_FireSpec   = MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, GE_AccelerateFire);

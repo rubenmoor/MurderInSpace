@@ -47,10 +47,8 @@ void AMyPawn_Humanoid::BeginPlay()
 	HandThrusterRight->SetActorHiddenInGame(true);
 }
 
-void AMyPawn_Humanoid::GameplayCue_ShowThrusters(FGameplayTag Cue, EGameplayCueEvent::Type Event,
-	const FGameplayCueParameters& Parameters)
+void AMyPawn_Humanoid::GameplayCue_ShowThrusters(EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters)
 {
-	UE_LOGFMT(LogMyGame, Warning, "GameplayCue_ShowThrusters: {EVENT}", UEnum::GetValueAsString(Event));
 	switch (Event)
 	{
 	case EGameplayCueEvent::OnActive:
@@ -59,7 +57,7 @@ void AMyPawn_Humanoid::GameplayCue_ShowThrusters(FGameplayTag Cue, EGameplayCueE
 		HandThrusterRight->SetActorHiddenInGame(false);
 		break;
 	case EGameplayCueEvent::Executed:
-		UE_LOGFMT(LogMyGame, Error, "{CUE}: Executed: not implemented", Cue.GetTagName());
+		UE_LOGFMT(LogMyGame, Error, "GameplayCue_ShowThrusters: Executed: not implemented");
 		break;
 	case EGameplayCueEvent::Removed:
 		HandThrusterLeft->SetActorHiddenInGame(true);
@@ -68,10 +66,8 @@ void AMyPawn_Humanoid::GameplayCue_ShowThrusters(FGameplayTag Cue, EGameplayCueE
 	}
 }
 
-void AMyPawn_Humanoid::GameplayCue_ThrustersFire(FGameplayTag Cue, EGameplayCueEvent::Type Event,
-	const FGameplayCueParameters& Parameters)
+void AMyPawn_Humanoid::GameplayCue_ThrustersFire(EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters)
 {
-	UE_LOGFMT(LogMyGame, Warning, "GameplayCue_ThrustersFire: {EVENT}", UEnum::GetValueAsString(Event));
 	switch (Event)
 	{
 	case EGameplayCueEvent::OnActive:
@@ -80,7 +76,7 @@ void AMyPawn_Humanoid::GameplayCue_ThrustersFire(FGameplayTag Cue, EGameplayCueE
 		HandThrusterRight->EnableBurn(true);
 		break;
 	case EGameplayCueEvent::Executed:
-		UE_LOGFMT(LogMyGame, Error, "{CUE}: Executed: not implemented", Cue.GetTagName());
+		UE_LOGFMT(LogMyGame, Error, "GameplayCue_ThrustersFire: Executed: not implemented");
 		break;
 	case EGameplayCueEvent::Removed:
 		HandThrusterLeft->EnableBurn(false);

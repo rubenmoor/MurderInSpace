@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <Input/MyInputActionSet.h>
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "MyGameplayTags.h"
@@ -19,6 +20,7 @@
 #include "Modes/MySessionManager.h"
 #include "Modes/MyGameState.h"
 #include "EnhancedInputComponent.h"
+#include "GameplayAbilitySystem/GA_Accelerate.h"
 #include "GameplayAbilitySystem/GA_LookAt.h"
 #include "GameplayAbilitySystem/MyGameplayAbility.h"
 #include "Input/MyInputActions.h"
@@ -331,12 +333,25 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     // trigger orbit replication when tag AccelerateTranslational is removed
     const auto& Tag = FMyGameplayTags::Get();
     TArray<FGameplayAbilitySpec*> Specs;
-    AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(Tag.AbilityAccelerate.GetSingleTagContainer(), Specs);
-    Specs[0]->GetPrimaryInstance()->OnGameplayAbilityEnded.AddLambda([this, Orbit] (UGameplayAbility* Ability)
+
+    AbilitySystemComponent->RegisterGameplayTagEvent
+        ( Tag.AbilityAccelerate
+        , EGameplayTagEventType::NewOrRemoved
+        ).AddLambda([Orbit] (FGameplayTag TheTag, int32 Count)
+    {
+        if(Count == 0)
         {
-            UE_LOGFMT(LogMyGame, Display, "{NAME} ended", Ability->GetFName());
+            UE_LOGFMT(LogMyGame, Display, "{TAG} removed, freeze orbit states", TheTag.ToString());
             Orbit->FreezeOrbitState();
-        });
+        }
+    });
+    
+    //AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(Tag.AbilityAccelerate.GetSingleTagContainer(), Specs);
+    //Specs[0]->GetPrimaryInstance()->OnGameplayAbilityEnded.AddLambda([this, Orbit] (UGameplayAbility* Ability)
+    //    {
+    //        UE_LOGFMT(LogMyGame, Display, "{NAME} ended, freeze orbit states", Ability->GetFName());
+    //        Orbit->FreezeOrbitState();
+    //    });
 }
 
 void AMyPlayerController::AcknowledgePossession(APawn* P)

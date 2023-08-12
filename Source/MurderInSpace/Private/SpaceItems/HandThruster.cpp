@@ -11,12 +11,12 @@ AHandThruster::AHandThruster(): AActor()
 
     NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>("NiagaraComponent");
     NiagaraComponent->SetupAttachment(StaticMeshComponent, "SocketFlame");
-    NiagaraComponent->SetVisibility(false);
+    NiagaraComponent->SetHiddenInGame(true);
 }
 
 void AHandThruster::EnableBurn(bool InBEnabled)
 {
-    NiagaraComponent->SetVisibility(InBEnabled);
+    NiagaraComponent->SetHiddenInGame(!InBEnabled);
 }
 
 void AHandThruster::BeginPlay()

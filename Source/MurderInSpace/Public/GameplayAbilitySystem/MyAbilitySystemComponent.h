@@ -6,6 +6,7 @@
 
 #include "MyAbilitySystemComponent.generated.h"
 
+class UMyGameplayAbility;
 class IAbilitySystemInterface;
 class UMyEnhancedInputComponent;
 struct FInputActionInstance;
@@ -35,7 +36,11 @@ public:
     UFUNCTION(BlueprintCallable)
     FGameplayTag FindTag(FGameplayTag InTag);
     
-    TArray<FGameplayAbilitySpec> GetActiveAbilities(const FGameplayTagContainer* WithTags=nullptr, const FGameplayTagContainer* WithoutTags=nullptr, UGameplayAbility* Ignore=nullptr);
+    TArray<FGameplayAbilitySpec> GetActiveAbilities
+        ( const FGameplayTagContainer* WithTags=nullptr
+        , const FGameplayTagContainer* WithoutTags=nullptr
+        , TArray<FGameplayAbilitySpecHandle> IgnoreList = {}
+        );
 
     void SendGameplayEvent(FGameplayTag Tag, FGameplayEventData EventData);
 
@@ -51,6 +56,9 @@ public:
     UFUNCTION(BlueprintCallable)
     bool RemoveGameplayCueIfExists(FGameplayTag Cue);
 
+    UPROPERTY()
+    FGameplayAbilitySpecHandle AbilityAwaitingTurn;
+    
     DECLARE_DELEGATE(FOnAnimStateFullyBlended)
     FOnAnimStateFullyBlended OnAnimStateFullyBlended;
 
