@@ -7,7 +7,9 @@
 
 void UAstronautAnimInstance::HandleStateFullyBlended()
 {
-    UMyAbilitySystemComponent::Get(Cast<AMyPawn>(GetOwningActor()))->OnAnimStateFullyBlended.ExecuteIfBound();
+    auto* ASC = UMyAbilitySystemComponent::Get(Cast<AMyPawn>(GetOwningActor()));
+    ASC->OnAnimStateFullyBlended.ExecuteIfBound();
+    ASC->bAnimStateFullyBlended = true;
 }
 
 void UAstronautAnimInstance::HandleStateLeft()

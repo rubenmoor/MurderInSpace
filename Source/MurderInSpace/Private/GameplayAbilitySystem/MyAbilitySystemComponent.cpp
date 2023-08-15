@@ -3,9 +3,8 @@
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayCueManager.h"
-#include "Spacebodies/MyPawn.h"
+#include "MyGameplayTags.h"
 #include "GameplayAbilitySystem/MyGameplayAbility.h"
-#include "UE5Coro/LatentAwaiters.h"
 
 UMyAbilitySystemComponent::UMyAbilitySystemComponent()
 {
@@ -61,6 +60,8 @@ void UMyAbilitySystemComponent::SendGameplayEvent(FGameplayTag EventTag, FGamepl
 
 bool UMyAbilitySystemComponent::AddGameplayCueUnlessExists(FGameplayTag Cue)
 {
+    const auto& Tag = FMyGameplayTags::Get();
+    checkf(!Cue.MatchesTag(Tag.CuePose), TEXT("Use AddPoseCue to properly handle bAnimStateFullyBlended"))
     if(!HasMatchingGameplayTag(Cue))
     {
         AddGameplayCue(Cue);
@@ -71,10 +72,45 @@ bool UMyAbilitySystemComponent::AddGameplayCueUnlessExists(FGameplayTag Cue)
 
 bool UMyAbilitySystemComponent::RemoveGameplayCueIfExists(FGameplayTag Cue)
 {
+    const auto& Tag = FMyGameplayTags::Get();
+    checkf(!Cue.MatchesTag(Tag.CuePose), TEXT("Use RemovePoseCue to properly handle bAnimStateFullyBlended"))
     if(HasMatchingGameplayTag(Cue))
     {
         RemoveGameplayCue(Cue);
         return true;
     }
     return false;
+}
+
+bool UMyAbilitySystemComponent::AddPoseCue(FGameplayTag PoseCue)
+{
+    const auto& Tag = FMyGameplayTags::Get();
+    check(PoseCue.MatchesTag(Tag.CuePose))
+    if(!HasMatchingGameplayTag(PoseCue))
+    {
+        AddGameplayCue(PoseCue);
+        bAnimStateFullyBlended = false;
+        return true;
+    }
+    return !bAnimStateFullyBlended;
+}
+
+bool UMyAbilitySystemComponent::RemovePoseCue(FGameplayTag PoseCue)
+{
+    const auto& Tag = FMyGameplayTags::Get();
+    check(PoseCue.MatchesTag(Tag.CuePose))
+    if(HasMatchingGameplayTag(PoseCue))
+    {
+        RemoveGameplayCue(PoseCue);
+        bAnimStateFullyBlended = false;
+        return true;
+    }
+    return !bAnimStateFullyBlended;
+}
+
+bool UMyAbilitySystemComponent::HasPose(FGameplayTag PoseCue) const
+{
+    const auto& Tag = FMyGameplayTags::Get();
+    check(PoseCue.MatchesTag(Tag.CuePose))
+    return HasMatchingGameplayTag(PoseCue) && bAnimStateFullyBlended;
 }

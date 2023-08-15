@@ -185,6 +185,6 @@ protected:
 	FVector VecAngle = FVector::Zero();
 
 	UE5Coro::TCoroutine<> ActivateLookAtAfterNextTick();
-	void ActivateLookAt();
+	void ActivateLookAt(float DeltaTheta);
 	UE5Coro::TCoroutine<> Handle = UE5Coro::TCoroutine<>::CompletedCoroutine;
 };

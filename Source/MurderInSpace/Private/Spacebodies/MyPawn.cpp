@@ -6,6 +6,8 @@
 #include "MyGameplayTags.h"
 #include "GameplayAbilitySystem/MyDeveloperSettings.h"
 #include "HUD/MyHUD.h"
+#include "Logging/StructuredLog.h"
+#include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
 #include "Modes/MyPlayerController.h"
 #include "Net/UnrealNetwork.h"
@@ -28,6 +30,18 @@ AMyPawn::AMyPawn(): APawn()
 	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
 }
 
+void AMyPawn::SetOmega(float InOmega)
+{
+	const float Delta = InOmega - Omega;
+	if(FMath::Abs(Delta) > 0.05)
+		UE_LOGFMT(LogMyGame, Error, "Setting Omega to {NEW}: old Omega = {OMEGA}; Delta = {DELTA}, |Delta| > 0.05"
+			, InOmega, Omega, Delta);
+	else
+		UE_LOGFMT(LogMyGame, Warning, "Setting Omega to {NEW}: old Omega = {OMEGA}; Delta = {DELTA}"
+			, InOmega, Omega, Delta);
+	Omega = InOmega;
+}
+
 void AMyPawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -43,15 +57,12 @@ void AMyPawn::Tick(float DeltaSeconds)
 	const UWorld* World = GetWorld();
 	const auto* GS = World->GetGameState<AMyGameState>();
 	const FPhysics Physics = GS->RP_Physics;
-	const auto& Tag = FMyGameplayTags::Get();
 
 	const double DeltaV = AttrSetAcceleration->GetAccelerationSI() / FPhysics::LengthScaleFactor * DeltaSeconds;
 	RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics);
 	
 	Omega += AttrSetAcceleration->GetTorque() * DeltaSeconds;
-	const double DeltaTheta = Omega * DeltaSeconds;
-	//SetActorRotation(GetActorQuat() * FQuat::MakeFromRotationVector(FVector::UnitZ() * DeltaTheta));
-	SetActorRotation(GetActorQuat() * FQuat(FVector::UnitZ(), DeltaTheta));
+	SetActorRotation(GetActorQuat() * FQuat(FVector::UnitZ(), Omega * DeltaSeconds));
 }
 
 void AMyPawn::OnConstruction(const FTransform& Transform)

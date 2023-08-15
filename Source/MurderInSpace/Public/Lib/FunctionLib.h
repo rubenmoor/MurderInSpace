@@ -78,6 +78,10 @@ class MURDERINSPACE_API UFunctionLib : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
+	// wrap any angle in radians into (-PI, PI]
+	UFUNCTION(BlueprintPure, Category="Math")
+	static double WrapRadians(double Angle);
+	
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static FVector VecVelocity(FVector E, FVector R, FVector VecH, double Alpha, FVector Default);
 	

@@ -250,8 +250,8 @@ void AMyPlayerController::Tick(float DeltaSeconds)
         if(FMath::Abs(MouseAngle - MouseAngleNew) > 0.1)
         {
             MouseAngle = MouseAngleNew;
-            const float AngleDelta = FQuat::FindBetween(MyCharacter->GetActorForwardVector(), VecMouseDirection).GetTwistAngle(FVector::UnitZ());
-            if(abs(AngleDelta) > 15. / 180. * PI)
+            const float DeltaTheta = UFunctionLib::WrapRadians(MouseAngle - MyCharacter->GetActorQuat().GetTwistAngle(FVector::UnitZ()));
+            if(abs(DeltaTheta) > 15. / 180. * PI)
             {
                 auto& Tag = FMyGameplayTags::Get();
                 auto Specs = AbilitySystemComponent->GetActiveAbilities(Tag.AbilityLookAt.GetSingleTagContainer());
@@ -259,7 +259,7 @@ void AMyPlayerController::Tick(float DeltaSeconds)
                 if(Specs.IsEmpty())
                 {
                     UE_LOGFMT(LogMyGame, Display, "LookAt not active, activating");
-                    ActivateLookAt();
+                    ActivateLookAt(DeltaTheta);
                 }
                 else
                 {
@@ -270,7 +270,7 @@ void AMyPlayerController::Tick(float DeltaSeconds)
                     Handle = ActivateLookAtAfterNextTick();
                 }
 
-                VecAngle = (FQuat(FVector::UnitZ(), AngleDelta) * MyCharacter->GetActorQuat()).RotateVector(FVector::UnitX());
+                VecAngle = (FQuat(FVector::UnitZ(), DeltaTheta) * MyCharacter->GetActorQuat()).RotateVector(FVector::UnitX());
             }
         }
 
@@ -284,14 +284,16 @@ void AMyPlayerController::Tick(float DeltaSeconds)
 TCoroutine<> AMyPlayerController::ActivateLookAtAfterNextTick()
 {
     co_await Latent::Ticks(2);
-    ActivateLookAt();
+    const auto MyCharacter = GetPawn<AMyCharacter>();
+    const float DeltaTheta = UFunctionLib::WrapRadians(MouseAngle - MyCharacter->GetActorQuat().GetTwistAngle(FVector::UnitZ()));
+    ActivateLookAt(DeltaTheta);
 }
 
-void AMyPlayerController::ActivateLookAt()
+void AMyPlayerController::ActivateLookAt(float DeltaTheta)
 {
     auto& Tag = FMyGameplayTags::Get();
     FGameplayEventData EventData;
-    EventData.EventMagnitude = MouseAngle;
+    EventData.EventMagnitude = DeltaTheta;
     UE_LOGFMT(LogMyGame, Display, "SendGameplayEvent LookAt");
     AbilitySystemComponent->SendGameplayEvent(Tag.AbilityLookAt, EventData);
 }

@@ -32,13 +32,13 @@ class MURDERINSPACE_API AMyPawn
 	, public IAbilitySystemInterface
 	, public IGameplayCueInterface
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    // Sets default values for this pawn's properties
-    AMyPawn();
+	// Sets default values for this pawn's properties
+	AMyPawn();
 	
-    // IOrbit interface
+	// IOrbit interface
 	virtual TSubclassOf<AOrbit> GetOrbitClass()  override { return OrbitClass; }
 	virtual FLinearColor        GetOrbitColor()  override { return OrbitColor; }
 	virtual AOrbit*				GetOrbit() const override { return RP_Orbit; };
@@ -47,12 +47,16 @@ public:
 	virtual void SetInitialOrbitParams(const FInitialOrbitParams& InParams) override { InitialOrbitParams = InParams; }
 
 	// ability system interface
-    virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return static_cast<UAbilitySystemComponent*>(AbilitySystemComponent); }
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return static_cast<UAbilitySystemComponent*>(AbilitySystemComponent); }
 
 	// get current angular velocity
 	UFUNCTION(BlueprintCallable)
 	double GetOmega() const { return Omega; }
 
+	// "cheat" and allow to set Omega to an arbitrary value for more accuracy in the LookAt ability
+	UFUNCTION(BlueprintCallable)
+	void SetOmega(float InOmega);
+	
 protected:
     // event handlers
     
