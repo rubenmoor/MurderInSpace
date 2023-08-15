@@ -1,16 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Lib/FunctionLib.h"
-
-double UFunctionLib::WrapRadians(double Angle)
-{
-    while(Angle <= -PI)
-        Angle += TWO_PI;
-    while(Angle > PI)
-        Angle -= TWO_PI;
-    return Angle;
-}
 
 /*
  * calculate velocity vector given eccentricity vector, R, H

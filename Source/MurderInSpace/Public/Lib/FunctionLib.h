@@ -79,9 +79,8 @@ class MURDERINSPACE_API UFunctionLib : public UBlueprintFunctionLibrary
 
 public:
 	// wrap any angle in radians into (-PI, PI]
-	UFUNCTION(BlueprintPure, Category="Math")
-	static double WrapRadians(double Angle);
-	
+	static auto WrapRadians(std::floating_point auto Angle);
+
 	UFUNCTION(BlueprintPure, Category="Orbit")
 	static FVector VecVelocity(FVector E, FVector R, FVector VecH, double Alpha, FVector Default);
 	
@@ -972,6 +971,15 @@ public:
 		, "ZY-3-03"
 		};
 };
+
+auto UFunctionLib::WrapRadians(std::floating_point auto Angle)
+{
+	while(Angle <= -PI)
+		Angle += TWO_PI;
+	while(Angle > PI)
+		Angle -= TWO_PI;
+	return Angle;
+}
 
 inline void With(UObject* Object, const FString& Name, std::function<void(UObject*)> Func)
 {
