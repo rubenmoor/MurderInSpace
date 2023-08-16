@@ -107,10 +107,3 @@ bool UMyAbilitySystemComponent::RemovePoseCue(FGameplayTag PoseCue)
     }
     return !bAnimStateFullyBlended;
 }
-
-bool UMyAbilitySystemComponent::HasPose(FGameplayTag PoseCue) const
-{
-    const auto& Tag = FMyGameplayTags::Get();
-    check(PoseCue.MatchesTag(Tag.CuePose))
-    return HasMatchingGameplayTag(PoseCue) && bAnimStateFullyBlended;
-}

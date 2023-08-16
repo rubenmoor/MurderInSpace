@@ -73,8 +73,6 @@ public:
     bool AddPoseCue(FGameplayTag PoseCue);
     bool RemovePoseCue(FGameplayTag PoseCue);
 
-    bool HasPose(FGameplayTag PoseCue) const;
-
 private:
     using UAbilitySystemComponent::AddGameplayCue;
     using UAbilitySystemComponent::RemoveGameplayCue;
