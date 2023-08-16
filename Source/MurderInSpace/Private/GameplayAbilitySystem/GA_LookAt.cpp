@@ -94,30 +94,12 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         const auto SpecTorqueDec =
             MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCW : GE_TorqueCCW);
 
-        UE_LOGFMT
-            ( LogMyGame
-            , Display
-            , "Omega: {OMEGA}, %Max {OMEGAREL}%, DeltaTheta: {DeltaTheta}, BreakingDistanceShort: {BREAKING}, Pose: {POSE}"
-            , Omega
-            , FMath::RoundToInt32(OmegaAbs / OmegaMax * 100.)
-            , DeltaTheta
-            , BreakingDistanceShort
-            , ASC->HasMatchingGameplayTag(CuePoseDec) ? "Dec" : ASC->HasMatchingGameplayTag(CuePoseAcc) ? "Acc" : "Idle"
-            );
-        if(OmegaAbs > OmegaMax)
-        {
-            UE_LOGFMT(LogMyGame, Error, "Omega: {OMEGA}, OmegaMax: {OMEGAMAX}, |Omega| > OmegaMax"
-                , Omega, OmegaMax);
-            break;
-        }
         if(Omega == 0. && DeltaTheta == 0.)
         {
             break;
         }
         else if(Omega * DeltaTheta < 0. || DeltaThetaAbs < BreakingDistanceShort || (DeltaThetaAbs < BreakingDistanceMedium && !ASC->HasMatchingGameplayTag(CuePoseDec)))
         {
-            UE_LOGFMT(LogMyGame, Display, "Case 5");
-            
             // case 5: turn around 
             const bool b1 = ASC->RemovePoseCue(Omega > 0. ? Tag.CuePoseTorqueCCW : Tag.CuePoseTorqueCW );
             const bool b2 = ASC->AddPoseCue   (Omega > 0. ? Tag.CuePoseTorqueCW  : Tag.CuePoseTorqueCCW);
@@ -138,7 +120,6 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         }
         else if(DeltaThetaAbs == BreakingDistanceShort && ASC->HasMatchingGameplayTag(CuePoseDec))
         {
-            UE_LOGFMT(LogMyGame, Display, "Case 1");
             // Case 1: at short breaking distance, already in negative pose: decelerate until stop
             
             SetGameplayEffectTorque(Handle, ActorInfo, ActivationInfo, SpecTorqueDec);
@@ -153,18 +134,15 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         }
         else if(DeltaThetaAbs < BreakingDistanceMedium && ASC->HasMatchingGameplayTag(CuePoseDec))
         {
-            UE_LOGFMT(LogMyGame, Display, "Case 2a");
             // Case 2a: uniform rotation in correct pose, then Case 1
             
             RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
             const float DeltaTime = (DeltaThetaAbs - BreakingDistanceShort) / OmegaAbs;
             co_await Latent::Seconds(DeltaTime);
-            UE_LOGFMT(LogMyGame, Display, "Case 2a: Uniform rotation on correct pose: Time: {TIME}", DeltaTime);
             DeltaTheta = NewDeltaTheta(MyPawn, LookAtAngle, Alpha, Omega, SignDeltaTheta * BreakingDistanceShort);
         }
         else if(DeltaThetaAbs == BreakingDistanceMedium)
         {
-            UE_LOGFMT(LogMyGame, Display, "Case 2b");
             // Case 2b: at medium breaking distance: uniform rotation during pose change and then Case 1
             
             RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
@@ -175,7 +153,6 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         }
         else if(DeltaThetaAbs < BreakingDistanceLong && !ASC->HasMatchingGameplayTag(CuePoseAcc))
         {
-            UE_LOGFMT(LogMyGame, Display, "Case 2c");
             // Case 2c: uniform rotation in wrong pose, then Case 2b
 
             RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
@@ -184,7 +161,6 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         }
         else if(DeltaThetaAbs == BreakingDistanceLong && !ASC->HasMatchingGameplayTag(CuePoseAcc))
         {
-            UE_LOGFMT(LogMyGame, Display, "Case 2d");
             // Case 2d, at long breaking distance
             // idle pose, uniform rotation, then Case 2b
 
@@ -215,12 +191,8 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
                       - Term
                     );
 
-            UE_LOGFMT(LogMyGame, Display, "OmegaBar: {OMEGABAR}, OmegaMax: {OMEGAMAX}, OmegaBar/OmegaMax: {REL}%"
-                , OmegaBar, OmegaMax, FMath::RoundToInt32(OmegaBar / OmegaMax * 100.));
-
             if(OmegaAbs < OmegaBar)
             {
-                UE_LOGFMT(LogMyGame, Display, "Case 4a");
                 // Case 4a: positive torque until OmegaBar, then either Case 4b or Case 2b
 
                 const bool b1 = ASC->RemovePoseCue(CuePoseDec);
@@ -236,23 +208,15 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
                 RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
 
                 MyPawn->SetOmega(SignDeltaTheta * OmegaBar);
-                float New;
-                if(OmegaBar < OmegaMax)
-                {
-                    // goto Case 2b
-                    New = SignDeltaTheta * (FMath::Pow(OmegaBar, 2) / 2. / Alpha + OmegaBar * TransitionTime);
-                    UE_LOGFMT(LogMyGame, Display, "Case 4a.1: New DeltaTheta set for Case 2b");
-                }
-                else
-                {
-                    // goto Case 4b
-                    New = UFunctionLib::WrapRadians(LookAtAngle - MyPawn->GetActorQuat().GetTwistAngle(FVector::UnitZ()));
-                }
+                const float New = OmegaBar < OmegaMax
+                    ? // goto Case 2b
+                        SignDeltaTheta * (FMath::Pow(OmegaBar, 2) / 2. / Alpha + OmegaBar * TransitionTime)
+                    : // goto Case 4b
+                        UFunctionLib::WrapRadians(LookAtAngle - MyPawn->GetActorQuat().GetTwistAngle(FVector::UnitZ()));
                 DeltaTheta = NewDeltaTheta(MyPawn, LookAtAngle, Alpha, SignDeltaTheta * OmegaBar, New);
             }
             else if(OmegaAbs == OmegaBar)
             {
-                UE_LOGFMT(LogMyGame, Display, "Case 4b");
                 // Case 4b: uniform rotation at OmegaBar, then Case 2b
                 
                 RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
@@ -269,7 +233,6 @@ void UGA_LookAt::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FG
     const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
     UE_LOGFMT(LogMyGame, Warning, "LookAt cancelled");
-    //RemoveActiveGameplayEffect(TorqueHandle, *ActorInfo, ActivationInfo);
     Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }
 
@@ -287,20 +250,12 @@ void UGA_LookAt::SetGameplayEffectTorque(const FGameplayAbilitySpecHandle Handle
 
 float UGA_LookAt::NewDeltaTheta(AMyPawn* MyPawn, float InLookAtAngle, float Alpha, float Omega, float InDeltaTheta) const
 {
-    UE_LOGFMT(LogMyGame, Display, "NewDeltaTheta: InLookAtAngle: {INLOOKATANGLE}, Omega: {OMEGA}, InDeltaTheta: {INDELTATHETA}"
-        , InLookAtAngle, Omega, InDeltaTheta);
     const FQuat NewQuat = FQuat(FVector::UnitZ(), InLookAtAngle - InDeltaTheta);
     const FQuat OldQuat = MyPawn->GetActorQuat();
     const float Delta = (NewQuat * OldQuat.Inverse()).GetTwistAngle(FVector::UnitZ());
 	if(FMath::Abs(Delta) > 0.05)
-	{
 	    UE_LOGFMT(LogMyGame, Error, "Setting ActorRot to {NEW}, old ActorRot = {OLD}; Delta = {DELTA}, |Delta| > 0.05"
             , NewQuat.GetTwistAngle(FVector::UnitZ()), OldQuat.GetTwistAngle(FVector::UnitZ()), Delta);
-	    //UKismetSystemLibrary::QuitGame(this, GetWorld()->GetFirstPlayerController(), EQuitPreference::Quit, false);
-	}
-	else
-		UE_LOGFMT(LogMyGame, Warning, "Setting ActorRot to {NEW}, old ActorRot = {OLD}; Delta = {DELTA}"
-			, NewQuat.GetTwistAngle(FVector::UnitZ()), OldQuat.GetTwistAngle(FVector::UnitZ()), Delta);
     MyPawn->SetActorRotation(NewQuat);
     return
         FMath::Sign(Omega) * InDeltaTheta < pow(Omega, 2) / Alpha + 2 * TransitionTime * FMath::Abs(Omega) - PI

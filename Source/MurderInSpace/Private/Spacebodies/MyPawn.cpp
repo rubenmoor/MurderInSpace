@@ -35,13 +35,7 @@ void AMyPawn::SetOmega(float InOmega)
 {
 	const float Delta = InOmega - Omega;
 	if(FMath::Abs(Delta) > 0.05)
-	{
 		UE_LOGFMT(LogMyGame, Error, "Setting Omega to {NEW}: old Omega = {OMEGA}; Delta = {DELTA}, |Delta| > 0.05"
-			, InOmega, Omega, Delta);
-		UKismetSystemLibrary::QuitGame(this, GetWorld()->GetFirstPlayerController(), EQuitPreference::Quit, false);
-	}
-	else
-		UE_LOGFMT(LogMyGame, Warning, "Setting Omega to {NEW}: old Omega = {OMEGA}; Delta = {DELTA}"
 			, InOmega, Omega, Delta);
 	Omega = InOmega;
 }
