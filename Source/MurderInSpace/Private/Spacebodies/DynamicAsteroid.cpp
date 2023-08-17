@@ -8,6 +8,7 @@
 #include "ProceduralMeshComponent.h"
 #include "Spacebodies/AsteroidBelt.h"
 #include "Logging/StructuredLog.h"
+#include "Modes/MyGameInstance.h"
 #include "Modes/MyState.h"
 #include "Net/UnrealNetwork.h"
 
@@ -188,7 +189,7 @@ TArray<FFractureInfo> ADynamicAsteroid::GetFractures()
 FVector ADynamicAsteroid::GetInitialOmega()
 {
     check(IsValid(CurveOmegaDistribution))
-    return OmegaMax * CurveOmegaDistribution->GetFloatValue(RandomStream.FRand()) * RandomStream.VRand();
+    return OmegaMax * CurveOmegaDistribution->GetFloatValue(RandomStream.FRand()) * FVector::UnitZ();
 }
 
 void ADynamicAsteroid::OnGenerateMesh_Implementation()
