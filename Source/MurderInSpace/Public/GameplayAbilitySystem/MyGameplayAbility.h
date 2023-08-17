@@ -65,7 +65,9 @@ protected:
 
     bool bReleased = false;
 
-    virtual FOnGameplayAbilityEnded* TurnBlocked(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo);
+    virtual FOnGameplayAbilityEnded* TurnBlocked(FGameplayAbilitySpecHandle InHandle, const FGameplayAbilityActorInfo* ActorInfo);
 
     FStopwatch Stopwatch;
+
+    FDelegateHandle OnGameplayAbilityEndedHandle;
 };

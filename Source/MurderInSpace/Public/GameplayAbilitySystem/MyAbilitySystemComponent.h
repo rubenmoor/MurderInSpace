@@ -36,11 +36,13 @@ public:
     UFUNCTION(BlueprintCallable)
     FGameplayTag FindTag(FGameplayTag InTag);
     
-    TArray<FGameplayAbilitySpec> GetActiveAbilities
+    TArray<FGameplayAbilitySpec*> GetActiveAbilities
         ( const FGameplayTagContainer& WithAnyTag = FGameplayTagContainer()
         , const FGameplayTagContainer& WithoutTags = FGameplayTagContainer()
-        , TArray<FGameplayAbilitySpecHandle> IgnoreList = {}
+        , TArray<FGameplayAbilitySpec*> IgnoreList = {}
         );
+
+    FGameplayAbilitySpec* GetAbilitySpecByHandle(FGameplayAbilitySpecHandle Handle);
 
     void SendGameplayEvent(FGameplayTag Tag, FGameplayEventData EventData);
 
@@ -56,9 +58,6 @@ public:
     UFUNCTION(BlueprintCallable)
     bool RemoveGameplayCueIfExists(FGameplayTag Cue);
 
-    UPROPERTY()
-    FGameplayAbilitySpecHandle AbilityAwaitingTurn;
-    
     DECLARE_DELEGATE(FOnAnimStateFullyBlended)
     FOnAnimStateFullyBlended OnAnimStateFullyBlended;
 
@@ -73,7 +72,18 @@ public:
     bool AddPoseCue(FGameplayTag PoseCue);
     bool RemovePoseCue(FGameplayTag PoseCue);
 
+    UFUNCTION(BlueprintCallable)
+    void SetAbilityAwaitingTurn(FGameplayAbilitySpec& Spec);
+
+    UFUNCTION(BlueprintCallable)
+    void ClearAbilityAwaitingTurn();
+
+    FGameplayAbilitySpec* GetAbilityAwaitingTurn() const;
+    
 private:
     using UAbilitySystemComponent::AddGameplayCue;
     using UAbilitySystemComponent::RemoveGameplayCue;
+    
+    FGameplayAbilitySpec* AbilityAwaitingTurn;
+    FDelegateHandle OnAbilityAwaitingTurnCancelledHandle;
 };

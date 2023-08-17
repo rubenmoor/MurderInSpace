@@ -67,31 +67,45 @@ Private::FLatentAwaiter UMyGameplayAbility::UntilReleased()
     });
 }
 
-FOnGameplayAbilityEnded* UMyGameplayAbility::TurnBlocked(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo)
+FOnGameplayAbilityEnded* UMyGameplayAbility::TurnBlocked(FGameplayAbilitySpecHandle InHandle, const FGameplayAbilityActorInfo* ActorInfo)
 {
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
     const auto& Tag = FMyGameplayTags::Get();
+    auto* AwaitingTurnSpec = ASC->GetAbilityAwaitingTurn();
     
     // get active ability; ignore active ability that is awaiting its turn, ignore this ability
+    FGameplayAbilitySpec* CurrentSpec = ASC->FindAbilitySpecFromHandle(InHandle);
     auto Specs =
         ASC->GetActiveAbilities
             ( Tag.BlockingTurn.GetSingleTagContainer()
             , FGameplayTagContainer()
-            , { Handle, ASC->AbilityAwaitingTurn}
+            , { CurrentSpec, AwaitingTurnSpec }
             );
     if(!Specs.IsEmpty())
     {
         check(Specs.Num() == 1)
+
+        UE_LOGFMT(LogMyGame, Display, "Turn blocked by {NAME}, other ability waiting: {NAMEWAITING}"
+            , Specs[0]->GetPrimaryInstance()->GetFName()
+            , AwaitingTurnSpec ? AwaitingTurnSpec->GetPrimaryInstance()->GetFName() : NAME_None
+            );
         
         // replace other ability that was awaiting its turn
-        if(ASC->AbilityAwaitingTurn.IsValid())
+        if(AwaitingTurnSpec)
         {
-            UE_LOGFMT(LogMyGame, Error, "going to cancel {NAME}", ASC->GetActivatableAbilities().FilterByPredicate
-                ([ASC] (FGameplayAbilitySpec Spec) { return Spec.Handle == ASC->AbilityAwaitingTurn; })[0].Ability.GetFName());
-            ASC->CancelAbilityHandle(ASC->AbilityAwaitingTurn);
-        } 
-        ASC->AbilityAwaitingTurn = Handle;
-        return &Specs[0].GetPrimaryInstance()->OnGameplayAbilityEnded;
+            checkf(AwaitingTurnSpec->IsActive(), TEXT("OnCancelled resets AbilityAwaitingTurn to nullptr"))
+            check(this != AwaitingTurnSpec->GetPrimaryInstance())
+            ASC->CancelAbilitySpec(*AwaitingTurnSpec, nullptr);
+        }
+        
+        ASC->SetAbilityAwaitingTurn(*CurrentSpec);
+        auto* ActiveAbility = Specs[0]->GetPrimaryInstance();
+        OnGameplayAbilityEndedHandle = ActiveAbility->OnGameplayAbilityEnded.AddLambda([this, ASC] (UGameplayAbility* Ability)
+        {
+            ASC->ClearAbilityAwaitingTurn();
+            Ability->OnGameplayAbilityEnded.Remove(OnGameplayAbilityEndedHandle);
+        });
+        return &ActiveAbility->OnGameplayAbilityEnded;
     }
     return nullptr;
 }

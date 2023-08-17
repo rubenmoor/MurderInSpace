@@ -28,14 +28,14 @@ FGameplayTag UMyAbilitySystemComponent::FindTag(FGameplayTag InTag)
 	return MyTags.Filter(InTag.GetSingleTagContainer()).First();
 }
 
-TArray<FGameplayAbilitySpec> UMyAbilitySystemComponent::GetActiveAbilities
+TArray<FGameplayAbilitySpec*> UMyAbilitySystemComponent::GetActiveAbilities
     ( const FGameplayTagContainer& WithAnyTag
     , const FGameplayTagContainer& WithoutTags
-    , TArray<FGameplayAbilitySpecHandle> IgnoreList
+    , TArray<FGameplayAbilitySpec*> IgnoreList
     )
 {
     ABILITYLIST_SCOPE_LOCK()
-    TArray<FGameplayAbilitySpec> ActiveAbilities;
+    TArray<FGameplayAbilitySpec*> ActiveAbilities;
     for(FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
     {
         if(Spec.IsActive())
@@ -43,13 +43,21 @@ TArray<FGameplayAbilitySpec> UMyAbilitySystemComponent::GetActiveAbilities
             const bool WithTagPass = WithAnyTag.IsEmpty() || Spec.Ability->AbilityTags.HasAny(WithAnyTag);
             const bool WithoutTagPass = WithoutTags.IsEmpty() || !Spec.Ability->AbilityTags.HasAny(WithoutTags);
 
-            if (WithTagPass && WithoutTagPass && !IgnoreList.Contains(Spec.Handle))
+            if (WithTagPass && WithoutTagPass && !IgnoreList.Contains(&Spec))
             {
-                ActiveAbilities.Add(Spec);
+                ActiveAbilities.Add(&Spec);
             }
 		}
     }
     return ActiveAbilities;
+}
+
+FGameplayAbilitySpec* UMyAbilitySystemComponent::GetAbilitySpecByHandle(FGameplayAbilitySpecHandle Handle)
+{
+    ABILITYLIST_SCOPE_LOCK()
+    return ActivatableAbilities.Items.FindByPredicate
+        ([Handle] (FGameplayAbilitySpec Spec) { return Spec.Handle == Handle; }
+        );
 }
 
 void UMyAbilitySystemComponent::SendGameplayEvent(FGameplayTag EventTag, FGameplayEventData EventData)
@@ -106,4 +114,25 @@ bool UMyAbilitySystemComponent::RemovePoseCue(FGameplayTag PoseCue)
         return true;
     }
     return !bAnimStateFullyBlended;
+}
+
+void UMyAbilitySystemComponent::SetAbilityAwaitingTurn(FGameplayAbilitySpec& Spec)
+{
+    AbilityAwaitingTurn = &Spec;
+    auto& OnGameplayAbilityCancelled = Spec.GetPrimaryInstance()->OnGameplayAbilityCancelled;
+    OnAbilityAwaitingTurnCancelledHandle = OnGameplayAbilityCancelled.AddLambda([this, &OnGameplayAbilityCancelled]
+    {
+        AbilityAwaitingTurn->GetPrimaryInstance()->OnGameplayAbilityCancelled.Remove(OnAbilityAwaitingTurnCancelledHandle);
+        AbilityAwaitingTurn = nullptr;
+    });
+}
+
+void UMyAbilitySystemComponent::ClearAbilityAwaitingTurn()
+{
+    AbilityAwaitingTurn = nullptr;
+}
+
+FGameplayAbilitySpec* UMyAbilitySystemComponent::GetAbilityAwaitingTurn() const
+{
+    return AbilityAwaitingTurn;
 }

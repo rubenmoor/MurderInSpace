@@ -15,7 +15,7 @@ UGA_Accelerate::UGA_Accelerate()
     const auto& Tag = FMyGameplayTags::Get();
     
     AbilityTags.AddTag(Tag.AbilityAccelerate);
-    ActivationOwnedTags.AddTag(Tag.AbilityAccelerate);
+    AbilityTags.AddTag(Tag.BlockingTurn);
     
     GE_AccelerateFire = UGE_AccelerateFire::StaticClass();
 }
@@ -24,6 +24,8 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo,
     const FGameplayEventData* TriggerEventData)
 {
+    UE_LOGFMT(LogMyGame, Display, "ExecuteAbility Accelerate");
+    
     if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
         co_await Latent::Cancel();
 
@@ -31,8 +33,6 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
         co_await Latent::UntilDelegate(*OnBlockingAbilityEnded);
     
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
-    ASC->AbilityAwaitingTurn = FGameplayAbilitySpecHandle();
-    
     const auto& Tag = FMyGameplayTags::Get();
 
     ASC->AddGameplayCueUnlessExists(Tag.CueShowThrusters);

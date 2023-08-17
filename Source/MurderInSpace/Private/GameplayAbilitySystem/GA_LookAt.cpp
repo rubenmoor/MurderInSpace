@@ -7,7 +7,6 @@
 #include "GameplayAbilitySystem/GE_TorqueCCW.h"
 #include "GameplayAbilitySystem/GE_TorqueCW.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Lib/FunctionLib.h"
 #include "Logging/StructuredLog.h"
 #include "Modes/MyGameInstance.h"
@@ -21,6 +20,7 @@ UGA_LookAt::UGA_LookAt()
     const auto& Tag = FMyGameplayTags::Get();
 
     AbilityTags.AddTag(Tag.AbilityLookAt);
+    AbilityTags.AddTag(Tag.BlockingTurn);
     
     FAbilityTriggerData TriggerData;
     TriggerData.TriggerTag = Tag.AbilityLookAt;
@@ -36,32 +36,30 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
 {
     checkf(TriggerEventData, TEXT("Use UAbilitySystemComponent::SendGameplayEvent to activate this ability"))
     
-    UE_LOGFMT(LogMyGame, Display, "ExecuteAbility LookAt");
-    
     if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
         co_await Latent::Cancel();
+
+    // get the payload before any latent action, `*TriggerEventData` gets garbage collected/removed from stack
+    const float Payload = TriggerEventData->EventMagnitude;
+    check(FMath::Abs(Payload) <= TWO_PI)
     
     if(auto* OnBlockingAbilityEnded = TurnBlocked(Handle, ActorInfo))
     {
-        UE_LOGFMT(LogMyGame, Display, "{NAME} waiting turn", GetFName());
         co_await Latent::UntilDelegate(*OnBlockingAbilityEnded);
-        UE_LOGFMT(LogMyGame, Display, "{NAME} started after waiting turn", GetFName());
     }
     
+    const auto& Tag = FMyGameplayTags::Get();
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
-    ASC->AbilityAwaitingTurn = FGameplayAbilitySpecHandle();
     
     const float OmegaMaxByAttribute = ASC->GetNumericAttribute(UAttrSetAcceleration::GetOmegaMaxAttribute());
     const float Alpha = ASC->GetNumericAttribute(UAttrSetAcceleration::GetTorqueMaxAttribute());
-    
     auto* MyPawn = Cast<AMyPawn>(ActorInfo->OwnerActor);
-    const auto& Tag = FMyGameplayTags::Get();
     
     const float LookAtAngle =
         UFunctionLib::WrapRadians
-            (MyPawn->GetActorQuat().GetTwistAngle(FVector::UnitZ()) + TriggerEventData->EventMagnitude);
+            (MyPawn->GetActorQuat().GetTwistAngle(FVector::UnitZ()) + Payload);
 
-    float DeltaTheta = NewDeltaTheta(MyPawn, LookAtAngle, Alpha, MyPawn->GetOmega(), TriggerEventData->EventMagnitude);
+    float DeltaTheta = NewDeltaTheta(MyPawn, LookAtAngle, Alpha, MyPawn->GetOmega(), Payload);
     
     while(true)
     {
@@ -94,11 +92,22 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         const auto SpecTorqueDec =
             MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, DeltaTheta > 0 ? GE_TorqueCW : GE_TorqueCCW);
 
-        if(Omega == 0. && DeltaTheta == 0.)
+        if(Omega == 0.)
         {
-            break;
+            if(DeltaTheta == 0.)
+            {
+                // ability ends
+                ASC->RemoveGameplayCueIfExists(Tag.CueShowThrusters);
+                break;
+            }
+            else
+            {
+                // rotational acceleration about to start (or there was a Case 5)
+                ASC->AddGameplayCueUnlessExists(Tag.CueShowThrusters);
+            }
         }
-        else if(Omega * DeltaTheta < 0. || DeltaThetaAbs < BreakingDistanceShort || (DeltaThetaAbs < BreakingDistanceMedium && !ASC->HasMatchingGameplayTag(CuePoseDec)))
+        
+        if(Omega * DeltaTheta < 0. || DeltaThetaAbs < BreakingDistanceShort || (DeltaThetaAbs < BreakingDistanceMedium && !ASC->HasMatchingGameplayTag(CuePoseDec)))
         {
             // case 5: turn around 
             const bool b1 = ASC->RemovePoseCue(Omega > 0. ? Tag.CuePoseTorqueCCW : Tag.CuePoseTorqueCW );
@@ -131,6 +140,7 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
 
             ASC->RemovePoseCue(CuePoseDec);
             co_await Latent::Seconds(TransitionTime);
+            continue;
         }
         else if(DeltaThetaAbs < BreakingDistanceMedium && ASC->HasMatchingGameplayTag(CuePoseDec))
         {
@@ -150,6 +160,7 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
             ASC->AddPoseCue(CuePoseDec);
             co_await Latent::Seconds(TransitionTime);
             DeltaTheta = NewDeltaTheta(MyPawn, LookAtAngle, Alpha, Omega, SignDeltaTheta * BreakingDistanceShort);
+            continue;
         }
         else if(DeltaThetaAbs < BreakingDistanceLong && !ASC->HasMatchingGameplayTag(CuePoseAcc))
         {
@@ -225,15 +236,14 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
                 co_await Latent::Seconds((DeltaThetaAbs - BreakingDistanceMedium) / OmegaAbs);
                 DeltaTheta = NewDeltaTheta(MyPawn, LookAtAngle, Alpha, Omega, SignDeltaTheta * BreakingDistanceMedium);
             }
+            else
+            {
+                UE_LOGFMT(LogMyGame, Error, "LookAt: stuck in endless loop. Payload: {P}, DeltaTheta: {D}, Omega: {O}, OmegaBar: {B}"
+                    , Payload, DeltaTheta, Omega, OmegaBar);
+                break;
+            }
         }
     }
-}
-
-void UGA_LookAt::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-    const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
-{
-    UE_LOGFMT(LogMyGame, Warning, "LookAt cancelled");
-    Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }
 
 void UGA_LookAt::SetGameplayEffectTorque(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FGameplayEffectSpecHandle TorqueSpec)

@@ -158,10 +158,10 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
             for(auto Spec : AbilitySystemComponent->GetActiveAbilities(InputAbilityTags))
             {
                 // InstancingPolicy: InstancedPerActor
-                auto* AbilityInstance = Spec.GetPrimaryInstance();
+                auto* AbilityInstance = Spec->GetPrimaryInstance();
                 if(!AbilityInstance)
                     // InstancingPolicy: NonInstanced (Get the CDO)
-                    AbilityInstance = Spec.Ability;
+                    AbilityInstance = Spec->Ability;
                 // TODO: InstancedPerExecution doesn't make sense in this setup
                 Cast<UMyGameplayAbility>(AbilityInstance)->ServerRPC_SetReleased();
             }
@@ -258,14 +258,12 @@ void AMyPlayerController::Tick(float DeltaSeconds)
                 
                 if(Specs.IsEmpty())
                 {
-                    UE_LOGFMT(LogMyGame, Display, "LookAt not active, activating");
                     ActivateLookAt(DeltaTheta);
                 }
                 else
                 {
                     check(Specs.Num() == 1)
-                    UE_LOGFMT(LogMyGame, Display, "LookAt active, CancelAbilitySpec LookAt and schedule reactivation");
-                    AbilitySystemComponent->CancelAbilitySpec(Specs[0], nullptr);
+                    AbilitySystemComponent->CancelAbilitySpec(*Specs[0], nullptr);
                     Handle.Cancel();
                     Handle = ActivateLookAtAfterNextTick();
                 }
@@ -294,7 +292,7 @@ void AMyPlayerController::ActivateLookAt(float DeltaTheta)
     auto& Tag = FMyGameplayTags::Get();
     FGameplayEventData EventData;
     EventData.EventMagnitude = DeltaTheta;
-    UE_LOGFMT(LogMyGame, Display, "SendGameplayEvent LookAt");
+    UE_LOGFMT(LogMyGame, Display, "SendGameplayEvent: {PAYLOAD}", EventData.EventMagnitude);
     AbilitySystemComponent->SendGameplayEvent(Tag.AbilityLookAt, EventData);
 }
 
@@ -338,25 +336,12 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     // trigger orbit replication when tag AccelerateTranslational is removed
     const auto& Tag = FMyGameplayTags::Get();
     TArray<FGameplayAbilitySpec*> Specs;
-
-    AbilitySystemComponent->RegisterGameplayTagEvent
-        ( Tag.AbilityAccelerate
-        , EGameplayTagEventType::NewOrRemoved
-        ).AddLambda([Orbit] (FGameplayTag TheTag, int32 Count)
+    AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(Tag.AbilityAccelerate.GetSingleTagContainer(), Specs);
+    Specs[0]->GetPrimaryInstance()->OnGameplayAbilityEnded.AddLambda([this, Orbit] (UGameplayAbility* Ability)
     {
-        if(Count == 0)
-        {
-            UE_LOGFMT(LogMyGame, Display, "{TAG} removed, freeze orbit states", TheTag.ToString());
-            Orbit->FreezeOrbitState();
-        }
+        UE_LOGFMT(LogMyGame, Display, "{NAME} ended, freeze orbit states", Ability->GetFName());
+        Orbit->FreezeOrbitState();
     });
-    
-    //AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(Tag.AbilityAccelerate.GetSingleTagContainer(), Specs);
-    //Specs[0]->GetPrimaryInstance()->OnGameplayAbilityEnded.AddLambda([this, Orbit] (UGameplayAbility* Ability)
-    //    {
-    //        UE_LOGFMT(LogMyGame, Display, "{NAME} ended, freeze orbit states", Ability->GetFName());
-    //        Orbit->FreezeOrbitState();
-    //    });
 }
 
 void AMyPlayerController::AcknowledgePossession(APawn* P)
