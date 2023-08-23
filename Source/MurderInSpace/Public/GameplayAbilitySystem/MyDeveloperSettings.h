@@ -21,10 +21,6 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Pawn initialization")
 	TSoftObjectPtr<UDataTable> InitialAttributeValues;
 	
-	// this abilities will be given to the pawn in BeginPlay
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Pawn initialiazation")
-	TArray<TSubclassOf<UMyGameplayAbility>> StartupAbilities;
-
 	// the starter thruster for the astronaut
     UPROPERTY(Config, EditDefaultsOnly, BlueprintReadOnly, Category="Pawn initialization")
     TSubclassOf<AHandThruster> HandThrusterInitialClass;

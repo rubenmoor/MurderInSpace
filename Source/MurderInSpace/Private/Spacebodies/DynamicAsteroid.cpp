@@ -192,6 +192,11 @@ FVector ADynamicAsteroid::GetInitialOmega()
     return OmegaMax * CurveOmegaDistribution->GetFloatValue(RandomStream.FRand()) * FVector::UnitZ();
 }
 
+float ADynamicAsteroid::GetRadius()
+{
+    return GetBounds().SphereRadius;
+}
+
 void ADynamicAsteroid::OnGenerateMesh_Implementation()
 {
     Super::OnGenerateMesh_Implementation();

@@ -35,8 +35,9 @@ public:
 
     UFUNCTION(BlueprintCallable)
     FGameplayTag FindTag(FGameplayTag InTag);
-    
-    TArray<FGameplayAbilitySpec*> GetActiveAbilities
+
+    // get active, instanced-per-actor abilities
+    TArray<FGameplayAbilitySpec*> GetActiveInstancedPerActorAbilities
         ( const FGameplayTagContainer& WithAnyTag = FGameplayTagContainer()
         , const FGameplayTagContainer& WithoutTags = FGameplayTagContainer()
         , TArray<FGameplayAbilitySpec*> IgnoreList = {}

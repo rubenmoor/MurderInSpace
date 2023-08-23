@@ -3,7 +3,6 @@
 #include "CoreMinimal.h"
 #include "Logging/StructuredLog.h"
 #include "Modes/MyGameInstance.h"
-#include "SpaceBodies/MyCharacter.h"
 #include "UE5CoroGAS/UE5CoroGameplayAbility.h"
 
 #include "MyGameplayAbility.generated.h"
@@ -54,7 +53,7 @@ public:
     UFUNCTION(Server, Reliable)
     void ServerRPC_SetReleased();
 
-    static void LocallyControlledDo(const FGameplayAbilityActorInfo* ActorInfo, std::function<void(AMyCharacter*)> Func);
+    static void LocallyControlledDo(const FGameplayAbilityActorInfo* ActorInfo, std::function<void(const FLocalPlayerContext&)> Func);
 protected:
     virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 

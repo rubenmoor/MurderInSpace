@@ -4,15 +4,16 @@
 #include "Spacebodies/MyCharacter.h"
 #include "UE5Coro/LatentAwaiters.h"
 #include "MyGameplayTags.h"
+#include "Engine/LocalPlayer.h"
 #include "Logging/StructuredLog.h"
 #include "Modes/MyGameInstance.h"
+#include "Modes/MyPlayerController.h"
 
 UMyGameplayAbility::UMyGameplayAbility()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     
     const auto& Tag = FMyGameplayTags::Get();
-    AbilityTags.AddTag(Tag.BlockingTurn);
 }
 
 void UMyGameplayAbility::ServerRPC_SetReleased_Implementation()
@@ -21,11 +22,11 @@ void UMyGameplayAbility::ServerRPC_SetReleased_Implementation()
 }
 
 void UMyGameplayAbility::LocallyControlledDo(const FGameplayAbilityActorInfo* ActorInfo,
-                                             std::function<void(AMyCharacter*)> Func)
+                                             std::function<void(const FLocalPlayerContext&)> Func)
 {
     if(ActorInfo->IsLocallyControlled())
     {
-        Func(Cast<AMyCharacter>(ActorInfo->AvatarActor));
+        Func(FLocalPlayerContext(Cast<APlayerController>(Cast<AMyCharacter>(ActorInfo->AvatarActor)->GetController())));
     }
 }
 
@@ -74,9 +75,11 @@ FOnGameplayAbilityEnded* UMyGameplayAbility::TurnBlocked(FGameplayAbilitySpecHan
     auto* AwaitingTurnSpec = ASC->GetAbilityAwaitingTurn();
     
     // get active ability; ignore active ability that is awaiting its turn, ignore this ability
+    // this restriction allows to have ability tags considered that get added to the instance during run-time
+    // TODO: check if that works
     FGameplayAbilitySpec* CurrentSpec = ASC->FindAbilitySpecFromHandle(InHandle);
     auto Specs =
-        ASC->GetActiveAbilities
+        ASC->GetActiveInstancedPerActorAbilities
             ( Tag.BlockingTurn.GetSingleTagContainer()
             , FGameplayTagContainer()
             , { CurrentSpec, AwaitingTurnSpec }

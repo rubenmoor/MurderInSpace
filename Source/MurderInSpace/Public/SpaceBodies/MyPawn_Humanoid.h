@@ -4,17 +4,19 @@
 #include "IHasMesh.h"
 #include "MyPawn.h"
 #include "Components/CapsuleComponent.h"
+#include "GameplayAbilitySystem/GA_Embrace.h"
 #include "MyComponents/MyCollisionComponent.h"
 
 #include "MyPawn_Humanoid.generated.h"
 
+class USphereComponent;
 class AHandThruster;
 
 /**
  *  a pawn with a humanoid skeleton, like an astronaut
  */
 UCLASS()
-class MURDERINSPACE_API AMyPawn_Humanoid : public AMyPawn, public IHasMesh, public IHasCollision
+class MURDERINSPACE_API AMyPawn_Humanoid : public AMyPawn, public IHasMesh, public IHasCollision, public ICanEmbrace
 {
     GENERATED_BODY()
     
@@ -27,6 +29,8 @@ public:
 
     // IHasCollision
     virtual UMyCollisionComponent* GetCollisionComponent() override { return CollisionComponent; }
+
+    virtual FComponentBeginOverlapSignature& GetOnOverlapEmbraceSphere() override;
     
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -43,6 +47,10 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<AHandThruster> HandThrusterRight;
+
+    // any asteroid overlapping this sphere is in reach for the 'embrace' action
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    TObjectPtr<USphereComponent> EmbraceSphere;
 
     // event handlers
 

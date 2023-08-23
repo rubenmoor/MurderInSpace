@@ -6,7 +6,13 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "UE5Coro/Coroutine.h"
 #include "FunctionLib.generated.h"
+
+namespace UE5Coro::Private
+{
+	class FLatentAwaiter;
+}
 
 /*
  * my object iterator, taking into account the World via `UWorld*` param in the constructor
@@ -78,6 +84,8 @@ class MURDERINSPACE_API UFunctionLib : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
+	static UE5Coro::TCoroutine<> LatentDoAfter(UE5Coro::Private::FLatentAwaiter Awaiter, std::function<void()> Func);
+	
 	// wrap any angle in radians into (-PI, PI]
 	static auto WrapRadians(std::floating_point auto Angle);
 

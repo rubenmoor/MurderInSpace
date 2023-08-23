@@ -7,6 +7,7 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Engine/TextureRenderTarget2D.h"
 #include "HUD/UW_HUD.h"
 #include "HUD/UW_MenuInGame.h"
 #include "Logging/StructuredLog.h"

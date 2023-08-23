@@ -108,8 +108,7 @@ void AMyPawn::PreInitializeComponents()
 void AMyPawn::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	auto* Settings = GetDefault<UMyDeveloperSettings>();
-	for(const auto Ability : Settings->StartupAbilities)
+	for(const auto Ability : StartupAbilities)
 	{
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability));
 	}

@@ -28,7 +28,7 @@ FGameplayTag UMyAbilitySystemComponent::FindTag(FGameplayTag InTag)
 	return MyTags.Filter(InTag.GetSingleTagContainer()).First();
 }
 
-TArray<FGameplayAbilitySpec*> UMyAbilitySystemComponent::GetActiveAbilities
+TArray<FGameplayAbilitySpec*> UMyAbilitySystemComponent::GetActiveInstancedPerActorAbilities
     ( const FGameplayTagContainer& WithAnyTag
     , const FGameplayTagContainer& WithoutTags
     , TArray<FGameplayAbilitySpec*> IgnoreList
@@ -38,10 +38,12 @@ TArray<FGameplayAbilitySpec*> UMyAbilitySystemComponent::GetActiveAbilities
     TArray<FGameplayAbilitySpec*> ActiveAbilities;
     for(FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
     {
-        if(Spec.IsActive())
+        if(    Spec.Ability->GetInstancingPolicy() == EGameplayAbilityInstancingPolicy::InstancedPerActor
+            && Spec.IsActive()
+            )
         {
-            const bool WithTagPass = WithAnyTag.IsEmpty() || Spec.Ability->AbilityTags.HasAny(WithAnyTag);
-            const bool WithoutTagPass = WithoutTags.IsEmpty() || !Spec.Ability->AbilityTags.HasAny(WithoutTags);
+            const bool WithTagPass = WithAnyTag.IsEmpty() || Spec.GetPrimaryInstance()->AbilityTags.HasAny(WithAnyTag);
+            const bool WithoutTagPass = WithoutTags.IsEmpty() || !Spec.GetPrimaryInstance()->AbilityTags.HasAny(WithoutTags);
 
             if (WithTagPass && WithoutTagPass && !IgnoreList.Contains(&Spec))
             {

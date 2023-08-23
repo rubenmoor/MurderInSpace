@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <Input/MyInputActionSet.h>
 
-#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "MyGameplayTags.h"
@@ -20,9 +19,8 @@
 #include "Modes/MySessionManager.h"
 #include "Modes/MyGameState.h"
 #include "EnhancedInputComponent.h"
-#include "GameplayAbilitySystem/GA_Accelerate.h"
-#include "GameplayAbilitySystem/GA_LookAt.h"
 #include "GameplayAbilitySystem/MyGameplayAbility.h"
+#include "HUD/UW_MyAbilities.h"
 #include "Input/MyInputActions.h"
 #include "UE5Coro/LatentAwaiters.h"
 
@@ -146,6 +144,7 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
         case EInputTrigger::Down:
         case EInputTrigger::Pressed:
         case EInputTrigger::Hold:
+            GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetFilled(InputAbilityTags, true);
             AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(InputAbilityTags, Specs, false);
             for(auto Spec : Specs)
             {
@@ -155,7 +154,8 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
             break;
         case EInputTrigger::Released:
         case EInputTrigger::HoldAndRelease:
-            for(auto Spec : AbilitySystemComponent->GetActiveAbilities(InputAbilityTags))
+            GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetFilled(InputAbilityTags, false);
+            for(auto Spec : AbilitySystemComponent->GetActiveInstancedPerActorAbilities(InputAbilityTags))
             {
                 // InstancingPolicy: InstancedPerActor
                 auto* AbilityInstance = Spec->GetPrimaryInstance();
@@ -167,22 +167,36 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
             }
             break;
         case EInputTrigger::Tap:
-            AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(InputAbilityTags, Specs, false);
-            for(auto Spec : Specs)
             {
-                if(Spec->IsActive())
+                GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetFilled(InputAbilityTags, true);
+                auto ResetFilled = [this] (FGameplayTagContainer Tags) -> TCoroutine<>
                 {
-                    // InstancingPolicy: InstancedPerActor
-                    auto* AbilityInstance = Spec->GetPrimaryInstance();
-                    if(!AbilityInstance)
-                        // InstancingPolicy: NonInstanced (Get the CDO)
-                        AbilityInstance = Spec->Ability;
-                    // TODO: InstancedPerExecution doesn't make sense in this setup
-                    Cast<UMyGameplayAbility>(AbilityInstance)->ServerRPC_SetReleased();
-                }
-                else
+                    co_await Latent::Seconds(0.2);
+                    GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetFilled(Tags, false);
+                };
+                ResetFilled(InputAbilityTags);
+                // UFunctionLib::LatentDoAfter(Latent::NextTick(), [this, &InputAbilityTags]
+                // {
+                //     GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetFilled(InputAbilityTags, false);
+                // });
+                //HUDWidgetAbilityResetFilledNextTick(InputAbilityTags);
+                AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(InputAbilityTags, Specs, false);
+                for(auto Spec : Specs)
                 {
-                    AbilitySystemComponent->TryActivateAbility(Spec->Handle);
+                    if(Spec->IsActive())
+                    {
+                        // InstancingPolicy: InstancedPerActor
+                        auto* AbilityInstance = Spec->GetPrimaryInstance();
+                        if(!AbilityInstance)
+                            // InstancingPolicy: NonInstanced (Get the CDO)
+                            AbilityInstance = Spec->Ability;
+                        // TODO: InstancedPerExecution doesn't make sense in this setup
+                        Cast<UMyGameplayAbility>(AbilityInstance)->ServerRPC_SetReleased();
+                    }
+                    else
+                    {
+                        AbilitySystemComponent->TryActivateAbility(Spec->Handle);
+                    }
                 }
             }
             break;
@@ -254,7 +268,7 @@ void AMyPlayerController::Tick(float DeltaSeconds)
             if(abs(DeltaTheta) > 15. / 180. * PI)
             {
                 auto& Tag = FMyGameplayTags::Get();
-                auto Specs = AbilitySystemComponent->GetActiveAbilities(Tag.AbilityLookAt.GetSingleTagContainer());
+                auto Specs = AbilitySystemComponent->GetActiveInstancedPerActorAbilities(Tag.AbilityLookAt.GetSingleTagContainer());
                 
                 if(Specs.IsEmpty())
                 {
@@ -294,6 +308,12 @@ void AMyPlayerController::ActivateLookAt(float DeltaTheta)
     EventData.EventMagnitude = DeltaTheta;
     UE_LOGFMT(LogMyGame, Display, "SendGameplayEvent: {PAYLOAD}", EventData.EventMagnitude);
     AbilitySystemComponent->SendGameplayEvent(Tag.AbilityLookAt, EventData);
+}
+
+UE5Coro::TCoroutine<> AMyPlayerController::HUDWidgetAbilityResetFilledNextTick(const FGameplayTagContainer& InTags)
+{
+    co_await Latent::NextTick();
+    GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetFilled(InTags, false);
 }
 
 // server-only
@@ -337,6 +357,7 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
     const auto& Tag = FMyGameplayTags::Get();
     TArray<FGameplayAbilitySpec*> Specs;
     AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(Tag.AbilityAccelerate.GetSingleTagContainer(), Specs);
+    check(Specs.Num() == 1)
     Specs[0]->GetPrimaryInstance()->OnGameplayAbilityEnded.AddLambda([this, Orbit] (UGameplayAbility* Ability)
     {
         UE_LOGFMT(LogMyGame, Display, "{NAME} ended, freeze orbit states", Ability->GetFName());

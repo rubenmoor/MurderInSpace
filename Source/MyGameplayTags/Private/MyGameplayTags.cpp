@@ -14,6 +14,7 @@ FMyGameplayTags::FMyGameplayTags()
 	AbilityEmbrace           = GTM.AddNativeGameplayTag("Ability.Embrace");
 	AbilityKick              = GTM.AddNativeGameplayTag("Ability.Kick");
     AbilityLookAt            = GTM.AddNativeGameplayTag("Ability.LookAt");
+	AbilityRecover           = GTM.AddNativeGameplayTag("Ability.Recover");
 
 	BlockingTurn = GTM.AddNativeGameplayTag("BlockingTurn");
 

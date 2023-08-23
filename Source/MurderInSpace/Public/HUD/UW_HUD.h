@@ -10,6 +10,7 @@
 #include "HUD/UW_Orbit.h"
 #include "UW_HUD.generated.h"
 
+class UUW_MyAbilities;
 class UTextBlock;
 class UCanvasPanel;
 class UOverlay;
@@ -62,6 +63,9 @@ public:
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UUW_WidgetHUDBorder> WidgetHUDBorder;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UUW_MyAbilities> WidgetAbilities;
 	
 	UFUNCTION(BlueprintCallable)
 	void F1MarkerHide()

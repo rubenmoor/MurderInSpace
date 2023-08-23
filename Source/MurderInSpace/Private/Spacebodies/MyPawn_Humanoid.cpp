@@ -1,6 +1,7 @@
 #include "Spacebodies/MyPawn_Humanoid.h"
 
 #include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
 #include "GameplayAbilitySystem/MyDeveloperSettings.h"
 #include "Logging/StructuredLog.h"
 #include "Modes/MyGameInstance.h"
@@ -24,6 +25,16 @@ AMyPawn_Humanoid::AMyPawn_Humanoid()
 	// the sphere radius of the bounds of the astronaut is somewhat inflated, this is why the density is so low
 	CollisionComponent->Density = 0.1;
 	CollisionComponent->DensityExponent = 2.5;
+
+	EmbraceSphere = CreateDefaultSubobject<USphereComponent>("EmbraceSphere");
+	EmbraceSphere->SetupAttachment(Root);
+	EmbraceSphere->SetRelativeLocation(FVector(50., 0., 0.));
+	EmbraceSphere->SetSphereRadius(50.);
+}
+
+FComponentBeginOverlapSignature& AMyPawn_Humanoid::GetOnOverlapEmbraceSphere()
+{
+	return EmbraceSphere->OnComponentBeginOverlap;
 }
 
 void AMyPawn_Humanoid::OnConstruction(const FTransform& Transform)

@@ -95,6 +95,10 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Orbit")
 	FInitialOrbitParams InitialOrbitParams;
+	
+	// this abilities will be given to the pawn in BeginPlay
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Abilities")
+	TArray<TSubclassOf<UMyGameplayAbility>> StartupAbilities;
 
     // gameplay ability system
 	

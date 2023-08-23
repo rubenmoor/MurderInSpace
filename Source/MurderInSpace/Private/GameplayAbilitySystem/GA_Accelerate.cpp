@@ -3,9 +3,13 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
 #include "MyGameplayTags.h"
+#include "Engine/LocalPlayer.h"
 #include "Spacebodies/MyPawn.h"
 #include "GameplayAbilitySystem/GE_AccelerateFire.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
+#include "HUD/MyHUD.h"
+#include "HUD/UW_MyAbilities.h"
+#include "Spacebodies/MyCharacter.h"
 #include "UE5Coro/LatentAwaiters.h"
 
 using namespace UE5Coro;
@@ -24,8 +28,6 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo,
     const FGameplayEventData* TriggerEventData)
 {
-    UE_LOGFMT(LogMyGame, Display, "ExecuteAbility Accelerate");
-    
     if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
         co_await Latent::Cancel();
 
@@ -35,17 +37,24 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
     const auto& Tag = FMyGameplayTags::Get();
 
+    LocallyControlledDo(ActorInfo, [] (const FLocalPlayerContext& LPC)
+    {
+        const auto& Tag = FMyGameplayTags::Get();
+        LPC.GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetVisibilityArrow(Tag.AbilityAccelerate, true);
+    });
+
     ASC->AddGameplayCueUnlessExists(Tag.CueShowThrusters);
 
     if(ASC->AddPoseCue(Tag.CuePoseAccelerate))
         co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
 
-    LocallyControlledDo(ActorInfo, [] (AMyCharacter* MyCharacter)
+    LocallyControlledDo(ActorInfo, [] (const FLocalPlayerContext& LPC)
     {
-        auto* Orbit = MyCharacter->GetOrbit();
+        
+        auto* Orbit = LPC.GetPawn<AMyCharacter>()->GetOrbit();
         Orbit->UpdateVisibility(true);
         Orbit->SpawnSplineMesh
-            ( MyCharacter->GetTempSplineMeshColor()
+            ( LPC.GetPawn<AMyCharacter>()->GetTempSplineMeshColor()
             , ESplineMeshParentSelector::Temporary
             );
     });
@@ -57,9 +66,9 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
 
     RemoveActiveGameplayEffect(GE_FireHandle, *ActorInfo, ActivationInfo);
     
-    LocallyControlledDo(ActorInfo, [] (AMyCharacter* MyCharacter)
+    LocallyControlledDo(ActorInfo, [] (const FLocalPlayerContext& LPC)
     {
-        auto* Orbit = MyCharacter->GetOrbit();
+        auto* Orbit = LPC.GetPawn<AMyCharacter>()->GetOrbit();
         Orbit->UpdateVisibility(false);
         Orbit->DestroyTempSplineMeshes();
     });
@@ -68,4 +77,11 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
         co_await Latent::UntilDelegate(ASC->OnAnimStateFullyBlended);
     
     ASC->RemoveGameplayCue(Tag.CueShowThrusters);
+    
+    LocallyControlledDo(ActorInfo, [] (const FLocalPlayerContext& LPC)
+    {
+        const auto& Tag = FMyGameplayTags::Get();
+        LPC.GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetVisibilityArrow(Tag.AbilityAccelerate, false);
+    });
+
 }

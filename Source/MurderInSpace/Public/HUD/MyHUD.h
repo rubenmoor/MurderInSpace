@@ -48,12 +48,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetOrbitMaterial(UTextureRenderTarget2D* InRenderTarget);
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="UMG Widgets")
+	TObjectPtr<UUW_HUD> WidgetHUD;
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UMG Widget Classes")
 	TSubclassOf<UUW_HUD> WidgetHUDClass;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="UMG Widgets")
-	TObjectPtr<UUW_HUD> WidgetHUD;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<AMyCharacter> MyCharacter;

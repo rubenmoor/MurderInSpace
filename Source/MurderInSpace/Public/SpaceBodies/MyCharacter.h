@@ -3,8 +3,6 @@
 #include "CoreMinimal.h"
 #include "MyPawn_Humanoid.h"
 #include "Components/SceneCaptureComponent2D.h"
-#include "Engine/TextureRenderTarget2D.h"
-#include "Kismet/KismetRenderingLibrary.h"
 
 #include "MyCharacter.generated.h"
 

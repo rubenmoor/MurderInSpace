@@ -4,6 +4,7 @@
 #include "FastNoiseWrapper.h"
 #include "MyActor_RealtimeMesh.h"
 #include "RealtimeMeshSimple.h"
+#include "GameplayAbilitySystem/GA_Embrace.h"
 #include "Materials/MaterialInstanceConstant.h"
 #include "MyComponents/GyrationComponent.h"
 
@@ -58,7 +59,7 @@ enum class EDynamicAsteroidOrigin : uint8
 };
 
 UCLASS()
-class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh, public IHasGyration
+class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh, public IHasGyration, public ICanBeEmbraced
 {
     GENERATED_BODY()
 
@@ -98,6 +99,9 @@ public:
     AAsteroidBelt* AsteroidBelt = nullptr;
 
     virtual FVector GetInitialOmega() override;
+
+    // ICanBeEmbraced
+    virtual float GetRadius() override;
 
 protected:
     UPROPERTY(EditDefaultsOnly, Category="Generation")
@@ -177,6 +181,7 @@ protected:
     UFUNCTION(BlueprintCallable)
     TArray<FFractureInfo> GetFractures();
 
+protected:
     FRandomStream RandomStream;
 
     UPROPERTY()

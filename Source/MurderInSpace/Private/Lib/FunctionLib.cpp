@@ -1,5 +1,13 @@
 #include "Lib/FunctionLib.h"
 
+#include "UE5Coro/LatentAwaiters.h"
+
+UE5Coro::TCoroutine<> UFunctionLib::LatentDoAfter(UE5Coro::Private::FLatentAwaiter Awaiter, std::function<void()> Func)
+{
+    co_await Awaiter;
+    Func();
+}
+
 /*
  * calculate velocity vector given eccentricity vector, R, H
  * H is only used for its direction
