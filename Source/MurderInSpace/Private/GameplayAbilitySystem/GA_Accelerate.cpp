@@ -31,12 +31,23 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
     if(!CommitAbility(Handle, ActorInfo, ActivationInfo))
         co_await Latent::Cancel();
 
+    const auto& Tag = FMyGameplayTags::Get();
+    
     if(auto* OnBlockingAbilityEnded = TurnBlocked(Handle, ActorInfo))
+    {
+        LocallyControlledDo(ActorInfo, [&Tag] (const FLocalPlayerContext& LPC)
+        {
+            LPC.GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetBordered(Tag.AbilityAccelerate, true);
+        });
         co_await Latent::UntilDelegate(*OnBlockingAbilityEnded);
+        LocallyControlledDo(ActorInfo, [&Tag] (const FLocalPlayerContext& LPC)
+        {
+            LPC.GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetBordered(Tag.AbilityAccelerate, false);
+        });
+    }
     
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
-    const auto& Tag = FMyGameplayTags::Get();
-
+    
     LocallyControlledDo(ActorInfo, [] (const FLocalPlayerContext& LPC)
     {
         const auto& Tag = FMyGameplayTags::Get();
@@ -50,7 +61,6 @@ FAbilityCoroutine UGA_Accelerate::ExecuteAbility(FGameplayAbilitySpecHandle Hand
 
     LocallyControlledDo(ActorInfo, [] (const FLocalPlayerContext& LPC)
     {
-        
         auto* Orbit = LPC.GetPawn<AMyCharacter>()->GetOrbit();
         Orbit->UpdateVisibility(true);
         Orbit->SpawnSplineMesh

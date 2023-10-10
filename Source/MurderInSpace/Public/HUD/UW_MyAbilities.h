@@ -112,4 +112,21 @@ protected:
 	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UImage> ImgRec;
+	
+	// lkt, look at ability
+	
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UVerticalBox> VerticalBoxLkt;
+	
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UCommonTextBlock> TextLktActive;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UImage> ImgLktFilled;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UBorder> BorderLkt;
+	
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UImage> ImgLkt;
 };

@@ -5,6 +5,8 @@
 #include "UE5Coro/LatentAwaiters.h"
 #include "MyGameplayTags.h"
 #include "Engine/LocalPlayer.h"
+#include "HUD/MyHUD.h"
+#include "HUD/UW_MyAbilities.h"
 #include "Logging/StructuredLog.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyPlayerController.h"
@@ -74,41 +76,47 @@ FOnGameplayAbilityEnded* UMyGameplayAbility::TurnBlocked(FGameplayAbilitySpecHan
     const auto& Tag = FMyGameplayTags::Get();
     auto* AwaitingTurnSpec = ASC->GetAbilityAwaitingTurn();
     
-    // get active ability; ignore active ability that is awaiting its turn, ignore this ability
-    // this restriction allows to have ability tags considered that get added to the instance during run-time
-    // TODO: check if that works
+    // get active ability;
+    // ignore active ability that is awaiting its turn,
+    // ignore this ability (this ability called TurnBlocked)
     FGameplayAbilitySpec* CurrentSpec = ASC->FindAbilitySpecFromHandle(InHandle);
     auto Specs =
         ASC->GetActiveInstancedPerActorAbilities
             ( Tag.BlockingTurn.GetSingleTagContainer()
-            , FGameplayTagContainer()
+            , FGameplayTagContainer{}
             , { CurrentSpec, AwaitingTurnSpec }
             );
-    if(!Specs.IsEmpty())
-    {
-        check(Specs.Num() == 1)
 
-        UE_LOGFMT(LogMyGame, Display, "Turn blocked by {NAME}, other ability waiting: {NAMEWAITING}"
-            , Specs[0]->GetPrimaryInstance()->GetFName()
-            , AwaitingTurnSpec ? AwaitingTurnSpec->GetPrimaryInstance()->GetFName() : NAME_None
-            );
-        
-        // replace other ability that was awaiting its turn
-        if(AwaitingTurnSpec)
+    // no active ability, turn is not blocked
+    if(Specs.IsEmpty())
+        return nullptr;
+    
+    check(Specs.Num() == 1)
+
+    // replace other ability that was awaiting its turn
+    if(AwaitingTurnSpec)
+    {
+        check(AwaitingTurnSpec->IsActive())
+        if(this != AwaitingTurnSpec->GetPrimaryInstance())
         {
-            checkf(AwaitingTurnSpec->IsActive(), TEXT("OnCancelled resets AbilityAwaitingTurn to nullptr"))
-            check(this != AwaitingTurnSpec->GetPrimaryInstance())
             ASC->CancelAbilitySpec(*AwaitingTurnSpec, nullptr);
+            LocallyControlledDo(ActorInfo, [this, AwaitingTurnSpec, &Tag] (const FLocalPlayerContext& LPC)
+            {
+                LPC.GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetBordered
+                    (AwaitingTurnSpec->Ability->AbilityTags.Filter(Tag.Ability.GetSingleTagContainer()).First()
+                    , false
+                    );
+            });
         }
-        
-        ASC->SetAbilityAwaitingTurn(*CurrentSpec);
-        auto* ActiveAbility = Specs[0]->GetPrimaryInstance();
-        OnGameplayAbilityEndedHandle = ActiveAbility->OnGameplayAbilityEnded.AddLambda([this, ASC] (UGameplayAbility* Ability)
-        {
-            ASC->ClearAbilityAwaitingTurn();
-            Ability->OnGameplayAbilityEnded.Remove(OnGameplayAbilityEndedHandle);
-        });
-        return &ActiveAbility->OnGameplayAbilityEnded;
     }
-    return nullptr;
+    
+    ASC->SetAbilityAwaitingTurn(*CurrentSpec);
+    auto* ActiveAbility = Cast<UMyGameplayAbility>(Specs[0]->GetPrimaryInstance());
+    auto* OnMyAbilityEnded = ActiveAbility->GetCustomOnAbilityEnded();
+    OnGameplayAbilityEndedHandle = OnMyAbilityEnded->AddLambda([this, ASC] (UGameplayAbility* Ability)
+    {
+        ASC->ClearAbilityAwaitingTurn();
+        Cast<UMyGameplayAbility>(Ability)->GetCustomOnAbilityEnded()->Remove(OnGameplayAbilityEndedHandle);
+    });
+    return OnMyAbilityEnded;
 }

@@ -23,6 +23,8 @@ class MURDERINSPACE_API UGA_LookAt : public UMyGameplayAbility
 public:
 	UGA_LookAt();
 
+	virtual FOnGameplayAbilityEnded* GetCustomOnAbilityEnded() override { return &OnLookAtEnded; }
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UGE_TorqueCCW> GE_TorqueCCW;
@@ -31,7 +33,7 @@ protected:
 	TSubclassOf<UGE_TorqueCW> GE_TorqueCW;
 	
 	virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
+	
 	inline static FActiveGameplayEffectHandle TorqueHandle = INDEX_NONE;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -41,4 +43,6 @@ protected:
 	void SetGameplayEffectTorque(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FGameplayEffectSpecHandle TorqueSpec);
 
 	float NewDeltaTheta(AMyPawn* MyPawn, float InLookAtAngle, float Alpha, float Omega, float InDeltaTheta) const;
+	
+	FOnGameplayAbilityEnded OnLookAtEnded;
 };

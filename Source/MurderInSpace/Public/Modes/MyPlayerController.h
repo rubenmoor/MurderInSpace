@@ -181,12 +181,9 @@ protected:
 	UPROPERTY()
 	float MouseAngle = 0.;
 
-	// debugging
+	// debugging arrows
 	FVector VecAngle = FVector::Zero();
 
-	UE5Coro::TCoroutine<> ActivateLookAtAfterNextTick();
 	void ActivateLookAt(float DeltaTheta);
 	UE5Coro::TCoroutine<> Handle = UE5Coro::TCoroutine<>::CompletedCoroutine;
-	
-	UE5Coro::TCoroutine<> HUDWidgetAbilityResetFilledNextTick(const FGameplayTagContainer& InTags);
 };

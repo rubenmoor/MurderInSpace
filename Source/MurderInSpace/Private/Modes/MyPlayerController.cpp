@@ -169,16 +169,10 @@ void AMyPlayerController::RunInputAction(const FGameplayTagContainer& InputActio
         case EInputTrigger::Tap:
             {
                 GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetFilled(InputAbilityTags, true);
-                auto ResetFilled = [this] (FGameplayTagContainer Tags) -> TCoroutine<>
+                UFunctionLib::LatentDoAfter(Latent::Seconds(0.2), [this, InputAbilityTags]
                 {
-                    co_await Latent::Seconds(0.2);
-                    GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetFilled(Tags, false);
-                };
-                ResetFilled(InputAbilityTags);
-                // UFunctionLib::LatentDoAfter(Latent::NextTick(), [this, &InputAbilityTags]
-                // {
-                //     GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetFilled(InputAbilityTags, false);
-                // });
+                    GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetFilled(InputAbilityTags, false);
+                });
                 //HUDWidgetAbilityResetFilledNextTick(InputAbilityTags);
                 AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(InputAbilityTags, Specs, false);
                 for(auto Spec : Specs)
@@ -268,7 +262,8 @@ void AMyPlayerController::Tick(float DeltaSeconds)
             if(abs(DeltaTheta) > 15. / 180. * PI)
             {
                 auto& Tag = FMyGameplayTags::Get();
-                auto Specs = AbilitySystemComponent->GetActiveInstancedPerActorAbilities(Tag.AbilityLookAt.GetSingleTagContainer());
+                auto Specs =
+                    AbilitySystemComponent->GetActiveInstancedPerActorAbilities(Tag.AbilityLookAt.GetSingleTagContainer());
                 
                 if(Specs.IsEmpty())
                 {
@@ -279,7 +274,12 @@ void AMyPlayerController::Tick(float DeltaSeconds)
                     check(Specs.Num() == 1)
                     AbilitySystemComponent->CancelAbilitySpec(*Specs[0], nullptr);
                     Handle.Cancel();
-                    Handle = ActivateLookAtAfterNextTick();
+                    Handle = UFunctionLib::LatentDoAfter(Latent::Ticks(2), [this]
+                    {
+                        const auto MyCharacter = GetPawn<AMyCharacter>();
+                        const float DeltaTheta = UFunctionLib::WrapRadians(MouseAngle - MyCharacter->GetActorQuat().GetTwistAngle(FVector::UnitZ()));
+                        ActivateLookAt(DeltaTheta);
+                    });
                 }
 
                 VecAngle = (FQuat(FVector::UnitZ(), DeltaTheta) * MyCharacter->GetActorQuat()).RotateVector(FVector::UnitX());
@@ -293,27 +293,12 @@ void AMyPlayerController::Tick(float DeltaSeconds)
     }
 }
 
-TCoroutine<> AMyPlayerController::ActivateLookAtAfterNextTick()
-{
-    co_await Latent::Ticks(2);
-    const auto MyCharacter = GetPawn<AMyCharacter>();
-    const float DeltaTheta = UFunctionLib::WrapRadians(MouseAngle - MyCharacter->GetActorQuat().GetTwistAngle(FVector::UnitZ()));
-    ActivateLookAt(DeltaTheta);
-}
-
 void AMyPlayerController::ActivateLookAt(float DeltaTheta)
 {
     auto& Tag = FMyGameplayTags::Get();
     FGameplayEventData EventData;
     EventData.EventMagnitude = DeltaTheta;
-    UE_LOGFMT(LogMyGame, Display, "SendGameplayEvent: {PAYLOAD}", EventData.EventMagnitude);
     AbilitySystemComponent->SendGameplayEvent(Tag.AbilityLookAt, EventData);
-}
-
-UE5Coro::TCoroutine<> AMyPlayerController::HUDWidgetAbilityResetFilledNextTick(const FGameplayTagContainer& InTags)
-{
-    co_await Latent::NextTick();
-    GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetFilled(InTags, false);
 }
 
 // server-only

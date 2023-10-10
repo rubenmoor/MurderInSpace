@@ -22,6 +22,8 @@ void UUW_MyAbilities::SetVisibilityArrow(FGameplayTag InTag, bool InBVisible)
         ? TextCrcActive
         : InTag == Tag.AbilityRecover
         ? TextRecActive
+        : InTag == Tag.AbilityLookAt
+        ? TextLktActive
         : nullptr;
 
     check(IsValid(TextBlock))
@@ -61,6 +63,11 @@ void UUW_MyAbilities::SetFilled(const FGameplayTagContainer& InTags, bool InBFil
         ImgRecFilled->SetVisibility(NewVisibilityFilled);
         ImgRec->SetVisibility(NewVisibility);
     }
+    else if(InTags.HasTag(Tag.AbilityLookAt))
+    {
+        ImgLktFilled->SetVisibility(NewVisibilityFilled);
+        ImgLkt->SetVisibility(NewVisibility);
+    }
 }
 
 void UUW_MyAbilities::SetBordered(FGameplayTag InTag, bool InBBordered)
@@ -80,6 +87,8 @@ void UUW_MyAbilities::SetBordered(FGameplayTag InTag, bool InBBordered)
         ? BorderCrc
         : InTag == Tag.AbilityRecover
         ? BorderRec
+        : InTag == Tag.AbilityLookAt
+        ? BorderLkt
         : nullptr;
 
     check(IsValid(Border))

@@ -1,15 +1,17 @@
 #include "GameplayAbilitySystem/GA_LookAt.h"
 
-#include <format>
-
 #include "GameplayAbilitySystem/MyAttributes.h"
 #include "MyGameplayTags.h"
+#include "Engine/LocalPlayer.h"
 #include "GameplayAbilitySystem/GE_TorqueCCW.h"
 #include "GameplayAbilitySystem/GE_TorqueCW.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
+#include "HUD/MyHUD.h"
+#include "HUD/UW_MyAbilities.h"
 #include "Lib/FunctionLib.h"
 #include "Logging/StructuredLog.h"
 #include "Modes/MyGameInstance.h"
+#include "Spacebodies/MyCharacter.h"
 #include "UE5Coro/LatentAwaiters.h"
 
 using namespace UE5Coro;
@@ -43,27 +45,43 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     const float Payload = TriggerEventData->EventMagnitude;
     check(FMath::Abs(Payload) <= TWO_PI)
     
+    const auto& Tag = FMyGameplayTags::Get();
+
+    UE_LOGFMT(LogMyGame, Warning, "UGA_LookAt: Begin");
+    OnGameplayAbilityEnded.AddLambda([this] (UGameplayAbility*)
+    {
+        UE_LOGFMT(LogMyGame, Warning, "UGA_LookAt: Ended");
+        OnGameplayAbilityEnded.Clear();
+    });
+    
     if(auto* OnBlockingAbilityEnded = TurnBlocked(Handle, ActorInfo))
     {
+        LocallyControlledDo(ActorInfo, [&Tag] (const FLocalPlayerContext& LPC)
+        {
+            LPC.GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetBordered(Tag.AbilityLookAt, true);
+        });
         co_await Latent::UntilDelegate(*OnBlockingAbilityEnded);
+        LocallyControlledDo(ActorInfo, [&Tag] (const FLocalPlayerContext& LPC)
+        {
+            LPC.GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetBordered(Tag.AbilityLookAt, false);
+        });
     }
     
-    const auto& Tag = FMyGameplayTags::Get();
     auto* ASC = UMyAbilitySystemComponent::Get(ActorInfo);
-    
+
     const float OmegaMaxByAttribute = ASC->GetNumericAttribute(UAttrSetAcceleration::GetOmegaMaxAttribute());
     const float Alpha = ASC->GetNumericAttribute(UAttrSetAcceleration::GetTorqueMaxAttribute());
     auto* MyPawn = Cast<AMyPawn>(ActorInfo->OwnerActor);
     
-    const float LookAtAngle =
+    const auto LookAtAngle =
         UFunctionLib::WrapRadians
-            (MyPawn->GetActorQuat().GetTwistAngle(FVector::UnitZ()) + Payload);
+            (static_cast<float>(MyPawn->GetActorQuat().GetTwistAngle(FVector::UnitZ())) + Payload);
 
     float DeltaTheta = NewDeltaTheta(MyPawn, LookAtAngle, Alpha, MyPawn->GetOmega(), Payload);
     
     while(true)
     {
-        const float Omega = MyPawn->GetOmega();
+        const auto Omega = static_cast<float>(MyPawn->GetOmega());
         const float OmegaAbs = FMath::Abs(Omega);
         // make sure that a real |Omega| > OmegaMax (by attribute) doesn't cause a problem
         const float OmegaMax = FMath::Max(OmegaMaxByAttribute, OmegaAbs);
@@ -98,12 +116,21 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
             {
                 // ability ends
                 ASC->RemoveGameplayCueIfExists(Tag.CueShowThrusters);
+                LocallyControlledDo(ActorInfo, [&Tag] (const FLocalPlayerContext& LPC)
+                {
+                    LPC.GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetVisibilityArrow(Tag.AbilityLookAt, false);
+                });
+                OnLookAtEnded.Broadcast(this);
                 break;
             }
             else
             {
                 // rotational acceleration about to start (or there was a Case 5)
                 ASC->AddGameplayCueUnlessExists(Tag.CueShowThrusters);
+                LocallyControlledDo(ActorInfo, [&Tag] (const FLocalPlayerContext& LPC)
+                {
+                    LPC.GetHUD<AMyHUD>()->WidgetHUD->WidgetAbilities->SetVisibilityArrow(Tag.AbilityLookAt, true);
+                });
             }
         }
         

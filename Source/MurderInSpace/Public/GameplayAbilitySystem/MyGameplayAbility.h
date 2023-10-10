@@ -54,6 +54,15 @@ public:
     void ServerRPC_SetReleased();
 
     static void LocallyControlledDo(const FGameplayAbilityActorInfo* ActorInfo, std::function<void(const FLocalPlayerContext&)> Func);
+
+    /*
+     * by default just returns the OnGameplayAbilityEnded delegate,
+     * but allows for an ability to override;
+     * e.g. LookAt only really ends when the Astronaut stopped its rotation
+     * and not when the ability gets cancelled and reset by another LookAt
+     */
+    virtual FOnGameplayAbilityEnded* GetCustomOnAbilityEnded() { return &OnGameplayAbilityEnded; }
+    
 protected:
     virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 

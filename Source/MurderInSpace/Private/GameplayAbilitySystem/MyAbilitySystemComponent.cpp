@@ -121,12 +121,6 @@ bool UMyAbilitySystemComponent::RemovePoseCue(FGameplayTag PoseCue)
 void UMyAbilitySystemComponent::SetAbilityAwaitingTurn(FGameplayAbilitySpec& Spec)
 {
     AbilityAwaitingTurn = &Spec;
-    auto& OnGameplayAbilityCancelled = Spec.GetPrimaryInstance()->OnGameplayAbilityCancelled;
-    OnAbilityAwaitingTurnCancelledHandle = OnGameplayAbilityCancelled.AddLambda([this, &OnGameplayAbilityCancelled]
-    {
-        AbilityAwaitingTurn->GetPrimaryInstance()->OnGameplayAbilityCancelled.Remove(OnAbilityAwaitingTurnCancelledHandle);
-        AbilityAwaitingTurn = nullptr;
-    });
 }
 
 void UMyAbilitySystemComponent::ClearAbilityAwaitingTurn()
