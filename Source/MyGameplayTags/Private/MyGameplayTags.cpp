@@ -25,7 +25,11 @@ FMyGameplayTags::FMyGameplayTags()
 	CuePoseTorque       = GTM.AddNativeGameplayTag("GameplayCue.Pose.Torque");
 	CuePoseTorqueCCW    = GTM.AddNativeGameplayTag("GameplayCue.Pose.Torque.CCW");
 	CuePoseTorqueCW     = GTM.AddNativeGameplayTag("GameplayCue.Pose.Torque.CW");
-	CuePoseEmbrace      = GTM.AddNativeGameplayTag("GameplayCue.Pose.Embrace"      );
+	
+	CuePoseEmbrace        = GTM.AddNativeGameplayTag("GameplayCue.Pose.Embrace"        );
+	CuePoseEmbracePrepare = GTM.AddNativeGameplayTag("GameplayCue.Pose.Embrace.Prepare");
+	CuePoseEmbraceExecute = GTM.AddNativeGameplayTag("GameplayCue.Pose.Embrace.Execute");
+	
 	CuePoseKickPosition = GTM.AddNativeGameplayTag("GameplayCue.Pose.Kick.Position");
 	CuePoseKickExecute  = GTM.AddNativeGameplayTag("GameplayCue.Pose.Kick.Execute" );
 

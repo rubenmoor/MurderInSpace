@@ -32,7 +32,11 @@ struct MYGAMEPLAYTAGS_API FMyGameplayTags : FNoncopyable
     FGameplayTag CuePoseTorque;
     FGameplayTag CuePoseTorqueCCW;
     FGameplayTag CuePoseTorqueCW;
+    
     FGameplayTag CuePoseEmbrace;
+    FGameplayTag CuePoseEmbracePrepare;
+    FGameplayTag CuePoseEmbraceExecute;
+    
     FGameplayTag CuePoseKickPosition;
     FGameplayTag CuePoseKickExecute;
     

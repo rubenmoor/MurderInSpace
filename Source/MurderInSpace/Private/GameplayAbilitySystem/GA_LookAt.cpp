@@ -47,13 +47,6 @@ FAbilityCoroutine UGA_LookAt::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     
     const auto& Tag = FMyGameplayTags::Get();
 
-    UE_LOGFMT(LogMyGame, Warning, "UGA_LookAt: Begin");
-    OnGameplayAbilityEnded.AddLambda([this] (UGameplayAbility*)
-    {
-        UE_LOGFMT(LogMyGame, Warning, "UGA_LookAt: Ended");
-        OnGameplayAbilityEnded.Clear();
-    });
-    
     if(auto* OnBlockingAbilityEnded = TurnBlocked(Handle, ActorInfo))
     {
         LocallyControlledDo(ActorInfo, [&Tag] (const FLocalPlayerContext& LPC)
