@@ -70,9 +70,6 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	auto* OtherCollisionComponent = Cast<IHasCollision>(Other)->GetCollisionComponent();
 	const double OtherMass = OtherCollisionComponent->GetMyMass();
 	
-	// the idea is to subtract the CoM velocity to make sure that u1 and u2 are on plane with the normal,
-	// I am not sure about that, however
-	// new base vectors: VecN, VecO
 	FVector VecN = HitResult.ImpactNormal;
 
 	switch(MyCollisionDimensions)
@@ -117,7 +114,7 @@ double UMyCollisionComponent::GetMyMass()
 {
 	checkf(bMassInitialized || bOverrideMass, TEXT("%s: mass must be initialized, or overridden"), *GetFName().ToString())
 	const double Mass = bOverrideMass ? MassOverride : MyMass;
-	check(Mass != 0)
+	check(Mass != 0.)
 	return Mass;
 }
 

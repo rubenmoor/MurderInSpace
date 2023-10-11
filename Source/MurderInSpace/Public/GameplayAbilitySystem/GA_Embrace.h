@@ -48,8 +48,12 @@ protected:
 
     bool bStartEmbracing = false;
     float Span;
+    FVector VecN;
+
+    UPROPERTY()
+    AActor* OtherActor = nullptr;
 
 private:
     UFUNCTION()
-    void MaybeStartEmbracing(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+    void MaybeStartEmbracing(UPrimitiveComponent* OverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

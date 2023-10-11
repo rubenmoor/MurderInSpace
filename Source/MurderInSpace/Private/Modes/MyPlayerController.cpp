@@ -306,6 +306,10 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
 
+    // TODO: check if replication works
+    const FRandomStream Rnd;
+    InPawn->SetActorRotation(FQuat(FVector::UnitZ(), Rnd.FRand() * TWO_PI));
+    
     auto* PawnWithOrbit = Cast<IHasOrbit>(InPawn);
     AOrbit* Orbit = PawnWithOrbit->GetOrbit();
 

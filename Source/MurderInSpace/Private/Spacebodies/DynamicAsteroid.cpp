@@ -16,8 +16,9 @@ ADynamicAsteroid::ADynamicAsteroid()
 {
     RandomStream.Initialize(GetFName());
     FastNoiseWrapper = CreateDefaultSubobject<UFastNoiseWrapper>("FastNoiseWrapper");
-    
+
     CollisionComponent->CoR = 0.95;
+    RealtimeMeshComponent->SetCollisionObjectType(ECC_PhysicsBody);
 }
 
 void ADynamicAsteroid::GenerateAsteroid()

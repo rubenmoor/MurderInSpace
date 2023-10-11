@@ -17,6 +17,8 @@ public:
 
     void EnableBurn(bool InBEnabled);
 
+    void SetEnableOverlap(bool InBEnabled);
+
 protected:
     virtual void BeginPlay() override;
 

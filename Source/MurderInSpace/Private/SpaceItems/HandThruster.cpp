@@ -19,6 +19,11 @@ void AHandThruster::EnableBurn(bool InBEnabled)
     NiagaraComponent->SetHiddenInGame(!InBEnabled);
 }
 
+void AHandThruster::SetEnableOverlap(bool InBEnabled)
+{
+    StaticMeshComponent->SetGenerateOverlapEvents(InBEnabled);
+}
+
 void AHandThruster::BeginPlay()
 {
     Super::BeginPlay();

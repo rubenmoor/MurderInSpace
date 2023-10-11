@@ -59,7 +59,10 @@ enum class EDynamicAsteroidOrigin : uint8
 };
 
 UCLASS()
-class MURDERINSPACE_API ADynamicAsteroid final : public AMyActor_RealtimeMesh, public IHasGyration, public ICanBeEmbraced
+class MURDERINSPACE_API ADynamicAsteroid final
+    : public AMyActor_RealtimeMesh
+    , public IHasGyration
+    , public ICanBeEmbraced
 {
     GENERATED_BODY()
 

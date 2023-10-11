@@ -11,6 +11,7 @@ UGA_Embrace::UGA_Embrace()
 {
     const auto& Tag = FMyGameplayTags::Get();
     AbilityTags.AddTag(Tag.AbilityEmbrace);
+    AbilityTags.AddTag(Tag.BlockingTurn);
 }
 
 FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
@@ -40,6 +41,11 @@ FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     if(!ActorInfo->AvatarActor->Implements<UCanEmbrace>())
     {
         UE_LOGFMT(LogMyGame, Error, "AvatarActor does not implement ICanEmbrace");
+        co_await Latent::Cancel();
+    }
+    if(!ActorInfo->AvatarActor->Implements<UHasCollision>())
+    {
+        UE_LOGFMT(LogMyGame, Error, "AvatarActor does not implement IHasCollision");
         co_await Latent::Cancel();
     }
     
@@ -75,27 +81,51 @@ FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
 
     // TODO: blend pose depending on `Span`
     ASC->AddPoseCue(Tag.CuePoseEmbraceExecute);
-    // TODO: fully inelastic collision
-    //  ... including change of rotational speed
+    
+    //  TODO: include change of rotational speed
+
+    // TODO: check if the pawn has attributes/equipment that allow to embrace the other actor, given it's
+    // * size
+    // * relative surface velocity (rotational velocity + body velocity relative to pawn)
+    Span = FMath::Min(1., Cast<ICanBeEmbraced>(OtherActor)->GetRadius() / 150.);
+        
+    // fully inelastic collision (plastic collision, K=0)
+	// calculation for 3 dimensions
+	// https://en.wikipedia.org/wiki/Inelastic_collision
+    
+	auto* Orbit = Cast<IHasOrbit>(ActorInfo->AvatarActor)->GetOrbit();
+	auto* OtherOrbit = Cast<IHasOrbit>(OtherActor)->GetOrbit();
+	
+    const double MyMass = Cast<IHasCollision>(ActorInfo->AvatarActor)->GetCollisionComponent()->GetMyMass();
+    const double OtherMass = Cast<IHasCollision>(OtherActor)->GetCollisionComponent()->GetMyMass();
+    const FVector VecV1 = Orbit->GetVecVelocity();
+    const FVector VecV2 = OtherOrbit->GetVecVelocity();
+ 	const double J = MyMass * OtherMass / (MyMass + OtherMass) * (VecV2 - VecV1).Dot(VecN);
+	const FVector VecDeltaV1 = J / MyMass * VecN;
+	const FVector VecDeltaV2 = -J / OtherMass * VecN;
+
+    const auto* GS = GetWorld()->GetGameState<AMyGameState>();
+    Orbit->Update(VecDeltaV1, GS->RP_Physics);
+    OtherOrbit->Update(VecDeltaV2, GS->RP_Physics);
 
     co_await UntilReleased();
 
     // TODO: fly off depending on rotation
+    OtherActor = nullptr;
 }
 
-void UGA_Embrace::MaybeStartEmbracing(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void UGA_Embrace::MaybeStartEmbracing(UPrimitiveComponent* OverlappedComponent, AActor* InOtherActor,
     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    if(OtherActor->Implements<UCanBeEmbraced>())
+    if(InOtherActor->Implements<UCanBeEmbraced>())
     {
-        auto* Object = Cast<ICanBeEmbraced>(OtherActor);
+        check(InOtherActor->Implements<UHasCollision>())
         
-        // TODO: check if the pawn has attributes/equipment that allow to embrace the other actor, given it's
-        // * size
-        // * relative surface velocity (rotational velocity + body velocity relative to pawn)
-        Span = FMath::Min(1., Object->GetRadius() / 150.);
+        OtherActor = InOtherActor;
+        VecN = SweepResult.ImpactNormal;
+        bStartEmbracing = true;
+        
         auto* MyPawn = Cast<AMyPawn_Humanoid>(CurrentActorInfo->AvatarActor);
         MyPawn->GetOnOverlapEmbraceSphere().RemoveDynamic(this, &UGA_Embrace::MaybeStartEmbracing);
-        bStartEmbracing = true;
     }
 }

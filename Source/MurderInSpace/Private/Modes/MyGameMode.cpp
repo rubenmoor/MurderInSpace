@@ -3,6 +3,7 @@
 #include "Spacebodies/MyPlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Logging/StructuredLog.h"
+#include "Modes/MyGameInstance.h"
 #include "Modes/MyPlayerController.h"
 
 #if WITH_EDITOR

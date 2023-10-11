@@ -30,6 +30,9 @@ AMyPawn_Humanoid::AMyPawn_Humanoid()
 	EmbraceSphere->SetupAttachment(Root);
 	EmbraceSphere->SetRelativeLocation(FVector(50., 0., 0.));
 	EmbraceSphere->SetSphereRadius(50.);
+	FCollisionResponseContainer Responses{ECR_Ignore};
+	Responses.SetResponse(ECC_PhysicsBody, ECR_Overlap);
+	EmbraceSphere->SetCollisionResponseToChannels(Responses);
 }
 
 FComponentBeginOverlapSignature& AMyPawn_Humanoid::GetOnOverlapEmbraceSphere()
@@ -52,10 +55,12 @@ void AMyPawn_Humanoid::BeginPlay()
 	HandThrusterLeft = GetWorld()->SpawnActor<AHandThruster>(Settings->HandThrusterInitialClass);
 	HandThrusterLeft->AttachToComponent(SkeletalMesh, FAttachmentTransformRules::KeepRelativeTransform, "SocketLeftHand");
 	HandThrusterLeft->SetActorHiddenInGame(true);
+	HandThrusterLeft->SetEnableOverlap(false);
 	
 	HandThrusterRight = GetWorld()->SpawnActor<AHandThruster>(Settings->HandThrusterInitialClass);
 	HandThrusterRight->AttachToComponent(SkeletalMesh, FAttachmentTransformRules::KeepRelativeTransform, "SocketRightHand");
 	HandThrusterRight->SetActorHiddenInGame(true);
+	HandThrusterRight->SetEnableOverlap(false);
 }
 
 void AMyPawn_Humanoid::GameplayCue_ShowThrusters(EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters)

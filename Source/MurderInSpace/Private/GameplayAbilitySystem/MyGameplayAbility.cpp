@@ -26,9 +26,10 @@ void UMyGameplayAbility::ServerRPC_SetReleased_Implementation()
 void UMyGameplayAbility::LocallyControlledDo(const FGameplayAbilityActorInfo* ActorInfo,
                                              std::function<void(const FLocalPlayerContext&)> Func)
 {
-    if(ActorInfo->IsLocallyControlled())
+    auto* PC = Cast<APlayerController>(Cast<AMyCharacter>(ActorInfo->AvatarActor)->GetController());
+    if(ActorInfo->IsLocallyControlled() && IsValid(PC))
     {
-        Func(FLocalPlayerContext(Cast<APlayerController>(Cast<AMyCharacter>(ActorInfo->AvatarActor)->GetController())));
+        Func(FLocalPlayerContext(PC));
     }
 }
 
