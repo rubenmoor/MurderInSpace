@@ -79,6 +79,8 @@ FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
         co_await Latent::Cancel();
     }
 
+    bStartEmbracing = false;
+    
     // TODO: blend pose depending on `Span`
     ASC->AddPoseCue(Tag.CuePoseEmbraceExecute);
     
@@ -110,19 +112,29 @@ FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
 
     co_await UntilReleased();
 
-    // TODO: fly off depending on rotation
+    // a small momentum to push the asteroid away when letting loose
+    const double SmallPush = 10.;
+    const FVector VecNPush = (OtherActor->GetActorLocation() - ActorInfo->AvatarActor->GetActorLocation()).GetSafeNormal();
+    const FVector VecDeltaV1Push = SmallPush / MyMass * VecNPush;
+    const FVector VecDeltaV2Push = SmallPush / OtherMass * -VecNPush;
+    Orbit->Update(VecDeltaV1Push, GS->RP_Physics);
+    OtherOrbit->Update(VecDeltaV2Push, GS->RP_Physics);
+    
     OtherActor = nullptr;
 }
 
 void UGA_Embrace::MaybeStartEmbracing(UPrimitiveComponent* OverlappedComponent, AActor* InOtherActor,
     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+    UE_LOGFMT(LogMyGame, Warning, "MaybeStartEmbracing: {NAME}", InOtherActor->GetName());
     if(InOtherActor->Implements<UCanBeEmbraced>())
     {
         check(InOtherActor->Implements<UHasCollision>())
         
         OtherActor = InOtherActor;
-        VecN = SweepResult.ImpactNormal;
+        const FVector VecLoc1 = OverlappedComponent->GetOwner()->GetActorLocation();
+        const FVector VecLoc2 = OtherActor->GetActorLocation();
+        VecN = (VecLoc2 - VecLoc1).GetSafeNormal();
         bStartEmbracing = true;
         
         auto* MyPawn = Cast<AMyPawn_Humanoid>(CurrentActorInfo->AvatarActor);

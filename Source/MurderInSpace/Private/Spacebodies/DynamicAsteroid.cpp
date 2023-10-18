@@ -19,6 +19,7 @@ ADynamicAsteroid::ADynamicAsteroid()
 
     CollisionComponent->CoR = 0.95;
     RealtimeMeshComponent->SetCollisionObjectType(ECC_PhysicsBody);
+    RealtimeMeshComponent->SetGenerateOverlapEvents(true);
 }
 
 void ADynamicAsteroid::GenerateAsteroid()
