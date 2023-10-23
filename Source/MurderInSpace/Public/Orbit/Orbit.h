@@ -291,6 +291,8 @@ protected:
     virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
 
+    virtual void BeginDestroy() override;
+
 #if WITH_EDITOR
     virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 #endif
@@ -428,4 +430,6 @@ protected:
     // the minimal velocity: but in terms of spline distance displaced per frame
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
     float MinimalDisplacement = 1.;
+
+    FDelegateHandle ShowAllOrbitsHandle;
 };

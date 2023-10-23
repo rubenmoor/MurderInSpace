@@ -198,11 +198,17 @@ void AOrbit::BeginPlay()
     for(auto ItPlayers = GetGameInstance()->GetLocalPlayerIterator(); ItPlayers; ++ItPlayers)
     {
         auto* PC = Cast<AMyPlayerController>((*ItPlayers)->GetPlayerController(GetWorld()));
-        PC->ShowAllOrbitsDelegate.AddLambda([this] (bool bShowHide)
+        ShowAllOrbitsHandle = PC->ShowAllOrbitsDelegate.AddLambda([this] (bool bShowHide)
         {
             UpdateVisibility(bShowHide);
         });
     }
+}
+
+void AOrbit::BeginDestroy()
+{
+    ShowAllOrbitsHandle.Reset();
+    Super::BeginDestroy();
 }
 
 void AOrbit::Tick(float DeltaTime)
