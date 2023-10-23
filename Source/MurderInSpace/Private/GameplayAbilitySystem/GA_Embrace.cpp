@@ -102,21 +102,23 @@ FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     const double OtherMass = Cast<IHasCollision>(OtherActor)->GetCollisionComponent()->GetMyMass();
     const FVector VecV1 = Orbit->GetVecVelocity();
     const FVector VecV2 = OtherOrbit->GetVecVelocity();
-    VecN = (VecV2 - VecV1).GetSafeNormal();
- 	const double J = MyMass * OtherMass / (MyMass + OtherMass) * (VecV2 - VecV1).Dot(VecN);
-	const FVector VecDeltaV1 = J / MyMass * VecN;
-	const FVector VecDeltaV2 = -J / OtherMass * VecN;
+
+ 	const FVector VecJ = (VecV2 - VecV1) / (MyMass + OtherMass) ;
+	const FVector VecDeltaV1 = VecJ * OtherMass;
+	const FVector VecDeltaV2 = -VecJ * MyMass;
 
     const auto* GS = GetWorld()->GetGameState<AMyGameState>();
 
     const FVector VecLoc1 = ActorInfo->AvatarActor->GetActorLocation();
     const FVector VecLoc2 = OtherActor->GetActorLocation();
-    const FVector VecCoM = (VecLoc1 * MyMass + VecLoc2 * OtherMass) / (MyMass + OtherMass);
-    const FVector Offset1 = VecLoc1 - VecCoM;
-    const FVector Offset2 = VecLoc2 - VecCoM;
+    const FVector VecCoMLoc = (VecLoc1 * MyMass + VecLoc2 * OtherMass) / (MyMass + OtherMass);
+    const FVector Offset1 = VecLoc1 - VecCoMLoc;
+    const FVector Offset2 = VecLoc2 - VecCoMLoc;
+
     Orbit->Update(VecDeltaV1, Offset1, 0., GS->RP_Physics);
     OtherOrbit->Update(VecDeltaV2, Offset2, 0., GS->RP_Physics);
-    UE_LOGFMT(LogMyGame, Warning, "VecDeltaV1: {V1}, VecDeltaV2: {V2}", VecDeltaV1.ToString(), VecDeltaV2.ToString());
+    UE_LOGFMT(LogMyGame, Warning, "Embrace begin: VecDeltaV1: {V1}, VecDeltaV2: {V2}", VecDeltaV1.ToString(), VecDeltaV2.ToString());
+    UE_LOGFMT(LogMyGame, Warning, "VecVelocity1: {V1}, VecVelocity2: {V2}", Orbit->GetVecVelocity().ToString(), OtherOrbit->GetVecVelocity().ToString());
 
     co_await UntilReleased();
 
@@ -127,6 +129,7 @@ FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     const FVector VecDeltaV2Push = SmallPush / OtherMass * -VecNPush;
     Orbit->Update(VecDeltaV1Push, GS->RP_Physics);
     OtherOrbit->Update(VecDeltaV2Push, GS->RP_Physics);
+    UE_LOGFMT(LogMyGame, Warning, "Embrace end: Push: VecDeltaV1: {V1}, VecDeltaV2: {V2}", VecDeltaV1Push.ToString(), VecDeltaV2Push.ToString());
     
     OtherActor = nullptr;
 }

@@ -5,7 +5,6 @@
 #include "Spacebodies/Blackhole.h"
 #include "Spacebodies/MyCharacter.h"
 #include "Components/SplineMeshComponent.h"
-#include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
 #include "HUD/MyHUD.h"
 #include "Lib/FunctionLib.h"
 #include "Logging/LogMacros.h"
@@ -16,6 +15,10 @@
 #include "Modes/MyGameInstance.h"
 #include "MyComponents/MyCollisionComponent.h"
 #include "Net/UnrealNetwork.h"
+
+#if WITH_EDITOR
+#include "Editor.h"
+#endif
 
 void IHasOrbit::OrbitSetup(AActor* Actor)
 {
@@ -197,6 +200,12 @@ void AOrbit::BeginPlay()
 
     for(auto ItPlayers = GetGameInstance()->GetLocalPlayerIterator(); ItPlayers; ++ItPlayers)
     {
+        
+#if WITH_EDITOR
+        if(GetWorld()->WorldType == EWorldType::PIE && GEditor->IsSimulateInEditorInProgress())
+            break;
+#endif
+        
         auto* PC = Cast<AMyPlayerController>((*ItPlayers)->GetPlayerController(GetWorld()));
         ShowAllOrbitsHandle = PC->ShowAllOrbitsDelegate.AddLambda([this] (bool bShowHide)
         {
@@ -310,12 +319,18 @@ void AOrbit::Tick(float DeltaTime)
     }
     
     UpdateControlParams(Physics);
+
+    DrawDebugDirectionalArrow(GetWorld(), RP_Body->GetActorLocation(), GetVecR(), 10., FColor::Blue);
 }
 
-void AOrbit::Update(FVector DeltaVecV, FVector VecOffset, double OmegaOffset, FPhysics Physics)
+void AOrbit::Update(FVector DeltaVecV, FVector InVecOffset, double InOmegaOffset, FPhysics Physics)
 {
     check(!DeltaVecV.ContainsNaN())
     check(!VecVelocity.ContainsNaN())
+
+    VecOffset = InVecOffset;
+    OmegaOffset = InOmegaOffset;
+    
     const FVector VecR = GetVecR();
 
     // transform location vector r to Kepler coordinates, where F1 is the origin
@@ -335,6 +350,9 @@ void AOrbit::Update(FVector DeltaVecV, FVector VecOffset, double OmegaOffset, FP
     Params.Energy = VecVelocity.SquaredLength() / 2. - Physics.Alpha / RKepler;
     
     Params.Eccentricity = Params.VecE.Length();
+
+    Params.LogMyGameOutput(GetName() + " Update()");
+    
     const FVector VecENorm = Params.VecE.GetSafeNormal();
     const FVector VecHNorm = Params.VecH.GetSafeNormal();
 
@@ -582,7 +600,8 @@ void AOrbit::Update(FVector DeltaVecV, FVector VecOffset, double OmegaOffset, FP
             ( Spline->FindInputKeyClosestToWorldLocation(VecR)
             );
     }
-    DistanceToSplineAtUpdate = (Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World) - VecR).Length();
+    DistanceToSplineAtUpdate =
+        (Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World) - VecR).Length();
 
     TArray<USceneComponent*> Meshes;
     SplineMeshParent->GetChildrenComponents(false, Meshes);

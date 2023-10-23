@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/Actor.h"
+#include "Logging/StructuredLog.h"
+#include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
 
 #include "Orbit.generated.h"
@@ -110,6 +112,17 @@ struct FOrbitParameters
     // semi-major axis of elliptic orbit
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     double A = 0.;
+
+    void LogMyGameOutput(FString StrContext)
+    {
+        UE_LOGFMT
+            ( LogMyGame
+            , Display
+            , "{CTX}: OrbitType: {ORBITTYPE}, VecE: {VECE}, Eccentricity: {ECCENTRICITY}, VecH: {VECH}, P: {P}, Energy: {ENERGY}, Period: {PERIOD}, A: {A}"
+            , StrContext
+            , UEnum::GetValueAsString(OrbitType), VecE.ToString(), Eccentricity, VecH.ToString(), P, Energy, Period, A
+            );
+    }
 };
 
 USTRUCT(BlueprintType)
@@ -207,13 +220,13 @@ public:
     /*
      * update the orbit given
      * `DeltaVecV`: a change in velocity
-     * `VecOffset`: point from the physically correct center-of-mass to the actor location
-     * `OmegaOffset`: [1/s], angular velocity to have the offset vector rotate
+     * `InVecOffset`: point from the physically correct center-of-mass to the actor location
+     * `InOmegaOffset`: [1/s], angular velocity to have the offset vector rotate
      */
     void Update
         ( FVector DeltaVecV
-        , FVector VecOffset
-        , double OmegaOffset
+        , FVector InVecOffset
+        , double InOmegaOffset
         , FPhysics Physics
         );
 
@@ -344,10 +357,10 @@ protected:
     FVector VecVelocity = FVector::Zero();
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    double ScalarVelocity = 0;
+    double ScalarVelocity = 0.;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kepler")
-    double VelocityVCircle = 0;
+    double VelocityVCircle = 0.;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     double RKepler;
