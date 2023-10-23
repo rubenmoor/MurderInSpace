@@ -1,7 +1,10 @@
 ﻿#include "GameplayAbilitySystem/GA_Embrace.h"
 
 #include "MyGameplayTags.h"
+#include "Components/SphereComponent.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
+#include "GameplayAbilitySystem/GE_TorqueCCW.h"
+#include "GameplayAbilitySystem/GE_TorqueCW.h"
 #include "HUD/MyHUD.h"
 #include "HUD/UW_MyAbilities.h"
 #include "Spacebodies/MyPawn_Humanoid.h"
@@ -51,7 +54,7 @@ FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     
     auto* MyPawn = Cast<ICanEmbrace>(ActorInfo->AvatarActor);
 
-    MyPawn->GetOnOverlapEmbraceSphere().AddDynamic(this, &UGA_Embrace::MaybeStartEmbracing);
+    MyPawn->GetEmbraceSphere()->OnComponentBeginOverlap.AddDynamic(this, &UGA_Embrace::MaybeStartEmbracing);
 
     LocallyControlledDo(ActorInfo, [&Tag] (const FLocalPlayerContext& LPC)
     {
@@ -70,16 +73,44 @@ FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     });
 
     ASC->AddPoseCue(Tag.CuePoseEmbracePrepare);
+
+    // check if already overlapping an actor that qualifies ...
+    
+    TArray<AActor*> OverlappingActors;
+    MyPawn->GetEmbraceSphere()->GetOverlappingActors(OverlappingActors);
+    AActor* ClosestActor = nullptr;
+    double Distance = MyPawn->GetEmbraceSphere()->GetScaledSphereRadius() + 1.;
+    for(auto* OverlappingActor : OverlappingActors)
+    {
+        const double NewDistance =
+            (OverlappingActor->GetActorLocation() - MyPawn->GetEmbraceSphere()->GetComponentLocation()).Length();
+        if(NewDistance < Distance)
+        {
+            ClosestActor = OverlappingActor;
+            Distance = NewDistance;
+        }
+    }
+    if(ClosestActor)
+        MaybeStartEmbracing(nullptr, ClosestActor, nullptr, 0, false, FHitResult());
+
+    // ... or wait until an actor overlaps (or the input is released)
     
     co_await Latent::Until([this] { return bStartEmbracing || bReleased; });
     if(bReleased)
     {
         bReleased = false;
-        MyPawn->GetOnOverlapEmbraceSphere().RemoveDynamic(this, &UGA_Embrace::MaybeStartEmbracing);
+        MyPawn->GetEmbraceSphere()->OnComponentBeginOverlap.RemoveDynamic(this, &UGA_Embrace::MaybeStartEmbracing);
         co_await Latent::Cancel();
     }
 
+    // reset
     bStartEmbracing = false;
+
+    // rotate and approach the other actor
+    // TODO
+    const auto SpecTorque =
+        MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, GE_TorqueCW);
+    ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque);
     
     // TODO: blend pose depending on `Span`
     ASC->AddPoseCue(Tag.CuePoseEmbraceExecute);
@@ -123,10 +154,9 @@ FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     co_await UntilReleased();
 
     // a small momentum to push the asteroid away when letting loose
-    const double SmallPush = 10.;
     const FVector VecNPush = (OtherActor->GetActorLocation() - ActorInfo->AvatarActor->GetActorLocation()).GetSafeNormal();
-    const FVector VecDeltaV1Push = SmallPush / MyMass * VecNPush;
-    const FVector VecDeltaV2Push = SmallPush / OtherMass * -VecNPush;
+    const FVector VecDeltaV1Push = SmallPushAmount / MyMass * VecNPush;
+    const FVector VecDeltaV2Push = SmallPushAmount / OtherMass * -VecNPush;
     Orbit->Update(VecDeltaV1Push, GS->RP_Physics);
     OtherOrbit->Update(VecDeltaV2Push, GS->RP_Physics);
     UE_LOGFMT(LogMyGame, Warning, "Embrace end: Push: VecDeltaV1: {V1}, VecDeltaV2: {V2}", VecDeltaV1Push.ToString(), VecDeltaV2Push.ToString());
@@ -134,20 +164,21 @@ FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     OtherActor = nullptr;
 }
 
-void UGA_Embrace::MaybeStartEmbracing(UPrimitiveComponent* OverlappedComponent, AActor* InOtherActor,
-    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void UGA_Embrace::MaybeStartEmbracing(UPrimitiveComponent* _OverlappedComponent, AActor* InOtherActor,
+    UPrimitiveComponent* _OtherComp, int32 _OtherBodyIndex, bool _bFromSweep, const FHitResult& _SweepResult)
 {
-    UE_LOGFMT(LogMyGame, Warning, "MaybeStartEmbracing: {NAME}", InOtherActor->GetName());
+    /*
+     * don't use any other parameter then `InOtherActor`
+     */
+    
     if(InOtherActor->Implements<UCanBeEmbraced>())
     {
         check(InOtherActor->Implements<UHasCollision>())
         
         OtherActor = InOtherActor;
-        const FVector VecLoc1 = OverlappedComponent->GetOwner()->GetActorLocation();
-        const FVector VecLoc2 = OtherActor->GetActorLocation();
         bStartEmbracing = true;
         
         auto* MyPawn = Cast<AMyPawn_Humanoid>(CurrentActorInfo->AvatarActor);
-        MyPawn->GetOnOverlapEmbraceSphere().RemoveDynamic(this, &UGA_Embrace::MaybeStartEmbracing);
+        MyPawn->GetEmbraceSphere()->OnComponentBeginOverlap.RemoveDynamic(this, &UGA_Embrace::MaybeStartEmbracing);
     }
 }

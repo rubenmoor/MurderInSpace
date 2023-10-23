@@ -62,6 +62,14 @@ void AMyPawn::Tick(float DeltaSeconds)
 		const double DeltaV = A / FPhysics::LengthScaleFactor * DeltaSeconds;
 		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics);
 	}
+
+	const double V = AttrSetAcceleration->GetForwardSpeed();
+	if(V != 0.)
+	{
+		const FVector VecDeltaR = GetActorForwardVector() * V * DeltaSeconds;
+		RP_Orbit->AddOffset(-VecDeltaR);
+		SetActorLocation(GetActorLocation() + VecDeltaR);
+	}
 	
 	Omega += AttrSetAcceleration->GetTorque() * DeltaSeconds;
 	SetActorRotation(GetActorQuat() * FQuat(FVector::UnitZ(), Omega * DeltaSeconds));

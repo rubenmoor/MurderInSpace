@@ -28,6 +28,16 @@ void UAttrSetAcceleration::OnRep_OmegaMax(const FGameplayAttributeData& OldOmega
     GAMEPLAYATTRIBUTE_REPNOTIFY(UAttrSetAcceleration, OmegaMax, OldOmegaMax)
 }
 
+void UAttrSetAcceleration::OnRep_ForwardSpeed(const FGameplayAttributeData& OldForwardSpeed)
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAttrSetAcceleration, OmegaMax, OldForwardSpeed)
+}
+
+void UAttrSetAcceleration::OnRep_ForwardSpeedMax(const FGameplayAttributeData& OldForwardSpeedMax)
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAttrSetAcceleration, ForwardSpeedMax, OldForwardSpeedMax)
+}
+
 TArray<FMyAttributeRow> UAttrSetAcceleration::GetAttributeInitialValueRows()
 {
     return

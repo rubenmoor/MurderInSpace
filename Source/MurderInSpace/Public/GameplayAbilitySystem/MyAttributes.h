@@ -48,6 +48,16 @@ public:
 	FGameplayAttributeData OmegaMax;
 	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, OmegaMax)
 
+	// current forward speed
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_ForwardSpeed)
+	FGameplayAttributeData ForwardSpeed;
+	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, ForwardSpeed)
+
+	// maximal forward speed
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_ForwardSpeedMax)
+	FGameplayAttributeData ForwardSpeedMax;
+	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, ForwardSpeedMax)
+
 	UFUNCTION()
 	virtual void OnRep_AccelerationSIMax(const FGameplayAttributeData& OldAccelerationSIMax);
 	
@@ -62,6 +72,12 @@ public:
 	
 	UFUNCTION()
 	virtual void OnRep_OmegaMax(const FGameplayAttributeData& OldOmegaMax);
+
+	UFUNCTION()
+	virtual void OnRep_ForwardSpeed(const FGameplayAttributeData& OldForwardSpeed);
+
+	UFUNCTION()
+	virtual void OnRep_ForwardSpeedMax(const FGameplayAttributeData& OldForwardSpeedMax);
 
 private:
 	virtual TArray<FMyAttributeRow> GetAttributeInitialValueRows() override;

@@ -30,7 +30,7 @@ public:
     // IHasCollision
     virtual UMyCollisionComponent* GetCollisionComponent() override { return CollisionComponent; }
 
-    virtual FComponentBeginOverlapSignature& GetOnOverlapEmbraceSphere() override;
+    virtual USphereComponent* GetEmbraceSphere() override { return EmbraceSphere; }
     
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

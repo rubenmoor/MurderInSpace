@@ -35,11 +35,6 @@ AMyPawn_Humanoid::AMyPawn_Humanoid()
 	EmbraceSphere->SetCollisionResponseToChannels(Responses);
 }
 
-FComponentBeginOverlapSignature& AMyPawn_Humanoid::GetOnOverlapEmbraceSphere()
-{
-	return EmbraceSphere->OnComponentBeginOverlap;
-}
-
 void AMyPawn_Humanoid::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);

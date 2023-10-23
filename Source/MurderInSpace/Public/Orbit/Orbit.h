@@ -188,6 +188,10 @@ public:
 	AOrbit();
 
 	virtual void Tick(float DeltaTime) override;
+
+    // set offset vector
+    // the orbit doesn't need an update a new actor location is compensated by a new offset vector
+    void AddOffset(const FVector VecDeltaOffset) { VecOffset += VecDeltaOffset; }
     
     UFUNCTION(BlueprintCallable)
     void SetDrawDebug(bool bDraw) { Spline->SetDrawDebug(bDraw); }
