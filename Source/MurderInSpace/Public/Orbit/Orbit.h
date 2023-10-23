@@ -195,13 +195,25 @@ public:
     void SetEnableVisibility(bool NewBVisibility) { bTrajectoryShowSpline = NewBVisibility; }
     
     /* update the orbit given
-     *     the location of the owner
      *     `DeltaVecV`: a change in velocity
      *     `Physics`
      */
     UFUNCTION(BlueprintCallable)
     void Update
         ( FVector DeltaVecV
+        , FPhysics Physics
+        );
+
+    /*
+     * update the orbit given
+     * `DeltaVecV`: a change in velocity
+     * `VecOffset`: point from the physically correct center-of-mass to the actor location
+     * `OmegaOffset`: [1/s], angular velocity to have the offset vector rotate
+     */
+    void Update
+        ( FVector DeltaVecV
+        , FVector VecOffset
+        , double OmegaOffset
         , FPhysics Physics
         );
 
@@ -245,7 +257,7 @@ public:
     FVector GetVecRKepler(FPhysics Physics) const { return GetVecR() - Physics.VecF1; }
 
     UFUNCTION(BlueprintCallable)
-    FVector GetVecR() const { return RP_Body->GetActorLocation(); }
+    FVector GetVecR() const;
 
     UFUNCTION(BlueprintCallable)
     void UpdateVisibility(bool InShow);
@@ -337,6 +349,14 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Kepler")
     double RKepler;
+
+    // point from physically correct center-of-mass to actor location
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
+    FVector VecOffset = FVector::ZeroVector;
+
+    // [1/s], have the offset vector rotate
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Kepler")
+    double OmegaOffset = 0.;
 
     // the bigger this value, the earlier an eccentricity approaching 1 will be interpreted as parabola orbit
     // which results in smoother orbits

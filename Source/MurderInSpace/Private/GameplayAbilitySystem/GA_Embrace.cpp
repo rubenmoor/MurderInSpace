@@ -102,13 +102,21 @@ FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     const double OtherMass = Cast<IHasCollision>(OtherActor)->GetCollisionComponent()->GetMyMass();
     const FVector VecV1 = Orbit->GetVecVelocity();
     const FVector VecV2 = OtherOrbit->GetVecVelocity();
+    VecN = (VecV2 - VecV1).GetSafeNormal();
  	const double J = MyMass * OtherMass / (MyMass + OtherMass) * (VecV2 - VecV1).Dot(VecN);
 	const FVector VecDeltaV1 = J / MyMass * VecN;
 	const FVector VecDeltaV2 = -J / OtherMass * VecN;
 
     const auto* GS = GetWorld()->GetGameState<AMyGameState>();
-    Orbit->Update(VecDeltaV1, GS->RP_Physics);
-    OtherOrbit->Update(VecDeltaV2, GS->RP_Physics);
+
+    const FVector VecLoc1 = ActorInfo->AvatarActor->GetActorLocation();
+    const FVector VecLoc2 = OtherActor->GetActorLocation();
+    const FVector VecCoM = (VecLoc1 * MyMass + VecLoc2 * OtherMass) / (MyMass + OtherMass);
+    const FVector Offset1 = VecLoc1 - VecCoM;
+    const FVector Offset2 = VecLoc2 - VecCoM;
+    Orbit->Update(VecDeltaV1, Offset1, 0., GS->RP_Physics);
+    OtherOrbit->Update(VecDeltaV2, Offset2, 0., GS->RP_Physics);
+    UE_LOGFMT(LogMyGame, Warning, "VecDeltaV1: {V1}, VecDeltaV2: {V2}", VecDeltaV1.ToString(), VecDeltaV2.ToString());
 
     co_await UntilReleased();
 
@@ -134,7 +142,6 @@ void UGA_Embrace::MaybeStartEmbracing(UPrimitiveComponent* OverlappedComponent, 
         OtherActor = InOtherActor;
         const FVector VecLoc1 = OverlappedComponent->GetOwner()->GetActorLocation();
         const FVector VecLoc2 = OtherActor->GetActorLocation();
-        VecN = (VecLoc2 - VecLoc1).GetSafeNormal();
         bStartEmbracing = true;
         
         auto* MyPawn = Cast<AMyPawn_Humanoid>(CurrentActorInfo->AvatarActor);

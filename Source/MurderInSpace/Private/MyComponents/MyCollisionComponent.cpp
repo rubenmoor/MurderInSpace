@@ -84,7 +84,7 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	}
 
 	// collision restitution: combination by multiplication
-	const double K = CoR * OtherCollisionComponent->CoR;
+	double K = CoR * OtherCollisionComponent->CoR;
 
 	// partially elastic collision, k in [0, 1] where k = 0 is plastic and k = 1 elastic collision, respectively
 	

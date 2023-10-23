@@ -137,7 +137,7 @@ void AOrbit::Initialize()
         // by the time of initialization, the 'RP_OrbitState' has been replicated
         // even if this weren't the case, this code doesn't do any harm
         VecVelocity = RP_OrbitState.VecVelocity;
-        RP_Body->SetActorLocation(RP_OrbitState.VecR);
+        RP_Body->SetActorLocation(RP_OrbitState.VecR + VecOffset);
         
         // make sure the orbit has the game physics, instead of the editor default physics from construction
         // the initial params aren't valid anymore, when there have been interaction before this client joined
@@ -152,9 +152,12 @@ void AOrbit::Initialize()
 void AOrbit::CorrectSplineLocation()
 {
     SetActorLocation(
-        GetVecR() - Spline->GetLocationAtSplineInputKey(
-                Spline->FindInputKeyClosestToWorldLocation(GetVecR())
-            , ESplineCoordinateSpace::World)
+        GetVecR()
+            + VecOffset
+            - Spline->GetLocationAtSplineInputKey
+                ( Spline->FindInputKeyClosestToWorldLocation(GetVecR())
+                , ESplineCoordinateSpace::World
+                )
         );
 }
 
@@ -247,14 +250,15 @@ void AOrbit::Tick(float DeltaTime)
         );
 
     if(!Blackhole->ApplyTideForceDamage(RP_Body, RKepler))
-    {
+        // no valid actor after tide force damage
         return;
-    }
     
     ScalarVelocity = VecVelocity.Length();
     VelocityVCircle = ScalarVelocity / GetCircleVelocity(Physics).Length();
     RKepler = NewVecRKepler.Length();
     FVector NewVecR = NewVecRKepler + Physics.VecF1;
+
+    VecOffset = VecOffset.RotateAngleAxisRad(OmegaOffset * DeltaTime, FVector::UnitZ());
 
     const FVector OldVecR = RP_Body->GetActorLocation();
     // TODO design decision: where are collisions calculated?
@@ -291,7 +295,7 @@ void AOrbit::Tick(float DeltaTime)
     }
     else
     {
-        if(!RP_Body->SetActorLocation(NewVecR))
+        if(!RP_Body->SetActorLocation(NewVecR + VecOffset))
         {
             UE_LOGFMT(LogMyGame, Error, "{}: SetActorLocation: false, no Root component",
                 GetFName());
@@ -302,7 +306,7 @@ void AOrbit::Tick(float DeltaTime)
     UpdateControlParams(Physics);
 }
 
-void AOrbit::Update(FVector DeltaVecV, FPhysics Physics)
+void AOrbit::Update(FVector DeltaVecV, FVector VecOffset, double OmegaOffset, FPhysics Physics)
 {
     check(!DeltaVecV.ContainsNaN())
     check(!VecVelocity.ContainsNaN())
@@ -595,6 +599,11 @@ void AOrbit::Update(FVector DeltaVecV, FPhysics Physics)
     checkf(Spline->GetSplineLength() != 0., TEXT("%s: Update"), *GetFName().ToString())
 }
 
+void AOrbit::Update(FVector DeltaVecV, FPhysics Physics)
+{
+    Update(DeltaVecV, FVector::Zero(), 0., Physics);
+}
+    
 void AOrbit::Update(FPhysics Physics)
 {
     Update(FVector::Zero(), Physics);
@@ -721,7 +730,7 @@ void AOrbit::OnRep_OrbitState()
     if(bIsInitialized)
     {
         VecVelocity = RP_OrbitState.VecVelocity;
-        RP_Body->SetActorLocation(RP_OrbitState.VecR);
+        RP_Body->SetActorLocation(RP_OrbitState.VecR + VecOffset);
 
         const auto* GS = AMyGameState::Get(this);
         Update(GS->RP_Physics);
@@ -746,6 +755,11 @@ void AOrbit::UpdateByInitialParams(FPhysics Physics)
             , Initial.VecVelocity
         ));
     Update(Physics);
+}
+
+FVector AOrbit::GetVecR() const
+{
+    return RP_Body->GetActorLocation() - VecOffset;
 }
 
 void AOrbit::UpdateVisibility(bool InShow)
@@ -917,7 +931,10 @@ void AOrbit::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyCha
         ( Name == FNameSplineDistance
         )
     {
-        RP_Body->SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World));
+        RP_Body->SetActorLocation
+            ( Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)
+                + VecOffset
+            );
     }
     else if
         ( Name == FNameEnabled
