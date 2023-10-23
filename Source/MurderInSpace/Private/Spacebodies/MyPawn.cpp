@@ -56,8 +56,12 @@ void AMyPawn::Tick(float DeltaSeconds)
 	const auto* GS = World->GetGameState<AMyGameState>();
 	const FPhysics Physics = GS->RP_Physics;
 
-	const double DeltaV = AttrSetAcceleration->GetAccelerationSI() / FPhysics::LengthScaleFactor * DeltaSeconds;
-	RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics);
+	const double A = AttrSetAcceleration->GetAccelerationSI();
+	if(A != 0.)
+	{
+		const double DeltaV = A / FPhysics::LengthScaleFactor * DeltaSeconds;
+		RP_Orbit->Update(GetActorForwardVector() * DeltaV, Physics);
+	}
 	
 	Omega += AttrSetAcceleration->GetTorque() * DeltaSeconds;
 	SetActorRotation(GetActorQuat() * FQuat(FVector::UnitZ(), Omega * DeltaSeconds));

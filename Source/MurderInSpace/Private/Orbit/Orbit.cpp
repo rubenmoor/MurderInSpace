@@ -323,14 +323,11 @@ void AOrbit::Tick(float DeltaTime)
     DrawDebugDirectionalArrow(GetWorld(), RP_Body->GetActorLocation(), GetVecR(), 10., FColor::Blue);
 }
 
-void AOrbit::Update(FVector DeltaVecV, FVector InVecOffset, double InOmegaOffset, FPhysics Physics)
+void AOrbit::Update(FVector DeltaVecV, FPhysics Physics)
 {
     check(!DeltaVecV.ContainsNaN())
     check(!VecVelocity.ContainsNaN())
 
-    VecOffset = InVecOffset;
-    OmegaOffset = InOmegaOffset;
-    
     const FVector VecR = GetVecR();
 
     // transform location vector r to Kepler coordinates, where F1 is the origin
@@ -624,9 +621,11 @@ void AOrbit::Update(FVector DeltaVecV, FVector InVecOffset, double InOmegaOffset
     checkf(Spline->GetSplineLength() != 0., TEXT("%s: Update"), *GetFName().ToString())
 }
 
-void AOrbit::Update(FVector DeltaVecV, FPhysics Physics)
+void AOrbit::Update(FVector DeltaVecV, FVector InVecOffset, double InOmegaOffset, FPhysics Physics)
 {
-    Update(DeltaVecV, FVector::Zero(), 0., Physics);
+    VecOffset = InVecOffset;
+    OmegaOffset = InOmegaOffset;
+    Update(DeltaVecV, Physics);
 }
     
 void AOrbit::Update(FPhysics Physics)
