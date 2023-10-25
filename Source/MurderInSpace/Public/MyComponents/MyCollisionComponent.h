@@ -75,4 +75,7 @@ protected:
 #if WITH_EDITOR
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 #endif
+
+private:
+	static TTuple<TOptional<AActor>, double> GetEmbraceActor(AActor* InActor);
 };

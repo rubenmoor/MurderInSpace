@@ -16,7 +16,11 @@ class AHandThruster;
  *  a pawn with a humanoid skeleton, like an astronaut
  */
 UCLASS()
-class MURDERINSPACE_API AMyPawn_Humanoid : public AMyPawn, public IHasMesh, public IHasCollision, public ICanEmbrace
+class MURDERINSPACE_API AMyPawn_Humanoid
+    : public AMyPawn
+    , public IHasMesh
+    , public IHasCollision
+    , public ICanEmbrace
 {
     GENERATED_BODY()
     
@@ -30,7 +34,10 @@ public:
     // IHasCollision
     virtual UMyCollisionComponent* GetCollisionComponent() override { return CollisionComponent; }
 
+    // ICanEmbrace
     virtual USphereComponent* GetEmbraceSphere() override { return EmbraceSphere; }
+    virtual void SetEmbracedActor(AActor* InActor) override { EmbracedActor = InActor; }
+    virtual AActor* GetEmbracedActor() override { return EmbracedActor; }
     
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -66,4 +73,7 @@ protected:
     
 	UFUNCTION()
     void GameplayCue_ThrustersFire(EGameplayCueEvent::Type Event, const FGameplayCueParameters& Parameters);
+
+    UPROPERTY()
+    AActor* EmbracedActor = nullptr;
 };

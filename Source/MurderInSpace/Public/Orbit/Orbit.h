@@ -191,8 +191,8 @@ public:
 
     // set offset vector
     // the orbit doesn't need an update a new actor location is compensated by a new offset vector
-    void AddOffset(const FVector VecDeltaOffset) { VecOffset += VecDeltaOffset; }
-    
+    void AddOffset(const FVector VecDeltaOffset);
+
     UFUNCTION(BlueprintCallable)
     void SetDrawDebug(bool bDraw) { Spline->SetDrawDebug(bDraw); }
     

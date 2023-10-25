@@ -43,6 +43,12 @@ public:
 	FGameplayAttributeData Torque;
 	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, Torque)
 
+	// current angular velocity
+	// usually, torque is preferred for physically accurate simulation, but setting omega directly is easier
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_Omega)
+	FGameplayAttributeData Omega;
+	ATTRIBUTE_ACCESSORS(UAttrSetAcceleration, Omega)
+	
 	// maximal angular velocity
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_OmegaMax)
 	FGameplayAttributeData OmegaMax;
@@ -72,6 +78,9 @@ public:
 	
 	UFUNCTION()
 	virtual void OnRep_OmegaMax(const FGameplayAttributeData& OldOmegaMax);
+
+	UFUNCTION()
+	virtual void OnRep_Omega(const FGameplayAttributeData& OldOmega);
 
 	UFUNCTION()
 	virtual void OnRep_ForwardSpeed(const FGameplayAttributeData& OldForwardSpeed);

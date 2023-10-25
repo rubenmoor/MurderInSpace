@@ -1,9 +1,9 @@
 #include "MyComponents/MyCollisionComponent.h"
 
+#include "GameplayAbilitySystem/GA_Embrace.h"
 #include "Spacebodies/IHasMesh.h"
 #include "Logging/StructuredLog.h"
 #include "Orbit/Orbit.h"
-#include "Modes/MyState.h"
 #include "Modes/MyGameInstance.h"
 #include "Modes/MyGameState.h"
 
@@ -61,15 +61,17 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	// 	, *Other->GetName()
 	// 	)
 	
+	auto [EmbraceActor, MyCombinedMass] = GetEmbraceActor(GetOwner());
+	auto [OtherEmbraceActor, OtherMass] = GetEmbraceActor(Other);
+
 	auto* Orbit1 = GetOwner<IHasOrbit>()->GetOrbit();
+	auto Orbit1Embrace = nullptr; // EmbraceActor ? TOptional(Cast<IHasOrbit>(EmbraceActor)->GetOrbit()) : TOptional<IHasOrbit>();
 	auto* Orbit2 = Cast<IHasOrbit>(Other)->GetOrbit();
+	auto Orbit2Embrace = nullptr; // OtherEmbraceActor ? TOptional(Cast<IHasOrbit>(OtherEmbraceActor)->GetOrbit()) : TOptional<IHasOrbit>();
 	
 	const FVector VecV1 = Orbit1->GetVecVelocity();
 	const FVector VecV2 = Orbit2->GetVecVelocity();
 
-	auto* OtherCollisionComponent = Cast<IHasCollision>(Other)->GetCollisionComponent();
-	const double OtherMass = OtherCollisionComponent->GetMyMass();
-	
 	FVector VecN = HitResult.ImpactNormal;
 
 	switch(MyCollisionDimensions)
@@ -84,14 +86,14 @@ void UMyCollisionComponent::HandleHit(FHitResult& HitResult, UPrimitiveComponent
 	}
 
 	// collision restitution: combination by multiplication
-	double K = CoR * OtherCollisionComponent->CoR;
+	double K = CoR * Cast<IHasCollision>(Other)->GetCollisionComponent()->CoR;
 
 	// partially elastic collision, k in [0, 1] where k = 0 is plastic and k = 1 elastic collision, respectively
 	
 	// calculation for 3 dimensions
 	// https://en.wikipedia.org/wiki/Inelastic_collision
- 	const double J = MyMass * OtherMass / (MyMass + OtherMass) * (1. + K) * (VecV2 - VecV1).Dot(VecN);
-	const FVector VecDeltaV1 = J / MyMass * VecN;
+ 	const double J = MyCombinedMass * OtherMass / (MyCombinedMass + OtherMass) * (1. + K) * (VecV2 - VecV1).Dot(VecN);
+	const FVector VecDeltaV1 = J / MyCombinedMass * VecN;
 	const FVector VecDeltaV2 = -J / OtherMass * VecN;
 
 	switch(MyCollisionDimensions)
@@ -139,6 +141,23 @@ void UMyCollisionComponent::PostEditChangeChainProperty(FPropertyChangedChainEve
     }
 }
 #endif
+
+// TODO: TOptional<AActor> doesn't work, use TOptional<AActor*> instead
+TTuple<TOptional<AActor>, double> UMyCollisionComponent::GetEmbraceActor(AActor* InActor)
+{
+	auto EmbraceActor = TOptional<AActor>();
+	double CombinedMass = Cast<IHasCollision>(InActor)->GetCollisionComponent()->GetMyMass();
+	if(InActor->Implements<UCanEmbrace>())
+		EmbraceActor = *Cast<ICanEmbrace>(InActor)->GetEmbracedActor();
+	
+	if(InActor->Implements<UCanBeEmbraced>())
+	{
+		check(!EmbraceActor.IsSet())
+		EmbraceActor = *Cast<ICanBeEmbraced>(InActor)->GetEmbracingActor();
+	}
+	CombinedMass += EmbraceActor.IsSet() ? Cast<IHasCollision>(&*EmbraceActor)->GetCollisionComponent()->GetMyMass() : 0.;
+	return TTuple<TOptional<AActor>, double>{TOptional(*EmbraceActor), CombinedMass};
+}
 
 void UMyCollisionComponent::UpdateMass(double Radius)
 {

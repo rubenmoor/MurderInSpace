@@ -28,6 +28,11 @@ void UAttrSetAcceleration::OnRep_OmegaMax(const FGameplayAttributeData& OldOmega
     GAMEPLAYATTRIBUTE_REPNOTIFY(UAttrSetAcceleration, OmegaMax, OldOmegaMax)
 }
 
+void UAttrSetAcceleration::OnRep_Omega(const FGameplayAttributeData& OldOmega)
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAttrSetAcceleration, Omega, OldOmega)
+}
+
 void UAttrSetAcceleration::OnRep_ForwardSpeed(const FGameplayAttributeData& OldForwardSpeed)
 {
     GAMEPLAYATTRIBUTE_REPNOTIFY(UAttrSetAcceleration, OmegaMax, OldForwardSpeed)
@@ -42,10 +47,13 @@ TArray<FMyAttributeRow> UAttrSetAcceleration::GetAttributeInitialValueRows()
 {
     return
         { { "AttrSetAcceleration.TorqueMax"        , 120. * PI / 180. }
-        , { "AttrSetAcceleration.Torque"           , 0.              }
-        , { "AttrSetAcceleration.OmegaMax"         , 120. * PI / 180. }
-        , { "AttrSetAcceleration.AccelerationSIMax", 3.              }
-        , { "AttrSetAcceleration.AccelerationSI"   , 0.              }
+        , { "AttrSetAcceleration.Torque"           , 0.               }
+        , { "AttrSetAcceleration.Omega"            , 0.               }
+        , { "AttrSetAcceleration.OmegaMax"         , 200. * PI / 180. }
+        , { "AttrSetAcceleration.AccelerationSIMax", 3.               }
+        , { "AttrSetAcceleration.AccelerationSI"   , 0.               }
+        , { "AttrSetAcceleration.ForwardSpeed"     , 0.               }
+        , { "AttrSetAcceleration.ForwardSpeedMax"  , 180.             }
         };
 }
 

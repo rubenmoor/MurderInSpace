@@ -4,8 +4,10 @@
 #include "MyGameplayAbility.h"
 #include "GA_Embrace.generated.h"
 
-class UGE_TorqueCW;
-class UGE_TorqueCCW;
+class UGE_RotateCCW;
+class UGE_RotateCW;
+class UGE_MoveBackward;
+class UGE_MoveForward;
 class USphereComponent;
 
 UINTERFACE()
@@ -20,6 +22,8 @@ class ICanBeEmbraced
 
 public:
     virtual float GetRadius() = 0;
+    virtual AActor* GetEmbracingActor() = 0;
+    virtual void SetEmbracingActor(AActor* InActor) = 0;
 };
 
 UINTERFACE()
@@ -34,6 +38,8 @@ class ICanEmbrace
 
 public:
     virtual USphereComponent* GetEmbraceSphere() = 0;
+    virtual AActor* GetEmbracedActor() = 0;
+    virtual void SetEmbracedActor(AActor* InActor) = 0;
 };
 
 /**
@@ -51,11 +57,20 @@ protected:
     UPROPERTY(EditDefaultsOnly)
     double SmallPushAmount = 100.;
 
+    UPROPERTY(EditDefaultsOnly)
+    double EmbraceDistanceModifier = 50.;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<UGE_TorqueCCW> GE_TorqueCCW;
+	TSubclassOf<UGE_RotateCCW> GE_RotateCCW;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<UGE_TorqueCW> GE_TorqueCW;
+	TSubclassOf<UGE_RotateCW> GE_RotateCW;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGE_MoveForward> GE_MoveForward;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGE_MoveBackward> GE_MoveBackward;
 	
     virtual FAbilityCoroutine ExecuteAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
@@ -69,4 +84,13 @@ protected:
 private:
     UFUNCTION()
     void MaybeStartEmbracing(UPrimitiveComponent* _OverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* _OtherComp, int32 _OtherBodyIndex, bool _bFromSweep, const FHitResult& _SweepResult);
+
+    double CalcAngle(const AActor* Actor1, const AActor* Actor2);
+    double CalcEmbraceDistance(const AActor* Actor1, const AActor* Actor2);
+
+    UPROPERTY()
+    bool bRotating = false;
+    
+    UPROPERTY()
+    bool bMovingForward = false;
 };

@@ -191,7 +191,11 @@ TArray<FFractureInfo> ADynamicAsteroid::GetFractures()
 FVector ADynamicAsteroid::GetInitialOmega()
 {
     check(IsValid(CurveOmegaDistribution))
-    return OmegaMax * CurveOmegaDistribution->GetFloatValue(RandomStream.FRand()) * FVector::UnitZ();
+    
+    // rotation in z-plane doesn't stay in z-plane because of precession
+    //return OmegaMax * CurveOmegaDistribution->GetFloatValue(RandomStream.FRand()) * FVector::UnitZ();
+    
+    return OmegaMax * CurveOmegaDistribution->GetFloatValue(RandomStream.FRand()) * RandomStream.GetUnitVector();
 }
 
 float ADynamicAsteroid::GetRadius()

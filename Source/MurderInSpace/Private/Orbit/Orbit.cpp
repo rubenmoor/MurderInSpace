@@ -323,6 +323,12 @@ void AOrbit::Tick(float DeltaTime)
     DrawDebugDirectionalArrow(GetWorld(), RP_Body->GetActorLocation(), GetVecR(), 10., FColor::Blue);
 }
 
+void AOrbit::AddOffset(const FVector VecDeltaOffset)
+{
+    VecOffset += VecDeltaOffset;
+    RP_Body->SetActorLocation(RP_Body->GetActorLocation() + VecDeltaOffset);
+}
+
 void AOrbit::Update(FVector DeltaVecV, FPhysics Physics)
 {
     check(!DeltaVecV.ContainsNaN())

@@ -67,12 +67,26 @@ void AMyPawn::Tick(float DeltaSeconds)
 	if(V != 0.)
 	{
 		const FVector VecDeltaR = GetActorForwardVector() * V * DeltaSeconds;
-		RP_Orbit->AddOffset(-VecDeltaR);
-		SetActorLocation(GetActorLocation() + VecDeltaR);
+		RP_Orbit->AddOffset(VecDeltaR);
 	}
 	
-	Omega += AttrSetAcceleration->GetTorque() * DeltaSeconds;
-	SetActorRotation(GetActorQuat() * FQuat(FVector::UnitZ(), Omega * DeltaSeconds));
+	const double OmegaOverride = AttrSetAcceleration->GetOmega();
+	if(OmegaOverride != 0.)
+	{
+		SetActorRotation(GetActorQuat() * FQuat(FVector::UnitZ(), OmegaOverride * DeltaSeconds));
+		if(Omega != 0.)
+			UE_LOGFMT(LogMyGame, Warning, "{NAME}: Tick: Omega = {O1} overridden by Omega attribute = {O2}"
+				, GetName(), Omega, OmegaOverride);
+	}
+	else
+	{
+		const double Torque = AttrSetAcceleration->GetTorque();
+		Omega += Torque * DeltaSeconds;
+		if(Omega != 0.)
+		{
+			SetActorRotation(GetActorQuat() * FQuat(FVector::UnitZ(), Omega * DeltaSeconds));
+		}
+	}
 }
 
 void AMyPawn::OnConstruction(const FTransform& Transform)

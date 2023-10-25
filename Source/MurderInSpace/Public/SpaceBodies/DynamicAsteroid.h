@@ -101,10 +101,13 @@ public:
     UPROPERTY(VisibleAnywhere, Category="Generation")
     AAsteroidBelt* AsteroidBelt = nullptr;
 
+    // IHasGyration
     virtual FVector GetInitialOmega() override;
 
     // ICanBeEmbraced
     virtual float GetRadius() override;
+    virtual AActor* GetEmbracingActor() override { return EmbracingActor; }
+    virtual void SetEmbracingActor(AActor* InActor) override { EmbracingActor = InActor; }
 
 protected:
     UPROPERTY(EditDefaultsOnly, Category="Generation")
@@ -189,4 +192,7 @@ protected:
 
     UPROPERTY()
     TObjectPtr<UFastNoiseWrapper> FastNoiseWrapper;
+
+    UPROPERTY()
+    AActor* EmbracingActor = nullptr;
 };

@@ -50,7 +50,7 @@ bool UMyGameplayAbility::RemoveActiveGameplayEffect(FActiveGameplayEffectHandle 
     {
         auto* ASC = UMyAbilitySystemComponent::Get(&ActorInfo);
         if(ASC->GetActiveGameplayEffect(Handle))
-            return ASC->RemoveActiveGameplayEffect(Handle);
+            return ASC->RemoveActiveGameplayEffect(Handle, StacksToRemove);
     }
     return false;
 }

@@ -3,8 +3,10 @@
 #include "MyGameplayTags.h"
 #include "Components/SphereComponent.h"
 #include "GameplayAbilitySystem/MyAbilitySystemComponent.h"
-#include "GameplayAbilitySystem/GE_TorqueCCW.h"
-#include "GameplayAbilitySystem/GE_TorqueCW.h"
+#include "GameplayAbilitySystem/GE_MoveForward.h"
+#include "GameplayAbilitySystem/GE_MoveBackward.h"
+#include "GameplayAbilitySystem/GE_RotateCCW.h"
+#include "GameplayAbilitySystem/GE_RotateCW.h"
 #include "HUD/MyHUD.h"
 #include "HUD/UW_MyAbilities.h"
 #include "Spacebodies/MyPawn_Humanoid.h"
@@ -107,13 +109,43 @@ FAbilityCoroutine UGA_Embrace::ExecuteAbility(FGameplayAbilitySpecHandle Handle,
     bStartEmbracing = false;
 
     // rotate and approach the other actor
-    // TODO
+
+    const double AngleStart = CalcAngle(ActorInfo->AvatarActor.Get(), OtherActor);
     const auto SpecTorque =
-        MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, GE_TorqueCW);
-    ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque);
-    
+        MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, AngleStart > 0 ? GE_RotateCW : GE_RotateCCW);
+    auto HandleTorque = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecTorque);
+    bRotating = true;
+
+    const double EmbraceDistanceStart = CalcEmbraceDistance(ActorInfo->AvatarActor.Get(), OtherActor);
+    const auto SpecForward =
+        MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, EmbraceDistanceStart > 0. ? GE_MoveForward : GE_MoveBackward);
+    // auto HandleForwardMovement =
+    //     ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecForward);
+    bMovingForward = true;
+
     // TODO: blend pose depending on `Span`
     ASC->AddPoseCue(Tag.CuePoseEmbraceExecute);
+    
+    // co_await Latent::Until([this, ActorInfo, ActivationInfo, AngleStart, EmbraceDistanceStart, HandleTorque, HandleForwardMovement]
+    co_await Latent::Until([this, ActorInfo, ActivationInfo, AngleStart, EmbraceDistanceStart, HandleTorque]
+    {
+        const bool bRotationFinished = AngleStart * CalcAngle(ActorInfo->AvatarActor.Get(), OtherActor) < 0;
+        const bool bForwardMovementFinished = EmbraceDistanceStart * CalcEmbraceDistance(ActorInfo->AvatarActor.Get(), OtherActor) < 0;
+        if(bRotating && bRotationFinished)
+        {
+            RemoveActiveGameplayEffect(HandleTorque, *ActorInfo, ActivationInfo);
+            bRotating = false;
+        }
+        // if(bMovingForward && bForwardMovementFinished)
+        // {
+        //     RemoveActiveGameplayEffect(HandleForwardMovement, *ActorInfo, ActivationInfo);
+        //     bMovingForward = false;
+        // }
+        bMovingForward = false;
+        return !(bRotating || bMovingForward);
+    });
+
+    UE_LOGFMT(LogMyGame, Warning, "Embrace: finished positioning");
     
     //  TODO: include change of rotational speed
 
@@ -174,6 +206,7 @@ void UGA_Embrace::MaybeStartEmbracing(UPrimitiveComponent* _OverlappedComponent,
     if(InOtherActor->Implements<UCanBeEmbraced>())
     {
         check(InOtherActor->Implements<UHasCollision>())
+        check(InOtherActor->Implements<UHasMesh>())
         
         OtherActor = InOtherActor;
         bStartEmbracing = true;
@@ -181,4 +214,19 @@ void UGA_Embrace::MaybeStartEmbracing(UPrimitiveComponent* _OverlappedComponent,
         auto* MyPawn = Cast<AMyPawn_Humanoid>(CurrentActorInfo->AvatarActor);
         MyPawn->GetEmbraceSphere()->OnComponentBeginOverlap.RemoveDynamic(this, &UGA_Embrace::MaybeStartEmbracing);
     }
+}
+
+double UGA_Embrace::CalcAngle(const AActor* Actor1, const AActor* Actor2)
+{
+    const FVector VecForward = Actor1->GetActorForwardVector();
+    const FVector VecAim = Actor2->GetActorLocation() - Actor1->GetActorLocation();
+    return FMath::Atan2(VecForward.Y, VecForward.X) - FMath::Atan2(VecAim.Y, VecAim.X);
+}
+
+double UGA_Embrace::CalcEmbraceDistance(const AActor* Actor1, const AActor* Actor2)
+{
+    return
+          (Actor2->GetActorLocation() - Actor1->GetActorLocation()).Length()
+        - Cast<IHasMesh>(Actor2)->GetBounds().SphereRadius
+        + EmbraceDistanceModifier;
 }
